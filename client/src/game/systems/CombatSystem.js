@@ -77,8 +77,8 @@ export class CombatSystem {
             sourceEntityId: attacker.id
           }), parentEnvelope);
 
-          // Cascade: If broken and NOT a door or window, enqueue DestroyIntent
-          if (broken && target.type !== 'door' && target.type !== 'window') {
+          // Cascade: If broken and NOT a door, window, or garage door, enqueue DestroyIntent
+          if (broken && target.type !== 'door' && target.type !== 'window' && target.type !== 'garage_door') {
             intentQueue.enqueue(target.id, 'DestroyIntent', new DestroyIntent({
               entityId: target.id
             }), parentEnvelope);

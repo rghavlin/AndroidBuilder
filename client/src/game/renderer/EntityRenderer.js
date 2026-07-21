@@ -204,7 +204,7 @@ export const EntityRenderer = {
     ctx.globalAlpha = 1.0;
 
     let explored = isExplored;
-    if (!explored && entity.edge && ['door', 'window'].includes(entity.type) && engine && engine.gameMap) {
+    if (!explored && entity.edge && ['door', 'window', 'garage_door'].includes(entity.type) && engine && engine.gameMap) {
       let adjX = Math.round(entity.x);
       let adjY = Math.round(entity.y);
       if (entity.edge === 'e') adjX += 1;
@@ -275,7 +275,7 @@ export const EntityRenderer = {
     }
 
     // 2. Visibility Filtering (Fog of War vs Line of Sight)
-    const isPersistent = ['door', 'window', 'place_icon', 'item'].includes(entity.type);
+    const isPersistent = ['door', 'window', 'garage_door', 'place_icon', 'item'].includes(entity.type);
     
     // PERFORM VISUAL LOS CHECK BASED ON RENDER COORDS
     const visualX = Math.round(renderX);
@@ -283,7 +283,7 @@ export const EntityRenderer = {
     let isVisible = visibilitySet.has(`${visualX},${visualY}`);
 
     // If it is an edge-aligned entity (door/window), check if the visible side neighbor is visible
-    if (!isVisible && entity.edge && ['door', 'window'].includes(entity.type)) {
+    if (!isVisible && entity.edge && ['door', 'window', 'garage_door'].includes(entity.type)) {
       let adjX = visualX;
       let adjY = visualY;
       if (entity.edge === 'e') adjX += 1;
@@ -360,6 +360,8 @@ export const EntityRenderer = {
       EntityRenderer.drawDoor(ctx, entity, screenX, screenY, tileSize);
     } else if (entity.type === EntityType.WINDOW) {
       EntityRenderer.drawWindow(ctx, entity, screenX, screenY, tileSize);
+    } else if (entity.type === EntityType.GARAGE_DOOR) {
+      EntityRenderer.drawGarageDoor(ctx, entity, screenX, screenY, tileSize);
     } else if (entity.type === EntityType.PLACE_ICON) {
       EntityRenderer.drawPlaceIcon(ctx, entity, screenX, screenY, tileSize, sprites);
     } else {
@@ -748,7 +750,7 @@ export const EntityRenderer = {
     const eHp = entity.hp ?? entity._hp;
     const eMaxHp = entity.maxHp ?? entity._maxHp;
     const isWounded = eHp !== undefined && eMaxHp !== undefined && eHp < eMaxHp;
-    const isStructural = entity.type === EntityType.DOOR || entity.type === EntityType.WINDOW;
+    const isStructural = entity.type === EntityType.DOOR || entity.type === EntityType.WINDOW || entity.type === EntityType.GARAGE_DOOR;
     if (isVisible && isWounded && !isStructural && entity.type !== EntityType.PLAYER) {
       EntityRenderer.renderHealthBar(ctx, entity, screenX, screenY, tileSize);
     }
@@ -775,6 +777,58 @@ export const EntityRenderer = {
     }
 
     ctx.globalAlpha = 1.0;
+  },
+
+  drawGarageDoor: (ctx, entity, x, y, tileSize) => {
+    const isBW = imageLoader.tileSet === 'b&w';
+    const isLight = isLightTheme();
+    const closedColor = isBW ? '#555555' : (isLight ? '#71717a' : '#3f3f46');
+    const strokeColor = isBW ? '#111111' : '#18181b';
+
+    ctx.save();
+    if (entity.visualIsOpen) {
+      ctx.globalAlpha = 0.3; // partially transparent when open
+    } else {
+      ctx.globalAlpha = 1.0;
+    }
+    ctx.fillStyle = closedColor;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2;
+
+    const thickness = Math.max(8, Math.floor(tileSize * 0.25));
+    
+    // A tile section of the garage door
+    let rx = x, ry = y, rw = tileSize, rh = tileSize;
+
+    if (entity.edge === 'n') {
+      rx = x; ry = y - thickness / 2; rw = tileSize; rh = thickness;
+    } else if (entity.edge === 's') {
+      rx = x; ry = y + tileSize - thickness / 2; rw = tileSize; rh = thickness;
+    } else if (entity.edge === 'w') {
+      rx = x - thickness / 2; ry = y; rw = thickness; rh = tileSize;
+    } else if (entity.edge === 'e') {
+      rx = x + tileSize - thickness / 2; ry = y; rw = thickness; rh = tileSize;
+    }
+
+    ctx.fillRect(rx, ry, rw, rh);
+    ctx.strokeRect(rx, ry, rw, rh);
+
+    // Texture lines (parallel to the door length)
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.lineWidth = 1;
+    if (entity.edge === 'w' || entity.edge === 'e') {
+      // Vertical door, draw a line down the middle
+      ctx.moveTo(rx + rw / 2, ry);
+      ctx.lineTo(rx + rw / 2, ry + rh);
+    } else {
+      // Horizontal door, draw a line down the middle
+      ctx.moveTo(rx, ry + rh / 2);
+      ctx.lineTo(rx + rw, ry + rh / 2);
+    }
+    ctx.stroke();
+
+    ctx.restore();
   },
 
   drawDoor: (ctx, entity, x, y, tileSize) => {

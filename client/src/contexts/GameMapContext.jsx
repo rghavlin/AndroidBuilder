@@ -92,7 +92,7 @@ export const GameMapProvider = ({ children }) => {
         const riddenItemId = engine.riding?.item?.instanceId;
         return !tile.contents.some(entity => {
           if (entity.id === player.id) return false;
-          if (entity.type === 'window' || entity.type === 'door') return false;
+          if (entity.type === 'window' || entity.type === 'door' || entity.type === 'garage_door') return false;
           if (draggedItemId && (entity.id === draggedItemId || entity.instanceId === draggedItemId)) return false;
           if (riddenItemId && (entity.id === riddenItemId || entity.instanceId === riddenItemId)) return false;
           return entity.blocksMovement;
@@ -151,7 +151,7 @@ export const GameMapProvider = ({ children }) => {
           return false;
         }
 
-        const blockedByEntity = tile.contents.some(e => e.blocksMovement && e.id !== player.id && e.type !== 'window' && e.type !== 'door');
+        const blockedByEntity = tile.contents.some(e => e.blocksMovement && e.id !== player.id && e.type !== 'window' && e.type !== 'door' && e.type !== 'garage_door');
         const blockedByTurret = tile.contents.some(e => e.defId === TURRET_DEF_ID && !isTurretPassableBy(e, player));
         return !blockedByEntity && !blockedByTurret;
       };

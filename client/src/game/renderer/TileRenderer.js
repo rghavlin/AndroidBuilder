@@ -343,7 +343,7 @@ export const TileRenderer = {
         // Draw Edge Walls
         const hasDoorOrWindowOnEdge = (t, edge) => {
             if (!t || !t.contents) return false;
-            return t.contents.some(e => (e.type === 'door' || e.type === 'window') && e.edge === edge);
+            return t.contents.some(e => (e.type === 'door' || e.type === 'window' || e.type === 'garage_door') && e.edge === edge);
         };
 
         const hasEdgeWall = (t, edge) => {
@@ -619,7 +619,7 @@ export const TileRenderer = {
 
     // Edge walls — neighbour lookups use world coordinates
     const hasDoorOrWindowOnEdge = (t, edge) =>
-      t?.contents?.some(e => (e.type === 'door' || e.type === 'window') && e.edge === edge) ?? false;
+      t?.contents?.some(e => (e.type === 'door' || e.type === 'window' || e.type === 'garage_door') && e.edge === edge) ?? false;
     const hasEdgeWall = (t, edge) => t?.edgeWalls?.[edge] && !hasDoorOrWindowOnEdge(t, edge);
 
     const hasN = hasEdgeWall(tile, 'n') || (engine?.gameMap && hasEdgeWall(engine.gameMap.getTile(worldX, worldY - 1), 's'));

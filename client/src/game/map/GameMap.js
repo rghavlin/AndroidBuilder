@@ -230,7 +230,7 @@ export class GameMap extends SafeEventEmitter {
     if (!posA || !posB || !gameMap) return false;
 
     const startTile = gameMap.getTile(posA.x, posA.y);
-    const isIndoors = (tile) => tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'building' || tile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW));
+    const isIndoors = (tile) => tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'building' || tile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === EntityType.GARAGE_DOOR));
     
     if (!isIndoors(startTile)) return false;
 
@@ -261,7 +261,7 @@ export class GameMap extends SafeEventEmitter {
         if (visited.has(key)) continue;
 
         const tile = gameMap.getTile(next.x, next.y);
-        const entity = tile?.contents.find(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+        const entity = tile?.contents.find(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === EntityType.GARAGE_DOOR);
         const isWall = tile && tile.blocksMovement && !entity;
         const isTarget = next.x === posB.x && next.y === posB.y;
         
@@ -1362,6 +1362,7 @@ export class GameMap extends SafeEventEmitter {
     const { Window } = await import('../entities/Window.js');
     const { PlaceIcon } = await import('../entities/PlaceIcon.js');
     const { Rabbit } = await import('../entities/Rabbit.js');
+    const { GarageDoor } = await import('../entities/GarageDoor.js');
 
     // Sync an entity's coordinate fields + Position component to a tile.
     const syncEntityPosition = (entity, x, y) => {
@@ -1430,6 +1431,9 @@ export class GameMap extends SafeEventEmitter {
                 break;
               case 'door':
                 entity = Door.fromJSON(entityData);
+                break;
+              case 'garage_door':
+                entity = GarageDoor.fromJSON(entityData);
                 break;
               case 'window':
                 entity = Window.fromJSON(entityData);

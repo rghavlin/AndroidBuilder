@@ -833,6 +833,7 @@ export class TemplateMapGenerator {
         if (!templateMapData.metadata) return false;
         if (templateMapData.metadata.doors?.some(d => d.x === tx && d.y === ty)) return true;
         if (templateMapData.metadata.windows?.some(w => w.x === tx && w.y === ty)) return true;
+        if (templateMapData.metadata.garageDoors?.some(gd => gd.x === tx && gd.y === ty)) return true;
         return false;
       };
 
@@ -914,6 +915,33 @@ export class TemplateMapGenerator {
           gameMap.setTerrain(doorData.x, doorData.y, 'floor');
         });
         console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.doors.length} doors`);
+      }
+
+      // Instantiate garage door entities from metadata
+      if (templateMapData.metadata && templateMapData.metadata.garageDoors) {
+        const { GarageDoor } = await import('../entities/GarageDoor.js');
+        templateMapData.metadata.garageDoors.forEach(gdData => {
+          const garageDoor = new GarageDoor(
+            gdData.id || `garagedoor-${gdData.x}-${gdData.y}-${gdData.edge || 'x'}`,
+            gdData.x,
+            gdData.y,
+            gdData.isLocked,
+            gdData.isOpen,
+            false,
+            gdData.edge,
+            gdData.groupId
+          );
+          
+          const registry = templateMapData.metadata?.entityRegistry;
+          if (registry?.entries) {
+            const match = registry.entries.find(e => e.type === 'garage_door' && e.x === gdData.x && e.y === gdData.y);
+            if (match) garageDoor.registryTag = match.tag;
+          }
+          
+          gameMap.addEntity(garageDoor, gdData.x, gdData.y);
+          gameMap.setTerrain(gdData.x, gdData.y, 'floor');
+        });
+        console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.garageDoors.length} garage doors`);
       }
 
       // Instantiate window entities from metadata

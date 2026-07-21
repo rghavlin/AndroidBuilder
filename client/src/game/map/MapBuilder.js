@@ -463,11 +463,23 @@ export class MapBuilder {
         const appSize = 4;
         const appOffset = Math.floor(wallOffset / 2) - 2;
         
+        let gx, gy;
+        if (isHorizontal) {
+            gx = x + appOffset;
+            gy = entranceY;
+        } else {
+            gx = entranceX;
+            gy = y + appOffset;
+        }
+
+        // Add 4 floor tiles and garage doors
+        this.metadata.garageDoors = this.metadata.garageDoors || [];
+        const groupId = `firestation-garage-${x}-${y}`;
         for (let i = 0; i < appSize; i++) {
             let ax = entranceX, ay = entranceY;
             if (isHorizontal) ax = x + appOffset + i; else ay = y + appOffset + i;
             this.setTerrain(ax, ay, 'floor');
-            this.metadata.doors.push({ x: ax, y: ay, isOpening: true, isOpen: true, edge: entranceEdge });
+            this.metadata.garageDoors.push({ x: ax, y: ay, isOpening: false, isOpen: false, edge: entranceEdge, groupId: groupId });
         }
 
         let sx = entranceX, sy = entranceY;
@@ -534,6 +546,8 @@ export class MapBuilder {
       if (!this.layout[t.y][t.x].edgeWalls[wEdge]) return false;
       // Must not be a door
       if (this.metadata.doors.some(d => d.x === t.x && d.y === t.y)) return false;
+      // Must not be a garage door
+      if (this.metadata.garageDoors && this.metadata.garageDoors.some(gd => gd.x === t.x && gd.y === t.y)) return false;
       // Must not overlap with place icons (like signs)
       if (this.metadata.placeIcons.some(pi => pi.x === t.x && pi.y === t.y)) return false;
       

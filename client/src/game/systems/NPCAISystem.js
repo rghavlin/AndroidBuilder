@@ -327,7 +327,7 @@ export class NPCAISystem {
       const isEdgeBlocked = Pathfinding.isEdgeBlocked(gameMap, npc.logicalX, npc.logicalY, neighbor.x, neighbor.y, npc, { isPathfinding: true, allowBreaching: true });
       if (isEdgeBlocked) continue;
 
-      const hasBlockingEntity = tile.contents.some(e => e.blocksMovement && e.type !== 'door' && e.type !== 'window');
+      const hasBlockingEntity = tile.contents.some(e => e.blocksMovement && e.type !== 'door' && e.type !== 'window' && e.type !== 'garage_door');
       if (hasBlockingEntity) continue;
 
       // Skip tiles already visited this turn to prevent oscillation
@@ -624,7 +624,7 @@ export class NPCAISystem {
           pathValid = false;
         } else {
           const edgeBlocked = Pathfinding.isEdgeBlocked(gameMap, npc.logicalX, npc.logicalY, nextStep.x, nextStep.y, npc, { isPathfinding: true, allowBreaching: true });
-          const hasBlockingEntity = nextTile.contents.some(e => e.blocksMovement && e.type !== 'door' && e.type !== 'window');
+          const hasBlockingEntity = nextTile.contents.some(e => e.blocksMovement && e.type !== 'door' && e.type !== 'window' && e.type !== 'garage_door');
           if (edgeBlocked || hasBlockingEntity) pathValid = false;
         }
       }

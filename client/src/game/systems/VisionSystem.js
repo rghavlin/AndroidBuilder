@@ -181,9 +181,10 @@ export class VisionSystem {
     if (tile.contents && Array.isArray(tile.contents)) {
       for (const entity of tile.contents) {
         // Doors block sight when closed and not broken
-        if (entity.type === 'door') {
+        // Doors/garage doors block sight when closed and not broken
+        if (entity.type === 'door' || entity.type === 'garage_door') {
           if (entity.edge !== undefined) continue;
-          if (!entity.isOpen && !entity.isBroken) {
+          if (!entity.isOpen && !entity.isDamaged) {
             return true;
           }
         }
@@ -222,8 +223,8 @@ export class VisionSystem {
     // Doors clear their edge-wall flag at map load (the Door entity takes over
     // blocking), so a closed door on this edge must block sight even when no
     // wall flag remains. Collect breachables BEFORE the no-wall early return.
-    const breachable1 = t1.contents.filter(e => (e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir1to2));
-    const breachable2 = t2.contents.filter(e => (e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir2to1));
+    const breachable1 = t1.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === 'garage_door') && (!e.edge || e.edge === dir1to2));
+    const breachable2 = t2.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === 'garage_door') && (!e.edge || e.edge === dir2to1));
     const allBreachable = [...breachable1, ...breachable2];
 
     if (!hasWall && allBreachable.length === 0) return false;
@@ -231,7 +232,7 @@ export class VisionSystem {
     if (allBreachable.length === 0) return true; // Solid wall blocks sight
 
     for (const e of allBreachable) {
-      if ((e.type === 'door') && !e.isOpen && !e.isBroken) {
+      if ((e.type === 'door' || e.type === 'garage_door') && !e.isOpen && !e.isDamaged) {
         return true; // Closed door blocks sight
       }
       // Open doors or windows (even closed/broken) allow sight

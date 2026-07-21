@@ -342,6 +342,12 @@ export const ActionProvider = ({ children }) => {
     }
 
     const isLockpick = targetingItem.hasTrait?.(ItemTrait.CAN_PICK_LOCKS);
+    
+    if (structure.type === EntityType.GARAGE_DOOR && !isLockpick) {
+      addLog('Cannot force a garage door.', 'warning');
+      return { success: false, reason: 'Cannot force a garage door' };
+    }
+
     const apCost = isLockpick ? 1 : 2;
 
     if (player.ap < apCost) {

@@ -17,9 +17,9 @@ const NEIGHBORS = [
 ];
 
 const matchesType = (entity, type) => {
-    if (type === 'door') return entity.type === EntityType.DOOR;
+    if (type === 'door') return entity.type === EntityType.DOOR || entity.type === EntityType.GARAGE_DOOR;
     if (type === 'window') return entity.type === EntityType.WINDOW;
-    return entity.type === EntityType.DOOR || entity.type === EntityType.WINDOW;
+    return entity.type === EntityType.DOOR || entity.type === EntityType.GARAGE_DOOR || entity.type === EntityType.WINDOW;
 };
 
 // Find a door/window for a click at (x, y): first on the clicked tile itself,

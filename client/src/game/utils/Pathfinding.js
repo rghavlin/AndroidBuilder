@@ -174,7 +174,7 @@ export class Pathfinding {
 
         // REVISE: Allow pathfinding through closed doors/windows for zombies and NPCs
         const isNPC = pathOptions.isNPC || pathOptions.entity?.type === 'npc' || (entityFilter && entityFilter.type === 'npc');
-        const hasBreachableStructure = (isZombie || pathOptions.entity?.type === 'zombie' || isNPC) && neighborTile.contents.some(e => e.type === 'door' || e.type === 'window');
+        const hasBreachableStructure = (isZombie || pathOptions.entity?.type === 'zombie' || isNPC) && neighborTile.contents.some(e => e.type === 'door' || e.type === 'window' || e.type === 'garage_door');
         
         if (!isWalkable && !hasBreachableStructure && !isTarget) continue;
 
@@ -463,7 +463,7 @@ export class Pathfinding {
     // Fast path for the overwhelmingly common open-floor edge: no wall flag and no
     // door/window entity on either tile means nothing can block this boundary.
     // (.some avoids allocating in the hot A* per-neighbour path.)
-    const isStruct = e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW;
+    const isStruct = e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === EntityType.GARAGE_DOOR;
     if (!wallBlocks && !tile1.contents.some(isStruct) && !tile2.contents.some(isStruct)) return false;
 
     // Doors/windows sitting on THIS boundary. We must consult these even when the
@@ -518,12 +518,13 @@ export class Pathfinding {
     else if (y2 < y1) { dir1to2 = 'n'; dir2to1 = 's'; }
 
     if (dir1to2) {
-      const breachable1 = tile1.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir1to2));
-      const breachable2 = tile2.contents.filter(e => (e.type === EntityType.DOOR || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir2to1));
+      const isDoorLike = e => e.type === EntityType.DOOR || e.type === EntityType.GARAGE_DOOR;
+      const breachable1 = tile1.contents.filter(e => (isDoorLike(e) || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir1to2));
+      const breachable2 = tile2.contents.filter(e => (isDoorLike(e) || e.type === EntityType.WINDOW) && (!e.edge || e.edge === dir2to1));
 
       const allBreachable = [...breachable1, ...breachable2];
       for (const e of allBreachable) {
-        if ((e.type === EntityType.DOOR && !e.isOpen && !e.isDamaged && !e.isBroken) ||
+        if ((isDoorLike(e) && !e.isOpen && !e.isDamaged && !e.isBroken) ||
             (e.type === EntityType.WINDOW && (e.isReinforced || (!e.isBroken && !e.isOpen)))) {
           return e;
         }

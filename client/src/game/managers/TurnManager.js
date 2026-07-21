@@ -207,8 +207,8 @@ class TurnManager {
               let structure = tileTo?.contents.find(e => e.id === data.targetId) || 
                               tileFrom?.contents.find(e => e.id === data.targetId);
               if (!structure) {
-                structure = tileTo?.contents.find(e => e.type === 'door' || e.type === 'window') ||
-                            tileFrom?.contents.find(e => e.type === 'door' || e.type === 'window');
+                structure = tileTo?.contents.find(e => e.type === 'door' || e.type === 'window' || e.type === 'garage_door') ||
+                            tileFrom?.contents.find(e => e.type === 'door' || e.type === 'window' || e.type === 'garage_door');
               }
               if (structure && typeof structure.syncVisualState === 'function') {
                 structure.syncVisualState();

@@ -215,7 +215,7 @@ export const PlayerProvider = ({ children }) => {
       { x: player.x, y: player.y - 1, direction: 'up' }
     ].map(pos => {
       const tile = gameMap.getTile(pos.x, pos.y);
-      const isPassable = tile && !tile.contents.some(e => e.blocksMovement && e.type !== 'window' && e.type !== 'door') &&
+      const isPassable = tile && !tile.contents.some(e => e.blocksMovement && e.type !== 'window' && e.type !== 'door' && e.type !== 'garage_door') &&
         !tile.contents.some(e => e.defId === TURRET_DEF_ID && !isTurretPassableBy(e, player)) &&
         !['wall', 'building', 'fence', 'tree'].includes(tile.terrain);
       const hasZombie = tile && tile.contents.some(e => e.type === 'zombie');

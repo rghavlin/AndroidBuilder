@@ -71,7 +71,7 @@ export class Tile {
     }
 
     for (const item of this.contents) {
-      if (item.type === EntityType.DOOR && item.isOpen) {
+      if ((item.type === EntityType.DOOR || item.type === EntityType.GARAGE_DOOR) && item.isOpen) {
         hasEntry = true;
         break;
       }
@@ -87,7 +87,7 @@ export class Tile {
     if (unwalkableTerrains.includes(this.terrain) && !hasEntry) {
       // PATHFINDING EXCEPTION: Zombies can path "to" buildings to attack them
       // ONLY if the tile actually contains a door or window to breach.
-      const hasBreachable = this.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW);
+      const hasBreachable = this.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === EntityType.GARAGE_DOOR);
       if (options.allowBreaching && (this.terrain === 'building' || this.terrain === 'wall') && hasBreachable) {
         // Fall through to content check
       } else {
@@ -99,10 +99,10 @@ export class Tile {
     for (const item of this.contents) {
       // Edge-based walls: doors and windows align to tile boundaries (edges) and should not block the entire tile.
       // Blocking is fully handled by Pathfinding.isEdgeBlocked.
-      if ((item.type === EntityType.DOOR || item.type === EntityType.WINDOW) && item.edge !== undefined) continue;
+      if ((item.type === EntityType.DOOR || item.type === EntityType.WINDOW || item.type === EntityType.GARAGE_DOOR) && item.edge !== undefined) continue;
       
       // Bypass for open/broken structures
-      if (item.type === EntityType.DOOR && item.isOpen) continue;
+      if ((item.type === EntityType.DOOR || item.type === EntityType.GARAGE_DOOR) && item.isOpen) continue;
       if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken) && !isPlayer) continue;
 
       // Powered-on turrets block movement for everyone except their own faction

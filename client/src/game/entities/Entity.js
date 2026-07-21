@@ -132,7 +132,8 @@ export const EntityType = {
   ITEM: 'item',
   NPC: 'npc',
   PLACE_ICON: 'place_icon',
-  STRUCTURE: 'structure'
+  STRUCTURE: 'structure',
+  GARAGE_DOOR: 'garage_door'
 };
 
 export class Entity extends SafeEventEmitter {

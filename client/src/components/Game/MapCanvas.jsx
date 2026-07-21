@@ -570,7 +570,7 @@ export default function MapCanvas({
         if (maxX < extendedBounds.startX || minX > extendedBounds.endX || maxY < extendedBounds.startY || minY > extendedBounds.endY) return;
 
         // Categorize into layers: Persistent structures and ground items go to bottom
-        if ([EntityType.ITEM, EntityType.PLACE_ICON, EntityType.DOOR, EntityType.WINDOW].includes(entity.type)) {
+        if ([EntityType.ITEM, EntityType.PLACE_ICON, EntityType.DOOR, EntityType.WINDOW, EntityType.GARAGE_DOOR].includes(entity.type)) {
           groundEntities.push(entity);
         } else {
           livingEntities.push(entity);

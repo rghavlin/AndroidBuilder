@@ -216,7 +216,7 @@ export class LineOfSight {
         if (!mapTile) return true;
         
         const blockingEntity = this.getBlockingEntity(mapTile, ignoreEntities);
-        if (blockingEntity && (blockingEntity.type === 'door')) {
+        if (blockingEntity && (blockingEntity.type === 'door' || blockingEntity.type === 'garage_door')) {
           return this.isTerrainBlocking(mapTile.terrain, ignoreTerrain);
         }
         
@@ -238,7 +238,7 @@ export class LineOfSight {
         // Blocking entity: if it is a solid obstacle (not a door/window), we want to reveal it.
         // If it is a door, it is edge-aligned, so we let it fall through to edge checks.
         const blockingEntity = this.getBlockingEntity(mapTile, ignoreEntities);
-        if (blockingEntity && blockingEntity.type !== 'door') {
+        if (blockingEntity && blockingEntity.type !== 'door' && blockingEntity.type !== 'garage_door') {
           return false;
         }
 
@@ -427,8 +427,8 @@ export class LineOfSight {
     // Doors clear their edge-wall flag at map load (the door entity takes over
     // blocking), so a closed door on this edge must block sight even when no
     // wall flag remains.
-    const breachable1 = t1.contents.filter(e => (e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir1to2));
-    const breachable2 = t2.contents.filter(e => (e.type === 'door' || e.type === 'window') && (!e.edge || e.edge === dir2to1));
+    const breachable1 = t1.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === 'garage_door') && (!e.edge || e.edge === dir1to2));
+    const breachable2 = t2.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === 'garage_door') && (!e.edge || e.edge === dir2to1));
     const allBreachable = [...breachable1, ...breachable2];
 
     if (!hasWall && allBreachable.length === 0) return false;
@@ -437,7 +437,7 @@ export class LineOfSight {
 
     for (const e of allBreachable) {
         if (ignoreEntities.includes(e.id)) continue;
-        if ((e.type === 'door') && !e.isOpen && !e.isBroken) return true; // Closed door blocks sight
+        if ((e.type === 'door' || e.type === 'garage_door') && !e.isOpen && !e.isBroken) return true; // Closed door blocks sight
     }
 
     return false;
@@ -457,7 +457,7 @@ export class LineOfSight {
       }
 
       // Doors: if they are edge-aligned, they only block sight when crossing their edge, NOT the entire tile
-      if ((entity.type === 'door') && entity.edge !== undefined) {
+      if ((entity.type === 'door' || entity.type === 'garage_door') && entity.edge !== undefined) {
         return false;
       }
 
@@ -467,7 +467,7 @@ export class LineOfSight {
       }
 
       // Doors block sight when closed
-      if (entity.type === 'door') {
+      if (entity.type === 'door' || entity.type === 'garage_door') {
         return !entity.isOpen;
       }
 
