@@ -3,6 +3,11 @@
  */
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { configManager } from '../../game/utils/ConfigManager.js';
+import { isFloor } from '../map/TerrainTypes.js';
+
+// garagefloor renders identically to floor — normalise it before any
+// color/atlas/sprite lookup keyed on terrain.
+const renderTerrainKey = (terrain) => (terrain === 'garagefloor' ? 'floor' : terrain);
 
 // Grid coordinates on the 16x16 sprite sheet (2048x2048 total size, 128x128 per tile)
 const SPRITE_ATLAS_MAP = {
@@ -224,12 +229,13 @@ export const TileRenderer = {
         // Use structural mapping for important types to guarantee visibility
         const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS));
         const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
-        ctx.fillStyle = (isStructural ? colors[tile.terrain] : (tile.color || colors[tile.terrain])) || '#222';
+        const colorKey = renderTerrainKey(tile.terrain);
+        ctx.fillStyle = (isStructural ? colors[colorKey] : (tile.color || colors[colorKey])) || '#222';
         ctx.fillRect(screenX, screenY, tileSize, tileSize);
 
         // Subtle per-tile floor variation for the grayscale no-texture mode.
         // This breaks up large uniform rooms so they don't look like a flat void.
-        if (tile.terrain === 'floor' && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
+        if (isFloor(tile.terrain) && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
             const hash = Math.abs((x * 31) ^ (y * 17)) % 16;
             const alpha = 0.025 + (hash / 16) * 0.045;
             ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
@@ -284,7 +290,7 @@ export const TileRenderer = {
                                 mapping = { col: 7, row: 0 };
                             }
                         } else {
-                            mapping = SPRITE_ATLAS_MAP[tile.terrain];
+                            mapping = SPRITE_ATLAS_MAP[renderTerrainKey(tile.terrain)];
                         }
 
                         if (mapping) {
@@ -307,7 +313,7 @@ export const TileRenderer = {
                         imageLoader.getTileImage(tile.terrain);
                     }
                 } else {
-                    const terrainKey = tile.terrain === 'transition' ? 'road' : tile.terrain;
+                    const terrainKey = tile.terrain === 'transition' ? 'road' : renderTerrainKey(tile.terrain);
                     const spriteKey = `tile_${terrainKey}`;
                     const sprite = sprites[spriteKey];
                     if (sprite) {
@@ -529,11 +535,12 @@ export const TileRenderer = {
     const theme = isSteampunk ? 'steampunk' : (isLight ? 'light' : 'dark');
     const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS));
     const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
-    ctx.fillStyle = (isStructural ? colors[tile.terrain] : (tile.color || colors[tile.terrain])) || '#222';
+    const colorKey = renderTerrainKey(tile.terrain);
+    ctx.fillStyle = (isStructural ? colors[colorKey] : (tile.color || colors[colorKey])) || '#222';
     ctx.fillRect(screenX, screenY, tileSize, tileSize);
 
     // Subtle per-tile floor variation for the grayscale no-texture mode.
-    if (tile.terrain === 'floor' && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
+    if (isFloor(tile.terrain) && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
       const hash = Math.abs((worldX * 31) ^ (worldY * 17)) % 16;
       const alpha = 0.025 + (hash / 16) * 0.045;
       ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
@@ -570,7 +577,7 @@ export const TileRenderer = {
                       : tile._variantIndex === 1 ? { col: 6, row: 1 }
                       :                            { col: 7, row: 0 };
             } else {
-              mapping = SPRITE_ATLAS_MAP[tile.terrain];
+              mapping = SPRITE_ATLAS_MAP[renderTerrainKey(tile.terrain)];
             }
             if (mapping) {
               const cellSize = 128;
@@ -588,7 +595,7 @@ export const TileRenderer = {
             imageLoader.getTileImage(tile.terrain);
           }
         } else {
-          const terrainKey = tile.terrain === 'transition' ? 'road' : tile.terrain;
+          const terrainKey = tile.terrain === 'transition' ? 'road' : renderTerrainKey(tile.terrain);
           const sprite = sprites[`tile_${terrainKey}`];
           if (sprite) {
             if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 0.25;

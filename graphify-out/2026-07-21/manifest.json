@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1784465034.0267575,
-    "ast_hash": "2ff9a21b55d40bab00761f16cd0b21c8",
+    "mtime": 1784614818.2665176,
+    "ast_hash": "3b217f3eb9f75b61ae8d74e21aa43605",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": ""
   },
   "client/src/game/managers/TurnManager.js": {
-    "mtime": 1784593698.0423195,
-    "ast_hash": "b0832a31ee44b50744b971a833ca93b2",
+    "mtime": 1784614810.760195,
+    "ast_hash": "3d3353ab038430a1942fedd5c2b69587",
     "semantic_hash": ""
   },
   "client/src/game/map/AsciiMapRenderer.js": {
@@ -1065,8 +1065,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/GameMap.js": {
-    "mtime": 1784612559.0972037,
-    "ast_hash": "8484b2f846b8bade189afd2d54c8f71f",
+    "mtime": 1784614824.4787874,
+    "ast_hash": "a9dbb54e0cd659ecf23cc242b2e376ae",
     "semantic_hash": ""
   },
   "client/src/game/map/LootGenerator.js": {
@@ -1175,8 +1175,8 @@
     "semantic_hash": "8227401cf12e62741245570c60d4640d"
   },
   "client/src/game/renderer/EntityRenderer.js": {
-    "mtime": 1784610377.803713,
-    "ast_hash": "566949289b6558532ea6965bc191e23e",
+    "mtime": 1784614703.461069,
+    "ast_hash": "19e2130283c754524d365b1402645f5f",
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileChunkCache.js": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1784611779.0320766,
-    "ast_hash": "8c1ede0df86782c50f13da0ebdad15b8",
+    "mtime": 1784614688.9280562,
+    "ast_hash": "553e5ff0bd61a4d8f3a27da5b84ff3e3",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -1320,8 +1320,8 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/Pathfinding.js": {
-    "mtime": 1784611742.440295,
-    "ast_hash": "1cbc808fcf3ab32affe445ca3faed329",
+    "mtime": 1784614806.107036,
+    "ast_hash": "c44ef22cd361aa190923f2553ac7d32d",
     "semantic_hash": ""
   },
   "client/src/game/utils/PlayerHearing.js": {

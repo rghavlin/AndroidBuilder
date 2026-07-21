@@ -7,8 +7,8 @@ import engine from '../GameEngine.js';
  * Spans multiple tiles visually, but acts as a single synchronized door object
  */
 export class GarageDoor extends Door {
-    constructor(id, x, y, isLocked = false, isOpen = false, isDamaged = false, edge = undefined, groupId = null) {
-        super(id, x, y, isLocked, isOpen, isDamaged, edge);
+    constructor(id, x, y, isLocked = false, isOpen = false, isDamaged = false, edge = undefined, groupId = null, isKeylocked = false) {
+        super(id, x, y, isLocked, isOpen, isDamaged, edge, isKeylocked);
         this.type = EntityType.GARAGE_DOOR;
         this.maxHp = 100; // Stronger than a normal door
         this.hp = isDamaged ? 0 : this.maxHp;
@@ -71,12 +71,34 @@ export class GarageDoor extends Door {
         if (this._isSyncing) return super.unlock();
         
         const success = super.unlock();
-        if (success) {
-            this.getPeers().forEach(peer => {
-                peer._isSyncing = true;
-                peer.unlock();
-                peer._isSyncing = false;
-            });
+        if (success && this.groupId) {
+            this._isSyncing = true;
+            try {
+                const peers = this.getPeers();
+                peers.forEach(peer => {
+                    peer.unlock();
+                });
+            } finally {
+                this._isSyncing = false;
+            }
+        }
+        return success;
+    }
+
+    forceUnlock() {
+        if (this._isSyncing) return super.forceUnlock();
+        
+        const success = super.forceUnlock();
+        if (success && this.groupId) {
+            this._isSyncing = true;
+            try {
+                const peers = this.getPeers();
+                peers.forEach(peer => {
+                    peer.forceUnlock();
+                });
+            } finally {
+                this._isSyncing = false;
+            }
         }
         return success;
     }
@@ -135,7 +157,7 @@ export class GarageDoor extends Door {
      * Create GarageDoor from JSON data
      */
     static fromJSON(data) {
-        const door = new GarageDoor(data.id, data.x, data.y, data.isLocked, data.isOpen, data.isDamaged, data.edge, data.groupId);
+        const door = new GarageDoor(data.id, data.x, data.y, data.isLocked, data.isOpen, data.isDamaged, data.edge, data.groupId, data.isKeylocked);
         door.blocksMovement = data.blocksMovement;
         door.blocksSight = data.blocksSight;
         door.maxHp = data.maxHp !== undefined ? data.maxHp : door.maxHp;

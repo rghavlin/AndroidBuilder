@@ -190,10 +190,10 @@
   "188": "verify_saveload.mjs",
   "189": "tmp_verify_random_map.js",
   "190": "npcLoadout.test.js",
+  "191": "verify_food_scarcity_p4_09.mjs",
   "192": "verify_production_frontage.js",
   "193": ".canSeePosition",
   "194": "TileRenderer.js",
-  "195": "._serializeComponents",
   "196": "test_noise.js",
   "197": "test_noise_assert.js",
   "198": "verify_saveload.mjs"

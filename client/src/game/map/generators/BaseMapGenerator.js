@@ -1,5 +1,6 @@
 import { gameRandom } from '../../utils/SeededRandom.js';
 import { SPECIAL_BUILDING_SPECS } from '../BuildingTypes.js';
+import { isFloor } from '../TerrainTypes.js';
 /**
  * BaseMapGenerator - Strategy interface for map generation
  */
@@ -133,7 +134,7 @@ export class BaseMapGenerator {
           if (curY < 0 || curY >= builder.height) break;
 
           const terrain = builder.getTerrain(tx, curY);
-          if (terrain === 'wall' || terrain === 'floor' || terrain === 'fence') {
+          if (terrain === 'wall' || isFloor(terrain) || terrain === 'fence') {
             return false; // Blocked!
           }
           if (terrain === 'sidewalk' || terrain === 'road') {
@@ -151,7 +152,7 @@ export class BaseMapGenerator {
           if (curX < 0 || curX >= builder.width) break;
 
           const terrain = builder.getTerrain(curX, ty);
-          if (terrain === 'wall' || terrain === 'floor' || terrain === 'fence') {
+          if (terrain === 'wall' || isFloor(terrain) || terrain === 'fence') {
             return false; // Blocked!
           }
           if (terrain === 'sidewalk' || terrain === 'road') {

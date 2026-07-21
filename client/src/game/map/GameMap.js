@@ -1,4 +1,5 @@
 import { Tile } from './Tile.js';
+import { isFloor, isIndoorFloor } from './TerrainTypes.js';
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { EquipmentSlot, ItemTrait, ItemCategory, Rarity } from '../inventory/traits.js';
 import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
@@ -164,7 +165,7 @@ export class GameMap extends SafeEventEmitter {
 
     const startTile = gameMap.getTile(x, y);
     // PHASE 15: Support tent_floor and transition (doorways) as sheltered terrain
-    const isIndoorTerrain = startTile && (startTile.terrain === 'floor' || startTile.terrain === 'tent_floor');
+    const isIndoorTerrain = startTile && isIndoorFloor(startTile.terrain);
     if (!isIndoorTerrain) {
       gameMap._shelteredCache.set(`${x},${y}`, false);
       return false;
@@ -204,7 +205,7 @@ export class GameMap extends SafeEventEmitter {
           continue;
         }
 
-        const isIndoors = tile.terrain === 'floor' || tile.terrain === 'tent_floor';
+        const isIndoors = isIndoorFloor(tile.terrain);
         if (!isIndoors || (tile.terrain === 'window' && !isClosedWindow)) {
           gameMap._shelteredCache.set(`${x},${y}`, false);
           return false;
@@ -230,7 +231,7 @@ export class GameMap extends SafeEventEmitter {
     if (!posA || !posB || !gameMap) return false;
 
     const startTile = gameMap.getTile(posA.x, posA.y);
-    const isIndoors = (tile) => tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor' || tile.terrain === 'building' || tile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === EntityType.GARAGE_DOOR));
+    const isIndoors = (tile) => tile && (isIndoorFloor(tile.terrain) || tile.terrain === 'building' || tile.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === EntityType.GARAGE_DOOR));
     
     if (!isIndoors(startTile)) return false;
 

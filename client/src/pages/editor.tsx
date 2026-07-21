@@ -18,6 +18,9 @@ const TERRAIN_TYPES = [
   { id: 'road',      label: 'Road',      color: '#2d2d2d' },
   { id: 'sidewalk',  label: 'Sidewalk',  color: '#555' },
   { id: 'floor',     label: 'Floor',     color: '#333' },
+  // Garagefloor plays identically to floor in-game (rendered the same), but the
+  // golf cart may be driven onto it. Tinted here so authors can tell them apart.
+  { id: 'garagefloor', label: 'Garage Floor', color: '#3b4252' },
   { id: 'dirt',      label: 'Dirt',      color: '#3d2b1f' },
   { id: 'water',     label: 'Water',     color: '#1a3c5a' },
   { id: 'fence',     label: 'Fence',     color: '#4a3728' },
@@ -167,7 +170,7 @@ interface BubbleEvent {
   next?: string; // id of an event to fire when this one completes
 }
 
-interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: boolean; isGarage?: boolean; }
+interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: boolean; isGarage?: boolean; keylocked?: boolean; }
 
 // An authored item, as configured in the editor's item controls. Used both for
 // items lying on a tile and for the items in an NPC's loadout.
@@ -360,6 +363,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
       t.edgeWalls[d.edge as Edge].wall = false;
       t.edgeWalls[d.edge as Edge].door = true;
       t.edgeWalls[d.edge as Edge].locked = d.isLocked ?? false;
+      t.edgeWalls[d.edge as Edge].keylocked = d.isKeylocked ?? false;
     }
   }
 
@@ -372,6 +376,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
       t.edgeWalls[d.edge as Edge].door = true;
       t.edgeWalls[d.edge as Edge].isGarage = true;
       t.edgeWalls[d.edge as Edge].locked = d.isLocked ?? false;
+      t.edgeWalls[d.edge as Edge].keylocked = d.isKeylocked ?? false;
     }
   }
 
@@ -611,11 +616,13 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
               tiles[y][x].edgeWalls[e.edge as Edge].wall = false;
               tiles[y][x].edgeWalls[e.edge as Edge].door = true;
               tiles[y][x].edgeWalls[e.edge as Edge].locked = e.isLocked ?? false;
+              tiles[y][x].edgeWalls[e.edge as Edge].keylocked = e.isKeylocked ?? false;
             } else if (e.type === 'garage_door') {
               tiles[y][x].edgeWalls[e.edge as Edge].wall = false;
               tiles[y][x].edgeWalls[e.edge as Edge].door = true;
               tiles[y][x].edgeWalls[e.edge as Edge].isGarage = true;
               tiles[y][x].edgeWalls[e.edge as Edge].locked = e.isLocked ?? false;
+              tiles[y][x].edgeWalls[e.edge as Edge].keylocked = e.isKeylocked ?? false;
             } else if (e.type === 'window') {
               tiles[y][x].edgeWalls[e.edge as Edge].wall = false;
               tiles[y][x].edgeWalls[e.edge as Edge].window = true;
@@ -828,9 +835,9 @@ function exportScenario(scenario: ScenarioData) {
       (['n', 'e', 's', 'w'] as Edge[]).forEach(edge => {
         if (t.edgeWalls[edge].door) {
           if (t.edgeWalls[edge].isGarage) {
-            rawGarageDoors.push({ x, y, isLocked: t.edgeWalls[edge].locked ?? false, isOpen: false, edge });
+            rawGarageDoors.push({ x, y, isLocked: t.edgeWalls[edge].locked ?? false, isKeylocked: t.edgeWalls[edge].keylocked ?? false, isOpen: false, edge });
           } else {
-            doors.push({ x, y, isLocked: t.edgeWalls[edge].locked ?? false, isOpen: false, edge });
+            doors.push({ x, y, isLocked: t.edgeWalls[edge].locked ?? false, isKeylocked: t.edgeWalls[edge].keylocked ?? false, isOpen: false, edge });
           }
         }
         if (t.edgeWalls[edge].window) {
@@ -1001,6 +1008,7 @@ export default function MapEditor() {
   const [selectedTerrain, setSelectedTerrain] = useState('grass');
   const [selectedEdge, setSelectedEdge] = useState<Edge>('n');
   const [edgeLocked, setEdgeLocked] = useState(false);
+  const [edgeKeylocked, setEdgeKeylocked] = useState(false);
   const [selectedDoorType, setSelectedDoorType] = useState<'normal' | 'garage'>('normal');
   const [selectedEntity, setSelectedEntity] = useState('zombie');
   const [zombieSubtype, setZombieSubtype] = useState('basic');
@@ -1707,6 +1715,33 @@ export default function MapEditor() {
       }
     }
 
+    if (tool === 'edge_door') {
+      const targetTile = tilesRef.current[y]?.[x];
+      const tag = `door-${x}-${y}-${selectedEdge}`;
+      if (targetTile?.edgeWalls[selectedEdge].door) {
+        // Toggling door OFF: remove registry entry if it exists
+        setEntityRegistry(prev => ({
+          ...prev,
+          entries: prev.entries.filter(e => e.tag !== tag)
+        }));
+      } else if (edgeKeylocked) {
+        // Toggling door ON with keylock: add registry entry
+        setEntityRegistry(prev => {
+          if (prev.entries.some(e => e.tag === tag)) return prev;
+          return {
+            ...prev,
+            entries: [...prev.entries, {
+              tag,
+              type: 'door',
+              x,
+              y,
+              description: `Keylocked door at (${x},${y})`
+            }]
+          };
+        });
+      }
+    }
+
     setTiles(prev => {
       const next = prev.map(row => row.map(t => ({ ...t })));
 
@@ -1745,10 +1780,12 @@ export default function MapEditor() {
           tile.edgeWalls[selectedEdge].wall = false;
           tile.edgeWalls[selectedEdge].window = false;
           if (tile.edgeWalls[selectedEdge].door) {
-            tile.edgeWalls[selectedEdge].locked = edgeLocked;
+            tile.edgeWalls[selectedEdge].locked = edgeLocked || edgeKeylocked;
+            tile.edgeWalls[selectedEdge].keylocked = edgeKeylocked;
             tile.edgeWalls[selectedEdge].isGarage = selectedDoorType === 'garage';
           } else {
             tile.edgeWalls[selectedEdge].isGarage = false;
+            tile.edgeWalls[selectedEdge].keylocked = false;
           }
           break;
         case 'edge_window':
@@ -1848,7 +1885,7 @@ export default function MapEditor() {
             for (let tx = b.x; tx < b.x + b.width; tx++) {
               if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
                 const t = next[ty][tx];
-                if (t.terrain === 'floor') return true;
+                if (t.terrain === 'floor' || t.terrain === 'garagefloor') return true;
                 const hasEdge = (['n', 'e', 's', 'w'] as Edge[]).some(e => {
                   const edge = t.edgeWalls[e];
                   return edge.wall || edge.door || edge.window;
@@ -3214,6 +3251,12 @@ export default function MapEditor() {
                   <option value="garage">Garage Door</option>
                 </select>
               </div>
+            )}
+            {tool === 'edge_door' && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#ddd', cursor: 'pointer', marginTop: 4 }}>
+                <input type="checkbox" checked={edgeKeylocked} onChange={e => setEdgeKeylocked(e.target.checked)} />
+                Keylock
+              </label>
             )}
             {(tool === 'edge_door' || tool === 'edge_window') && (
               <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#ddd', cursor: 'pointer', marginTop: 6 }}>
@@ -4674,20 +4717,63 @@ export default function MapEditor() {
                         <span style={{ color, fontWeight: 'bold' }}>{label} {kind}</span>
                         <div style={{ display: 'flex', gap: 8 }}>
                           {es.door && (
-                            <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#ddd', cursor: 'pointer' }}>
-                              <input
-                                type="checkbox"
-                                checked={!!es.isGarage}
-                                onChange={() => {
-                                  setTiles(prev => {
-                                    const next = prev.map(r => r.map(c => ({ ...c, edgeWalls: { ...c.edgeWalls } })));
-                                    next[ty][tx].edgeWalls[edge] = { ...next[ty][tx].edgeWalls[edge], isGarage: !es.isGarage };
-                                    return next;
-                                  });
-                                }}
-                              />
-                              Garage
-                            </label>
+                            <>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#ddd', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={!!es.isGarage}
+                                  onChange={() => {
+                                    setTiles(prev => {
+                                      const next = prev.map(r => r.map(c => ({ ...c, edgeWalls: { ...c.edgeWalls } })));
+                                      next[ty][tx].edgeWalls[edge] = { ...next[ty][tx].edgeWalls[edge], isGarage: !es.isGarage };
+                                      return next;
+                                    });
+                                  }}
+                                />
+                                Garage
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#ddd', cursor: 'pointer' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={!!es.keylocked}
+                                  onChange={() => {
+                                    const nextKeylocked = !es.keylocked;
+                                    setTiles(prev => {
+                                      const next = prev.map(r => r.map(c => ({ ...c, edgeWalls: { ...c.edgeWalls } })));
+                                      next[ty][tx].edgeWalls[edge] = {
+                                        ...next[ty][tx].edgeWalls[edge],
+                                        keylocked: nextKeylocked,
+                                        ...(nextKeylocked ? { locked: true } : {})
+                                      };
+                                      return next;
+                                    });
+                                    // Add/remove manual entity registry entry
+                                    const tag = `door-${tx}-${ty}-${edge}`;
+                                    if (nextKeylocked) {
+                                      setEntityRegistry(prevReg => {
+                                        if (prevReg.entries.some(ent => ent.tag === tag)) return prevReg;
+                                        return {
+                                          ...prevReg,
+                                          entries: [...prevReg.entries, {
+                                            tag,
+                                            type: 'door',
+                                            x: tx,
+                                            y: ty,
+                                            description: `Keylocked door at (${tx},${ty})`
+                                          }]
+                                        };
+                                      });
+                                    } else {
+                                      setEntityRegistry(prevReg => ({
+                                        ...prevReg,
+                                        entries: prevReg.entries.filter(ent => ent.tag !== tag)
+                                      }));
+                                    }
+                                  }}
+                                />
+                                Keylocked
+                              </label>
+                            </>
                           )}
                           <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#ddd', cursor: 'pointer' }}>
                             <input

@@ -438,7 +438,12 @@ export class MapBuilder {
       for (let tx = x; tx < x + width; tx++) {
         const isInternalWall = type === 'firestation' && (isHorizontal ? tx === x + wallOffset : ty === y + wallOffset);
 
-        this.setTerrain(tx, ty, 'floor');
+        // The fire station's garage bay (the section on the garage-door side of
+        // the internal wall) is garagefloor, so the golf cart can be driven into
+        // it; the rest of the station (behind the internal wall, with the regular
+        // door) stays plain floor.
+        const inGarageBay = type === 'firestation' && (isHorizontal ? tx < x + wallOffset : ty < y + wallOffset);
+        this.setTerrain(tx, ty, inGarageBay ? 'garagefloor' : 'floor');
         
         if (ty === y) this.setEdgeWall(tx, ty, 'n', true);
         if (ty === y + height - 1) this.setEdgeWall(tx, ty, 's', true);
@@ -478,7 +483,7 @@ export class MapBuilder {
         for (let i = 0; i < appSize; i++) {
             let ax = entranceX, ay = entranceY;
             if (isHorizontal) ax = x + appOffset + i; else ay = y + appOffset + i;
-            this.setTerrain(ax, ay, 'floor');
+            this.setTerrain(ax, ay, 'garagefloor');
             this.metadata.garageDoors.push({ x: ax, y: ay, isOpening: false, isOpen: false, edge: entranceEdge, groupId: groupId });
         }
 

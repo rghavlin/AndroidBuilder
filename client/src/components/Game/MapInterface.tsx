@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
 import { ItemTrait } from '../../game/inventory/traits.js';
+import { isFloor } from '../../game/map/TerrainTypes.js';
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { useAction } from '../../contexts/ActionContext.jsx';
@@ -771,7 +772,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           >
             {doorMenu.door.isOpen ? 'Close Door' : 'Open Door'}
           </button>
-          {doorMenu.door.isLocked && !doorMenu.door.isOpen && (
+          {doorMenu.door.isLocked && !doorMenu.door.isOpen && !doorMenu.door.isKeylocked && (
             <button
             className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors"
               onClick={() => {
@@ -781,7 +782,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 if (!gameMap || !player) return;
 
                 const playerTile = gameMap.getTile(player.x, player.y);
-                const isInside = playerTile?.terrain === 'floor';
+                const isInside = playerTile ? isFloor(playerTile.terrain) : false;
 
                 if (!isInside) {
                   addEffect({
@@ -1223,7 +1224,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                 if (!gameMap || !player) return;
 
                 const playerTile = gameMap.getTile(player.x, player.y);
-                const isInside = playerTile?.terrain === 'floor';
+                const isInside = playerTile ? isFloor(playerTile.terrain) : false;
 
                 if (!isInside) {
                   addEffect({

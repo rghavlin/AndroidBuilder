@@ -12,6 +12,7 @@ import { useSpeechBubbles } from '../../contexts/SpeechBubbleContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { configManager } from '../../game/utils/ConfigManager.js';
 import { EntityType } from '../../game/entities/Entity.js';
+import { isIndoorFloor } from '../../game/map/TerrainTypes.js';
 import { ItemDefs } from '../../game/inventory/ItemDefs.js';
 import engine from '../../game/GameEngine.js';
 import { getScaleFactor } from '../../hooks/useWindowSize';
@@ -727,7 +728,7 @@ export default function MapCanvas({
         const currentX = isAnimatingMovement ? playerRenderPosition.x : player.x;
         const currentY = isAnimatingMovement ? playerRenderPosition.y : player.y;
         const playerTile = engine.gameMap.getTile(Math.round(currentX), Math.round(currentY));
-        const isInside = playerTile && (playerTile.terrain === 'floor' || playerTile.terrain === 'tent_floor');
+        const isInside = playerTile && isIndoorFloor(playerTile.terrain);
 
         if (!isInside) {
           renderRain(ctx, physicalWidth, physicalHeight, engine.weather.intensity, dpr);

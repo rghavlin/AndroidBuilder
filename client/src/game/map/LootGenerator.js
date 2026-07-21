@@ -5,6 +5,7 @@ import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES, MAP_WIDE_REQUIREM
 import { ZombieTypes } from '../entities/ZombieTypes.js';
 import { LootProgression, BASELINE_MAP_AREA } from '../config/ProgressionConfig.js';
 import { isInsideCompound, isInsideAnyBuilding, isInsideTollGate } from './MapUtils.js';
+import { isFloor } from './TerrainTypes.js';
 import { planFurniture } from './FurniturePlanner.js';
 
 
@@ -81,7 +82,7 @@ export class LootGenerator {
             for (let curY = building.y + 1; curY < building.y + building.height - 1; curY++) {
                 for (let curX = building.x + 1; curX < building.x + building.width - 1; curX++) {
                     const tile = gameMap.getTile(curX, curY);
-                    if (tile && tile.terrain === 'floor') {
+                    if (tile && isFloor(tile.terrain)) {
                         buildingTiles.push({ x: curX, y: curY });
                     }
                 }
@@ -273,7 +274,7 @@ export class LootGenerator {
             for (let y = building.y + 1; y < building.y + building.height - 1; y++) {
                 for (let x = building.x + 1; x < building.x + building.width - 1; x++) {
                     const tile = gameMap.getTile(x, y);
-                    if (tile && tile.terrain === 'floor') {
+                    if (tile && isFloor(tile.terrain)) {
                         // 1. Check for existing items/loot
                         const existingItems = gameMap.getItemsOnTile ? gameMap.getItemsOnTile(x, y) : [];
                         if (existingItems.length > 0) continue;
@@ -706,7 +707,7 @@ export class LootGenerator {
                         const tx = pos.x + dx;
                         const ty = pos.y + dy;
                         const tile = gameMap.getTile(tx, ty);
-                        if (!tile || tile.terrain !== 'floor') {
+                        if (!tile || !isFloor(tile.terrain)) {
                             isFree = false;
                             break;
                         }
@@ -763,7 +764,7 @@ export class LootGenerator {
                     for (let y = building.y + 1; y < building.y + building.height - 1; y++) {
                         for (let x = building.x + 1; x < building.x + building.width - 1; x++) {
                             const tile = gameMap.getTile(x, y);
-                            if (tile && tile.terrain === 'floor') {
+                            if (tile && isFloor(tile.terrain)) {
                                 tiles.push({ x, y });
                             }
                         }
@@ -953,7 +954,7 @@ export class LootGenerator {
         for (let curY = y + 1; curY < y + height - 1; curY++) {
             for (let curX = x + 1; curX < x + width - 1; curX++) {
                 const tile = gameMap.getTile(curX, curY);
-                if (tile && tile.terrain === 'floor' && !this.isNearDoor(gameMap, curX, curY)) {
+                if (tile && isFloor(tile.terrain) && !this.isNearDoor(gameMap, curX, curY)) {
                     floorTiles.push({ x: curX, y: curY });
                 }
             }
@@ -1816,7 +1817,7 @@ export class LootGenerator {
                     for (let x = room.minX; x <= room.maxX; x++) {
                         const tile = gameMap.getTile(x, y);
                         // Must be floor and not in door buffer zone
-                        if (tile && tile.terrain === 'floor' && !this.isNearDoor(gameMap, x, y)) {
+                        if (tile && isFloor(tile.terrain) && !this.isNearDoor(gameMap, x, y)) {
                             eligibleTiles.push({ x, y });
                         }
                     }

@@ -1,4 +1,5 @@
 import { SafeEventEmitter } from './utils/SafeEventEmitter.js';
+import { isIndoorFloor } from './map/TerrainTypes.js';
 import { InventoryManager } from './inventory/InventoryManager.js';
 import { LineOfSight } from './utils/LineOfSight.js';
 import { ItemDefs } from './inventory/ItemDefs.js';
@@ -481,7 +482,7 @@ class GameEngine extends SafeEventEmitter {
        // Weather reduction: reduce sight range by 15% when raining, 20% in heavy rain (intensity > 0.7)
        // Skip weather reduction if the player is inside (standing on floor or tent_floor terrain) or map is always dark
        const playerTile = this.gameMap.getTile(roundX, roundY);
-       const isInside = (playerTile && (playerTile.terrain === 'floor' || playerTile.terrain === 'tent_floor')) || isMapAlwaysDark;
+       const isInside = (playerTile && isIndoorFloor(playerTile.terrain)) || isMapAlwaysDark;
        if (!isInside && this.weather && this.weather.type === 'rain') {
          const isHeavyRain = this.weather.intensity > 0.7;
          const reduction = isHeavyRain ? 0.20 : 0.15;

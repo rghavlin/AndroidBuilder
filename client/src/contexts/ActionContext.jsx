@@ -337,6 +337,11 @@ export const ActionProvider = ({ children }) => {
     const isAdjacentOrOn = (dx === 0 && dy === 0) || ((dx + dy) === 1);
     if (!isAdjacentOrOn) return { success: false, reason: 'Too far' };
 
+    if (structure.isKeylocked) {
+      addLog('This lock cannot be bypassed.', 'warning');
+      return { success: false, reason: "Won't budge" };
+    }
+
     if (!structure.isLocked || structure.isOpen || structure.isBroken) {
       return { success: false, reason: 'Cannot use here' };
     }

@@ -603,10 +603,10 @@ class EventRunner {
           log.warn(`[EventRunner] controlEntity: no entity for tag "${step.entityTag}"`);
         } else {
           switch (step.entityAction) {
-            case 'open':   if (ent.isLocked) ent.unlock?.(); ent.open?.(); break;
+            case 'open':   if (typeof ent.forceUnlock === 'function') ent.forceUnlock(); else if (ent.isLocked) ent.unlock?.(); ent.open?.(); break;
             case 'close':  ent.close?.(engine.gameMap); break;
             case 'lock':   ent.lock?.(); break;
-            case 'unlock': ent.unlock?.(); break;
+            case 'unlock': if (typeof ent.forceUnlock === 'function') ent.forceUnlock(); else ent.unlock?.(); break;
             default: log.warn(`[EventRunner] controlEntity: unknown action "${step.entityAction}"`);
           }
           engine.notifyUpdate();
@@ -639,7 +639,8 @@ class EventRunner {
       const entry = registry.entries.find(e => e.tag === tag);
       if (entry) {
         for (const ent of engine.gameMap.entityMap.values()) {
-          if (ent.type === entry.type && ent.logicalX === entry.x && ent.logicalY === entry.y) {
+          const matchType = (entry.type === 'door' && (ent.type === 'door' || ent.type === 'garage_door')) || ent.type === entry.type;
+          if (matchType && ent.logicalX === entry.x && ent.logicalY === entry.y) {
             return ent;
           }
         }

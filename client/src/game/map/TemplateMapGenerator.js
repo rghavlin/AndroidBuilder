@@ -1,5 +1,6 @@
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { validateConnectivity } from './MapConnectivityValidator.js';
+import { isFloor, isIndoorFloor } from './TerrainTypes.js';
 import { MapBuilder } from './MapBuilder.js';
 import { RoadGenerator } from './generators/RoadGenerator.js';
 import { SplitRoadGenerator } from './generators/SplitRoadGenerator.js';
@@ -433,7 +434,7 @@ export class TemplateMapGenerator {
         }
 
         const tile = tiles[y] && tiles[y][x];
-        if (tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor')) {
+        if (tile && isIndoorFloor(tile.terrain)) {
           const hasCropsOrItems = tile.inventoryItems && tile.inventoryItems.length > 0;
           if (!hasCropsOrItems && gameRandom.next() < MAP_GEN_CONFIG.decorationProbability) {
             const decor = decorTypes[gameRandom.nextInt(0, decorTypes.length - 1)];
@@ -892,10 +893,11 @@ export class TemplateMapGenerator {
               doorData.id || `door-${doorData.x}-${doorData.y}-${doorData.edge || 'x'}`,
               doorData.x,
               doorData.y,
-              doorData.isLocked,
+              doorData.isLocked || doorData.isKeylocked,
               doorData.isOpen,
               false,
-              doorData.edge
+              doorData.edge,
+              doorData.isKeylocked
             );
             const registry = templateMapData.metadata?.entityRegistry;
             if (registry?.entries) {
@@ -925,11 +927,12 @@ export class TemplateMapGenerator {
             gdData.id || `garagedoor-${gdData.x}-${gdData.y}-${gdData.edge || 'x'}`,
             gdData.x,
             gdData.y,
-            gdData.isLocked,
+            gdData.isLocked || gdData.isKeylocked,
             gdData.isOpen,
             false,
             gdData.edge,
-            gdData.groupId
+            gdData.groupId,
+            gdData.isKeylocked
           );
           
           const registry = templateMapData.metadata?.entityRegistry;
@@ -939,7 +942,9 @@ export class TemplateMapGenerator {
           }
           
           gameMap.addEntity(garageDoor, gdData.x, gdData.y);
-          gameMap.setTerrain(gdData.x, gdData.y, 'floor');
+          // A garage-door tile is always a garage-floor surface so the golf cart
+          // can be driven in/out through the doorway.
+          gameMap.setTerrain(gdData.x, gdData.y, 'garagefloor');
         });
         console.log(`[TemplateMapGenerator] Added ${templateMapData.metadata.garageDoors.length} garage doors`);
       }

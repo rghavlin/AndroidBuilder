@@ -1,4 +1,5 @@
 import { createItemFromDef, ItemDefs } from '../inventory/ItemDefs.js';
+import { isFloor } from '../map/TerrainTypes.js';
 import { Item } from '../inventory/Item.js';
 import { ItemTrait } from '../inventory/traits.js';
 
@@ -238,7 +239,7 @@ export class WeatherManager {
 
       let tileModified = false;
       const tile = map.getTile(x, y);
-      const isExposed = tile && tile.terrain !== 'floor' && tile.terrain !== 'building';
+      const isExposed = tile && !isFloor(tile.terrain) && tile.terrain !== 'building';
 
       items.forEach(itemData => {
         if (processItemData(itemData, isExposed)) { 
@@ -261,7 +262,7 @@ export class WeatherManager {
       const px = Math.round(this.engine.player.x);
       const py = Math.round(this.engine.player.y);
       const playerTile = map.getTile(px, py);
-      const playerIsExposed = playerTile && playerTile.terrain !== 'floor' && playerTile.terrain !== 'building';
+      const playerIsExposed = playerTile && !isFloor(playerTile.terrain) && playerTile.terrain !== 'building';
 
       if (processItemData(this.engine.dragging.item, playerIsExposed)) {
         invManager.emit('inventoryChanged');

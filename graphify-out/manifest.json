@@ -155,13 +155,13 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1784614818.2665176,
-    "ast_hash": "3b217f3eb9f75b61ae8d74e21aa43605",
+    "mtime": 1784621571.990339,
+    "ast_hash": "08ba81a7e2bd1c08961c30b50e9e6de5",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
-    "mtime": 1784108242.9388704,
-    "ast_hash": "830962fb7ae1f16d6c89cecbaecd062c",
+    "mtime": 1784621571.9913404,
+    "ast_hash": "ca38e2353d475249713a73abd01d593d",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapTransitionDialog.tsx": {
@@ -620,13 +620,13 @@
     "semantic_hash": "410cd9e7524a02bbf095293e0c8afb96"
   },
   "client/src/contexts/ActionContext.jsx": {
-    "mtime": 1784610398.0325737,
-    "ast_hash": "2b76023e059fea1bd7ad7a0d93842896",
+    "mtime": 1784621571.9923413,
+    "ast_hash": "c2aea485c036414435ca855a4e949a14",
     "semantic_hash": ""
   },
   "client/src/contexts/AudioContext.jsx": {
-    "mtime": 1783912164.302692,
-    "ast_hash": "e13248c893cb12821911ed889e1b2c47",
+    "mtime": 1784621571.9923413,
+    "ast_hash": "5a910d0ab16e75b124acc9143319c0d2",
     "semantic_hash": ""
   },
   "client/src/contexts/CameraContext.jsx": {
@@ -715,8 +715,8 @@
     "semantic_hash": ""
   },
   "client/src/game/GameEngine.js": {
-    "mtime": 1784593795.7260609,
-    "ast_hash": "886fa084aa5c58103b8b4dd79a1ecd79",
+    "mtime": 1784621571.9933412,
+    "ast_hash": "bf1ce2201dce87f012761d795eb73605",
     "semantic_hash": ""
   },
   "client/src/game/GameInitializationManager.js": {
@@ -925,8 +925,8 @@
     "semantic_hash": "ee08533d40ef443ba54a71e832f7cd7b"
   },
   "client/src/game/entities/Door.js": {
-    "mtime": 1784074883.1956332,
-    "ast_hash": "7556db0bd9ae06c6ea762cfde6f07850",
+    "mtime": 1784621571.9943416,
+    "ast_hash": "bb05226416df45fc69372e3dc37de572",
     "semantic_hash": ""
   },
   "client/src/game/entities/Entity.js": {
@@ -1065,13 +1065,13 @@
     "semantic_hash": ""
   },
   "client/src/game/map/GameMap.js": {
-    "mtime": 1784614824.4787874,
-    "ast_hash": "a9dbb54e0cd659ecf23cc242b2e376ae",
+    "mtime": 1784621571.99634,
+    "ast_hash": "900387fa6a8d986028e1d0fe58a6ed03",
     "semantic_hash": ""
   },
   "client/src/game/map/LootGenerator.js": {
-    "mtime": 1784463321.7906938,
-    "ast_hash": "d4cb9b278199ae49c0cc123c4e7c1462",
+    "mtime": 1784621571.9973416,
+    "ast_hash": "1a4f7b427fba75198656a1640daa0edb",
     "semantic_hash": ""
   },
   "client/src/game/map/LootTables.js": {
@@ -1080,8 +1080,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
-    "mtime": 1784611142.2619336,
-    "ast_hash": "b7e42faf587816f32ec4423a9471146c",
+    "mtime": 1784621571.998343,
+    "ast_hash": "98560d128d099b191675fda5abeff38a",
     "semantic_hash": ""
   },
   "client/src/game/map/MapConnectivityValidator.js": {
@@ -1100,8 +1100,8 @@
     "semantic_hash": "9ef85efd7fec69c93a92b57d52c97760"
   },
   "client/src/game/map/TemplateMapGenerator.js": {
-    "mtime": 1784611162.0986843,
-    "ast_hash": "e2af7543231e24bf7fda8fe7217d0ee8",
+    "mtime": 1784621571.9998481,
+    "ast_hash": "c89980dc8403f1a2133b8b9f8c63eaab",
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
@@ -1115,8 +1115,8 @@
     "semantic_hash": "77a993f037b5c9d15ffe66f91e305837"
   },
   "client/src/game/map/generators/BaseMapGenerator.js": {
-    "mtime": 1784454711.8027782,
-    "ast_hash": "e2c246a22cf969d38eda97fbcb5aee0c",
+    "mtime": 1784621571.9998481,
+    "ast_hash": "bc4036127a58b92230db0c84092c6c93",
     "semantic_hash": ""
   },
   "client/src/game/map/generators/BranchingRoadGenerator.js": {
@@ -1130,8 +1130,8 @@
     "semantic_hash": "c83483a42f179a1d7bd4c9461f81f02c"
   },
   "client/src/game/map/generators/MirroredWindingRoadGenerator.js": {
-    "mtime": 1784454740.9829774,
-    "ast_hash": "58b0ea41f2544625a18dcb6f471777cc",
+    "mtime": 1784621572.0008576,
+    "ast_hash": "9ef7713c1830e36a1ae754d78efc78c3",
     "semantic_hash": ""
   },
   "client/src/game/map/generators/RoadGenerator.js": {
@@ -1140,8 +1140,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/generators/ScenarioMapGenerator.js": {
-    "mtime": 1784536355.9930544,
-    "ast_hash": "283cb8a0ab4612b0ea3c2a3ce07f8bc4",
+    "mtime": 1784617231.0351715,
+    "ast_hash": "7f3fc92fc23b5e4d6cc14eaa32e0d550",
     "semantic_hash": ""
   },
   "client/src/game/map/generators/SplitRoadGenerator.js": {
@@ -1155,8 +1155,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/generators/WindingRoadGenerator.js": {
-    "mtime": 1784454734.3378806,
-    "ast_hash": "7c0c64177ba241efbbcb6887099b2b4e",
+    "mtime": 1784621572.0018587,
+    "ast_hash": "44e06b5858cbdb738c6f791e3bacccb6",
     "semantic_hash": ""
   },
   "client/src/game/map/verify_loot.js": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1784614688.9280562,
-    "ast_hash": "553e5ff0bd61a4d8f3a27da5b84ff3e3",
+    "mtime": 1784621572.0038536,
+    "ast_hash": "6faae57e29b7bc7aaf02df708e7c77e2",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -1315,8 +1315,8 @@
     "semantic_hash": "18acf3d8594baa2f4274e9cbd4956626"
   },
   "client/src/game/utils/NPCSpawner.js": {
-    "mtime": 1784593872.4094899,
-    "ast_hash": "3124d1308b813a63cc3af94d4e188253",
+    "mtime": 1784621572.004854,
+    "ast_hash": "c2a244a3a070d53c90785738285f140d",
     "semantic_hash": ""
   },
   "client/src/game/utils/Pathfinding.js": {
@@ -1370,13 +1370,13 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/WeatherManager.js": {
-    "mtime": 1779741309.4010804,
-    "ast_hash": "05ee398720378e1acc557eff709a7be4",
-    "semantic_hash": "05ee398720378e1acc557eff709a7be4"
+    "mtime": 1784621572.004854,
+    "ast_hash": "86d1bfcbc6d0de645f785937d02c524f",
+    "semantic_hash": ""
   },
   "client/src/game/utils/ZombieSpawner.js": {
-    "mtime": 1784190658.176759,
-    "ast_hash": "e1c3ca328b9d11cb6e13580a66200e37",
+    "mtime": 1784621572.0058544,
+    "ast_hash": "bc2c452d62b12ace543149c5bf63de9b",
     "semantic_hash": ""
   },
   "client/src/hooks/use-mobile.tsx": {
@@ -1420,8 +1420,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1784594225.6687827,
-    "ast_hash": "fbab5732202e665e1319279ed64dea5b",
+    "mtime": 1784621572.007852,
+    "ast_hash": "9cc45c56d6cf4f206e7ed003ba4a8f37",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -2780,8 +2780,8 @@
     "semantic_hash": ""
   },
   "client/src/game/quest/EventRunner.js": {
-    "mtime": 1784594052.1733246,
-    "ast_hash": "9af55d8a0743b5d7fbe25749ef907f15",
+    "mtime": 1784621572.0028555,
+    "ast_hash": "6dd856b2d138adc1b26aca252e7aecbb",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p3.mjs": {
@@ -3005,13 +3005,13 @@
     "semantic_hash": ""
   },
   "customMaps/generated_branching_roadTEST.editor.json": {
-    "mtime": 1784609468.6600626,
-    "ast_hash": "80076eb1fd7851f0bc94cb4fc6660d0f",
+    "mtime": 1784616831.678676,
+    "ast_hash": "526a2b50ed5fdcb3ca444a5a46edd91f",
     "semantic_hash": ""
   },
   "customMaps/generated_branching_roadTEST.scenario.json": {
-    "mtime": 1784597073.328706,
-    "ast_hash": "bf17f09c7f6189b6dbed6f6f9033b760",
+    "mtime": 1784616832.0813172,
+    "ast_hash": "7ea6819cb5deb548d5960761318c15bf",
     "semantic_hash": ""
   },
   "scratch/check_template_furniture_plan.mjs": {
@@ -3050,8 +3050,38 @@
     "semantic_hash": ""
   },
   "client/src/game/entities/GarageDoor.js": {
-    "mtime": 1784611421.6934075,
-    "ast_hash": "64ac2c7e8e2d1c1916539110bf6e247e",
+    "mtime": 1784621571.9943416,
+    "ast_hash": "a45bf9ccc11af23f89e4e75e9e87ec94",
+    "semantic_hash": ""
+  },
+  "client/src/game/map/TerrainTypes.js": {
+    "mtime": 1784620645.0403316,
+    "ast_hash": "9c0e1196aac065b8c6fe103638cd6d78",
+    "semantic_hash": ""
+  },
+  "customMaps/garagedoorTest.editor.json": {
+    "mtime": 1784621572.008852,
+    "ast_hash": "17f609937ae76c987c23b54a41ad9e73",
+    "semantic_hash": ""
+  },
+  "customMaps/garagedoorTest.scenario.json": {
+    "mtime": 1784621572.010357,
+    "ast_hash": "0390ceabdce234ebf0b96a90381c2c24",
+    "semantic_hash": ""
+  },
+  "test/systems/keylocked_doors.test.js": {
+    "mtime": 1784618788.8741493,
+    "ast_hash": "40086550b5a63e2ef0091a29319f46ee",
+    "semantic_hash": ""
+  },
+  "client/public/sounds/garageclose.ogg": {
+    "mtime": 1482527504.5360634,
+    "ast_hash": "15d08eb898db8684f18de206a6cbd1a5",
+    "semantic_hash": ""
+  },
+  "client/public/sounds/garageopen.ogg": {
+    "mtime": 1784615920.632332,
+    "ast_hash": "3fd50a80a49fa51ef05631659e6878e6",
     "semantic_hash": ""
   }
 }

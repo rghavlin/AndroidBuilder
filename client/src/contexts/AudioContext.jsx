@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useCallback, useRef } from
 import audioManager from '../game/utils/AudioManager.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import engine from '../game/GameEngine.js';
+import { isIndoorFloor } from '../game/map/TerrainTypes.js';
 
 const AudioContext = createContext();
 
@@ -299,7 +300,7 @@ export const AudioProvider = ({ children }) => {
           // Check for current animated position if available, otherwise fallback to logical position
           // We use the player's logical position at the end of movement, or during movement end turns
           const tile = gameMap.getTile(Math.round(player.x), Math.round(player.y));
-          const isInside = tile && (tile.terrain === 'floor' || tile.terrain === 'tent_floor');
+          const isInside = tile && isIndoorFloor(tile.terrain);
           
           // Apply 50% volume reduction if inside a building
           const baseVolume = 0.5; // Matches preload config

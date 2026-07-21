@@ -1,4 +1,5 @@
 import { BaseMapGenerator } from './BaseMapGenerator.js';
+import { isFloor } from '../TerrainTypes.js';
 
 import { gameRandom } from '../../utils/SeededRandom.js';
 /**
@@ -187,7 +188,7 @@ export class MirroredWindingRoadGenerator extends BaseMapGenerator {
             if (current === 'road' || current === 'sidewalk') continue;
 
             // If we hit a building/floor, clear it to make room for the fence
-            if (current === 'building' || current === 'floor') {
+            if (current === 'building' || isFloor(current)) {
                 const b = builder.metadata.buildings.find(building => 
                     x >= building.x && x < building.x + building.width && 
                     fy >= building.y && fy < building.y + building.height

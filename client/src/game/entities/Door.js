@@ -6,10 +6,11 @@ import engine from '../GameEngine.js';
  * Can be opened, closed, and locked
  */
 export class Door extends Entity {
-    constructor(id, x, y, isLocked = false, isOpen = false, isDamaged = false, edge = undefined) {
+    constructor(id, x, y, isLocked = false, isOpen = false, isDamaged = false, edge = undefined, isKeylocked = false) {
         super(id, EntityType.DOOR, x, y);
         this.isOpen = isOpen;
-        this.isLocked = isLocked;
+        this.isLocked = isLocked || isKeylocked;
+        this.isKeylocked = isKeylocked;
         this.isDamaged = isDamaged;
         this.edge = edge;
         this.visualIsOpen = isOpen; // Mirror state for animation-safe rendering
@@ -71,6 +72,11 @@ export class Door extends Entity {
      * Open the door if it's not locked
      */
     open() {
+        if (this.isKeylocked) {
+            this.emitEvent('doorInteractionFailed', { reason: 'keylocked' });
+            return false;
+        }
+
         if (this.isLocked) {
             this.emitEvent('doorInteractionFailed', { reason: 'locked' });
             return false;
@@ -145,9 +151,21 @@ export class Door extends Entity {
      * Unlock the door
      */
     unlock() {
+        if (this.isKeylocked) return false;
         if (this.isLocked) {
             this.isLocked = false;
             this.emitEvent('doorUnlocked');
+            return true;
+        }
+        return false;
+    }
+
+    forceUnlock() {
+        if (this.isKeylocked || this.isLocked) {
+            this.isKeylocked = false;
+            this.isLocked = false;
+            this.emitEvent('doorUnlocked');
+            this.updateBlocking();
             return true;
         }
         return false;
@@ -188,6 +206,7 @@ export class Door extends Entity {
             ...super.toJSON(),
             isOpen: this.isOpen,
             isLocked: this.isLocked,
+            isKeylocked: this.isKeylocked,
             isDamaged: this.isDamaged,
             blocksSight: this.blocksSight,
             hp: this.hp,
@@ -196,11 +215,11 @@ export class Door extends Entity {
         };
     }
 
-    /**
-     * Take damage from an entity (zombie, etc)
-     * @param {number} amount - Amount of damage to take
-     */
     takeDamage(amount, silent = false) {
+        if (this.isKeylocked) {
+            return { isBroken: false };
+        }
+
         if (this.isOpen || this.isDamaged) {
             // Already passable (open or previously broken). isBroken:true here means
             // "no barrier to destroy", NOT "this hit broke the door" — callers should
@@ -236,7 +255,7 @@ export class Door extends Entity {
      */
 
     static fromJSON(data) {
-        const door = new Door(data.id, data.x, data.y, data.isLocked, data.isOpen, data.isDamaged, data.edge);
+        const door = new Door(data.id, data.x, data.y, data.isLocked, data.isOpen, data.isDamaged, data.edge, data.isKeylocked);
         door.blocksMovement = data.blocksMovement;
         door.blocksSight = data.blocksSight;
         // maxHp MUST be restored before hp: the inherited hp setter clamps to the

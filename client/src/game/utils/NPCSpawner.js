@@ -2,6 +2,7 @@ import { EntityFactory } from '../EntityFactory.js';
 import { Item } from '../inventory/Item.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { findSouthTransitionTile } from '../map/MapUtils.js';
+import { isFloor } from '../map/TerrainTypes.js';
 import { getNPCType } from '../entities/NPCTypes.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 import { PlaceIcon } from '../entities/PlaceIcon.js';
@@ -58,7 +59,7 @@ export class NPCSpawner {
     for (let y = minY; y <= maxY; y++) {
       for (let x = 0; x < gameMap.width; x++) {
         const tile = gameMap.getTile(x, y);
-        if (tile && tile.terrain === 'floor' && tile.isWalkable() && tile.contents.length === 0) {
+        if (tile && isFloor(tile.terrain) && tile.isWalkable() && tile.contents.length === 0) {
           // Check if there are any zombies nearby (within Manhattan distance of 6 tiles)
           let zombieNearby = false;
           const checkRadius = 6;
@@ -102,7 +103,7 @@ export class NPCSpawner {
     for (let y = minY; y <= maxY; y++) {
       for (let x = 0; x < gameMap.width; x++) {
         const tile = gameMap.getTile(x, y);
-        if (tile && tile.terrain === 'floor' && tile.isWalkable() && tile.contents.length === 0) {
+        if (tile && isFloor(tile.terrain) && tile.isWalkable() && tile.contents.length === 0) {
           candidates.push({ x, y });
         }
       }
