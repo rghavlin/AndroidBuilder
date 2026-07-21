@@ -15,6 +15,7 @@ import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import { useSpeechBubbles } from './SpeechBubbleContext.jsx';
 import eventRunner from '../game/quest/EventRunner.js';
+import { applyMapRegistries } from '../game/quest/QuestState.js';
 import { resolveMapEvents } from '../game/quest/migrateEvents.js';
 import Logger from '../game/utils/Logger.js';
 import { useAudio } from './AudioContext.jsx';
@@ -1337,7 +1338,7 @@ const GameContextInner = ({ children }) => {
   // the player to move or touch their inventory first.
   useEffect(() => {
     if (!isInitialized) return;
-    engine.questState?.seedFromRegistry(engine.gameMap?.metadata?.questRegistry);
+    applyMapRegistries(engine.questState, engine.gameMap);
     eventRunner.checkAutoEvents();
   }, [isInitialized]);
 
@@ -1939,10 +1940,10 @@ const GameContextInner = ({ children }) => {
       // they're scoped to that map's events and have no way to clear on this one.
       eventRunner.onMapTransition();
 
-      // The new map may define registry flags/vars never touched before —
-      // seed them, then re-check auto/parallel events in case seeding just
-      // satisfied one's preconditions.
-      engine.questState?.seedFromRegistry(engine.gameMap?.metadata?.questRegistry);
+      // The new map may define registry flags/vars/factions never touched
+      // before — apply them, then re-check auto/parallel events in case seeding
+      // just satisfied one's preconditions.
+      applyMapRegistries(engine.questState, engine.gameMap);
       eventRunner.checkAutoEvents();
 
       // Update PlayerContext data after successful transition (no timer)

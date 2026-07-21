@@ -101,7 +101,7 @@ const COMPONENT_NAME_BY_CTOR = new Map(
 );
 
 export const SERIALIZED_FIELDS = [
-  'subtype', 'blocksMovement', 'name', 'isHostile', 'equippedWeaponId', 'iconId',
+  'subtype', 'blocksMovement', 'name', '_hostileToPlayerOverride', 'equippedWeaponId', 'iconId',
   'typeId', 'isShopkeeper', 'isTollGuard', 'tollPaid', 'tollSidestep', 'tollTarget',
   'factionId', 'sightRange', 'hearingRangeMultiplier', 'hasExited', 'isActive', 'noLoot', 'deaf',
   'hp', 'maxHp', 'ap', 'maxAp', 'nutrition', 'maxNutrition', 'hydration',
@@ -159,7 +159,10 @@ export class Entity extends SafeEventEmitter {
 
     // Backing stats/properties for facade backward compatibility
     this.name = 'Entity';
-    this.isHostile = false;
+    // Per-entity override for "hostile to player". null = defer to the faction's
+    // player disposition (see the isHostile accessor / FactionRegistry). Set true
+    // only by runtime escalation or legacy back-compat.
+    this._hostileToPlayerOverride = null;
     // Faction membership for AI hostility resolution. When null, getFaction()
     // derives a sensible default from the entity type (so old saves and entities
     // created outside EntityFactory still get a correct faction).
@@ -889,7 +892,7 @@ export class Entity extends SafeEventEmitter {
     switch (this.type) {
       case EntityType.PLAYER: return 'player';
       case EntityType.ZOMBIE: return 'zombies';
-      case EntityType.NPC: return 'survivors';
+      case EntityType.NPC: return 'independent';
       case EntityType.RABBIT:
       case EntityType.ANIMAL: return 'wildlife';
       default: return 'neutral';
@@ -897,10 +900,28 @@ export class Entity extends SafeEventEmitter {
   }
 
   /**
+   * Whether this entity is "hostile toward the player" in the legacy boolean
+   * sense — now DERIVED from the faction's player disposition, with an optional
+   * per-entity override. Kept readable so demand-flow / trade-dialog / editor
+   * consumers keep working unchanged.
+   *
+   * Clearing the override does NOT make a bandit friendly — the faction still
+   * rules (mirrors EventRunner.applyNpcAIMode's de-escalation note).
+   */
+  get isHostile() {
+    if (this._hostileToPlayerOverride === true) return true;
+    return FactionRegistry.isHostile(this.getFaction(), 'player');
+  }
+
+  set isHostile(v) {
+    this._hostileToPlayerOverride = v ? true : false;
+  }
+
+  /**
    * Whether this entity is hostile toward `target`. Resolution order:
    *  1. Per-entity overrides (runtime escalation) — by entity id or faction id.
-   *  2. Legacy per-NPC hostility toward the player (preserves current behavior).
-   *  3. Static directional faction stance table.
+   *  2. Directional faction stance table (which already folds in isHostile via
+   *     the faction's player disposition).
    */
   isHostileTo(target) {
     if (!target || target === this) return false;
@@ -913,9 +934,9 @@ export class Entity extends SafeEventEmitter {
       }
     }
 
-    // Legacy: an NPC flagged isHostile attacks the player. Kept as a source of
-    // truth so Phase 1 wiring is behavior-identical; folded into factions later.
-    if (this.type === EntityType.NPC && target.type === EntityType.PLAYER && this.isHostile) {
+    // A per-entity isHostile override (runtime escalation, not faction-derived)
+    // still means "attacks the player".
+    if (this._hostileToPlayerOverride === true && target.type === EntityType.PLAYER) {
       return true;
     }
 
@@ -1086,6 +1107,18 @@ export class Entity extends SafeEventEmitter {
       }
     }
 
+    // Back-compat: legacy entities carried a flat `isHostile: true` boolean
+    // instead of a faction. A hostile NPC with no faction becomes a bandit
+    // (approach → demand → fight); anything else just keeps the per-entity
+    // override so it still reads as hostile to the player.
+    if (data.isHostile === true && entity._hostileToPlayerOverride == null) {
+      if (data.type === EntityType.NPC && !data.factionId) {
+        entity.factionId = 'bandits';
+      } else {
+        entity._hostileToPlayerOverride = true;
+      }
+    }
+
     if (data.type === 'item') {
       for (const field of ITEM_SERIALIZED_FIELDS) {
         if (data[field] !== undefined) {
@@ -1139,8 +1172,27 @@ defineAccessors(Entity, 'AIState', AIState, {
   hasExtorted: false,
   fleeRecoverChance: 0,
   stunnedTurns: 0,
-  aiDisabled: false,
-  attackOnSight: false
+  aiDisabled: false
+});
+
+// attackOnSight is DERIVED from the faction's player disposition, with an
+// optional per-entity override stored on AIState (null = defer to faction).
+// The override is the scripted channel written by EventRunner.applyNpcAIMode and
+// legacy authored maps; NPCAISystem reads npc.attackOnSight to short-circuit into
+// hunt-to-the-death behavior.
+Object.defineProperty(Entity.prototype, 'attackOnSight', {
+  get() {
+    const comp = this.getComponent('AIState');
+    const override = comp ? comp.attackOnSight : null;
+    if (override === true || override === false) return override;
+    return FactionRegistry.getPlayerDisposition(this.getFaction()) === 'attackOnSight';
+  },
+  set(val) {
+    let comp = this.getComponent('AIState');
+    if (!comp) { comp = new AIState(); this.addComponent(comp); }
+    comp.attackOnSight = val;
+    this.notifyChange();
+  }
 });
 
 defineAccessors(Entity, 'Burnable', Burnable, {

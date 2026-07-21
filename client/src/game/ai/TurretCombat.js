@@ -12,6 +12,7 @@
  */
 
 import { gridItems } from '../inventory/gridUtils.js';
+import { FactionRegistry } from './FactionRegistry.js';
 
 export const TURRET_DEF_ID = 'placeable.auto_turret';
 
@@ -125,6 +126,15 @@ export function getAttackableTurretOnTile(tile, attacker) {
  */
 export function escalateFactionAgainstPlayer(gameMap, faction = 'town') {
   if (!gameMap || typeof gameMap.getEntitiesByType !== 'function') return 0;
+  if (!faction) return 0;
+
+  // Flip the whole faction's player disposition to attack-on-sight in the stance
+  // table — this is faction-wide and persisted as a runtime delta (toJSON), so
+  // present AND future members of the faction turn on the player, and it survives
+  // save/reload. The per-entity hostileOverrides writes below are kept for
+  // immediate effect on entities already on the map.
+  FactionRegistry.escalateToAttackOnSight(faction);
+
   const turrets = gameMap.getEntitiesByType('item')
     .filter(e => e && e.defId === TURRET_DEF_ID && factionOf(e) === faction);
   let escalated = 0;
@@ -136,19 +146,39 @@ export function escalateFactionAgainstPlayer(gameMap, faction = 'town') {
     }
   }
 
-  // Also escalate any NPCs belonging to the faction
+  // Also escalate any NPCs belonging to the faction. isHostile/attackOnSight are
+  // now faction-derived (the flip above already makes them read hostile), so we
+  // only need the hostileOverrides marker for immediacy.
   const npcs = gameMap.getEntitiesByType('npc') || [];
   for (const npc of npcs) {
     if (factionOf(npc) === faction) {
       if (!npc.hostileOverrides) npc.hostileOverrides = new Set();
-      if (!npc.hostileOverrides.has('player')) {
-        npc.hostileOverrides.add('player');
-        npc.isHostile = true; // Legacy isHostile fallback check
-      }
+      npc.hostileOverrides.add('player');
     }
   }
 
   return escalated;
+}
+
+// Factions that should never be provoked by a player attack (attacking a zombie
+// or rabbit must not flip a whole "faction" hostile, and player/neutral are n/a).
+const UNPROVOKABLE_FACTIONS = new Set(['player', 'wildlife', 'zombies', 'neutral']);
+
+/**
+ * The player attacked `target` (an NPC or a turret): provoke its faction into
+ * attack-on-sight, unless the faction is one that can't be provoked. Returns
+ * `newlyHostile: true` only the first time a still-neutral faction flips, so the
+ * caller can show the "they turn on you" warning exactly once.
+ * @returns {{ faction: string|null, newlyHostile: boolean, escalated: number }}
+ */
+export function provokeTargetFaction(gameMap, target) {
+  const faction = factionOf(target);
+  if (!faction || UNPROVOKABLE_FACTIONS.has(faction)) {
+    return { faction: null, newlyHostile: false, escalated: 0 };
+  }
+  const wasHostile = FactionRegistry.isHostile(faction, 'player');
+  const escalated = escalateFactionAgainstPlayer(gameMap, faction);
+  return { faction, newlyHostile: !wasHostile, escalated };
 }
 
 /**

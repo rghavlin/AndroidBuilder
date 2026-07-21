@@ -42,7 +42,7 @@ describe('NPC attack-on-sight', () => {
   });
 
   it('attacks immediately instead of demanding loot when adjacent', () => {
-    const npc = place(gameMap, EntityFactory.createNPC(4, 5, true, 'survivor'), 4, 5);
+    const npc = place(gameMap, EntityFactory.createNPC(4, 5, 'bandits', 'survivor'), 4, 5);
     npc.attackOnSight = true;
     sees(npc, player);
 
@@ -56,7 +56,7 @@ describe('NPC attack-on-sight', () => {
   });
 
   it('still demands first when only the ordinary hostile flag is set', () => {
-    const npc = place(gameMap, EntityFactory.createNPC(4, 5, true, 'survivor'), 4, 5);
+    const npc = place(gameMap, EntityFactory.createNPC(4, 5, 'bandits', 'survivor'), 4, 5);
     sees(npc, player);
 
     const actions = runCycle(gameMap, [player, npc]);
@@ -66,7 +66,7 @@ describe('NPC attack-on-sight', () => {
   });
 
   it('closes on a visible player rather than travelling to the map exit', () => {
-    const npc = place(gameMap, EntityFactory.createNPC(4, 0, true, 'survivor'), 4, 0);
+    const npc = place(gameMap, EntityFactory.createNPC(4, 0, 'bandits', 'survivor'), 4, 0);
     npc.attackOnSight = true;
     sees(npc, player);
 
@@ -80,7 +80,7 @@ describe('NPC attack-on-sight', () => {
   });
 
   it('pursues the last known position after losing line of sight', () => {
-    const npc = place(gameMap, EntityFactory.createNPC(4, 0, true, 'survivor'), 4, 0);
+    const npc = place(gameMap, EntityFactory.createNPC(4, 0, 'bandits', 'survivor'), 4, 0);
     npc.attackOnSight = true;
     npc.lastSeen = true;
     npc.targetSightedCoords = { x: 4, y: 4 };
@@ -94,7 +94,7 @@ describe('NPC attack-on-sight', () => {
   });
 
   it('fights an adjacent zombie instead of fleeing it', () => {
-    const npc = place(gameMap, EntityFactory.createNPC(1, 1, true, 'survivor'), 1, 1);
+    const npc = place(gameMap, EntityFactory.createNPC(1, 1, 'bandits', 'survivor'), 1, 1);
     npc.attackOnSight = true;
     npc.getComponent('Vision').visibleEntities = []; // player not in sight
     const zombie = place(gameMap, EntityFactory.createZombie(1, 2, 'standard'), 1, 2);
@@ -108,7 +108,7 @@ describe('NPC attack-on-sight', () => {
   });
 
   it('round-trips attackOnSight through entity serialization', () => {
-    const npc = EntityFactory.createNPC(2, 2, true, 'survivor');
+    const npc = EntityFactory.createNPC(2, 2, 'bandits', 'survivor');
     npc.attackOnSight = true;
 
     const json = JSON.parse(JSON.stringify(npc.toJSON()));
@@ -117,7 +117,7 @@ describe('NPC attack-on-sight', () => {
 });
 
 describe('setNpcAI step / applyNpcAIMode', () => {
-  const npc = () => EntityFactory.createNPC(1, 1, false, 'survivor');
+  const npc = () => EntityFactory.createNPC(1, 1, 'independent', 'survivor');
 
   it('attackOnSight mode enables AI, sets the flag and implies hostility', () => {
     const e = npc();
@@ -130,7 +130,7 @@ describe('setNpcAI step / applyNpcAIMode', () => {
   });
 
   it('normal mode clears attackOnSight but leaves hostility intact', () => {
-    const e = EntityFactory.createNPC(1, 1, true, 'survivor');
+    const e = EntityFactory.createNPC(1, 1, 'bandits', 'survivor');
     e.attackOnSight = true;
 
     applyNpcAIMode(e, { aiMode: 'normal' });
@@ -141,7 +141,7 @@ describe('setNpcAI step / applyNpcAIMode', () => {
   });
 
   it('disabled mode parks the NPC without touching its hostility', () => {
-    const e = EntityFactory.createNPC(1, 1, true, 'survivor');
+    const e = EntityFactory.createNPC(1, 1, 'bandits', 'survivor');
 
     applyNpcAIMode(e, { aiMode: 'disabled' });
     expect(e.aiDisabled).toBe(true);

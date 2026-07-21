@@ -288,6 +288,11 @@ function spitAtPlayer(ctx) {
       damage,
       sickInflicted,
       infectionInflicted,
+      // Marks this as a ranged attack for playback: EntityRenderer swaps the
+      // melee lunge for a recoil, so spitting across the street stops looking
+      // like a thrust. ZOMBIE_ATTACK audio ignores weaponType (there is no spit
+      // sample), so the growl/slash-or-miss sounds are unchanged.
+      weaponType: 'ranged',
       from: { x: entity.logicalX, y: entity.logicalY },
       to: { x: playerPos.x, y: playerPos.y }
     }

@@ -30,7 +30,7 @@ export type StepType =
   | 'lockMovement' | 'unlockMovement' | 'lockActions' | 'unlockActions'
   | 'wait' | 'chain'
   | 'moveEntity' | 'startQuest' | 'setQuestTask' | 'setNpcAI'
-  | 'controlEntity';
+  | 'controlEntity' | 'setFactionStance';
 
 export interface EventStep {
   type: StepType;
@@ -73,6 +73,12 @@ export interface EventStep {
   enabled?: boolean;
   // controlEntity (reuses entityTag above): open/close/lock/unlock a door or window
   entityAction?: 'open' | 'close' | 'lock' | 'unlock';
+  // setFactionStance: set how faction `from` regards faction `to` at runtime.
+  // When `to === 'player'`, `stance` accepts a disposition (neutral/extort/attackOnSight).
+  factionFrom?: string;
+  factionTo?: string;
+  stance?: Stance | PlayerDisposition;
+  mirror?: boolean;
 }
 
 export interface GameEvent {
@@ -174,12 +180,29 @@ export interface QuestDef {
   onComplete?: QuestReward[];
 }
 
+// ─── Factions ──────────────────────────────────────────────────────────────
+// Directional stances mirror FactionRegistry: stances[from][to]. The `player`
+// column is special — it holds a PlayerDisposition instead of a plain Stance.
+export type Stance = 'ally' | 'neutral' | 'hostile';
+export type PlayerDisposition = 'neutral' | 'extort' | 'attackOnSight';
+
+export interface FactionDef {
+  id: string;
+  name: string;
+  description?: string;
+  builtin?: boolean;
+}
+
 export interface QuestRegistry {
   flags: FlagDef[];
   vars: VarDef[];
   quests: QuestDef[];
+  // Author-created factions (built-ins live in FactionRegistry, not here).
+  factions?: FactionDef[];
+  // Authored stance deltas over the built-in baseline: factionStances[from][to].
+  factionStances?: Record<string, Record<string, Stance | PlayerDisposition>>;
 }
 
 export function emptyQuestRegistry(): QuestRegistry {
-  return { flags: [], vars: [], quests: [] };
+  return { flags: [], vars: [], quests: [], factions: [], factionStances: {} };
 }

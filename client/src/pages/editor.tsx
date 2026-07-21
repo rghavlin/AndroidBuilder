@@ -4,7 +4,9 @@ import { ItemDefs, createItemFromDef } from '@/game/inventory/ItemDefs';
 import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 import { migrateLegacyEvents, downconvertEvents, resolveMapEvents } from '@/game/quest/migrateEvents';
-import { emptyEvent, emptyQuestRegistry, emptyEntityRegistry, type GameEvent, type QuestRegistry, type EntityRegistry, type EntityRegistryEntry } from '@/game/quest/eventTypes';
+import { emptyEvent, emptyQuestRegistry, emptyEntityRegistry, type GameEvent, type QuestRegistry, type EntityRegistry, type EntityRegistryEntry, type FactionDef, type Stance, type PlayerDisposition } from '@/game/quest/eventTypes';
+import { BUILTIN_FACTIONS, builtinStanceValue } from '@/game/ai/FactionRegistry';
+import { TURRET_DEF_ID } from '@/game/ai/TurretCombat';
 import EventWindow, { ConditionListEditor, QuestRewardEditor } from '@/components/MapEditor/EventWindow';
 import { TileRenderer } from '@/game/renderer/TileRenderer';
 import { FURNITURE_FOOTPRINTS } from '@/game/map/FurniturePlanner';
@@ -180,19 +182,26 @@ interface EditorItem {
   transitionTargetX?: number;
   transitionTargetY?: number;
   eventId?: string;
+  // auto_turret only: which faction owns the turret, and whether it starts powered.
+  factionId?: string;
+  isOn?: boolean;
 }
 
 // One authored entity on a tile. NPC-only flags:
-//   isHostile     — extorts the player first (demand dialog), then fights
-//   attackOnSight — skips the demand and hunts to the death (implies isHostile)
+//   factionId     — which faction the NPC belongs to; its disposition toward the
+//                   player (neutral/extort/attackOnSight) is authored on the
+//                   faction (Campaign Database → Factions), not per-NPC.
 //   aiDisabled    — scripted/quest NPC, no autonomous AI at all
 //   inventory     — carried items; these are what the NPC drops on death
 //   equippedIndex — index into `inventory` of the weapon the NPC fights with.
 //                   A ranged weapon there makes the AI shoot; a melee weapon
 //                   (or none) makes it close to melee range. See NPCAISystem.
+//   isHostile/attackOnSight — LEGACY: read on import of old maps and translated
+//                   to a faction; no longer authored by the current brush.
 interface EntityData {
   type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean;
   typeId?: string; name?: string; isHostile?: boolean; attackOnSight?: boolean;
+  factionId?: string;
   iconId?: string; aiDisabled?: boolean;
   inventory?: EditorItem[]; equippedIndex?: number;
 }
@@ -375,6 +384,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
         deaf: e.deaf || undefined,
         typeId: e.typeId || undefined,
         name: e.name || undefined,
+        factionId: e.factionId || undefined,
         isHostile: e.isHostile || undefined,
         attackOnSight: e.attackOnSight || undefined,
         iconId: e.iconId || undefined,
@@ -570,7 +580,10 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
                 type: 'npc',
                 typeId: e.typeId,
                 name: e.name,
-                isHostile: e.isHostile,
+                factionId: e.factionId,
+                // Legacy: _hostileToPlayerOverride is the current field; isHostile
+                // is read for pre-faction saves so old maps still round-trip.
+                isHostile: e._hostileToPlayerOverride ?? e.isHostile,
                 attackOnSight: e.attackOnSight ?? aiState.attackOnSight,
                 iconId: e.iconId,
                 aiDisabled: e.aiDisabled ?? aiState.aiDisabled,
@@ -722,6 +735,10 @@ function buildFullItem(item: EditorItem): any {
     }
   }
 
+  // auto_turret: owning faction + starting power state.
+  if (item.factionId !== undefined) full.factionId = item.factionId;
+  if (item.isOn !== undefined) full.isOn = item.isOn;
+
   return full;
 }
 
@@ -735,6 +752,10 @@ function itemToEditorEntry(it: any): EditorItem {
   if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
   if (it.eventId !== undefined) entry.eventId = it.eventId;
   if (it.condition !== undefined) entry.condition = it.condition;
+  if ((it.defId || it.id) === TURRET_DEF_ID) {
+    if (it.factionId !== undefined) entry.factionId = it.factionId;
+    if (it.isOn !== undefined) entry.isOn = it.isOn;
+  }
 
   if (it.attachments) {
     const itemDef = (ItemDefs as any)[entry.defId];
@@ -807,6 +828,7 @@ function exportScenario(scenario: ScenarioData) {
           ...(e.deaf ? { deaf: true } : {}),
           ...(e.typeId ? { typeId: e.typeId } : {}),
           ...(e.name ? { name: e.name } : {}),
+          ...(e.factionId ? { factionId: e.factionId } : {}),
           ...(e.isHostile ? { isHostile: true } : {}),
           ...(e.attackOnSight ? { attackOnSight: true } : {}),
           ...(e.iconId ? { iconId: e.iconId } : {}),
@@ -884,7 +906,7 @@ function exportScenario(scenario: ScenarioData) {
     mapTransitions,
     ...(scenario.bubbleEvents && scenario.bubbleEvents.length ? { bubbleEvents: scenario.bubbleEvents } : {}),
     ...(events.length ? { events } : {}),
-    ...(scenario.questRegistry && (scenario.questRegistry.flags.length || scenario.questRegistry.vars.length || (scenario.questRegistry.quests && scenario.questRegistry.quests.length)) ? { questRegistry: scenario.questRegistry } : {}),
+    ...(scenario.questRegistry && (scenario.questRegistry.flags.length || scenario.questRegistry.vars.length || (scenario.questRegistry.quests && scenario.questRegistry.quests.length) || (scenario.questRegistry.factions && scenario.questRegistry.factions.length) || (scenario.questRegistry.factionStances && Object.keys(scenario.questRegistry.factionStances).length)) ? { questRegistry: scenario.questRegistry } : {}),
     ...(scenario.entityRegistry && scenario.entityRegistry.entries.length ? { entityRegistry: scenario.entityRegistry } : {}),
   };
 }
@@ -918,10 +940,13 @@ export default function MapEditor() {
   const [zombieDeaf, setZombieDeaf] = useState(false);
   const [npcTypeId, setNpcTypeId] = useState('survivor');
   const [npcName, setNpcName] = useState('');
-  const [npcIsHostile, setNpcIsHostile] = useState(false);
+  // Disposition toward the player now lives on the faction, not the NPC.
+  const [npcFactionId, setNpcFactionId] = useState('independent');
   const [npcIconId, setNpcIconId] = useState('npc');
   const [npcAiDisabled, setNpcAiDisabled] = useState(false);
-  const [npcAttackOnSight, setNpcAttackOnSight] = useState(false);
+  // auto_turret brush: owning faction + starting power state.
+  const [turretFactionId, setTurretFactionId] = useState('town');
+  const [turretIsOn, setTurretIsOn] = useState(true);
   // Loadout carried by NEWLY stamped NPCs (the brush default). Editing an
   // already-placed NPC's loadout goes through loadoutModal.target instead.
   const [npcLoadout, setNpcLoadout] = useState<EditorItem[]>([]);
@@ -1074,7 +1099,9 @@ export default function MapEditor() {
   const [newVarDesc, setNewVarDesc] = useState('');
   const [newVarInitial, setNewVarInitial] = useState<number>(0);
 
-  const [registryTab, setRegistryTab] = useState<'flags' | 'vars' | 'quests'>('flags');
+  const [registryTab, setRegistryTab] = useState<'flags' | 'vars' | 'quests' | 'factions'>('flags');
+  const [newFactionName, setNewFactionName] = useState('');
+  const [newFactionDesc, setNewFactionDesc] = useState('');
   const [newQuestId, setNewQuestId] = useState('');
   const [newQuestTitle, setNewQuestTitle] = useState('');
   const [newQuestDesc, setNewQuestDesc] = useState('');
@@ -1223,6 +1250,85 @@ export default function MapEditor() {
       ...prev,
       vars: prev.vars.map(v => v.name === name ? { ...v, ...fields } : v)
     }));
+  }, []);
+
+  // ─── Factions ─────────────────────────────────────────────────────────────
+  // Full faction list = built-ins (from FactionRegistry) + author-created ones.
+  const allFactions = useMemo<FactionDef[]>(() => {
+    const authored = questRegistry.factions || [];
+    const seen = new Set(authored.map(f => f.id));
+    return [...(BUILTIN_FACTIONS as FactionDef[]).filter(f => !seen.has(f.id)), ...authored];
+  }, [questRegistry.factions]);
+
+  // Effective directional stance/disposition = authored delta ?? built-in baseline
+  // ?? (ally on the diagonal, else neutral). The `player` column holds a
+  // disposition (neutral/extort/attackOnSight); every other cell holds a stance.
+  const effectiveStance = useCallback((from: string, to: string): string => {
+    const authored = questRegistry.factionStances?.[from]?.[to];
+    if (authored != null) return authored;
+    const builtin = builtinStanceValue(from, to);
+    if (builtin != null) return builtin;
+    return from === to ? 'ally' : 'neutral';
+  }, [questRegistry.factionStances]);
+
+  const addFactionDef = useCallback(() => {
+    const name = newFactionName.trim();
+    if (!name) { setStatusMsg('Faction name cannot be empty'); return; }
+    const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    if (!id) { setStatusMsg('Faction name must contain letters or numbers'); return; }
+    if ((BUILTIN_FACTIONS as FactionDef[]).some(f => f.id === id) || (questRegistry.factions || []).some(f => f.id === id)) {
+      setStatusMsg(`A faction with id "${id}" already exists`); return;
+    }
+    setQuestRegistry(prev => ({
+      ...prev,
+      factions: [...(prev.factions || []), { id, name, ...(newFactionDesc.trim() ? { description: newFactionDesc.trim() } : {}) }]
+    }));
+    setNewFactionName('');
+    setNewFactionDesc('');
+    setStatusMsg(`Faction "${name}" created (id: ${id})`);
+  }, [newFactionName, newFactionDesc, questRegistry]);
+
+  const removeFactionDef = useCallback((id: string) => {
+    // Block removal while any placed NPC or turret still references the faction.
+    let referenced = false;
+    for (let y = 0; y < height && !referenced; y++) {
+      for (let x = 0; x < width && !referenced; x++) {
+        const t = tilesRef.current[y]?.[x];
+        if (!t) continue;
+        if (t.entities?.some(e => e.factionId === id)) referenced = true;
+        if (t.items?.some(it => it.factionId === id)) referenced = true;
+      }
+    }
+    if (referenced) { setStatusMsg(`Cannot remove "${id}" — still assigned to a placed NPC or turret`); return; }
+    setQuestRegistry(prev => {
+      const stances = { ...(prev.factionStances || {}) };
+      delete stances[id];
+      for (const from of Object.keys(stances)) {
+        if (stances[from] && id in stances[from]) {
+          stances[from] = { ...stances[from] };
+          delete stances[from][id];
+        }
+      }
+      return {
+        ...prev,
+        factions: (prev.factions || []).filter(f => f.id !== id),
+        factionStances: stances,
+      };
+    });
+  }, [width, height]);
+
+  // Set stance(from→to); auto-mirror to(to→from) only when the reverse has never
+  // been authored, and never across the one-directional player column.
+  const setFactionStanceCell = useCallback((from: string, to: string, value: string) => {
+    setQuestRegistry(prev => {
+      const stances: Record<string, Record<string, any>> = { ...(prev.factionStances || {}) };
+      stances[from] = { ...(stances[from] || {}), [to]: value };
+      const touchesPlayer = from === 'player' || to === 'player';
+      if (!touchesPlayer && stances[to]?.[from] == null) {
+        stances[to] = { ...(stances[to] || {}), [from]: value };
+      }
+      return { ...prev, factionStances: stances };
+    });
   }, []);
 
   const openExistingEvent = useCallback((id: string) => {
@@ -1595,10 +1701,8 @@ export default function MapEditor() {
             } else if (selectedEntity === 'npc') {
               ent.typeId = npcTypeId;
               if (npcName.trim()) ent.name = npcName.trim();
-              // Attack-on-sight implies hostile; keep both flags on the entity
-              // so older readers that only know isHostile still treat it right.
-              if (npcIsHostile || npcAttackOnSight) ent.isHostile = true;
-              if (npcAttackOnSight) ent.attackOnSight = true;
+              // Disposition toward the player comes from the faction, not the NPC.
+              if (npcFactionId) ent.factionId = npcFactionId;
               if (npcIconId && npcIconId !== 'npc') ent.iconId = npcIconId;
               if (npcAiDisabled) ent.aiDisabled = true;
               if (npcLoadout.length > 0) {
@@ -1625,6 +1729,10 @@ export default function MapEditor() {
             if (selectedItem === 'placeable.help' && helpEventId) itemEntry.eventId = helpEventId;
             if (gunMagDefId) itemEntry.gunMagDefId = gunMagDefId;
             if (Object.keys(gunAttachments).some(k => gunAttachments[k])) itemEntry.gunAttachments = { ...gunAttachments };
+            if (selectedItem === TURRET_DEF_ID) {
+              itemEntry.factionId = turretFactionId;
+              itemEntry.isOn = turretIsOn;
+            }
             tile.items.push(itemEntry);
           }
           break;
@@ -1685,7 +1793,7 @@ export default function MapEditor() {
 
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcIsHostile, npcAttackOnSight, npcIconId, npcAiDisabled, npcLoadout, npcEquippedIndex, selectedItem, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcFactionId, npcIconId, npcAiDisabled, npcLoadout, npcEquippedIndex, selectedItem, turretFactionId, turretIsOn, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Furniture stamp tool ────────────────────────────────────────────
   // Validates and places a loose furniture stamp at (x, y). Lives outside
@@ -2579,6 +2687,10 @@ export default function MapEditor() {
     if (gunAmmoCount !== '') draft.gunAmmoCount = gunAmmoCount as number;
     if (gunMagDefId) draft.gunMagDefId = gunMagDefId;
     if (Object.keys(gunAttachments).some(k => gunAttachments[k])) draft.gunAttachments = { ...gunAttachments };
+    if (selectedItem === TURRET_DEF_ID) {
+      draft.factionId = turretFactionId;
+      draft.isOn = turretIsOn;
+    }
     return draft;
   };
 
@@ -2715,6 +2827,30 @@ export default function MapEditor() {
                   </div>
                 );
               })()}
+              {selectedItem === TURRET_DEF_ID && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
+                  <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Turret Faction</label>
+                  <select
+                    value={turretFactionId}
+                    onChange={e => setTurretFactionId(e.target.value)}
+                    style={{ ...inputStyle, width: '100%' }}
+                  >
+                    {allFactions.map(f => (
+                      <option key={f.id} value={f.id}>{f.name}</option>
+                    ))}
+                  </select>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={turretIsOn} onChange={e => setTurretIsOn(e.target.checked)} />
+                    Powered on
+                  </label>
+                  <p style={{ fontSize: 11, color: '#888', margin: 0 }}>
+                    The turret fires on any faction it is hostile toward (and never its own).
+                    {turretFactionId !== 'player'
+                      ? ' Non-player turrets have infinite battery + ammo and stay on.'
+                      : ' Player turrets consume the battery/ammo you configure below.'}
+                  </p>
+                </div>
+              )}
               {(() => {
                 const def = (ItemDefs as any)[selectedItem];
                 const slotInfo = getBatterySlotInfo(def);
@@ -2914,7 +3050,7 @@ export default function MapEditor() {
         </div>
 
         <button onClick={() => setShowQuestRegistryModal(true)} style={{ ...btnStyle('#333'), width: '100%' }}>
-          Switches &amp; Variables ({questRegistry.flags.length + questRegistry.vars.length})
+          Campaign Database ({questRegistry.flags.length + questRegistry.vars.length + (questRegistry.quests?.length || 0) + (questRegistry.factions?.length || 0)})
         </button>
         <button onClick={() => setShowEntityRegistryModal(true)} style={{ ...btnStyle('#333'), width: '100%', marginTop: 4 }}>
           Map Entities ({entityRegistry.entries.length})
@@ -3067,19 +3203,26 @@ export default function MapEditor() {
                   placeholder="e.g. Doc"
                   style={{ ...inputStyle, width: '100%' }}
                 />
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={npcIsHostile || npcAttackOnSight}
-                    disabled={npcAttackOnSight}
-                    onChange={e => setNpcIsHostile(e.target.checked)}
-                  />
-                  Hostile (demands loot first, then fights)
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#e07070', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={npcAttackOnSight} onChange={e => setNpcAttackOnSight(e.target.checked)} />
-                  Attack on sight (no demand — hunts and fights to the death)
-                </label>
+                <label style={{ fontSize: 11, color: '#888' }}>Faction</label>
+                <select
+                  value={npcFactionId}
+                  onChange={e => setNpcFactionId(e.target.value)}
+                  style={{ ...inputStyle, width: '100%' }}
+                >
+                  {allFactions.map(f => (
+                    <option key={f.id} value={f.id}>{f.name}</option>
+                  ))}
+                </select>
+                {(() => {
+                  const disp = effectiveStance(npcFactionId, 'player');
+                  const label = disp === 'attackOnSight'
+                    ? '→ attacks the player on sight (hunts to the death)'
+                    : disp === 'extort'
+                      ? '→ demands loot from the player first, then fights'
+                      : '→ neutral to the player (ignores them)';
+                  const color = disp === 'attackOnSight' ? '#e07070' : disp === 'extort' ? '#d0a050' : '#70b070';
+                  return <p style={{ fontSize: 11, color, margin: 0 }}>{label} <span style={{ color: '#666' }}>(set per-faction in Campaign Database → Factions)</span></p>;
+                })()}
                 <button onClick={() => openLoadoutEditor(null)} style={{ ...btnStyle('#46607a'), width: '100%' }}>
                   Loadout… ({npcLoadout.length} item{npcLoadout.length === 1 ? '' : 's'}
                   {npcEquippedIndex >= 0 && npcLoadout[npcEquippedIndex]
@@ -3558,6 +3701,7 @@ export default function MapEditor() {
           knownVars={questRegistry.vars.map(v => v.name)}
           knownEntities={knownEntities}
           knownQuests={questRegistry.quests || []}
+          knownFactions={allFactions.map(f => ({ id: f.id, name: f.name }))}
         />
       )}
 
@@ -3571,7 +3715,7 @@ export default function MapEditor() {
 
             {/* Tab header buttons */}
             <div style={{ display: 'flex', gap: 6, borderBottom: '1px solid #444', paddingBottom: 8, marginBottom: 12 }}>
-              {(['flags', 'vars', 'quests'] as const).map((tab) => (
+              {(['flags', 'vars', 'quests', 'factions'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setRegistryTab(tab)}
@@ -3769,6 +3913,87 @@ export default function MapEditor() {
                     <button onClick={addQuestDef} style={btnStyle('#2a7a2a')}>Register</button>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {registryTab === 'factions' && (
+              <div>
+                <p style={{ fontSize: 11, color: '#888', marginBottom: 12 }}>
+                  Define factions and how they regard each other. NPCs and auto-turrets are
+                  assigned a faction; their behavior toward the player follows the faction's
+                  disposition in the <b>Player</b> column below.
+                </p>
+
+                <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Factions</label>
+                {(questRegistry.factions || []).length === 0 && (
+                  <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>No custom factions yet. Built-ins are always available.</div>
+                )}
+                {(questRegistry.factions || []).map(f => (
+                  <div key={f.id} style={{ display: 'flex', gap: 4, alignItems: 'center', background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: '4px 8px', marginTop: 4 }}>
+                    <div style={{ flex: 1, minWidth: 100, fontSize: 12, color: '#ddd', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={f.id}>
+                      {f.name} <span style={{ fontSize: 10, color: '#666', fontWeight: 'normal' }}>({f.id})</span>
+                    </div>
+                    <button onClick={() => removeFactionDef(f.id)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>Remove</button>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                  <input value={newFactionName} onChange={e => setNewFactionName(e.target.value)} placeholder="e.g. Ironworks" style={{ ...inputStyle, flex: 1 }} />
+                  <input value={newFactionDesc} onChange={e => setNewFactionDesc(e.target.value)} placeholder="description (optional)" style={{ ...inputStyle, flex: 1 }} />
+                  <button onClick={addFactionDef} style={btnStyle('#2a7a2a')}>Create</button>
+                </div>
+
+                <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold', display: 'block', marginTop: 16, marginBottom: 6 }}>Attitude Matrix (row → column)</label>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ borderCollapse: 'collapse', fontSize: 11 }}>
+                    <thead>
+                      <tr>
+                        <th style={{ padding: '2px 6px', color: '#888', textAlign: 'left' }}></th>
+                        {allFactions.map(to => (
+                          <th key={to.id} style={{ padding: '2px 6px', color: '#aaa', fontWeight: 'normal', writingMode: 'vertical-rl', transform: 'rotate(180deg)', whiteSpace: 'nowrap' }} title={to.id}>
+                            {to.name}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allFactions.map(from => (
+                        <tr key={from.id}>
+                          <td style={{ padding: '2px 6px', color: '#ddd', fontWeight: 'bold', whiteSpace: 'nowrap' }} title={from.id}>{from.name}</td>
+                          {allFactions.map(to => {
+                            const isDiag = from.id === to.id;
+                            const isPlayerCol = to.id === 'player';
+                            const val = effectiveStance(from.id, to.id);
+                            if (isDiag) {
+                              return <td key={to.id} style={{ padding: '2px 4px', color: '#4a8', textAlign: 'center' }}>ally</td>;
+                            }
+                            const opts = isPlayerCol
+                              ? [['neutral', 'neutral'], ['extort', 'extort'], ['attackOnSight', 'attack']]
+                              : [['ally', 'ally'], ['neutral', 'neutral'], ['hostile', 'hostile']];
+                            const color = (val === 'hostile' || val === 'attackOnSight') ? '#e07070'
+                              : val === 'extort' ? '#d0a050'
+                              : val === 'ally' ? '#70b070' : '#999';
+                            return (
+                              <td key={to.id} style={{ padding: '1px 2px' }}>
+                                <select
+                                  value={val}
+                                  onChange={e => setFactionStanceCell(from.id, to.id, e.target.value)}
+                                  style={{ ...inputStyle, fontSize: 10, padding: '1px 2px', color, minWidth: 62 }}
+                                >
+                                  {opts.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+                                </select>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p style={{ fontSize: 10, color: '#666', marginTop: 8 }}>
+                  The <b>Player</b> column is one-directional: neutral (ignores you), extort
+                  (demands loot, then fights), or attack (hunts on sight). Other cells auto-mirror
+                  the reverse direction only until you set it yourself.
+                </p>
               </div>
             )}
 
@@ -4386,8 +4611,7 @@ export default function MapEditor() {
                           {ent.deaf ? ` · deaf` : ''}
                           {ent.type === 'npc' && ent.name ? ` · "${ent.name}"` : ''}
                           {ent.type === 'npc' && ent.typeId ? ` · ${ent.typeId}` : ''}
-                          {ent.type === 'npc' && ent.isHostile && !ent.attackOnSight ? ` · hostile` : ''}
-                          {ent.type === 'npc' && ent.attackOnSight ? ` · attacks on sight` : ''}
+                          {ent.type === 'npc' ? ` · ${(allFactions.find(f => f.id === (ent.factionId || 'independent'))?.name) || ent.factionId || 'independent'}` : ''}
                           {ent.type === 'npc' && ent.aiDisabled ? ` · scripted` : ''}
                           {ent.type === 'npc' && ent.iconId ? ` · icon:${ent.iconId}` : ''}
                           {ent.type === 'npc' && ent.inventory?.length
@@ -4445,6 +4669,7 @@ export default function MapEditor() {
                           {isFuelContainer && item.ammoCount !== undefined ? ` · ${item.ammoCount}/${def.capacity} fuel` : ''}
                           {isDegradable && item.condition !== undefined ? ` · ${item.condition}% cond` : ''}
                           {slotInfo && item.batteryCharges !== undefined ? ` · ${item.batteryCharges}/${slotInfo.capacity} chg` : ''}
+                          {item.defId === TURRET_DEF_ID ? ` · ${(allFactions.find(f => f.id === (item.factionId || 'town'))?.name) || item.factionId || 'town'}${item.isOn === false ? ' (off)' : ''}` : ''}
                           {gunAmmoLabel}
                           {(item.defId === 'placeable.stairs_down' || item.defId === 'placeable.stairs_up') && item.transitionTargetId ? ` · ➡ ${item.transitionTargetId} (${item.transitionTargetX ?? '?'},${item.transitionTargetY ?? '?'})` : ''}
                           {item.defId === 'placeable.help' ? (item.eventId ? ` · ▶ ${item.eventId}` : ' · ▶ (no event)') : ''}

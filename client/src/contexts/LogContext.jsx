@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { EntityType } from '../game/entities/Entity.js';
+import { ItemDefs } from '../game/inventory/ItemDefs.js';
 
 const LogContext = createContext();
 
@@ -78,11 +79,20 @@ export const LogProvider = ({ children }) => {
             const isSuccess = data.success !== undefined ? data.success : data.hit;
             const damage = data.damage || 0;
 
+            // Name the gun so a shot from across the street reads differently
+            // from a melee swing in the log.
+            const weaponName = data.weaponType === 'ranged' && data.weaponId
+                ? (ItemDefs[data.weaponId]?.name || null)
+                : null;
+
             if (data.dodged && data.targetType === EntityType.PLAYER) {
                 addLog('Dodged attack!', 'combat');
             } else if (isSuccess) {
                 const hitTimes = data.hitCount > 1 ? ` ${data.hitCount} times` : '';
-                addLog(`${entityName} hits${hitTimes} (${damage} damage)`, 'combat');
+                const withWeapon = weaponName ? ` with ${weaponName}` : '';
+                addLog(`${entityName} hits${hitTimes}${withWeapon} (${damage} damage)`, 'combat');
+            } else if (weaponName) {
+                addLog(`${entityName} shoots at you with ${weaponName} and misses`, 'combat');
             } else {
                 const attackTimes = data.attackCount > 1 ? `${data.attackCount} times ` : '';
                 addLog(`${entityName} attacks ${attackTimes}but misses all!`, 'combat');

@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784537486.428716,
-    "ast_hash": "bd31ef1b9b525bfeafad1d19af56107c",
+    "mtime": 1784540904.5995145,
+    "ast_hash": "a56ef86d93d8e74a72820be3434e6d87",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -660,9 +660,9 @@
     "semantic_hash": ""
   },
   "client/src/contexts/LogContext.jsx": {
-    "mtime": 1783393754.1439602,
-    "ast_hash": "fde0ad44e0fe79dfc575091b85fd86e2",
-    "semantic_hash": "fde0ad44e0fe79dfc575091b85fd86e2"
+    "mtime": 1784542005.15419,
+    "ast_hash": "3d6b85f4b52211f98b4e1b7adade170d",
+    "semantic_hash": ""
   },
   "client/src/contexts/OverlayContext.tsx": {
     "mtime": 1782710996.2586646,
@@ -685,8 +685,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/VisualEffectsContext.jsx": {
-    "mtime": 1783572939.3765655,
-    "ast_hash": "6931a6242b2f760c99f43f643f0a0704",
+    "mtime": 1784542634.7846975,
+    "ast_hash": "5e52db843a81c5180a2c1b36df15dc73",
     "semantic_hash": ""
   },
   "client/src/game/BlueprintRegistry.js": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": ""
   },
   "client/src/game/managers/TurnManager.js": {
-    "mtime": 1784114530.6999094,
-    "ast_hash": "74ef00ca2c5c349f5afb7de379eb2bce",
+    "mtime": 1784542620.2472816,
+    "ast_hash": "b0832a31ee44b50744b971a833ca93b2",
     "semantic_hash": ""
   },
   "client/src/game/map/AsciiMapRenderer.js": {
@@ -1100,8 +1100,8 @@
     "semantic_hash": "9ef85efd7fec69c93a92b57d52c97760"
   },
   "client/src/game/map/TemplateMapGenerator.js": {
-    "mtime": 1784537366.4485126,
-    "ast_hash": "c9e1c12e58c059547e4ed3bf106b89ee",
+    "mtime": 1784540476.773601,
+    "ast_hash": "12abbb07237921bf2a3a67f32832cab5",
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
@@ -1175,8 +1175,8 @@
     "semantic_hash": "8227401cf12e62741245570c60d4640d"
   },
   "client/src/game/renderer/EntityRenderer.js": {
-    "mtime": 1784527706.3611908,
-    "ast_hash": "2c73bc72de540fac2dcc7f05dfe59513",
+    "mtime": 1784542643.430833,
+    "ast_hash": "cfd9838050d9bc48b663851e24278421",
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileChunkCache.js": {
@@ -1190,8 +1190,8 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
-    "mtime": 1784114048.2463999,
-    "ast_hash": "8c06deb0fb57cedf4a30c056ae09e64c",
+    "mtime": 1784542323.9489684,
+    "ast_hash": "82747f1a370e36cb8f9588363589f287",
     "semantic_hash": ""
   },
   "client/src/game/systems/AttributeProgressionManager.js": {
@@ -1285,8 +1285,8 @@
     "semantic_hash": "a892a3741d4a30226ad60ae8b9345dc8"
   },
   "client/src/game/utils/GameEvents.js": {
-    "mtime": 1783931659.1942708,
-    "ast_hash": "60ae8d16ff49642555f7fdde7c6812f6",
+    "mtime": 1784542610.6601655,
+    "ast_hash": "78b0b22f4b26acdd6e934c62688b8bc6",
     "semantic_hash": ""
   },
   "client/src/game/utils/ImageLoader.js": {
@@ -1420,8 +1420,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1784537501.2184038,
-    "ast_hash": "ac007d9fdddc8e38b0eeb407c861974d",
+    "mtime": 1784540682.60032,
+    "ast_hash": "e0a700367fa1de48ec9280e9af351e37",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -2825,8 +2825,8 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/NPCAISystem.js": {
-    "mtime": 1784537364.4001355,
-    "ast_hash": "7b551df1b949fadb9906f88213294a43",
+    "mtime": 1784542606.0548584,
+    "ast_hash": "8dcf450695bc4389b5a8fe98fa15c911",
     "semantic_hash": ""
   },
   "test/inventory/container.test.js": {
@@ -3005,13 +3005,13 @@
     "semantic_hash": ""
   },
   "customMaps/generated_branching_roadTEST.editor.json": {
-    "mtime": 1784536721.065878,
-    "ast_hash": "3bc4b0fc689bdda450c4a4de11fd2c72",
+    "mtime": 1784542312.9983191,
+    "ast_hash": "c115d57e2fd712cafa27f061c0c093f8",
     "semantic_hash": ""
   },
   "customMaps/generated_branching_roadTEST.scenario.json": {
-    "mtime": 1784536721.507228,
-    "ast_hash": "117b75bb407e167c539867321ffb1802",
+    "mtime": 1784542313.866208,
+    "ast_hash": "c2a7386fef8da37f29771a5adf0fa5a4",
     "semantic_hash": ""
   },
   "scratch/check_template_furniture_plan.mjs": {
@@ -3027,6 +3027,16 @@
   "test/systems/npcAttackOnSight.test.js": {
     "mtime": 1784538070.2406728,
     "ast_hash": "919ed54a9c8d4a0ea2a34000eabde07c",
+    "semantic_hash": ""
+  },
+  "test/systems/npcLoadout.test.js": {
+    "mtime": 1784542660.060943,
+    "ast_hash": "805bb2c13aeb9b5bdf37b4cc13a7ce3c",
+    "semantic_hash": ""
+  },
+  "test/systems/spitterRanged.test.js": {
+    "mtime": 1784542351.2580097,
+    "ast_hash": "aa6eac62fed681b8ee9bafd93effaba3",
     "semantic_hash": ""
   }
 }

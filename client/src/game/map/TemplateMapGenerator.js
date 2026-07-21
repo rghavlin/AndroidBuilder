@@ -694,7 +694,7 @@ export class TemplateMapGenerator {
     mapData.metadata.events = scenarioData.events || [];
     // Switches & Variables registry (editor authoring aid) — read once at map
     // load to seed initial flag/var values (see QuestState.seedFromRegistry).
-    mapData.metadata.questRegistry = scenarioData.questRegistry || { flags: [], vars: [] };
+    mapData.metadata.questRegistry = scenarioData.questRegistry || { flags: [], vars: [], factions: [], factionStances: {} };
     mapData.metadata.entityRegistry = scenarioData.entityRegistry || { entries: [] };
     mapData.metadata.mapTransitions = scenarioData.mapTransitions || [];
     if (scenarioData.metadata?.alwaysDark || scenarioData.alwaysDark) {
@@ -1021,20 +1021,22 @@ export class TemplateMapGenerator {
               } else if (e.type === 'npc') {
                 // Preserve the authored NPC identity (typeId/subtype, name, hostility)
                 // instead of collapsing every scenario NPC to a generic survivor.
+                // Faction wins; a legacy authored `isHostile` with no faction maps
+                // to bandits (approach → demand → fight). Disposition otherwise
+                // lives on the faction (FactionRegistry), not the NPC.
+                const authoredFaction = e.factionId || (e.isHostile ? 'bandits' : null);
                 entity = EntityFactory.createNPC(
                   e.x, e.y,
-                  e.isHostile || false,
+                  authoredFaction,
                   e.typeId || e.subtype || 'survivor',
                   e.name || null,
                   null,
                   e.iconId || null
                 );
                 if (e.aiDisabled && entity) entity.aiDisabled = true;
-                // Attack-on-sight implies hostility, so authors only have to
-                // tick one box in the editor.
+                // Legacy attack-on-sight authored NPCs: pin the behavior override.
                 if (e.attackOnSight && entity) {
                   entity.attackOnSight = true;
-                  entity.isHostile = true;
                 }
                 if (entity && Array.isArray(e.inventory) && e.inventory.length > 0) {
                   await this.applyNpcLoadout(entity, e.inventory, e.equippedIndex);

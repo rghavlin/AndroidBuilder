@@ -149,14 +149,16 @@ export const EntityFactory = {
     return entity;
   },
 
-  createNPC(x, y, isHostile = false, typeId = 'survivor', name = null, id = null, iconId = null) {
+  createNPC(x, y, factionId = null, typeId = 'survivor', name = null, id = null, iconId = null) {
     const typeDef = getNPCType(typeId);
     const entity = new Entity(id, 'npc', x, y);
     entity.type = 'npc';
     entity.typeId = typeId;
     entity.name = name || 'Nameless';
-    entity.isHostile = isHostile;
-    entity.factionId = typeDef.factionId || 'survivors';
+    // Faction drives disposition toward the player (hostile/neutral) via the
+    // FactionRegistry — the old per-NPC `isHostile` boolean is gone. Explicit
+    // faction wins, else the type's default, else 'independent' (peaceful).
+    entity.factionId = factionId || typeDef.factionId || 'independent';
     entity.blocksMovement = true;
     // Custom appearance, independent of typeId (which drives stats/faction).
     // Reuses existing game art (see NPC_ICON_OPTIONS in the map editor) rather

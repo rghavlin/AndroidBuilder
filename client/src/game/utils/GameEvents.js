@@ -43,6 +43,7 @@ export const GAME_EVENT = {
   NPC_DEMAND_TRIGGERED: 'npc_demand_triggered',
   NPC_ESCAPED: 'npcEscaped',
   PROJECTILE_FIRED: 'projectile_fired',
+  MUZZLE_FLASH: 'muzzle_flash',
   ENTITY_BLINK: 'entity_blink',
   
   // Entity Lifecycle

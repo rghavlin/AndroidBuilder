@@ -172,6 +172,20 @@ export class NPCAISystem {
     this.travelSouth(ctx);
   }
 
+  /**
+   * True when the NPC holds a ranged weapon and `target` is inside its range.
+   * Callers still owe a line-of-sight check; this is only the weapon question.
+   */
+  static canShoot(npc, target) {
+    const weapon = npc.getEquippedWeapon();
+    if (!weapon) return false;
+    const weaponDef = ItemDefs[weapon.defId];
+    const rangedStats = weaponDef?.rangedStats || weapon.rangedStats;
+    if (!rangedStats) return false;
+    const maxRange = rangedStats.maxRange ?? 8;
+    return npc.getDistanceTo(target.logicalX ?? target.x, target.logicalY ?? target.y) <= maxRange;
+  }
+
   /** Prefer the cached Vision component, fall back to direct LOS. */
   static canSeePlayer(npc, gameMap, player) {
     const vision = npc.getComponent('Vision');
@@ -438,24 +452,17 @@ export class NPCAISystem {
       npc.targetSightedCoords = { x: player.logicalX, y: player.logicalY };
     }
 
-    // 1. Melee from an adjacent attack position.
+    // 1. Shoot on sight when holding a gun — checked before melee so a gunman
+    //    who ends up adjacent still fires instead of pistol-whipping.
+    if (canSee && this.canShoot(npc, player)) {
+      npc.behaviorState = 'attacking';
+      if (this.npcAttack(ctx, player, true)) return true;
+    }
+
+    // 2. Melee from an adjacent attack position.
     if (isMeleeAttackPosition(npc, gameMap, npc.logicalX, npc.logicalY, player)) {
       npc.behaviorState = 'attacking';
       if (this.npcAttack(ctx, player, false)) return true;
-    }
-
-    // 2. Shoot on sight when holding a ranged weapon and inside its range.
-    if (canSee) {
-      const weapon = npc.getEquippedWeapon();
-      const weaponDef = weapon ? ItemDefs[weapon.defId] : null;
-      const isRanged = weapon && (weaponDef?.rangedStats || weapon.rangedStats);
-      if (isRanged) {
-        const maxRange = weaponDef?.rangedStats?.maxRange ?? weapon?.rangedStats?.maxRange ?? 8;
-        if (npc.getDistanceTo(player.logicalX, player.logicalY) <= maxRange) {
-          npc.behaviorState = 'attacking';
-          if (this.npcAttack(ctx, player, true)) return true;
-        }
-      }
     }
 
     // 3. Close on the player: a free cardinal slot beside them while visible.
@@ -510,22 +517,15 @@ export class NPCAISystem {
         return true;
       }
       npc.behaviorState = 'attacking';
-      return this.npcAttack(ctx, player, false);
+      // Fire even point-blank when holding a gun: falling back to melee here
+      // would pistol-whip for the unarmed 1-3 instead of shooting.
+      return this.npcAttack(ctx, player, this.canShoot(npc, player));
     }
 
     // Shoot from range once the demand has been made and a ranged weapon is held
-    if (npc.hasDemanded) {
-      const weapon = npc.getEquippedWeapon();
-      const weaponDef = weapon ? ItemDefs[weapon.defId] : null;
-      const isRanged = weapon && (weaponDef?.rangedStats || weapon.rangedStats);
-      if (isRanged) {
-        const maxRange = weaponDef?.rangedStats?.maxRange ?? weapon?.rangedStats?.maxRange ?? 8;
-        const dist = npc.getDistanceTo(player.logicalX, player.logicalY);
-        if (dist <= maxRange) {
-          npc.behaviorState = 'attacking';
-          return this.npcAttack(ctx, player, true);
-        }
-      }
+    if (npc.hasDemanded && this.canShoot(npc, player)) {
+      npc.behaviorState = 'attacking';
+      return this.npcAttack(ctx, player, true);
     }
 
     // Approach: step along a path to a free cardinal attack slot next to the
@@ -827,20 +827,54 @@ export class NPCAISystem {
     // Invalidate path on attack
     npc.currentPath = null;
 
+    const targetX = target.logicalX ?? target.x;
+    const targetY = target.logicalY ?? target.y;
+
+    // A gunshot is loud: emit it during simulation (like the player's ranged
+    // attack and TurretAI do) so zombies get a chance to investigate this turn.
+    const metadata = {};
+    if (isRanged) {
+      const noiseRadius = this.rangedNoiseRadius(weapon, weaponDef);
+      if (ctx.gameMap?.emitNoise) ctx.gameMap.emitNoise(npc.logicalX, npc.logicalY, noiseRadius);
+      // Muzzle flash on the shooter's own tile. There is no gun-fire art and a
+      // travelling tracer reads wrong for a bullet, so the shot is sold by a
+      // single bright snap while the NPC holds position.
+      metadata.muzzleFlash = { x: npc.logicalX, y: npc.logicalY };
+    }
+
     ctx.pushAction({
       type: 'ATTACK',
       entityId: npc.id,
+      metadata,
       data: {
         targetId: target.id,
         targetType: target.type,
         success: hit,
         damage,
         dodged,
+        // weaponType/weaponId drive the playback presentation: AudioContext
+        // picks the gunshot sample per weaponId, and EntityRenderer suppresses
+        // the melee lunge for ranged attacks. Without these a shot reads as a
+        // thrust with melee hit/miss sounds.
+        weaponType: isRanged ? 'ranged' : 'melee',
+        weaponId: weapon?.defId || null,
         from: { x: npc.logicalX, y: npc.logicalY },
-        to: { x: target.logicalX || target.x, y: target.logicalY || target.y }
+        to: { x: targetX, y: targetY }
       }
     });
 
     return true;
+  }
+
+  /**
+   * Noise a shot makes, honoring a fitted suppressor. Mirrors the player's
+   * ranged path in CombatContext.
+   */
+  static rangedNoiseRadius(weapon, weaponDef) {
+    const base = weaponDef?.rangedStats?.noiseRadius ?? weapon?.rangedStats?.noiseRadius ?? 10;
+    const barrelSlot = weaponDef?.attachmentSlots?.find(s => s.id === 'barrel');
+    const fitted = barrelSlot && weapon?.attachments?.[barrelSlot.id];
+    const isSuppressed = !!fitted?.categories?.includes('suppressor');
+    return isSuppressed ? 3 : base;
   }
 }

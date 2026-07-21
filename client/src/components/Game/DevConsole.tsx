@@ -289,7 +289,7 @@ export default function DevConsole({ onClose, onLaunch, isLoading }: DevConsoleP
             targetY = engine.player.y + 1;
         }
         
-        const n = EntityFactory.createNPC(targetX, targetY, false, 'survivor', 'Friendly Survivor', `spawned-npc-${Date.now()}`);
+        const n = EntityFactory.createNPC(targetX, targetY, 'independent', 'survivor', 'Friendly Survivor', `spawned-npc-${Date.now()}`);
         
         // Give the NPC some basic items to facilitate bartering/trading
         const itemDefsToGive = ['food.canned_beans', 'medical.bandage', 'weapon.9mmPistol', 'ammo.bullet_9mm'];

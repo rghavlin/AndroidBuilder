@@ -2,6 +2,24 @@ import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { evalAll } from './conditions.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { Item } from '../inventory/Item.js';
+import { FactionRegistry } from '../ai/FactionRegistry.js';
+
+/**
+ * Apply a loaded map's authored registries in one place so quest-state seeding
+ * and faction loading can never drift apart. Called at every map-ready / map-
+ * transition point. `questRegistry` carries BOTH the flag/var/quest definitions
+ * and the authored faction definitions/stances (see editor eventTypes.ts).
+ */
+export function applyMapRegistries(questState, gameMap) {
+  const registry = gameMap?.metadata?.questRegistry;
+  questState?.seedFromRegistry(registry);
+  if (registry) {
+    FactionRegistry.loadDefinitions({
+      factions: registry.factions,
+      factionStances: registry.factionStances
+    });
+  }
+}
 
 /**
  * Global flags/variables store — the backbone of event preconditions and quest

@@ -37,6 +37,7 @@ const STEP_TYPE_OPTIONS: { id: StepType; label: string }[] = [
   { id: 'moveEntity', label: 'Move entity' },
   { id: 'setNpcAI', label: 'Set NPC AI mode' },
   { id: 'controlEntity', label: 'Control door/window' },
+  { id: 'setFactionStance', label: 'Set faction stance' },
   { id: 'startQuest', label: 'Start quest' },
   { id: 'setQuestTask', label: 'Set quest task' },
 ];
@@ -57,6 +58,7 @@ function emptyStep(type: StepType): EventStep {
     case 'moveEntity': return { type, entityTag: '', targetX: undefined, targetY: undefined };
     case 'setNpcAI': return { type, entityTag: '', aiMode: 'disabled' };
     case 'controlEntity': return { type, entityTag: '', entityAction: 'open' };
+    case 'setFactionStance': return { type, factionFrom: '', factionTo: 'player', stance: 'hostile' };
     case 'startQuest': return { type, questId: '' };
     case 'setQuestTask': return { type, questId: '', taskIndex: 0 };
     default: return { type };
@@ -289,7 +291,7 @@ export function QuestRewardEditor({
 
 // ─── One step's own editor section ─────────────────────────────────────────
 function StepEditor({
-  step, index, total, onChange, onRemove, onMoveUp, onMoveDown, onPickCoord, itemOptions, knownEventIds, knownFlags, knownVars, knownEntities, knownQuests,
+  step, index, total, onChange, onRemove, onMoveUp, onMoveDown, onPickCoord, itemOptions, knownEventIds, knownFlags, knownVars, knownEntities, knownQuests, knownFactions,
 }: {
   step: EventStep;
   index: number;
@@ -305,11 +307,12 @@ function StepEditor({
   knownVars: string[];
   knownEntities: { tag: string; label: string; type?: string }[];
   knownQuests: QuestDef[];
+  knownFactions: { id: string; name: string }[];
 }) {
   const badgeColors: Partial<Record<StepType, string>> = {
     dialog: '#1d4f8a', speech: '#1d4f8a', give: '#1d6b3a', setFlag: '#7a5a12', setVar: '#7a5a12',
     lockMovement: '#7a1e1e', unlockMovement: '#7a1e1e', lockActions: '#8a1e3a', unlockActions: '#8a1e3a', wait: '#444', chain: '#5a3a7a',
-    moveEntity: '#2b6b3a', setNpcAI: '#2b6b3a', controlEntity: '#2b6b3a', startQuest: '#4a2582', setQuestTask: '#4a2582',
+    moveEntity: '#2b6b3a', setNpcAI: '#2b6b3a', controlEntity: '#2b6b3a', setFactionStance: '#7a1e1e', startQuest: '#4a2582', setQuestTask: '#4a2582',
   };
   const label = STEP_TYPE_OPTIONS.find(o => o.id === step.type)?.label || step.type;
 
@@ -501,6 +504,41 @@ function StepEditor({
         </div>
       )}
 
+      {step.type === 'setFactionStance' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={rowStyle}>
+            <select style={{ ...inputStyle, flex: 1 }} value={step.factionFrom || ''} onChange={e => onChange({ ...step, factionFrom: e.target.value })}>
+              <option value="">faction…</option>
+              {knownFactions.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+            </select>
+            <span style={{ fontSize: 11, color: '#888' }}>regards</span>
+            <select style={{ ...inputStyle, flex: 1 }} value={step.factionTo || 'player'} onChange={e => onChange({ ...step, factionTo: e.target.value })}>
+              {knownFactions.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+            </select>
+            <span style={{ fontSize: 11, color: '#888' }}>as</span>
+            {step.factionTo === 'player' ? (
+              <select style={{ ...inputStyle, width: 120 }} value={step.stance || 'extort'} onChange={e => onChange({ ...step, stance: e.target.value as any })}>
+                <option value="neutral">neutral</option>
+                <option value="extort">extort</option>
+                <option value="attackOnSight">attack on sight</option>
+              </select>
+            ) : (
+              <select style={{ ...inputStyle, width: 100 }} value={step.stance || 'hostile'} onChange={e => onChange({ ...step, stance: e.target.value as any })}>
+                <option value="ally">ally</option>
+                <option value="neutral">neutral</option>
+                <option value="hostile">hostile</option>
+              </select>
+            )}
+          </div>
+          {step.factionTo !== 'player' && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
+              <input type="checkbox" checked={!!step.mirror} onChange={e => onChange({ ...step, mirror: e.target.checked })} />
+              Also set the reverse direction (both factions regard each other this way)
+            </label>
+          )}
+        </div>
+      )}
+
       {step.type === 'startQuest' && (
         <div style={rowStyle}>
           <span style={{ fontSize: 11, color: '#888' }}>Quest:</span>
@@ -551,10 +589,11 @@ export interface EventWindowProps {
   knownVars: string[];
   knownEntities: { tag: string; label: string; type?: string }[];
   knownQuests: QuestDef[];
+  knownFactions?: { id: string; name: string }[];
 }
 
 export default function EventWindow({
-  event, onChange, onSave, onCancel, onDelete, onPickPlacement, onPickStepCoord, itemOptions, knownEventIds, knownFlags, knownVars, knownEntities, knownQuests,
+  event, onChange, onSave, onCancel, onDelete, onPickPlacement, onPickStepCoord, itemOptions, knownEventIds, knownFlags, knownVars, knownEntities, knownQuests, knownFactions = [],
 }: EventWindowProps) {
   const setSteps = (steps: EventStep[]) => onChange({ ...event, steps });
   const showEndCondition = event.trigger === 'auto' || event.trigger === 'parallel';
@@ -651,6 +690,7 @@ export default function EventWindow({
                 knownVars={knownVars}
                 knownEntities={knownEntities}
                 knownQuests={knownQuests}
+                knownFactions={knownFactions}
                 onChange={s => setSteps(event.steps.map((x, j) => (j === i ? s : x)))}
                 onRemove={() => setSteps(event.steps.filter((_, j) => j !== i))}
                 onMoveUp={() => { if (i === 0) return; const s = [...event.steps]; [s[i - 1], s[i]] = [s[i], s[i - 1]]; setSteps(s); }}

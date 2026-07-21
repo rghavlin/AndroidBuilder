@@ -21,10 +21,11 @@ export class AIState {
     // (moveEntity, dialog, etc.) control it. See map editor NPC placement and
     // EventRunner's setNpcAI step.
     this.aiDisabled = properties.aiDisabled || false;
-    // Attack-on-sight hostiles: skip the extortion dialog entirely and hunt the
-    // player to the death (no fleeing, no escaping off the map). Authored per
-    // NPC in the map editor for campaign encounters. See NPCAISystem.huntPlayer.
-    this.attackOnSight = properties.attackOnSight || false;
+    // Per-entity override for attack-on-sight behavior. null = defer to the
+    // faction's player disposition (the normal case); true/false pins the
+    // behavior for scripted NPCs (EventRunner.setNpcAI) and legacy authored maps.
+    // Read through the faction-aware Entity.attackOnSight accessor, never directly.
+    this.attackOnSight = properties.attackOnSight ?? null;
   }
 
   toJSON() {

@@ -102,6 +102,88 @@ describe('NPC loadout (map editor)', () => {
     expect(move.dy).toBe(1); // stepping toward the player to the south
   });
 
+  // The ATTACK action must say HOW it was made. AudioContext picks the gunshot
+  // sample off weaponType/weaponId, and EntityRenderer suppresses the melee
+  // lunge for ranged. Without these a shot played as a thrust with melee sounds.
+  it('tags a ranged ATTACK with weaponType/weaponId and a muzzle flash', async () => {
+    const player = EntityFactory.createPlayer(3, 9);
+    const gameMap = await loadScenario([
+      npcWith([createItemFromDef('weapon.9mmPistol')], 0, { attackOnSight: true, isHostile: true }),
+    ]);
+    gameMap.addEntity(player, 3, 9);
+
+    const npc = findNpc(gameMap);
+    npc.getComponent('Vision').visibleEntities = [player.id];
+
+    const actionQueue = [];
+    NPCAISystem.process([player, npc], null, { gameMap }, actionQueue, null, {});
+
+    const attack = actionQueue.find(a => a.type === 'ATTACK');
+    expect(attack.data.weaponType).toBe('ranged');
+    expect(attack.data.weaponId).toBe('weapon.9mmPistol');
+    // Flash sits on the shooter's own tile — there is no gun-fire art, so no
+    // travelling tracer.
+    expect(attack.metadata.muzzleFlash).toEqual({ x: 3, y: 3 });
+    expect(attack.metadata.projectile).toBeUndefined();
+  });
+
+  it('tags a melee ATTACK as melee', async () => {
+    const player = EntityFactory.createPlayer(3, 4);
+    const gameMap = await loadScenario([
+      npcWith([createItemFromDef('weapon.knife')], 0, { attackOnSight: true, isHostile: true }),
+    ]);
+    gameMap.addEntity(player, 3, 4);
+
+    const npc = findNpc(gameMap);
+    npc.getComponent('Vision').visibleEntities = [player.id];
+
+    const actionQueue = [];
+    NPCAISystem.process([player, npc], null, { gameMap }, actionQueue, null, {});
+
+    const attack = actionQueue.find(a => a.type === 'ATTACK');
+    expect(attack.data.weaponType).toBe('melee');
+    expect(attack.data.weaponId).toBe('weapon.knife');
+    expect(attack.metadata.muzzleFlash).toBeUndefined();
+  });
+
+  it('fires point-blank rather than pistol-whipping', async () => {
+    const player = EntityFactory.createPlayer(3, 4); // cardinally adjacent
+    const gameMap = await loadScenario([
+      npcWith([createItemFromDef('weapon.9mmPistol')], 0, { attackOnSight: true, isHostile: true }),
+    ]);
+    gameMap.addEntity(player, 3, 4);
+
+    const npc = findNpc(gameMap);
+    npc.getComponent('Vision').visibleEntities = [player.id];
+
+    const actionQueue = [];
+    NPCAISystem.process([player, npc], null, { gameMap }, actionQueue, null, {});
+
+    const attack = actionQueue.find(a => a.type === 'ATTACK');
+    expect(attack.data.weaponType).toBe('ranged');
+  });
+
+  it('a gunshot emits noise so zombies can investigate', async () => {
+    const player = EntityFactory.createPlayer(3, 9);
+    const gameMap = await loadScenario([
+      npcWith([createItemFromDef('weapon.9mmPistol')], 0, { attackOnSight: true, isHostile: true }),
+    ]);
+    gameMap.addEntity(player, 3, 9);
+
+    const npc = findNpc(gameMap);
+    npc.getComponent('Vision').visibleEntities = [player.id];
+
+    const noises = [];
+    const realEmit = gameMap.emitNoise.bind(gameMap);
+    gameMap.emitNoise = (x, y, radius) => { noises.push({ x, y, radius }); return realEmit(x, y, radius); };
+
+    NPCAISystem.process([player, npc], null, { gameMap }, [], null, {});
+
+    expect(noises.length).toBeGreaterThan(0);
+    // 9mm rangedStats.noiseRadius is 12, emitted from the shooter's tile.
+    expect(noises[0]).toMatchObject({ x: 3, y: 3, radius: 12 });
+  });
+
   it('drops the whole authored loadout on death', async () => {
     const special = createItemFromDef('weapon.machete');
     const gameMap = await loadScenario([

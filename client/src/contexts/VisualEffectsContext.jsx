@@ -107,6 +107,19 @@ export const VisualEffectsProvider = ({ children }) => {
             });
         };
 
+        // Gunshot: one bright warm snap on the shooter's tile, short enough to
+        // read as a muzzle flash rather than a lingering highlight.
+        const handleMuzzleFlash = (data) => {
+            addEffect({
+                type: 'tile_flash',
+                x: data.x,
+                y: data.y,
+                color: data.color || 'rgba(255, 231, 156, 0.9)',
+                duration: data.duration || 160,
+                startTime: performance.now()
+            });
+        };
+
         const handleTurretFired = (data) => {
             console.log('[VisualEffects] Turret fired event received:', data);
             addEffect({
@@ -147,12 +160,14 @@ export const VisualEffectsProvider = ({ children }) => {
         };
 
         GameEvents.on(GAME_EVENT.PROJECTILE_FIRED, handleProjectile);
+        GameEvents.on(GAME_EVENT.MUZZLE_FLASH, handleMuzzleFlash);
         GameEvents.on(GAME_EVENT.ENTITY_BLINK, handleBlink);
         GameEvents.on(GAME_EVENT.TURRET_FIRED, handleTurretFired);
         GameEvents.on(GAME_EVENT.ZOMBIE_KILLED, handleZombieKilled);
         GameEvents.on(GAME_EVENT.ZOMBIE_DIED, handleZombieDiedRealTime);
         return () => {
             GameEvents.off(GAME_EVENT.PROJECTILE_FIRED, handleProjectile);
+            GameEvents.off(GAME_EVENT.MUZZLE_FLASH, handleMuzzleFlash);
             GameEvents.off(GAME_EVENT.ENTITY_BLINK, handleBlink);
             GameEvents.off(GAME_EVENT.TURRET_FIRED, handleTurretFired);
             GameEvents.off(GAME_EVENT.ZOMBIE_KILLED, handleZombieKilled);

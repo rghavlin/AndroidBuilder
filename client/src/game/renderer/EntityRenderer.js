@@ -259,10 +259,18 @@ export const EntityRenderer = {
       const to = entity.activeAction.data.to;
       if (to) {
         const progress = entity.animationProgress || 0;
-        // Bump animation: slides toward target, peak at 0.5, returns to start at 1.0
-        const factor = Math.sin(progress * Math.PI) * 0.35;
-        renderX = from.x + (to.x - from.x) * factor;
-        renderY = from.y + (to.y - from.y) * factor;
+        // Melee bumps toward the target (peak at 0.5, back to start at 1.0).
+        // A ranged attack must NOT lunge — the shooter stays put and kicks
+        // slightly backward as recoil, otherwise firing across the street looks
+        // like a two-tile thrust.
+        // Ranged attackers hold position — the shot is sold by the muzzle flash
+        // (NPC gunfire) or the projectile (spitter), not by moving the icon.
+        // Only melee bumps toward the target.
+        if (entity.activeAction.data.weaponType !== 'ranged') {
+          const factor = Math.sin(progress * Math.PI) * 0.35;
+          renderX = from.x + (to.x - from.x) * factor;
+          renderY = from.y + (to.y - from.y) * factor;
+        }
       }
     }
 

@@ -162,11 +162,19 @@ export class NPCSpawner {
     const id = `npc_${gameRandom.next().toString(36).substring(2, 11)}`;
     const name = options.name || null;
     
-    const isHostile = options.isHostile !== undefined 
-      ? options.isHostile 
-      : (gameRandom.next() < (typeDef.hostilityChance || 0));
-      
-    const npc = EntityFactory.createNPC(x, y, isHostile, typeId, name, id);
+    // Procedural NPCs roll a faction: bandits (hostile, extort-first) vs
+    // independents (peaceful). An explicit options.factionId (or legacy
+    // options.isHostile) overrides the roll. typeDef.factionId (e.g. town) wins
+    // inside createNPC when no faction is passed here.
+    let factionId = options.factionId || null;
+    if (!factionId && options.isHostile !== undefined) {
+      factionId = options.isHostile ? 'bandits' : 'independent';
+    }
+    if (!factionId && !typeDef.factionId) {
+      factionId = gameRandom.next() < (typeDef.hostilityChance || 0) ? 'bandits' : 'independent';
+    }
+
+    const npc = EntityFactory.createNPC(x, y, factionId, typeId, name, id);
     npc.goalTarget = options.goalTarget || null;
     
     // Generate items
@@ -217,7 +225,7 @@ export class NPCSpawner {
     // Add to game map
     const added = gameMap.addEntity(npc, x, y);
     if (added) {
-      console.log(`[NPCSpawner] Spawned NPC ${name} (${isHostile ? 'hostile' : 'friendly'}) at (${x}, ${y}) heading to exit (${npc.goalTarget?.x}, ${npc.goalTarget?.y})`);
+      console.log(`[NPCSpawner] Spawned NPC ${name} (${npc.factionId}) at (${x}, ${y}) heading to exit (${npc.goalTarget?.x}, ${npc.goalTarget?.y})`);
       return npc;
     }
     return null;
@@ -249,7 +257,7 @@ export class NPCSpawner {
     const id = `shopkeeper_${gameMap.id || 'map1'}`;
     const name = null;
     
-    const npc = EntityFactory.createNPC(spawnX, spawnY, false, typeId, name, id);
+    const npc = EntityFactory.createNPC(spawnX, spawnY, null, typeId, name, id);
     npc.isShopkeeper = true;
     npc.goalTarget = null;
     
@@ -369,7 +377,7 @@ export class NPCSpawner {
     const { x: gx, y: gy } = layout.guard;
     if (inBounds(gx, gy)) {
       const id = `tollguard_${gameMap.id || 'map'}`;
-      guard = EntityFactory.createNPC(gx, gy, false, 'gatekeeper', null, id);
+      guard = EntityFactory.createNPC(gx, gy, null, 'gatekeeper', null, id);
       guard.isTollGuard = true;
       guard.goalTarget = null;
       guard.tollSidestep = layout.guard.sidestep;

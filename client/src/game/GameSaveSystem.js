@@ -2,6 +2,7 @@ import engine from './GameEngine.js';
 import { gameRandom } from './utils/SeededRandom.js';
 import { CharacterRegistry } from './CharacterRegistry.js';
 import eventRunner from './quest/EventRunner.js';
+import { FactionRegistry } from './ai/FactionRegistry.js';
 
 export const DEFAULT_PLAYER_STATS = {
   hp: 100,
@@ -264,6 +265,9 @@ export class GameSaveSystem {
         craftingQueue: engine.craftingQueue,
         questState: engine.questState ? engine.questState.toJSON() : null,
         eventRunnerState: eventRunner.toJSON(),
+        // Runtime faction stance deltas only (the attack-flip + setFactionStance
+        // steps); the authored baseline is re-applied from the map on load.
+        factionState: FactionRegistry.toJSON(),
 
         // Map state (includes all tiles and entities) - this contains positions
         gameMap: gameState.gameMap ? gameState.gameMap.toJSON() : null,
@@ -437,6 +441,21 @@ export class GameSaveSystem {
       // empty default, which is the correct behavior for a save predating quests.
       if (saveData.questState && engine.questState) {
         engine.questState.fromJSON(saveData.questState);
+      }
+
+      // Factions: rebuild from the built-in baseline, re-apply the loaded map's
+      // authored definitions, THEN overlay the save's runtime stance deltas — in
+      // that order, so a delta always wins over the authored value it modified.
+      FactionRegistry.reset();
+      const savedRegistry = engine.gameMap?.metadata?.questRegistry;
+      if (savedRegistry) {
+        FactionRegistry.loadDefinitions({
+          factions: savedRegistry.factions,
+          factionStances: savedRegistry.factionStances
+        });
+      }
+      if (saveData.factionState) {
+        FactionRegistry.fromJSON(saveData.factionState);
       }
 
       // Older saves have no eventRunnerState — leaves firedOnce/autoResolved

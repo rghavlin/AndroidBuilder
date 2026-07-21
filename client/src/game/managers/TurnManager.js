@@ -287,13 +287,23 @@ class TurnManager {
                 });
               }
 
-              // Always blink the attacker for visual feedback
-              GameEvents.emit(GAME_EVENT.ENTITY_BLINK, {
-                  entityId: entity.id,
-                  x: entity.logicalX,
-                  y: entity.logicalY,
-                  duration: 500
-              });
+              // Gunfire gets a single bright muzzle flash instead of the generic
+              // attacker blink — the blink's 3 slow pulses read as "something
+              // happened here", not as a shot going off.
+              if (metadata.muzzleFlash) {
+                GameEvents.emit(GAME_EVENT.MUZZLE_FLASH, {
+                    x: metadata.muzzleFlash.x ?? entity.logicalX,
+                    y: metadata.muzzleFlash.y ?? entity.logicalY
+                });
+              } else {
+                // Otherwise blink the attacker for visual feedback
+                GameEvents.emit(GAME_EVENT.ENTITY_BLINK, {
+                    entityId: entity.id,
+                    x: entity.logicalX,
+                    y: entity.logicalY,
+                    duration: 500
+                });
+              }
             }
           });
         }

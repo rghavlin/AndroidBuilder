@@ -3,6 +3,7 @@ import { resolveMapEvents } from './migrateEvents.js';
 import { applyItemGrants } from '../utils/applyItemGrants.js';
 import { evalAll } from './conditions.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
+import { FactionRegistry } from '../ai/FactionRegistry.js';
 import Logger from '../utils/Logger.js';
 
 const log = Logger.scope('EventRunner');
@@ -569,6 +570,24 @@ class EventRunner {
           } else {
             applyNpcAIMode(targetEntity, step);
           }
+        }
+        this.activeRun.stepIndex++;
+        this._processCurrentStep();
+        return;
+      }
+
+      case 'setFactionStance': {
+        // Change how faction `factionFrom` regards `factionTo` at runtime. When
+        // factionTo === 'player', `stance` is a disposition (neutral/extort/
+        // attackOnSight). Persisted as a runtime delta via FactionRegistry.toJSON.
+        if (!step.factionFrom || !step.factionTo || !step.stance) {
+          log.warn(`[EventRunner] setFactionStance step missing factionFrom/factionTo/stance`);
+        } else {
+          FactionRegistry.setStance(step.factionFrom, step.factionTo, step.stance);
+          if (step.mirror && step.factionTo !== 'player' && step.factionFrom !== 'player') {
+            FactionRegistry.setStance(step.factionTo, step.factionFrom, step.stance);
+          }
+          engine.notifyUpdate();
         }
         this.activeRun.stepIndex++;
         this._processCurrentStep();

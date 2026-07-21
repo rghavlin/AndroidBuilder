@@ -5,6 +5,7 @@ import { ItemDefs } from './inventory/ItemDefs.js';
 import { ItemTrait } from './inventory/traits.js';
 import { WeatherManager } from './utils/WeatherManager.js';
 import { QuestState } from './quest/QuestState.js';
+import { FactionRegistry } from './ai/FactionRegistry.js';
 import { getSightRangeForHour, MAX_VISION_RANGE, FLASHLIGHT_RANGE } from './config/VisionConfig.js';
 import { getHourFromTurn } from './utils/TimeUtils.js';
 
@@ -149,6 +150,11 @@ class GameEngine extends SafeEventEmitter {
     // progress. Fresh-game default is empty; a loaded save restores it wholesale
     // via GameSaveSystem (engine.questState.fromJSON(saveData.questState)).
     this.questState = new QuestState();
+
+    // Faction stance table: back to built-ins on every reset. A loaded map layers
+    // its authored factions on top via applyMapRegistries(); a loaded save layers
+    // runtime stance deltas via FactionRegistry.fromJSON() (see GameSaveSystem).
+    FactionRegistry.reset();
 
     // Global event cleanups (Removed this.removeAllListeners() to preserve React Provider context listeners on reset)
 

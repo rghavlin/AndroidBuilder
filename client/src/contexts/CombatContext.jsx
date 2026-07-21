@@ -16,7 +16,7 @@ import { findEdgeStructure } from '../game/utils/EdgeStructure.js';
 import { ProjectileManager } from '../game/utils/ProjectileManager.js';
 import { EntityType } from '../game/entities/Entity.js';
 import { Pathfinding } from '../game/utils/Pathfinding.js';
-import { getAttackableTurretOnTile, removeDestroyedTurret, escalateFactionAgainstPlayer } from '../game/ai/TurretCombat.js';
+import { getAttackableTurretOnTile, removeDestroyedTurret, provokeTargetFaction } from '../game/ai/TurretCombat.js';
 import engine from '../game/GameEngine.js';
 import { IntentQueue } from '../game/managers/IntentQueue.js';
 import { ExplosionIntent } from '../game/components/ExplosionIntent.js';
@@ -26,6 +26,19 @@ import { gameRandom } from '../game/utils/SeededRandom.js';
 const isWindowTile = (gameMap, x, y) => {
     const tile = gameMap?.getTile(x, y);
     return !!(tile && tile.contents.some(e => e.type === EntityType.WINDOW));
+};
+
+// The player attacked an NPC or turret: provoke its faction (flip to attack-on-
+// sight, faction-wide) and, only on the first flip, log the warning. Shared by
+// the melee / ranged / thrown attack paths.
+const provokeAndWarn = (gameMap, target, addLog) => {
+    const { faction, newlyHostile } = provokeTargetFaction(gameMap, target);
+    if (faction && newlyHostile) {
+        const label = faction === 'town'
+            ? 'The town turrets turn on you!'
+            : `The ${faction.charAt(0).toUpperCase() + faction.slice(1)} turn on you!`;
+        addLog(label, 'warning');
+    }
 };
 
 // Resolve the primary combat target for a click at (x, y), in priority order:
@@ -393,16 +406,12 @@ export const CombatProvider = ({ children }) => {
                 }
                 addLog(logMsg, 'combat');
                 if (targetEntity.type === 'zombie' && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
-                if (targetEntity.type === EntityType.NPC && (targetEntity.isShopkeeper || targetEntity.isTollGuard || targetEntity.getFaction?.() === 'town')) {
-                    const escalated = escalateFactionAgainstPlayer(gameMap, 'town');
-                    if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
-                }
+                if (targetEntity.type === EntityType.NPC) provokeAndWarn(gameMap, targetEntity, addLog);
             } else if (turret) {
                 turret.takeDamage(damage);
                 addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}You hit the turret: ${damage} damage (${weapon.name})`, 'combat');
                 // Attacking a faction's turret provokes that whole faction.
-                const escalated = escalateFactionAgainstPlayer(gameMap, turret.getFaction?.());
-                if (escalated > 0) addLog('The turrets turn on you!', 'warning');
+                provokeAndWarn(gameMap, turret, addLog);
             } else if (structure) {
                 if (structure.type === 'window') {
                     structure.break();
@@ -621,16 +630,12 @@ export const CombatProvider = ({ children }) => {
                     if (finalRangedDamage > 0) targetEntity.takeDamage(finalRangedDamage, player);
                     addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
                     if (targetEntity.type === EntityType.ZOMBIE && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
-                    if (targetEntity.type === EntityType.NPC && (targetEntity.isShopkeeper || targetEntity.isTollGuard || targetEntity.getFaction?.() === 'town')) {
-                        const escalated = escalateFactionAgainstPlayer(gameMap, 'town');
-                        if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
-                    }
+                    if (targetEntity.type === EntityType.NPC) provokeAndWarn(gameMap, targetEntity, addLog);
                 } else if (turret) {
                     turret.takeDamage(damage);
                     addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}You hit the turret: ${damage} damage (${weapon.name})`, 'combat');
                     // Attacking a faction's turret provokes that whole faction.
-                    const escalated = escalateFactionAgainstPlayer(gameMap, turret.getFaction?.());
-                    if (escalated > 0) addLog('The turrets turn on you!', 'warning');
+                    provokeAndWarn(gameMap, turret, addLog);
                 } else if (structure) {
                     if (structure.type === EntityType.WINDOW) {
                         structure.break();
@@ -836,11 +841,8 @@ export const CombatProvider = ({ children }) => {
                 targetEntity.takeDamage(damage, player);
                 addLog(`Player throws stone: ${damage} damage`, 'combat');
 
-                // Attacking a town shopkeeper or gatekeeper provokes the town's turrets.
-                if (targetEntity.type === EntityType.NPC && (targetEntity.isShopkeeper || targetEntity.isTollGuard || targetEntity.getFaction?.() === 'town')) {
-                    const escalated = escalateFactionAgainstPlayer(gameMap, 'town');
-                    if (escalated > 0) addLog('The town turrets turn on you!', 'warning');
-                }
+                // Attacking any faction member provokes that whole faction.
+                if (targetEntity.type === EntityType.NPC) provokeAndWarn(gameMap, targetEntity, addLog);
 
                 addEffect({
                     type: 'damage',
@@ -861,8 +863,7 @@ export const CombatProvider = ({ children }) => {
                 turret.takeDamage(damage);
                 addLog(`You hit the turret with a stone: ${damage} damage`, 'combat');
                 // Attacking a faction's turret provokes that whole faction.
-                const escalated = escalateFactionAgainstPlayer(gameMap, turret.getFaction?.());
-                if (escalated > 0) addLog('The turrets turn on you!', 'warning');
+                provokeAndWarn(gameMap, turret, addLog);
 
                 addEffect({ type: 'damage', x: targetX, y: targetY, value: damage, color: '#ef4444', duration: 1200 });
 
