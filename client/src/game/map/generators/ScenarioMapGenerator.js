@@ -26,6 +26,7 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
 
     if (metadata) {
       if (metadata.doors) builder.metadata.doors = metadata.doors;
+      if (metadata.garageDoors) builder.metadata.garageDoors = metadata.garageDoors;
       if (metadata.windows) builder.metadata.windows = metadata.windows;
       if (metadata.buildings) builder.metadata.buildings = metadata.buildings;
       if (metadata.specialBuildings) builder.metadata.specialBuildings = metadata.specialBuildings;

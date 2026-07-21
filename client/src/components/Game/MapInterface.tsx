@@ -707,9 +707,17 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               if (success) {
                 // Play sound based on new state
                 if (doorMenu.door.isOpen) {
-                  playSound('OpenDoor');
+                  if (doorMenu.door.type === EntityType.GARAGE_DOOR) {
+                    playSound('GarageOpen');
+                  } else {
+                    playSound('OpenDoor');
+                  }
                 } else {
-                  playSound('CloseDoor');
+                  if (doorMenu.door.type === EntityType.GARAGE_DOOR) {
+                    playSound('GarageClose');
+                  } else {
+                    playSound('CloseDoor');
+                  }
                 }
 
                 // Consume 1 AP

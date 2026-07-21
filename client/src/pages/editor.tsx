@@ -27,6 +27,7 @@ const TERRAIN_TYPES = [
 const EDGE_COLORS: Record<string, string> = {
   wall: '#ccc',
   door: '#c8a032',
+  garage_door: '#6b7280',
   window: '#5599dd',
 };
 
@@ -166,7 +167,7 @@ interface BubbleEvent {
   next?: string; // id of an event to fire when this one completes
 }
 
-interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: boolean; }
+interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: boolean; isGarage?: boolean; }
 
 // An authored item, as configured in the editor's item controls. Used both for
 // items lying on a tile and for the items in an NPC's loadout.
@@ -358,6 +359,18 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
       if (!t || !d.edge) continue;
       t.edgeWalls[d.edge as Edge].wall = false;
       t.edgeWalls[d.edge as Edge].door = true;
+      t.edgeWalls[d.edge as Edge].locked = d.isLocked ?? false;
+    }
+  }
+
+  // Garage Doors: clear wall flag, set door flag with isGarage: true
+  if (scenario.metadata?.garageDoors) {
+    for (const d of scenario.metadata.garageDoors) {
+      const t = tiles[d.y]?.[d.x];
+      if (!t || !d.edge) continue;
+      t.edgeWalls[d.edge as Edge].wall = false;
+      t.edgeWalls[d.edge as Edge].door = true;
+      t.edgeWalls[d.edge as Edge].isGarage = true;
       t.edgeWalls[d.edge as Edge].locked = d.isLocked ?? false;
     }
   }
@@ -598,6 +611,11 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
               tiles[y][x].edgeWalls[e.edge as Edge].wall = false;
               tiles[y][x].edgeWalls[e.edge as Edge].door = true;
               tiles[y][x].edgeWalls[e.edge as Edge].locked = e.isLocked ?? false;
+            } else if (e.type === 'garage_door') {
+              tiles[y][x].edgeWalls[e.edge as Edge].wall = false;
+              tiles[y][x].edgeWalls[e.edge as Edge].door = true;
+              tiles[y][x].edgeWalls[e.edge as Edge].isGarage = true;
+              tiles[y][x].edgeWalls[e.edge as Edge].locked = e.isLocked ?? false;
             } else if (e.type === 'window') {
               tiles[y][x].edgeWalls[e.edge as Edge].wall = false;
               tiles[y][x].edgeWalls[e.edge as Edge].window = true;
@@ -803,12 +821,17 @@ function exportScenario(scenario: ScenarioData) {
   );
 
   const doors: any[] = [];
+  const rawGarageDoors: any[] = [];
   const windows: any[] = [];
   scenario.tiles.forEach((row, y) =>
     row.forEach((t, x) => {
       (['n', 'e', 's', 'w'] as Edge[]).forEach(edge => {
         if (t.edgeWalls[edge].door) {
-          doors.push({ x, y, isLocked: t.edgeWalls[edge].locked ?? false, isOpen: false, edge });
+          if (t.edgeWalls[edge].isGarage) {
+            rawGarageDoors.push({ x, y, isLocked: t.edgeWalls[edge].locked ?? false, isOpen: false, edge });
+          } else {
+            doors.push({ x, y, isLocked: t.edgeWalls[edge].locked ?? false, isOpen: false, edge });
+          }
         }
         if (t.edgeWalls[edge].window) {
           windows.push({ x, y, isLocked: t.edgeWalls[edge].locked ?? false, isOpen: false, edge });
@@ -816,6 +839,50 @@ function exportScenario(scenario: ScenarioData) {
       });
     })
   );
+
+  // Group contiguous garage doors and assign groupIds
+  const garageDoorGroups: typeof rawGarageDoors[] = [];
+  const visitedGarage = new Set<string>();
+  rawGarageDoors.forEach(d => {
+    const key = `${d.x},${d.y},${d.edge}`;
+    if (visitedGarage.has(key)) return;
+
+    const group = [d];
+    const queue = [d];
+    visitedGarage.add(key);
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      rawGarageDoors.forEach(other => {
+        const otherKey = `${other.x},${other.y},${other.edge}`;
+        if (visitedGarage.has(otherKey)) return;
+        if (other.edge !== current.edge) return;
+
+        let isContiguous = false;
+        if (current.edge === 'n' || current.edge === 's') {
+          if (current.y === other.y && Math.abs(current.x - other.x) === 1) {
+            isContiguous = true;
+          }
+        } else {
+          if (current.x === other.x && Math.abs(current.y - other.y) === 1) {
+            isContiguous = true;
+          }
+        }
+
+        if (isContiguous) {
+          visitedGarage.add(otherKey);
+          group.push(other);
+          queue.push(other);
+        }
+      });
+    }
+    garageDoorGroups.push(group);
+  });
+
+  const garageDoors = garageDoorGroups.flatMap(group => {
+    const groupId = `garage-group-${group[0].x}-${group[0].y}-${group[0].edge}`;
+    return group.map(d => ({ ...d, groupId }));
+  });
 
   const entities: any[] = [];
   scenario.tiles.forEach((row, y) =>
@@ -893,6 +960,7 @@ function exportScenario(scenario: ScenarioData) {
         ['police', 'firestation', 'grocer', 'gas_station', 'army_tent', 'hardware_store', 'lab'].includes(b.type)
       ),
       doors,
+      garageDoors,
       windows,
       placeIcons: scenario.tiles.flatMap((row: TileData[], y: number) =>
         row.flatMap((t: TileData, x: number) => t.placeIcon ? [{ subtype: t.placeIcon, x, y }] : [])
@@ -933,6 +1001,7 @@ export default function MapEditor() {
   const [selectedTerrain, setSelectedTerrain] = useState('grass');
   const [selectedEdge, setSelectedEdge] = useState<Edge>('n');
   const [edgeLocked, setEdgeLocked] = useState(false);
+  const [selectedDoorType, setSelectedDoorType] = useState<'normal' | 'garage'>('normal');
   const [selectedEntity, setSelectedEntity] = useState('zombie');
   const [zombieSubtype, setZombieSubtype] = useState('basic');
   const [zombieHp, setZombieHp] = useState<number | ''>('');
@@ -1675,7 +1744,12 @@ export default function MapEditor() {
           tile.edgeWalls[selectedEdge].door = !tile.edgeWalls[selectedEdge].door;
           tile.edgeWalls[selectedEdge].wall = false;
           tile.edgeWalls[selectedEdge].window = false;
-          if (tile.edgeWalls[selectedEdge].door) tile.edgeWalls[selectedEdge].locked = edgeLocked;
+          if (tile.edgeWalls[selectedEdge].door) {
+            tile.edgeWalls[selectedEdge].locked = edgeLocked;
+            tile.edgeWalls[selectedEdge].isGarage = selectedDoorType === 'garage';
+          } else {
+            tile.edgeWalls[selectedEdge].isGarage = false;
+          }
           break;
         case 'edge_window':
           tile.edgeWalls[selectedEdge].window = !tile.edgeWalls[selectedEdge].window;
@@ -1917,10 +1991,17 @@ export default function MapEditor() {
         const sx = x * CELL;
         const sy = y * CELL;
 
-        // Edge walls / doors / windows
         const drawEdge = (edge: Edge, ex: number, ey: number, ew: number, eh: number) => {
           const es = t.edgeWalls[edge];
-          if (es.door)        { ctx.fillStyle = EDGE_COLORS.door;   ctx.fillRect(ex, ey, ew, eh); }
+          if (es.door) {
+            ctx.fillStyle = es.isGarage ? EDGE_COLORS.garage_door : EDGE_COLORS.door;
+            ctx.fillRect(ex, ey, ew, eh);
+            if (es.isGarage) {
+              ctx.strokeStyle = '#374151';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(ex, ey, ew, eh);
+            }
+          }
           else if (es.window) { ctx.fillStyle = EDGE_COLORS.window; ctx.fillRect(ex, ey, ew, eh); }
           else if (es.wall)   { ctx.fillStyle = EDGE_COLORS.wall;   ctx.fillRect(ex, ey, ew, eh); }
         };
@@ -3121,8 +3202,21 @@ export default function MapEditor() {
                 </button>
               ))}
             </div>
+            {tool === 'edge_door' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
+                <label style={{ fontSize: 11, color: '#888' }}>Door Type</label>
+                <select
+                  value={selectedDoorType}
+                  onChange={e => setSelectedDoorType(e.target.value as 'normal' | 'garage')}
+                  style={{ ...inputStyle, width: '100%' }}
+                >
+                  <option value="normal">Normal Door</option>
+                  <option value="garage">Garage Door</option>
+                </select>
+              </div>
+            )}
             {(tool === 'edge_door' || tool === 'edge_window') && (
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#ddd', cursor: 'pointer', marginTop: 4 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#ddd', cursor: 'pointer', marginTop: 6 }}>
                 <input type="checkbox" checked={edgeLocked} onChange={e => setEdgeLocked(e.target.checked)} />
                 Locked
               </label>
@@ -3505,6 +3599,9 @@ export default function MapEditor() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
             <span style={{ display: 'inline-block', width: 12, height: 12, background: EDGE_COLORS.door, borderRadius: 2 }} />Door
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+            <span style={{ display: 'inline-block', width: 12, height: 12, background: EDGE_COLORS.garage_door, borderRadius: 2 }} />Garage Door
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
             <span style={{ display: 'inline-block', width: 12, height: 12, background: EDGE_COLORS.window, borderRadius: 2 }} />Window
@@ -4570,25 +4667,43 @@ export default function MapEditor() {
                     const es = t.edgeWalls[edge];
                     if (!es.door && !es.window) return null;
                     const label = { n: 'North', e: 'East', s: 'South', w: 'West' }[edge];
-                    const kind = es.door ? 'Door' : 'Window';
-                    const color = es.door ? '#c8a032' : '#5599dd';
+                    const kind = es.door ? (es.isGarage ? 'Garage Door' : 'Door') : 'Window';
+                    const color = es.door ? (es.isGarage ? EDGE_COLORS.garage_door : EDGE_COLORS.door) : EDGE_COLORS.window;
                     return (
-                      <div key={edge} style={rowStyle}>
-                        <span style={{ color }}>{label} {kind}</span>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#ddd', cursor: 'pointer' }}>
-                          <input
-                            type="checkbox"
-                            checked={!!es.locked}
-                            onChange={() => {
-                              setTiles(prev => {
-                                const next = prev.map(r => r.map(c => ({ ...c, edgeWalls: { ...c.edgeWalls } })));
-                                next[ty][tx].edgeWalls[edge] = { ...next[ty][tx].edgeWalls[edge], locked: !es.locked };
-                                return next;
-                              });
-                            }}
-                          />
-                          Locked
-                        </label>
+                      <div key={edge} style={{ ...rowStyle, flexWrap: 'wrap', gap: 6 }}>
+                        <span style={{ color, fontWeight: 'bold' }}>{label} {kind}</span>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          {es.door && (
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#ddd', cursor: 'pointer' }}>
+                              <input
+                                type="checkbox"
+                                checked={!!es.isGarage}
+                                onChange={() => {
+                                  setTiles(prev => {
+                                    const next = prev.map(r => r.map(c => ({ ...c, edgeWalls: { ...c.edgeWalls } })));
+                                    next[ty][tx].edgeWalls[edge] = { ...next[ty][tx].edgeWalls[edge], isGarage: !es.isGarage };
+                                    return next;
+                                  });
+                                }}
+                              />
+                              Garage
+                            </label>
+                          )}
+                          <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#ddd', cursor: 'pointer' }}>
+                            <input
+                              type="checkbox"
+                              checked={!!es.locked}
+                              onChange={() => {
+                                setTiles(prev => {
+                                  const next = prev.map(r => r.map(c => ({ ...c, edgeWalls: { ...c.edgeWalls } })));
+                                  next[ty][tx].edgeWalls[edge] = { ...next[ty][tx].edgeWalls[edge], locked: !es.locked };
+                                  return next;
+                                });
+                              }}
+                            />
+                            Locked
+                          </label>
+                        </div>
                       </div>
                     );
                   })}

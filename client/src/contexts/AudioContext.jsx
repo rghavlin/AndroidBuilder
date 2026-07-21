@@ -34,6 +34,8 @@ export const AudioProvider = ({ children }) => {
           { name: 'Click', url: 'sounds/click.ogg', volume: 0.25 },
           { name: 'OpenDoor', url: 'sounds/opendoor.ogg', volume: 0.48 },
           { name: 'CloseDoor', url: 'sounds/closedoor.ogg', volume: 0.48 },
+          { name: 'GarageOpen', url: 'sounds/garageopen.ogg', volume: 0.55 },
+          { name: 'GarageClose', url: 'sounds/garageclose.ogg', volume: 0.55 },
           { name: 'ForceOpen', url: 'sounds/forceopen.ogg', volume: 0.7 },
           { name: 'GlassBreak', url: 'sounds/glassbreak.ogg', volume: 0.6 },
           { name: 'Bang1', url: 'sounds/bang1.ogg', volume: 0.6 },
