@@ -18,6 +18,7 @@ import eventRunner from '../game/quest/EventRunner.js';
 import { applyMapRegistries } from '../game/quest/QuestState.js';
 import { resolveMapEvents } from '../game/quest/migrateEvents.js';
 import Logger from '../game/utils/Logger.js';
+import { ScenarioStorage } from '../game/ScenarioStorage.js';
 import { useAudio } from './AudioContext.jsx';
 import { useOverlays } from './OverlayContext';
 import engine from '../game/GameEngine.js';
@@ -90,6 +91,8 @@ const GameContextInner = ({ children }) => {
   const initManagerRef = useRef(null);
   const autosaveTimeoutRef = useRef(null);
   const noAutosaveRef = useRef(false);
+  const isStartMenuModeRef = useRef(false);
+  const [isStartMenuMode, setIsStartMenuMode] = useState(false);
   const [showDifficultySelect, setShowDifficultySelect] = useState(false);
   const difficultyResolveRef = useRef(null);
   const [showCharacterCreator, setShowCharacterCreator] = useState(false);
@@ -736,7 +739,7 @@ const GameContextInner = ({ children }) => {
   }, [turn, inventoryManager, checkZombieAwareness, getPlayerCardinalPositions, isFlashlightOn, setIsFlashlightOn]);
 
   const performAutosave = useCallback(async (turnOverride = null) => {
-    if (!isInitialized || engine.isSleeping) return false;
+    if (!isInitialized || engine.isSleeping || isStartMenuModeRef.current) return false;
     if (noAutosaveRef.current) {
       console.log('[GameContext] Autosave skipped — noAutosave is set for this scenario');
       return false;
@@ -1677,6 +1680,45 @@ const GameContextInner = ({ children }) => {
     return true;
   }, [wireManagerEvents, resetAll]);
 
+  const initializeStartMenu = useCallback(async () => {
+    console.log('[GameContext] 🎮 initializeStartMenu called...');
+    if (musicManager && typeof musicManager.stop === 'function') {
+      musicManager.stop();
+    }
+
+    let scenarioData = null;
+    try {
+      scenarioData = await ScenarioStorage.load('StartMenu');
+    } catch (e) {
+      console.warn('[GameContext] Failed to load StartMenu scenario from storage:', e);
+    }
+
+    const START_MENU_CHARACTER = {
+      id: 'start-menu-student',
+      name: 'Student Survivor',
+      strength: 30,
+      agility: 30,
+      perception: 30,
+      constitution: 30,
+      isInfected: false,
+      meleeLvl: 0, meleeHits: 0,
+      rangedLvl: 0, rangedHits: 0,
+      defenseLvl: 0, defenseHits: 0,
+      craftingLvl: 0, craftingApUsed: 0
+    };
+
+    isStartMenuModeRef.current = true;
+    setIsStartMenuMode(true);
+
+    const config = {
+      scenarioData: scenarioData || { name: 'StartMenu' },
+      easyStart: false,
+      customStats: START_MENU_CHARACTER
+    };
+
+    return await initializeGame(config);
+  }, [initializeGame]);
+
 
 
   // R24#2: the NPC_DEMAND_TRIGGERED listener was dead — nothing ever emitted
@@ -1755,8 +1797,8 @@ const GameContextInner = ({ children }) => {
   }, [updatePlayerFieldOfView, isNight, isFlashlightOnActual, getActiveFlashlightRange]);
 
   const saveGame = useCallback(async (slotName = 'quicksave') => {
-    if (!isInitialized) {
-      console.warn('[GameContext] Cannot save - game not initialized');
+    if (!isInitialized || isStartMenuModeRef.current) {
+      console.warn('[GameContext] Cannot save - game not initialized or in start menu mode');
       return false;
     }
     try {
@@ -1955,6 +1997,9 @@ const GameContextInner = ({ children }) => {
   const shutdownGame = useCallback(() => {
     console.log('[GameContext] 🔌 shutdownGame requested - resetting states and engine');
 
+    isStartMenuModeRef.current = false;
+    setIsStartMenuMode(false);
+
     // Invalidate any ongoing async runs
     runIdRef.current += 1;
 
@@ -2013,6 +2058,7 @@ const GameContextInner = ({ children }) => {
     isGameReady,
     initializationState,
     initializationError,
+    isStartMenuMode,
 
     // Turn management
     turn,
@@ -2042,6 +2088,7 @@ const GameContextInner = ({ children }) => {
 
     // Orchestration functions only
     initializeGame,
+    initializeStartMenu,
     endTurn,
     spawnTestEntities,
     spawnInitialZombies,
@@ -2103,6 +2150,8 @@ const GameContextInner = ({ children }) => {
     isGameReady,
     initializationState,
     initializationError,
+    isStartMenuMode,
+    initializeStartMenu,
     setTurn,
     isNight,
     hour,

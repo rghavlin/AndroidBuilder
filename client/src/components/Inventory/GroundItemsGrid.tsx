@@ -5,9 +5,11 @@ import { useGame } from "@/contexts/GameContext.jsx";
 import { imageLoader } from "@/game/utils/ImageLoader";
 import { useTheme } from "@/contexts/ThemeContext";
 
+import StartMenuButtons from "../Game/StartMenuButtons";
+
 export default function GroundItemsGrid() {
   const { getContainer, inventoryVersion, moveItem, inventoryRef } = useInventory();
-  const { engine } = useGame();
+  const { engine, isStartMenuMode } = useGame();
 
   // Get ground container (triggers re-render when inventoryVersion changes)
   const groundContainer = getContainer('ground');
@@ -124,22 +126,25 @@ export default function GroundItemsGrid() {
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 rounded border border-border overflow-hidden relative bg-background ground-frame-body">
-          <UniversalGrid
-            containerId={groundContainer.id}
-            width={groundContainer.width}
-            height={groundContainer.height}
-            gridType="scalable"
-            maxHeight="100%"
-            maxWidth="100%"
-            enableScroll={true}
-            enableHorizontalScroll={true}
-            onSlotClick={handleSlotClick}
-            onSlotDrop={handleSlotDrop}
-            isTransparentGround={!!tileImageUrl}
-            tileImageUrl={tileImageUrl}
-            className="h-full"
-          />
+        <div className="flex-1 min-h-0 rounded border border-border overflow-hidden relative bg-background ground-frame-body flex flex-col">
+          {isStartMenuMode && <StartMenuButtons />}
+          <div className="flex-1 min-h-0 relative">
+            <UniversalGrid
+              containerId={groundContainer.id}
+              width={groundContainer.width}
+              height={groundContainer.height}
+              gridType="scalable"
+              maxHeight="100%"
+              maxWidth="100%"
+              enableScroll={true}
+              enableHorizontalScroll={true}
+              onSlotClick={handleSlotClick}
+              onSlotDrop={handleSlotDrop}
+              isTransparentGround={!!tileImageUrl}
+              tileImageUrl={tileImageUrl}
+              className="h-full"
+            />
+          </div>
         </div>
       </div>
     </div>

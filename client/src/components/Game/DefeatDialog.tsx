@@ -5,10 +5,17 @@ import { useGame } from '../../contexts/GameContext.jsx';
 import { Skull, RotateCcw, LogOut, XCircle } from "lucide-react";
 
 export default function DefeatDialog() {
-    const { isDefeated, loadGameDirect, shutdownGame, setIsDefeated } = useGame();
+    const { isDefeated, loadGameDirect, shutdownGame, setIsDefeated, isStartMenuMode } = useGame();
     const [isLoading, setIsLoading] = useState(false);
 
     if (!isDefeated) return null;
+
+    const handleRespawnStartMenu = () => {
+        console.log('[DefeatDialog] Resetting start menu sandbox...');
+        if (shutdownGame) {
+            shutdownGame();
+        }
+    };
 
     const handleReplay = async () => {
         setIsLoading(true);
@@ -55,33 +62,45 @@ export default function DefeatDialog() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3 pb-8 px-8">
-                    <Button
-                        onClick={handleReplay}
-                        disabled={isLoading}
-                        className="w-full py-6 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white font-bold flex items-center justify-center gap-2 group transition-all"
-                    >
-                        <RotateCcw className="h-4 w-4 group-hover:rotate-[-45deg] transition-transform" />
-                        Replay Last Turn
-                    </Button>
+                    {isStartMenuMode ? (
+                        <Button
+                            onClick={handleRespawnStartMenu}
+                            className="w-full py-6 bg-red-950/60 hover:bg-red-900/80 border border-red-900/40 text-red-100 font-bold flex items-center justify-center gap-2 group transition-all"
+                        >
+                            <RotateCcw className="h-4 w-4 group-hover:rotate-[-45deg] transition-transform" />
+                            Respawn Sandbox
+                        </Button>
+                    ) : (
+                        <>
+                            <Button
+                                onClick={handleReplay}
+                                disabled={isLoading}
+                                className="w-full py-6 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white font-bold flex items-center justify-center gap-2 group transition-all"
+                            >
+                                <RotateCcw className="h-4 w-4 group-hover:rotate-[-45deg] transition-transform" />
+                                Replay Last Turn
+                            </Button>
 
-                    <Button
-                        onClick={handleReturnToMenu}
-                        disabled={isLoading}
-                        className="w-full py-6 bg-red-950/40 hover:bg-red-900/60 border border-red-900/20 text-red-100 font-bold flex items-center justify-center gap-2 group transition-all"
-                    >
-                        <LogOut className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                        Return to Main Menu
-                    </Button>
+                            <Button
+                                onClick={handleReturnToMenu}
+                                disabled={isLoading}
+                                className="w-full py-6 bg-red-950/40 hover:bg-red-900/60 border border-red-900/20 text-red-100 font-bold flex items-center justify-center gap-2 group transition-all"
+                            >
+                                <LogOut className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                                Return to Main Menu
+                            </Button>
 
-                    <Button
-                        onClick={handleQuit}
-                        disabled={isLoading}
-                        variant="ghost"
-                        className="w-full py-4 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50 flex items-center justify-center gap-2 text-xs uppercase tracking-widest"
-                    >
-                        <XCircle className="h-3 w-3" />
-                        Quit
-                    </Button>
+                            <Button
+                                onClick={handleQuit}
+                                disabled={isLoading}
+                                variant="ghost"
+                                className="w-full py-4 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50 flex items-center justify-center gap-2 text-xs uppercase tracking-widest"
+                            >
+                                <XCircle className="h-3 w-3" />
+                                Quit
+                            </Button>
+                        </>
+                    )}
                 </CardContent>
             </Card>
         </div>

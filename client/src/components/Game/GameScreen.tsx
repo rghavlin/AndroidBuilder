@@ -18,11 +18,7 @@ import DefeatDialog from './DefeatDialog';
 
 
 function GameScreenContent() {
-  // Phase 2 Migration: This component now uses direct sub-context access
-  // - PlayerContext for player data
-  // - GameMapContext for map/world data  
-  // - GameContext only for initialization lifecycle
-  const [showStartMenu, setShowStartMenu] = useState(true);
+  const [showStartMenu, setShowStartMenu] = useState(false);
   const [gameState, setGameState] = useState({
     turn: 15,
     playerName: "Alex Chen",
@@ -57,6 +53,8 @@ function GameScreenContent() {
     isGameReady,
     initializationState,
     initializationError,
+    isStartMenuMode,
+    initializeStartMenu,
     turn,
     endTurn,
     initializeGame,
@@ -70,27 +68,23 @@ function GameScreenContent() {
     cancelCharacterCreator
   } = useGame();
 
-  // Hide start menu when initialization starts OR when game is ready (from init or direct load)
+  // Auto-initialize start menu sandbox on initial mount if game is not ready
   useEffect(() => {
-    if (initializationState === 'preloading' && showStartMenu) {
-      console.log('[GameScreenContent] Hiding start menu - initialization began');
-      setShowStartMenu(false);
+    if (!isGameReady && initializationState === 'idle') {
+      console.log('[GameScreenContent] Auto-initializing start menu sandbox...');
+      initializeStartMenu();
     }
-    if (isGameReady && showStartMenu) {
-      console.log('[GameScreenContent] Hiding start menu - game is ready');
-      setShowStartMenu(false);
-    }
-  }, [initializationState, isGameReady, showStartMenu]);
+  }, [isGameReady, initializationState, initializeStartMenu]);
 
-  // Show start menu when game is shut down/exited
+  // Re-initialize start menu sandbox when game is shut down/exited
   useEffect(() => {
     const handleShutdown = () => {
-      console.log('[GameScreenContent] Game shutdown event received, showing start menu');
-      setShowStartMenu(true);
+      console.log('[GameScreenContent] Game shutdown event received, re-initializing start menu sandbox');
+      initializeStartMenu();
     };
     window.addEventListener('game-shutdown', handleShutdown);
     return () => window.removeEventListener('game-shutdown', handleShutdown);
-  }, []);
+  }, [initializeStartMenu]);
 
   const handleStartGame = async (mode?: boolean | string | { customStats: any }) => {
     // Don't hide menu here - let the effect above do it when state changes

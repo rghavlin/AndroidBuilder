@@ -78,7 +78,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     handleNpcDemandResponse,
     turnPhase,
     isAutosaving,
-    isPlayerTurn
+    isPlayerTurn,
+    isStartMenuMode
   } = useGame();
 
   const {
@@ -511,38 +512,58 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         style={{ height: 'var(--header-height)' }}
         data-testid="map-header"
       >
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            className="w-12 h-12 flex items-center justify-center transition-all active:scale-95 duration-150 shrink-0 equipment-slot-metal hover:brightness-110"
-            title="Main Menu"
-            data-testid="main-menu-button"
-            onClick={() => setShowMainMenu(true)}
-          >
-            <Menu className="h-6 w-6 text-zinc-300 hover:text-white transition-colors" />
-          </button>
-
-          <EarbucksDisplay />
-        </div>
-
-        {/* Action Buttons Group (Better spacing between log and slots) */}
-        <div className="flex items-center flex-1 px-2 min-w-0">
-          <GameEventLog 
-            onClick={() => {
-              setIsLogHistoryOpen(prev => !prev);
-              setIsExtensionOpen(false); // Close other extension
-            }} 
-          />
-          <div className="flex-1" /> {/* Spacer pushes buttons apart */}
-          <div className="flex gap-2 mr-2 shrink-0">
-            {['melee', 'handgun', 'long_gun', 'flashlight'].map((slot) => (
-              <ActionSlotButton
-                key={slot}
-                slot={slot}
-                isFlashlightOnActual={isFlashlightOnActual}
-              />
-            ))}
+        {isStartMenuMode ? (
+          <div className="flex items-center flex-1 h-full select-none">
+            <div className="text-2xl md:text-3xl font-black text-zinc-300 tracking-widest uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] flex items-center gap-2 pl-2">
+              <span className="text-zinc-500 font-bold">ICON</span> ZOMBIE
+            </div>
+            <div className="flex-1" />
+            <div className="flex gap-2 mr-2 shrink-0">
+              {['melee', 'handgun', 'long_gun', 'flashlight'].map((slot) => (
+                <ActionSlotButton
+                  key={slot}
+                  slot={slot}
+                  isFlashlightOnActual={isFlashlightOnActual}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                className="w-12 h-12 flex items-center justify-center transition-all active:scale-95 duration-150 shrink-0 equipment-slot-metal hover:brightness-110"
+                title="Main Menu"
+                data-testid="main-menu-button"
+                onClick={() => setShowMainMenu(true)}
+              >
+                <Menu className="h-6 w-6 text-zinc-300 hover:text-white transition-colors" />
+              </button>
+
+              <EarbucksDisplay />
+            </div>
+
+            {/* Action Buttons Group (Better spacing between log and slots) */}
+            <div className="flex items-center flex-1 px-2 min-w-0">
+              <GameEventLog 
+                onClick={() => {
+                  setIsLogHistoryOpen(prev => !prev);
+                  setIsExtensionOpen(false); // Close other extension
+                }} 
+              />
+              <div className="flex-1" /> {/* Spacer pushes buttons apart */}
+              <div className="flex gap-2 mr-2 shrink-0">
+                {['melee', 'handgun', 'long_gun', 'flashlight'].map((slot) => (
+                  <ActionSlotButton
+                    key={slot}
+                    slot={slot}
+                    isFlashlightOnActual={isFlashlightOnActual}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Map Display Area */}
