@@ -1024,10 +1024,10 @@ export default function MapEditor() {
   // auto_turret brush: owning faction + starting power state.
   const [turretFactionId, setTurretFactionId] = useState('town');
   const [turretIsOn, setTurretIsOn] = useState(true);
-  // Loadout carried by NEWLY stamped NPCs (the brush default). Editing an
-  // already-placed NPC's loadout goes through loadoutModal.target instead.
   const [npcLoadout, setNpcLoadout] = useState<EditorItem[]>([]);
   const [npcEquippedIndex, setNpcEquippedIndex] = useState(-1);
+  const [playerLoadout, setPlayerLoadout] = useState<EditorItem[]>([]);
+  const [playerEquippedIndex, setPlayerEquippedIndex] = useState(-1);
   // Open loadout editor. target === null edits the brush default above;
   // otherwise it edits entity `idx` on tile (x, y).
   const [loadoutModal, setLoadoutModal] = useState<
@@ -1804,7 +1804,12 @@ export default function MapEditor() {
           }
           {
             const ent: EntityData = { type: selectedEntity };
-            if (selectedEntity === 'zombie') {
+            if (selectedEntity === 'player') {
+              if (playerLoadout.length > 0) {
+                ent.inventory = playerLoadout.map(it => ({ ...it }));
+                ent.equippedIndex = playerEquippedIndex;
+              }
+            } else if (selectedEntity === 'zombie') {
               ent.subtype = zombieSubtype;
               if (zombieHp !== '') ent.hp = zombieHp as number;
               if (zombieNoLoot) ent.noLoot = true;
@@ -2812,7 +2817,7 @@ export default function MapEditor() {
     return draft;
   };
 
-  // Open the loadout editor on the brush default, or on a placed NPC.
+  // Open the loadout editor on the brush default, or on a placed NPC/Player.
   const openLoadoutEditor = (target: { x: number; y: number; idx: number } | null) => {
     if (target) {
       const ent = tilesRef.current[target.y]?.[target.x]?.entities[target.idx];
@@ -2822,11 +2827,19 @@ export default function MapEditor() {
         target,
       });
     } else {
-      setLoadoutModal({
-        items: npcLoadout.map(it => ({ ...it })),
-        equippedIndex: npcEquippedIndex,
-        target: null,
-      });
+      if (selectedEntity === 'player') {
+        setLoadoutModal({
+          items: playerLoadout.map(it => ({ ...it })),
+          equippedIndex: playerEquippedIndex,
+          target: null,
+        });
+      } else {
+        setLoadoutModal({
+          items: npcLoadout.map(it => ({ ...it })),
+          equippedIndex: npcEquippedIndex,
+          target: null,
+        });
+      }
     }
   };
 
@@ -2835,9 +2848,15 @@ export default function MapEditor() {
     if (!loadoutModal) return;
     const { items, equippedIndex, target } = loadoutModal;
     if (!target) {
-      setNpcLoadout(items);
-      setNpcEquippedIndex(equippedIndex);
-      setStatusMsg(`NPC loadout set (${items.length} item(s))`);
+      if (selectedEntity === 'player') {
+        setPlayerLoadout(items);
+        setPlayerEquippedIndex(equippedIndex);
+        setStatusMsg(`Player starting loadout set (${items.length} item(s))`);
+      } else {
+        setNpcLoadout(items);
+        setNpcEquippedIndex(equippedIndex);
+        setStatusMsg(`NPC loadout set (${items.length} item(s))`);
+      }
     } else {
       pushUndo(tilesRef.current, buildingsRef.current, furnitureRef.current);
       setTiles(prev => prev.map((row, y) => row.map((t, x) => {
@@ -3288,6 +3307,21 @@ export default function MapEditor() {
                 </button>
               ))}
             </div>
+
+            {selectedEntity === 'player' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
+                <label style={{ fontSize: 11, color: '#888' }}>Player Starting Loadout</label>
+                <button onClick={() => openLoadoutEditor(null)} style={{ ...btnStyle('#46607a'), width: '100%' }}>
+                  Player Loadout… ({playerLoadout.length} item{playerLoadout.length === 1 ? '' : 's'}
+                  {playerEquippedIndex >= 0 && playerLoadout[playerEquippedIndex]
+                    ? `, equipped ${(ItemDefs as any)[playerLoadout[playerEquippedIndex].defId]?.name || '?'}`
+                    : ''})
+                </button>
+                <p style={{ fontSize: 11, color: '#888', margin: 0 }}>
+                  Items configured here will be equipped or added to the player's inventory when this scenario starts.
+                </p>
+              </div>
+            )}
 
             {selectedEntity === 'zombie' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
@@ -4283,18 +4317,27 @@ export default function MapEditor() {
       )}
 
       {/* ─── Zombie generator modal ─── */}
-      {loadoutModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={() => setLoadoutModal(null)}>
-          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, width: 460, maxHeight: '85vh', overflow: 'auto' }}
-            onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 4px', fontSize: 16, color: '#7bb8ff' }}>🎒 NPC Loadout</h3>
-            <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 12px' }}>
-              {loadoutModal.target
-                ? `Editing the NPC placed at (${loadoutModal.target.x}, ${loadoutModal.target.y}).`
-                : 'Default loadout given to every NPC you place from now on.'}
-              {' '}Everything here drops when the NPC dies.
-            </p>
+      {loadoutModal && (() => {
+        const isPlayerModal = loadoutModal.target
+          ? tiles[loadoutModal.target.y]?.[loadoutModal.target.x]?.entities[loadoutModal.target.idx]?.type === 'player'
+          : selectedEntity === 'player';
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onClick={() => setLoadoutModal(null)}>
+            <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, width: 460, maxHeight: '85vh', overflow: 'auto' }}
+              onClick={e => e.stopPropagation()}>
+              <h3 style={{ margin: '0 0 4px', fontSize: 16, color: '#7bb8ff' }}>
+                {isPlayerModal ? '🎒 Player Starting Loadout' : '🎒 NPC Loadout'}
+              </h3>
+              <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 12px' }}>
+                {isPlayerModal
+                  ? (loadoutModal.target
+                      ? `Editing starting loadout for the player placed at (${loadoutModal.target.x}, ${loadoutModal.target.y}).`
+                      : 'Default starting loadout given to the player when this scenario starts.')
+                  : (loadoutModal.target
+                      ? `Editing the NPC placed at (${loadoutModal.target.x}, ${loadoutModal.target.y}).`
+                      : 'Default loadout given to every NPC you place from now on.') + ' Everything here drops when the NPC dies.'}
+              </p>
 
             {/* Current contents */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
@@ -4369,7 +4412,8 @@ export default function MapEditor() {
             </div>
           </div>
         </div>
-      )}
+      );
+    })()}
 
       {showZombieModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -4823,7 +4867,7 @@ export default function MapEditor() {
                               }`
                             : ''}
                         </span>
-                        {ent.type === 'npc' && (
+                        {(ent.type === 'npc' || ent.type === 'player') && (
                           <button
                             onClick={() => openLoadoutEditor({ x: tx, y: ty, idx: i })}
                             style={{ ...removeBtnStyle, color: '#7bb8ff' }}

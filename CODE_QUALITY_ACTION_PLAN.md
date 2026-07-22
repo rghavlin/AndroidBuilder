@@ -453,29 +453,20 @@ the cleanest seam, move on.**
 
 ---
 
-## Wave 5 — Test coverage (highest value-per-line first)
+## Wave 5 — Test coverage (highest value-per-line first) ✅ COMPLETE (2026-07-22)
 
-The review's most consistent complaint. You don't need all of it; write these **cheap, pure**
-suites — each pins invariants the review flagged as fragile:
+All 8 test suite items completed and verified with `npm test` (43 test files, 254 tests green).
 
-1. **`SeededRandom`** — determinism, `getState/setState` round-trip, `nextInt` bounds, shuffle
-   permutation. ~40 lines, foundational for every seeded system (R2#12).
-2. **LOS on a fixed ASCII map** — sight lines, occlusions, diagonal corners, door-state
-   matrix, boundary tiles (R6#12). Pins T2 before/after refactor.
-3. **Terrain property matrix** — one assertion per terrain × {walkable, blocksSight,
-   destructible} once T2's table exists (R5#12).
-4. **Schema tests (codify the audits the reviewer ran by hand):**
-   - every `defId` in LootTables + NPCTypes + generator literals resolves in ItemDefs (R11#1,
-     R14#5) — catches the dead-defId class permanently.
-   - ItemDefs structural audit: id/key match, enum membership, reference resolution (R31#9).
-   - every CraftingRecipe reference resolves (R34#9).
-5. **`GameMap` round-trip** — both `fromJSON` and `fromJSONSelective`, catches T-bug R8#2.
-6. **Full save round-trip** — seed → play → save → load → assert player/map/inventory/RNG-
-   state/faction equality; version-floor + corrupt-save handling (R39#10).
-7. **Combat roll math** — seeded unit tests for the 5 roll functions incl. crit bands and the
-   clamping/NaN cases (R20#12).
-8. **AI transitions** — LOS→hunt→lose→investigate→arrive→wander; the file's comment history
-   proves regressions recur here (R18#11).
+1. ✅ **`SeededRandom`** — `test/utils/seededRandom.test.js` (8 tests: determinism, `getState`/`setState` stream resume, `nextInt` bounds, `nextBool` probability, `pick`, `shuffle` Fisher-Yates, `makeSeededRandom`).
+2. ✅ **LOS on a fixed ASCII map** — `test/map/lineOfSight.test.js` (17 tests: sight lines, occlusions, diagonal corners, door-state matrix, boundary tiles).
+3. ✅ **Terrain property matrix** — `test/map/terrainProps.test.js` (20 tests: 17 terrain types × {walkable, blocksSight, destructible} and consumer integration).
+4. ✅ **Schema tests:**
+   - `test/inventory/defIdResolution.test.js` (3 tests: LootTables + NPCTypes defId resolution).
+   - `test/inventory/itemDefsSchema.test.js` (7 tests: ItemDefs key vs defId match, category validity, CraftingRecipes unique IDs, resultItem resolution, ingredient & tool requirement resolution).
+5. ✅ **`GameMap` round-trip** — `test/serialization/mapRestoreParity.test.js` (3 tests: `fromJSON` vs `fromJSONSelective` parity, header field restoration, crop info recomputation).
+6. ✅ **Full save round-trip** — `test/serialization/fullSaveRoundTrip.test.js` (3 tests: seed/PRNG state continuity, player stats/inventory/equipment restoration, entity list restoration, version floor & corrupt save rejection).
+7. ✅ **Combat roll math** — `test/systems/combatRollMath.test.js` (10 tests: `attrMod` linear scaling, `seedLevel`, `meleeAimBonus`/`perceptionAimBonus`, `strengthDamageBonus`, `sicknessResistFraction`, armor absorption, hit/crit/defense rolls, NaN absence).
+8. ✅ **AI transitions** — `test/ai/aiStateTransitions.test.js` (4 tests: `IDLE` state, transition to `HUNTING` on LOS, transition to `INVESTIGATING` on lost LOS, LKP arrival and memory clear).
 
 Everything above is headless-friendly via the existing `GameHarness`.
 

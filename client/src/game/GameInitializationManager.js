@@ -298,62 +298,114 @@ class GameInitializationManager extends EventEmitter {
         const { createItemFromDef } = await import('./inventory/ItemDefs.js');
         const { Item } = await import('./inventory/Item.js');
 
-        // Check if easyStart is chosen
-        const isEasyStart = this.customConfig && this.customConfig.easyStart === true;
+        // Check if scenario authored player inventory exists
+        const playerEntityData = (mapData?.entities || []).find(e => e.type === 'player')
+          || (this.customConfig?.scenarioData?.entities || []).find(e => e.type === 'player');
 
-        // Create an item from its def and equip it; returns the item (or null).
-        const equip = (defId) => {
-          const def = createItemFromDef(defId);
-          if (!def) return null;
-          const item = new Item(def);
-          inventoryManager.equipItem(item);
-          return item;
-        };
-
-        // Both difficulties start dressed in a Pocket T-shirt + Sweatpants.
-        const shirt = equip('clothing.pocket_t');
-        if (shirt) console.log('[GameInitializationManager] Equipped starting shirt:', shirt.name);
-        const pants = equip('clothing.sweatpants');
-        if (pants) console.log('[GameInitializationManager] Equipped starting pants:', pants.name);
-
-        if (isEasyStart) {
-          // Easy Start adds a stocked school backpack and a crowbar.
-          // 3. Create Book Bag / school backpack
-          const backpack = equip('backpack.school');
-          if (backpack) {
-            console.log('[GameInitializationManager] Easy Start: Equipped starting backpack:', backpack.name);
-
-            // Now put items inside the backpack
-            const backpackContainer = backpack.getContainerGrid();
-            if (backpackContainer) {
-              // 3 canned beans
-              const beans = new Item(createItemFromDef('food.beans', { stackCount: 3 }));
-              backpackContainer.addItem(beans);
-
-              // 2 granola bars
-              const granolas = new Item(createItemFromDef('food.granolabar', { stackCount: 2 }));
-              backpackContainer.addItem(granolas);
-
-              // 2 water bottles
-              const waterBottles = new Item(createItemFromDef('food.waterbottle', { stackCount: 2 }));
-              backpackContainer.addItem(waterBottles);
-
-              // 1 lighter with full charges (10 charges)
-              const lighter = new Item(createItemFromDef('tool.lighter', { ammoCount: 10 }));
-              backpackContainer.addItem(lighter);
-
-              // 1 knife
-              const knife = new Item(createItemFromDef('weapon.knife'));
-              backpackContainer.addItem(knife);
-
-              console.log('[GameInitializationManager] Easy Start: Added starting items to backpack');
+        let hasAuthoredPlayerInventory = false;
+        if (playerEntityData && Array.isArray(playerEntityData.inventory) && playerEntityData.inventory.length > 0) {
+          console.log(`[GameInitializationManager] 🎒 Applying ${playerEntityData.inventory.length} authored starting item(s) to player`);
+          const items = [];
+          for (const itemData of playerEntityData.inventory) {
+            try {
+              const item = Item.fromJSON(itemData);
+              items.push(item);
+            } catch (err) {
+              console.warn('[GameInitializationManager] Failed to construct player starting item:', itemData, err);
+              items.push(null);
             }
           }
 
-          // 4. Create Crowbar and equip in melee slot
-          const crowbar = equip('weapon.crowbar');
-          if (crowbar) {
-            console.log('[GameInitializationManager] Easy Start: Equipped starting crowbar in melee slot');
+          const equippedIndex = playerEntityData.equippedIndex ?? -1;
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (!item) continue;
+            // Attempt to equip if it has an equippable slot or if it's explicitly marked as equippedIndex
+            if (i === equippedIndex || item.equippableSlot) {
+              const res = inventoryManager.equipItem(item);
+              if (res && res.success) {
+                console.log(`[GameInitializationManager] Equipped player item: ${item.name} to slot ${res.slot}`);
+                continue;
+              }
+            }
+            // Otherwise, attempt to put into equipped backpack container or general inventory
+            let added = false;
+            const backpack = inventoryManager.equipment?.backpack;
+            if (backpack) {
+              const grid = backpack.getContainerGrid?.();
+              if (grid) {
+                added = grid.addItem(item);
+              }
+            }
+            if (!added) {
+              const addRes = inventoryManager.addItem?.(item);
+              added = addRes?.success || addRes === true;
+            }
+            if (added) {
+              console.log(`[GameInitializationManager] Added player starting item to inventory: ${item.name}`);
+            }
+          }
+          hasAuthoredPlayerInventory = true;
+        }
+
+        if (!hasAuthoredPlayerInventory) {
+          // Check if easyStart is chosen
+          const isEasyStart = this.customConfig && this.customConfig.easyStart === true;
+
+          // Create an item from its def and equip it; returns the item (or null).
+          const equip = (defId) => {
+            const def = createItemFromDef(defId);
+            if (!def) return null;
+            const item = new Item(def);
+            inventoryManager.equipItem(item);
+            return item;
+          };
+
+          // Both difficulties start dressed in a Pocket T-shirt + Sweatpants.
+          const shirt = equip('clothing.pocket_t');
+          if (shirt) console.log('[GameInitializationManager] Equipped starting shirt:', shirt.name);
+          const pants = equip('clothing.sweatpants');
+          if (pants) console.log('[GameInitializationManager] Equipped starting pants:', pants.name);
+
+          if (isEasyStart) {
+            // Easy Start adds a stocked school backpack and a crowbar.
+            // 3. Create Book Bag / school backpack
+            const backpack = equip('backpack.school');
+            if (backpack) {
+              console.log('[GameInitializationManager] Easy Start: Equipped starting backpack:', backpack.name);
+
+              // Now put items inside the backpack
+              const backpackContainer = backpack.getContainerGrid();
+              if (backpackContainer) {
+                // 3 canned beans
+                const beans = new Item(createItemFromDef('food.beans', { stackCount: 3 }));
+                backpackContainer.addItem(beans);
+
+                // 2 granola bars
+                const granolas = new Item(createItemFromDef('food.granolabar', { stackCount: 2 }));
+                backpackContainer.addItem(granolas);
+
+                // 2 water bottles
+                const waterBottles = new Item(createItemFromDef('food.waterbottle', { stackCount: 2 }));
+                backpackContainer.addItem(waterBottles);
+
+                // 1 lighter with full charges (10 charges)
+                const lighter = new Item(createItemFromDef('tool.lighter', { ammoCount: 10 }));
+                backpackContainer.addItem(lighter);
+
+                // 1 knife
+                const knife = new Item(createItemFromDef('weapon.knife'));
+                backpackContainer.addItem(knife);
+
+                console.log('[GameInitializationManager] Easy Start: Added starting items to backpack');
+              }
+            }
+
+            // 4. Create Crowbar and equip in melee slot
+            const crowbar = equip('weapon.crowbar');
+            if (crowbar) {
+              console.log('[GameInitializationManager] Easy Start: Equipped starting crowbar in melee slot');
+            }
           }
         }
       } catch (err) {
