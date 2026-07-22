@@ -225,7 +225,7 @@ determinism, low priority).
     RNG doesn't disturb the global stream). `npm test` green (190/190);
     `npm run check` unchanged (254 pre-existing).
 
-### T8. Shared-reference / mutable-default hazards **[P1 — "loaded guns"]**
+### T8. Shared-reference / mutable-default hazards **[P1 — "loaded guns"]** ✅ COMPLETE
 State that looks copied but is shared by reference, one mutation from corrupting every
 instance: `Entity.defineAccessors` shared mutable defaults (R13#3, explicitly called a
 "loaded gun"), `createItemFromDef` shares def internals across all instances (R31#2),
@@ -234,6 +234,34 @@ instance: `Entity.defineAccessors` shared mutable defaults (R13#3, explicitly ca
 - **Action:** freeze or fresh-copy the accessor defaults; `structuredClone` the nested def
   objects in `createItemFromDef`; clone-on-read for the `fromJSON` aliases. Add a test that
   pushes into a default and asserts isolation.
+- **Done (2026-07-22):**
+  - `defineAccessors` (Entity.js): mutable defaults (`noiseCoords`, `noiseBlacklist`,
+    `recentThreats`, `targetSightedCoords`) are now `structuredClone`d per read when
+    the component is absent — pushing into a returned default no longer corrupts
+    every other component-less entity. Setter path (component creation) unchanged.
+  - `createItemFromDef`: `...def` → `...structuredClone(def)` — every instance owns
+    its `traits`/`categories`/`consumptionEffects`/`combat`/etc.; ItemDefs entries
+    can no longer be mutated through an instance.
+  - Clone-on-read (`fromJSON`): `Tile` (`edgeWalls`, `flags`, `inventoryItems`),
+    `GameMap.fromJSON`/`fromJSONSelective` (`buildings`, `furniture`, `lowSpots`,
+    `specialBuildings`), `TemplateMapGenerator.applyToGameMap` (metadata boundary —
+    intra-map sharing like `buildings === metadata.buildings` preserved by deriving
+    from the clone), `AIState` constructor (all nested fields).
+  - Clone-on-write (`toJSON`): `Tile` (`edgeWalls`, `flags`), `GameMap`
+    (`buildings`, `furniture`, `lowSpots`), `WorldManager` (per-map `metadata`),
+    `AIState` (nested fields), and `structuredClone({ ...this })` for the four
+    spread-style components with nested mutables (`AIBehavior`, `Inventory`,
+    `InventoryContainer`, `Vision`). Scalar-only `{ ...this }` components left
+    alone — no hazard there.
+  - Tests: `test/serialization/sharedReferences.test.js` (7 — push-into-default
+    isolation for accessor defaults, setter path intact, createItemFromDef sibling/
+    def isolation, Tile alias-free both directions, AIState both directions,
+    GameMap header-field clones). `npm test` green (197/197); `npm run check`
+    unchanged (254 pre-existing).
+
+---
+
+## Wave 1 complete — all themes T1–T8 done (2026-07-22)
 
 ---
 

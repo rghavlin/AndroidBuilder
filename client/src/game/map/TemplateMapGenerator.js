@@ -996,9 +996,13 @@ export class TemplateMapGenerator {
 
       // Store standardized building metadata on gameMap
       if (templateMapData.metadata) {
-        gameMap.metadata = templateMapData.metadata;
-        if (templateMapData.metadata.buildings) {
-          gameMap.buildings = templateMapData.metadata.buildings;
+        // Deep-clone at the boundary so the live map never aliases the
+        // generator's (or loaded scenario's) metadata object (T8/R12#6).
+        // Intra-map sharing is preserved by deriving the other fields from the
+        // clone, keeping buildings === metadata.buildings etc. as before.
+        gameMap.metadata = structuredClone(templateMapData.metadata);
+        if (gameMap.metadata.buildings) {
+          gameMap.buildings = gameMap.metadata.buildings;
         }
         // Decorative floorplan furniture outlines: stamp verbatim so maps
         // generated/saved by the map editor keep their furniture when loaded
@@ -1013,14 +1017,14 @@ export class TemplateMapGenerator {
             for (const p of b.furniturePlan) gameMap.furniture.push({ ...p });
           }
         }
-        if (Array.isArray(templateMapData.metadata.furniture)) {
-          for (const p of templateMapData.metadata.furniture) gameMap.furniture.push({ ...p });
+        if (Array.isArray(gameMap.metadata.furniture)) {
+          for (const p of gameMap.metadata.furniture) gameMap.furniture.push({ ...p });
         }
-        if (templateMapData.metadata.specialBuildings) {
-          gameMap.specialBuildings = templateMapData.metadata.specialBuildings;
+        if (gameMap.metadata.specialBuildings) {
+          gameMap.specialBuildings = gameMap.metadata.specialBuildings;
         }
-        if (templateMapData.metadata.lowSpots) {
-          gameMap.lowSpots = templateMapData.metadata.lowSpots;
+        if (gameMap.metadata.lowSpots) {
+          gameMap.lowSpots = gameMap.metadata.lowSpots;
         }
       }
 

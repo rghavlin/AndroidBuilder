@@ -274,11 +274,13 @@ export class Tile {
       terrain: this.terrain,
       contents: this.contents.map(entity => entity.toJSON()),
       inventoryItems,
-      flags: this.flags,
+      flags: this.flags ? { ...this.flags } : {},
       scent: this.scent,
       scentSequence: this.scentSequence,
       waterAmount: this.waterAmount,
-      edgeWalls: this.edgeWalls,
+      // Copy (don't alias) so mutating the live tile can't rewrite an
+      // already-serialized save POJO, and vice versa (T8/R5#5).
+      edgeWalls: this.edgeWalls ? { ...this.edgeWalls } : this.edgeWalls,
       decoration: this.decoration,
       fireTurns: this.fireTurns
     };
@@ -291,14 +293,16 @@ export class Tile {
     const tile = new Tile(data.x, data.y, data.terrain);
     // `??` / `!== undefined` throughout: a saved 0/false/'' is legitimate state
     // and must not be replaced by the default (T1 falsy-default sweep).
-    tile.flags = data.flags ?? {};
-    tile.inventoryItems = data.inventoryItems ?? [];
+    // Clone mutable fields so the live tile never aliases the save POJO
+    // (T8/R5#5) — without this, two loads of the same data share edgeWalls.
+    tile.flags = data.flags ? { ...data.flags } : {};
+    tile.inventoryItems = data.inventoryItems ? [...data.inventoryItems] : [];
     tile.scent = data.scent ?? 0;
     tile.scentSequence = data.scentSequence ?? 0;
     // waterAmount: an explicitly saved 0 (e.g. a drained water tile) must not
     // be refilled to the terrain default.
     tile.waterAmount = data.waterAmount !== undefined ? data.waterAmount : (data.terrain === 'water' ? 100 : 0);
-    tile.edgeWalls = data.edgeWalls ?? { n: false, e: false, s: false, w: false };
+    tile.edgeWalls = data.edgeWalls ? { ...data.edgeWalls } : { n: false, e: false, s: false, w: false };
     tile.decoration = data.decoration ?? null;
     tile.fireTurns = data.fireTurns ?? 0;
     // Note: contents are restored by GameMap.fromJSON

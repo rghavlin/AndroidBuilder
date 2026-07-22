@@ -2890,7 +2890,11 @@ export function createItemFromDef(defId, overrides = {}) {
   return {
     instanceId: `${defId}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
     defId,
-    ...def,
+    // T8/R31#2: deep-clone the def so every instance owns its nested objects
+    // (traits, categories, consumptionEffects, combat, ...). A shallow spread
+    // shares them with ItemDefs and every sibling instance — one runtime
+    // mutation (e.g. pushing a trait) would corrupt all of them.
+    ...structuredClone(def),
     ...overrides
   };
 }

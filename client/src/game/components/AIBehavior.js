@@ -36,6 +36,8 @@ export class AIBehavior {
   }
 
   toJSON() {
-    return { ...this };
+    // structuredClone so the serialized POJO never aliases the live
+    // lastSeenPlayerCoords/heardNoiseCoords/currentPath objects (T8 sweep).
+    return structuredClone({ ...this });
   }
 }

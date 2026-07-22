@@ -7,6 +7,8 @@ export class Vision {
   }
 
   toJSON() {
-    return { ...this };
+    // structuredClone so the serialized POJO never aliases the live
+    // visibleTiles/visibleEntities arrays (T8 shared-reference sweep).
+    return structuredClone({ ...this });
   }
 }

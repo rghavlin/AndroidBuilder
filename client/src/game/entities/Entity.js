@@ -40,10 +40,16 @@ import { EquippedArmor } from '../components/EquippedArmor.js';
 import { gameRandom } from '../utils/SeededRandom.js';
 function defineAccessors(TargetClass, componentName, ComponentClass, props) {
   for (const [prop, defaultVal] of Object.entries(props)) {
+    // T8/R13#3: never hand a mutable default out by reference. A caller pushing
+    // into the shared literal (e.g. `entity.noiseBlacklist` on an entity with no
+    // AIState component) would silently corrupt every other component-less
+    // entity reading the same default. Return a fresh copy per read instead.
+    const isMutableDefault = defaultVal !== null && typeof defaultVal === 'object';
     Object.defineProperty(TargetClass.prototype, prop, {
       get() {
         const comp = this.getComponent(componentName);
-        return comp ? comp[prop] : defaultVal;
+        if (comp) return comp[prop];
+        return isMutableDefault ? structuredClone(defaultVal) : defaultVal;
       },
       set(val) {
         let comp = this.getComponent(componentName);

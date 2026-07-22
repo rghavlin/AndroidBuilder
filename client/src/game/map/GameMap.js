@@ -1336,9 +1336,11 @@ export class GameMap extends SafeEventEmitter {
       detachedEntities,
       activeFires: Array.from(this.activeFires),
       scentSequenceCounter: this.scentSequenceCounter,
-      buildings: this.buildings,
-      furniture: this.furniture || [],
-      lowSpots: this.lowSpots,
+      buildings: this.buildings ? structuredClone(this.buildings) : [],
+      // Clone so post-serialize gameplay can't mutate the pending save POJO
+      // (T8 shared-reference sweep).
+      furniture: this.furniture ? structuredClone(this.furniture) : [],
+      lowSpots: this.lowSpots ? structuredClone(this.lowSpots) : [],
       mapNumber: this.mapNumber,
       template: this.template
     };
@@ -1510,9 +1512,11 @@ export class GameMap extends SafeEventEmitter {
   static async fromJSONSelective(data, options = {}) {
     const gameMap = new GameMap(data.width, data.height);
     // `??` so explicit falsy values from a save survive (T1 falsy-default sweep).
+    // structuredClone so the live map never aliases the save POJO's nested
+    // arrays/objects (T8 shared-reference sweep).
     gameMap.scentSequenceCounter = data.scentSequenceCounter ?? 0;
-    gameMap.furniture = data.furniture ?? [];
-    gameMap.lowSpots = data.lowSpots ?? [];
+    gameMap.furniture = data.furniture ? structuredClone(data.furniture) : [];
+    gameMap.lowSpots = data.lowSpots ? structuredClone(data.lowSpots) : [];
     gameMap.mapNumber = data.mapNumber ?? 1;
     gameMap.template = data.template ?? 'road';
     gameMap.activeFires = new Set(data.activeFires ?? []);
@@ -1531,16 +1535,18 @@ export class GameMap extends SafeEventEmitter {
   static async fromJSON(data) {
     const gameMap = new GameMap(data.width, data.height);
     // `??` so explicit falsy values from a save survive (T1 falsy-default sweep).
+    // structuredClone so the live map never aliases the save POJO's nested
+    // arrays/objects (T8 shared-reference sweep, R8).
     gameMap.scentSequenceCounter = data.scentSequenceCounter ?? 0;
-    gameMap.buildings = data.buildings ?? [];
-    gameMap.furniture = data.furniture ?? [];
-    gameMap.lowSpots = data.lowSpots ?? [];
+    gameMap.buildings = data.buildings ? structuredClone(data.buildings) : [];
+    gameMap.furniture = data.furniture ? structuredClone(data.furniture) : [];
+    gameMap.lowSpots = data.lowSpots ? structuredClone(data.lowSpots) : [];
     gameMap.mapNumber = data.mapNumber ?? 1;
     gameMap.template = data.template ?? 'road';
     gameMap.activeFires = new Set(data.activeFires ?? []);
 
     if (data.specialBuildings && gameMap.buildings.length === 0) {
-      gameMap.buildings = data.specialBuildings;
+      gameMap.buildings = structuredClone(data.specialBuildings);
     }
     gameMap.specialBuildings = gameMap.buildings;
 

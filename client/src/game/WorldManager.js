@@ -690,7 +690,9 @@ export class WorldManager extends SafeEventEmitter {
         timestamp: data.timestamp,
         lastProcessedTurn: data.lastProcessedTurn,
         type: data.type,
-        metadata: data.metadata
+        // Clone so post-serialize gameplay can't mutate the pending save POJO
+        // through the live map's metadata (T8 shared-reference sweep).
+        metadata: data.metadata ? structuredClone(data.metadata) : data.metadata
       })),
       currentMapId: this.currentMapId,
       mapCounter: this.mapCounter,

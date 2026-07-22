@@ -6,6 +6,8 @@ export class Inventory {
   }
 
   toJSON() {
-    return { ...this };
+    // structuredClone so the serialized POJO never aliases the live items
+    // array (T8 shared-reference sweep).
+    return structuredClone({ ...this });
   }
 }
