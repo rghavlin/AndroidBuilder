@@ -561,18 +561,31 @@ export class GameMap extends SafeEventEmitter {
   addEntity(entity, x, y) {
     const tile = this.getTile(x, y);
     if (tile) {
-      // Check for duplicate entity IDs
+      // R8#3: duplicate ID — evict-then-add. The old behavior logged and then
+      // overwrote entityMap, leaving the previous instance ghosted on its tile
+      // and in the type index while entityMap pointed at the new one.
       if (this.entityMap.has(entity.id)) {
         const existingEntity = this.entityMap.get(entity.id);
-        console.error(`[GameMap] 🚨 DUPLICATE ENTITY ID DETECTED: ${entity.id}`);
-        console.error(`[GameMap] - Existing entity:`, `${existingEntity.id} at (${existingEntity.x}, ${existingEntity.y}), type: ${existingEntity.type}`);
-        console.error(`[GameMap] - New entity:`, `${entity.id} at (${x}, ${y}), type: ${entity.type}`);
-        console.error(`[GameMap] - Same instance?`, existingEntity === entity ? 'YES' : 'NO - DIFFERENT INSTANCES!');
-
-        if (entity.type === EntityType.PLAYER) {
-          console.error(`[GameMap] 🚨🚨🚨 DUPLICATE PLAYER BEING ADDED TO MAP!`);
-          console.error(`[GameMap] - This indicates multiple initialization managers are running!`);
+        const sameInstance = existingEntity === entity;
+        console.warn(
+          `[GameMap] Duplicate entity ID "${entity.id}" (${entity.type}) at (${x}, ${y}) — ` +
+          (sameInstance
+            ? 'same instance re-added; moving it to the new position.'
+            : `evicting previous ${existingEntity.type} instance at (${existingEntity.x}, ${existingEntity.y}).`)
+        );
+        if (entity.type === EntityType.PLAYER && !sameInstance) {
+          console.error('[GameMap] 🚨 DUPLICATE PLAYER instance evicted — this indicates multiple initialization managers are running!');
         }
+
+        // Quiet detach: deliberately no ENTITY_REMOVED / ZOMBIE_DIED events
+        // for an anomalous duplicate — those would corrupt kill counters and
+        // listener state. Just free the tile and the type index.
+        const tx = existingEntity.logicalX !== undefined ? existingEntity.logicalX : (existingEntity.gridX !== undefined ? existingEntity.gridX : existingEntity.x);
+        const ty = existingEntity.logicalY !== undefined ? existingEntity.logicalY : (existingEntity.gridY !== undefined ? existingEntity.gridY : existingEntity.y);
+        const oldTile = this.getTile(tx, ty);
+        if (oldTile) oldTile.removeEntity(existingEntity.id);
+        this._unindexEntityByType(existingEntity);
+        existingEntity.gameMap = null;
       }
 
       this.entityMap.set(entity.id, entity);
@@ -1509,34 +1522,16 @@ export class GameMap extends SafeEventEmitter {
    * @param {Array<string>} options.includeEntityTypes - Only include these entity types
    * @returns {Promise<GameMap>} - Restored GameMap instance
    */
-  static async fromJSONSelective(data, options = {}) {
-    const gameMap = new GameMap(data.width, data.height);
-    // `??` so explicit falsy values from a save survive (T1 falsy-default sweep).
-    // structuredClone so the live map never aliases the save POJO's nested
-    // arrays/objects (T8 shared-reference sweep).
-    gameMap.scentSequenceCounter = data.scentSequenceCounter ?? 0;
-    gameMap.furniture = data.furniture ? structuredClone(data.furniture) : [];
-    gameMap.lowSpots = data.lowSpots ? structuredClone(data.lowSpots) : [];
-    gameMap.mapNumber = data.mapNumber ?? 1;
-    gameMap.template = data.template ?? 'road';
-    gameMap.activeFires = new Set(data.activeFires ?? []);
-
-    const { excludeEntityTypes = [], includeEntityTypes = null } = options;
-    console.log(`[GameMap] Selective restoration - excluding: [${excludeEntityTypes.join(', ')}], including: ${includeEntityTypes ? `[${includeEntityTypes.join(', ')}]` : 'all'}`);
-
-    await GameMap._restoreTilesAndEntities(gameMap, data, options);
-
-    console.log(`[GameMap] Selective restoration completed with ${gameMap.entityMap.size} entities`);
-    gameMap.rebuildEntityTypeIndex();
-    ScentTrail.rebuildIndex(gameMap);
-    return gameMap;
-  }
-
-  static async fromJSON(data) {
-    const gameMap = new GameMap(data.width, data.height);
-    // `??` so explicit falsy values from a save survive (T1 falsy-default sweep).
-    // structuredClone so the live map never aliases the save POJO's nested
-    // arrays/objects (T8 shared-reference sweep, R8).
+  /**
+   * Shared header-field restoration used by both fromJSON() and
+   * fromJSONSelective(). Extracted so the two paths can't drift — the
+   * selective path (used on EVERY map transition) previously skipped
+   * buildings/specialBuildings and the crop metadata pass entirely, leaving
+   * building-dependent logic running on an empty array (R8#2).
+   * `??` so explicit falsy values from a save survive (T1 falsy-default sweep);
+   * structuredClone so the live map never aliases the save POJO (T8 sweep).
+   */
+  static _restoreHeaderFields(gameMap, data) {
     gameMap.scentSequenceCounter = data.scentSequenceCounter ?? 0;
     gameMap.buildings = data.buildings ? structuredClone(data.buildings) : [];
     gameMap.furniture = data.furniture ? structuredClone(data.furniture) : [];
@@ -1549,16 +1544,42 @@ export class GameMap extends SafeEventEmitter {
       gameMap.buildings = structuredClone(data.specialBuildings);
     }
     gameMap.specialBuildings = gameMap.buildings;
+  }
 
-    // Full restoration: no type filtering (restore every entity).
-    await GameMap._restoreTilesAndEntities(gameMap, data);
-
-    // Restore crop metadata for all tiles
+  /** Rebuild crop metadata for every tile (used by both restore paths). */
+  static _restoreAllCropMetadata(gameMap) {
     for (let y = 0; y < gameMap.height; y++) {
       for (let x = 0; x < gameMap.width; x++) {
         gameMap.updateCropMetadata(x, y);
       }
     }
+  }
+
+  static async fromJSONSelective(data, options = {}) {
+    const gameMap = new GameMap(data.width, data.height);
+    GameMap._restoreHeaderFields(gameMap, data);
+
+    const { excludeEntityTypes = [], includeEntityTypes = null } = options;
+    console.log(`[GameMap] Selective restoration - excluding: [${excludeEntityTypes.join(', ')}], including: ${includeEntityTypes ? `[${includeEntityTypes.join(', ')}]` : 'all'}`);
+
+    await GameMap._restoreTilesAndEntities(gameMap, data, options);
+
+    GameMap._restoreAllCropMetadata(gameMap);
+
+    console.log(`[GameMap] Selective restoration completed with ${gameMap.entityMap.size} entities`);
+    gameMap.rebuildEntityTypeIndex();
+    ScentTrail.rebuildIndex(gameMap);
+    return gameMap;
+  }
+
+  static async fromJSON(data) {
+    const gameMap = new GameMap(data.width, data.height);
+    GameMap._restoreHeaderFields(gameMap, data);
+
+    // Full restoration: no type filtering (restore every entity).
+    await GameMap._restoreTilesAndEntities(gameMap, data);
+
+    GameMap._restoreAllCropMetadata(gameMap);
 
     console.log('[GameMap] Restored from JSON with', gameMap.entityMap.size, 'entities');
     gameMap.rebuildEntityTypeIndex();

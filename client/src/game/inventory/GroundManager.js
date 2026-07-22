@@ -102,10 +102,6 @@ export class GroundManager {
     // Clear ground and reorganize
     this.groundContainer.clear();
 
-    let currentX = 0;
-    let currentY = 0;
-    const categorySpacing = 2; // Space between categories
-
     // Sort categories by priority (vehicles first, then environment, etc.)
     const sortedCategories = Array.from(itemsByCategory.keys()).sort((a, b) => {
       return (CategoryPriority[a] || 999) - (CategoryPriority[b] || 999);
@@ -113,7 +109,6 @@ export class GroundManager {
 
     for (const category of sortedCategories) {
       const items = itemsByCategory.get(category);
-      const areaStart = { x: currentX, y: currentY };
 
       // Sort items within category by size (largest first)
       items.sort((a, b) => {
@@ -122,41 +117,40 @@ export class GroundManager {
         return areaB - areaA;
       });
 
-      let maxHeight = 0;
-      let rowX = currentX;
-      let rowY = currentY;
-      const maxRowWidth = this.groundContainer.width; // Use actual container width instead of hardcoded value
-
+      // R35#1: place each item with a full free-area scan and a guaranteed
+      // fallback (mirrors sortGroundItems step 5). The old rowX/rowY cursor
+      // called placeItemAt with NO failure branch — after clear(), any item
+      // that didn't fit was silently deleted once the ground held >=10 items.
       for (const item of items) {
-        // Check if item fits in current row
-        if (rowX + item.getActualWidth() > maxRowWidth) {
-          // Move to next row
-          currentY += maxHeight + 1;
-          rowX = currentX;
-          rowY = currentY;
-          maxHeight = 0;
+        const width = item.getActualWidth();
+        const height = item.getActualHeight();
+        let placed = false;
+
+        for (let y = 0; y <= this.groundContainer.height - height && !placed; y++) {
+          for (let x = 0; x <= this.groundContainer.width - width; x++) {
+            if (this.groundContainer.isAreaFree(x, y, width, height)) {
+              if (this.groundContainer.placeItemAt(item, x, y)) {
+                placed = true;
+                break;
+              }
+            }
+          }
         }
 
-        // Place item
-        if (this.groundContainer.placeItemAt(item, rowX, rowY)) {
-          rowX += item.getActualWidth();
-          maxHeight = Math.max(maxHeight, item.getActualHeight());
+        if (!placed) {
+          // Last resort: auto-positioning (incl. rotation attempts). If even
+          // this fails the item cannot fit — fail loudly instead of silently
+          // deleting it.
+          const added = this.groundContainer.addItem(item, null, null, false);
+          if (!added) {
+            console.error(`[GroundManager] organizeByCategory could not re-place "${item.name || item.instanceId}" — ground container is full; item NOT deleted but left out of the grid.`);
+          }
         }
       }
-
-      // Record category area
-      const areaEnd = { x: currentX + maxRowWidth, y: currentY + maxHeight };
-      this.categoryAreas.set(category, {
-        x: areaStart.x,
-        y: areaStart.y,
-        width: areaEnd.x - areaStart.x,
-        height: areaEnd.y - areaStart.y + 1
-      });
-
-      // Move to next category area
-      currentY += maxHeight + categorySpacing;
     }
 
+    // Recompute category areas from actual placements.
+    this.updateCategoryAreas();
     return true;
   }
 

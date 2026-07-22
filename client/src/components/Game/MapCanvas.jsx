@@ -1151,6 +1151,49 @@ export default function MapCanvas({
     chunkCacheRef.current.invalidateAll();
   }, [mapVersion]);
 
+  // R43#1: wire per-tile chunk invalidation. The chunk cache bakes terrain,
+  // edge walls, and door/window-edge suppression into static chunks; before
+  // this, only invalidateAll() (theme/zoom/map change) ran, so a mid-game
+  // wall breach or a removed door/window kept rendering the stale wall until
+  // the next full invalidation. invalidateTile() dirties the 3x3 chunk
+  // neighbourhood, so the adjacent edge-wall clears an explosion makes are
+  // covered by invalidating the breached tile.
+  useEffect(() => {
+    const gameMap = gameMapRef.current;
+    if (!gameMap) return;
+
+    const STRUCTURE_TYPES = new Set([
+      EntityType.DOOR, EntityType.WINDOW, EntityType.GARAGE_DOOR,
+    ]);
+
+    const onTerrainChanged = (data) => {
+      const p = data?.position;
+      if (!p) return;
+      chunkCacheRef.current.invalidateTile(p.x, p.y);
+      requestRender();
+    };
+
+    // Only structures affect static chunk content (edge-wall suppression);
+    // creatures/items are drawn dynamically, so ignore them to avoid thrashing
+    // the cache on every zombie death.
+    const onStructureChanged = (data) => {
+      if (!STRUCTURE_TYPES.has(data?.entity?.type)) return;
+      const p = data?.position;
+      if (!p) return;
+      chunkCacheRef.current.invalidateTile(p.x, p.y);
+      requestRender();
+    };
+
+    gameMap.on('terrainChanged', onTerrainChanged);
+    gameMap.on('entityRemoved', onStructureChanged);
+    gameMap.on('entityAdded', onStructureChanged);
+    return () => {
+      gameMap.off('terrainChanged', onTerrainChanged);
+      gameMap.off('entityRemoved', onStructureChanged);
+      gameMap.off('entityAdded', onStructureChanged);
+    };
+  }, [mapVersion, requestRender]);
+
   // Preload specific place icons when map changes
   useEffect(() => {
     if (!isInitialized || !gameMapRef.current) return;

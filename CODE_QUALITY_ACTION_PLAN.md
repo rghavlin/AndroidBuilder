@@ -269,18 +269,47 @@ instance: `Entity.defineAccessors` shared mutable defaults (R13#3, explicitly ca
 
 Each is a standalone real defect worth fixing directly.
 
-- **[P0] `GroundManager.organizeByCategory` silently deletes items** (R35#1). `clear()` then
+### Wave 2 P0 — ✅ COMPLETE (2026-07-22)
+All four P0 bugs fixed and pinned with regression tests. `npm test` green (207/207,
++10 new); `npm run check` unchanged at the 254 pre-existing TSX errors (edited
+`MapCanvas.jsx` is untyped/clean — the one MapCanvas hit is the pre-existing
+`MapInterface.tsx` `.jsx`-import baseline error).
+
+- **[P0] ✅ `GroundManager.organizeByCategory` silently deletes items** (R35#1). `clear()` then
   `placeItemAt` with no else-branch on failure → items vanish, and it triggers whenever the
   ground holds ≥10 items. Fix = mirror `sortGroundItems`' `isAreaFree`+`addItem` fallback.
-- **[P0] `GameMap.fromJSONSelective` loses buildings + crop metadata** vs `fromJSON` (R8#2).
+  - **Done:** per-item full free-area scan + `addItem(item,null,null,false)` fallback; a
+    genuinely unplaceable item is `console.error`-logged and left out of the grid but never
+    deleted, then `updateCategoryAreas()` recomputes bands. Test:
+    `test/inventory/organizeByCategory.test.js` (2 — conservation across a busy multi-category
+    ground; no-throw + no-loss when the grid is full).
+- **[P0] ✅ `GameMap.fromJSONSelective` loses buildings + crop metadata** vs `fromJSON` (R8#2).
   This is the path used on *every map transition* — building-dependent logic runs on an empty
   array afterward. Align the two paths; add a both-paths round-trip test.
-- **[P0] `GameMap.addEntity` duplicate-ID: logs then overwrites** → ghost entity left on tile
+  - **Done:** extracted shared `_restoreHeaderFields` (buildings + `specialBuildings` alias,
+    with `??`/`structuredClone` per T1/T8) and `_restoreAllCropMetadata`; both `fromJSON` and
+    `fromJSONSelective` now call them, so they can't drift. Test:
+    `test/serialization/mapRestoreParity.test.js` (3 — buildings parity + non-empty on the
+    selective path, crop recompute proven via `cropInfo` defined-as-null, no POJO aliasing).
+- **[P0] ✅ `GameMap.addEntity` duplicate-ID: logs then overwrites** → ghost entity left on tile
   and type-index while `entityMap` points at the new one (R8#3). Decide: throw, or evict-then-
   add. Error-and-continue is the worst option. (Also see replenishment ID collisions R47#2.)
-- **[P0] `TileChunkCache.invalidateTile` is dead-wired** → breached walls / removed doors keep
+  - **Done:** evict-then-add — the previous instance is detached from its tile (via logical
+    coords), the type index, and `gameMap` before the new one is inserted; a quiet detach (no
+    `ENTITY_REMOVED`/`ZOMBIE_DIED` events, which would corrupt counters) with a single warn
+    (error for a duplicate *player* instance). Test: `test/map/duplicateEntityId.test.js`
+    (2 — different-instance eviction leaves no ghost; same-instance re-add just moves it).
+- **[P0] ✅ `TileChunkCache.invalidateTile` is dead-wired** → breached walls / removed doors keep
   rendering until the next zoom/theme/map change (R43#1). The escape hatch was built and
   never connected. Fix = call it from `setTerrain` + edge-wall writes + door/window removal.
+  - **Done:** `MapCanvas` now subscribes (keyed on `mapVersion`, so it re-binds across map
+    transitions) to the gameMap instance's `terrainChanged` → `invalidateTile`, and to
+    `entityRemoved`/`entityAdded` filtered to structure types (door/window/garage_door) →
+    `invalidateTile`; creatures/items are ignored to avoid cache thrash on every kill.
+    Explosion edge-wall clears are covered because they neighbor the breached tile whose
+    `setTerrain('floor')` fires `terrainChanged`, and `invalidateTile` dirties the 3×3 chunk
+    neighborhood. Test: `test/renderer/tileChunkCache.test.js` (3 — 3×3 neighborhood dirtying,
+    chunk-border straddle, `invalidateAll` clears).
 - **[P1] `Pathfinding` decrease-key doesn't re-heapify** → A* can return suboptimal paths
   (R7#1). Sift-up after the in-place `f` reduction, or push-and-skip-stale.
 - **[P1] Dead defIds silently empty loot pools:** `NPCTypes` `tool.flashlight`/`tool.matches`
