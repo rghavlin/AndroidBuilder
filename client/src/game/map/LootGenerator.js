@@ -1,7 +1,7 @@
 import { Item } from '../inventory/Item.js';
 import { ItemDefs, createItemFromDef } from '../inventory/ItemDefs.js';
 import { ItemTrait, Rarity, RarityWeights, ItemCategory } from '../inventory/traits.js';
-import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_UNIQUES, MAP_WIDE_REQUIREMENTS } from './LootTables.js';
+import { SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, MAP_WIDE_REQUIREMENTS } from './LootTables.js';
 import { ZombieTypes } from '../entities/ZombieTypes.js';
 import { LootProgression, BASELINE_MAP_AREA } from '../config/ProgressionConfig.js';
 import { isInsideCompound, isInsideAnyBuilding, isInsideTollGate } from './MapUtils.js';
@@ -749,30 +749,6 @@ export class LootGenerator {
         if (safesSpawned < count) {
             console.warn(`[LootGenerator] Spawned only ${safesSpawned}/${count} safes on map.`);
         }
-    }
-
-    /**
-     * getBuildings is now deprecated in favor of standardized gameMap.buildings metadata.
-     * Retained as a legacy helper for any code not yet migrated.
-     */
-    getBuildings(gameMap) {
-        if (gameMap.buildings) {
-            return gameMap.buildings
-                .filter(b => b.type === 'residential')
-                .map(building => {
-                    const tiles = [];
-                    for (let y = building.y + 1; y < building.y + building.height - 1; y++) {
-                        for (let x = building.x + 1; x < building.x + building.width - 1; x++) {
-                            const tile = gameMap.getTile(x, y);
-                            if (tile && isFloor(tile.terrain)) {
-                                tiles.push({ x, y });
-                            }
-                        }
-                    }
-                    return tiles;
-                });
-        }
-        return [];
     }
 
     /**
@@ -1682,48 +1658,9 @@ export class LootGenerator {
             });
         }
 
-        // 3. Define unique items to spawn (Exactly 1 of each or random subset)
-        const uniqueSpawns = MAP_WIDE_UNIQUES;
-        let spawnsToProcess = [...uniqueSpawns];
-
-        if (spawnsToProcess.length > 0) {
-            // NEW RULE: After Map 2, spawn only 1 of either, rather than 1 of each.
-            // For Map 5+, reduce the chance of even 1 of them spawning to 50%.
-            if (mapNumber > 2) {
-                // Pick exactly one from the list
-                const picked = spawnsToProcess[gameRandom.nextInt(0, spawnsToProcess.length - 1)];
-                spawnsToProcess = [picked];
-
-                // Map 5+ reduction check
-                if (mapNumber >= 5) {
-                    if (gameRandom.next() > 0.50) {
-                        spawnsToProcess = [];
-                        console.log(`[LootGenerator] Map ${mapNumber} >= 5: Skipped unique item spawn (50% chance)`);
-                    }
-                }
-            }
-
-            console.log(`[LootGenerator] Applying map-wide uniques for ${spawnsToProcess.length} items (Map ${mapNumber})...`);
-
-            spawnsToProcess.forEach(config => {
-                if (!config) return;
-                // Pick a random existing loot pile
-                const tilePos = lootTiles[gameRandom.nextInt(0, lootTiles.length - 1)];
-                const itemData = createItemFromDef(config.defId);
-                
-                if (itemData) {
-                    const item = new Item(itemData);
-                    // Standard randomization (replaces manual capacity check)
-                    LootGenerator.applySpawnDefaults(item, false);
-
-                    // Add to the tile
-                    const currentItems = gameMap.getItemsOnTile(tilePos.x, tilePos.y);
-                    gameMap.setItemsOnTile(tilePos.x, tilePos.y, [...currentItems, item]);
-                    
-                    console.log(`[LootGenerator]   -> Placed ${item.name} at (${tilePos.x}, ${tilePos.y}) with ${item.ammoCount || 'fixed'} charges.`);
-                }
-            });
-        }
+        // (R11#9) The map-wide "unique item" spawn block was removed: it read
+        // MAP_WIDE_UNIQUES, which is permanently [], so the block could never
+        // fire. Only MAP_WIDE_REQUIREMENTS (handled above) is live.
     }
 
     /**
@@ -1850,143 +1787,6 @@ export class LootGenerator {
                     console.log(`[LootGenerator] Room-Specific Pass (Building ${bIdx + 1}, ${role} room): Placed ${item.name} at (${tilePos.x}, ${tilePos.y})`);
                 }
             });
-        });
-    }
-
-
-    /**
-     * Apply Easy Start rules to the starting home building:
-     * Guarantees 2 full water bottles, 2 canned beans, 2 canned corn, 1 book bag,
-     * 1 work shirt, 1 blue jeans, 1 cooking pot, 1 lighter (5-10 charges), 
-     * and 1 of [Machete, Fire axe, Hammer, Crowbar] at 100% condition.
-     */
-    applyEasyStartLoot(gameMap, buildingTiles, selectedTiles) {
-        console.log('[LootGenerator] Running second pass starting home loot for Easy Start...');
-        let waterBottleCount = 0;
-        let beansCount = 0;
-        let cornCount = 0;
-        let bookBagCount = 0;
-        let hasMeleeWeapon = false;
-        let workShirtCount = 0;
-        let blueJeansCount = 0;
-        let lighterCount = 0;
-        let potCount = 0;
-
-        const meleeIDs = ['weapon.machete', 'weapon.fire_axe', 'weapon.hammer', 'weapon.crowbar'];
-
-        // First pass: Count existing items on the starting home tiles
-        buildingTiles.forEach(pos => {
-            const items = gameMap.getItemsOnTile(pos.x, pos.y) || [];
-            items.forEach(item => {
-                if (item.defId === 'food.waterbottle') {
-                    // Make it full
-                    item.ammoCount = item.capacity || 20;
-                    waterBottleCount++;
-                } else if (item.defId === 'food.beans') {
-                    beansCount++;
-                } else if (item.defId === 'food.cannedcorn') {
-                    cornCount++;
-                } else if (item.defId === 'backpack.school') {
-                    bookBagCount++;
-                } else if (meleeIDs.includes(item.defId)) {
-                    // Set condition to 100%
-                    item.condition = 100;
-                    hasMeleeWeapon = true;
-                } else if (item.defId === 'clothing.workshirt') {
-                    workShirtCount++;
-                } else if (item.defId === 'clothing.blue_jeans') {
-                    blueJeansCount++;
-                } else if (item.defId === 'tool.lighter') {
-                    // Ensure charges are between 5 and 10
-                    if (item.ammoCount === undefined || item.ammoCount < 5 || item.ammoCount > 10) {
-                        item.ammoCount = 5 + gameRandom.nextInt(0, 5); // 5-10
-                    }
-                    lighterCount++;
-                } else if (item.defId === 'tool.cooking_pot') {
-                    potCount++;
-                }
-            });
-        });
-
-        // Second pass: Spawn missing items
-        const itemsToAdd = [];
-
-        // 2 full water bottles
-        if (waterBottleCount < 2) {
-            const needed = 2 - waterBottleCount;
-            for (let i = 0; i < needed; i++) {
-                const water = createItemFromDef('food.waterbottle', { ammoCount: 20 });
-                if (water) itemsToAdd.push(water);
-            }
-        }
-
-        // 2 canned beans
-        if (beansCount < 2) {
-            const needed = 2 - beansCount;
-            for (let i = 0; i < needed; i++) {
-                const beans = createItemFromDef('food.beans');
-                if (beans) itemsToAdd.push(beans);
-            }
-        }
-
-        // 2 canned corn
-        if (cornCount < 2) {
-            const needed = 2 - cornCount;
-            for (let i = 0; i < needed; i++) {
-                const corn = createItemFromDef('food.cannedcorn');
-                if (corn) itemsToAdd.push(corn);
-            }
-        }
-
-        // 1 book bag
-        if (bookBagCount < 1) {
-            const bag = createItemFromDef('backpack.school');
-            if (bag) itemsToAdd.push(bag);
-        }
-
-        // 1 melee weapon at 100% condition (Machete, Fire axe, Hammer, Crowbar)
-        if (!hasMeleeWeapon) {
-            const randomMeleeId = meleeIDs[gameRandom.nextInt(0, meleeIDs.length - 1)];
-            const weapon = createItemFromDef(randomMeleeId, { condition: 100 });
-            if (weapon) itemsToAdd.push(weapon);
-        }
-
-        // 1 work shirt
-        if (workShirtCount < 1) {
-            const shirt = createItemFromDef('clothing.workshirt');
-            if (shirt) itemsToAdd.push(shirt);
-        }
-
-        // 1 blue jeans
-        if (blueJeansCount < 1) {
-            const jeans = createItemFromDef('clothing.blue_jeans');
-            if (jeans) itemsToAdd.push(jeans);
-        }
-
-        // 1 lighter with 5-10 charges
-        if (lighterCount < 1) {
-            const charges = 5 + gameRandom.nextInt(0, 5);
-            const lighter = createItemFromDef('tool.lighter', { ammoCount: charges });
-            if (lighter) itemsToAdd.push(lighter);
-        }
-
-        // 1 cooking pot
-        if (potCount < 1) {
-            const pot = createItemFromDef('tool.cooking_pot');
-            if (pot) itemsToAdd.push(pot);
-        }
-
-        console.log(`[LootGenerator] Easy Start: Adding ${itemsToAdd.length} missing items to the starting home.`);
-
-        // Pick fallback tiles if selectedTiles is not set or empty
-        const tilesToUse = selectedTiles && selectedTiles.length > 0 ? selectedTiles : buildingTiles;
-
-        // Distribute items to the selected loot tiles randomly
-        itemsToAdd.forEach(item => {
-            const randomTile = tilesToUse[gameRandom.nextInt(0, tilesToUse.length - 1)];
-            const currentItems = gameMap.getItemsOnTile(randomTile.x, randomTile.y) || [];
-            gameMap.setItemsOnTile(randomTile.x, randomTile.y, [...currentItems, item]);
-            console.log(`[LootGenerator]   -> Placed guaranteed ${item.name} at (${randomTile.x}, ${randomTile.y})`);
         });
     }
 }

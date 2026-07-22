@@ -1,4 +1,4 @@
-import { Entity, COMPONENT_CLASSES } from './entities/Entity.js';
+import { Entity } from './entities/Entity.js';
 import { Position } from './components/Position.js';
 import { Health } from './components/Health.js';
 import { Renderable } from './components/Renderable.js';
@@ -6,7 +6,6 @@ import { Movable } from './components/Movable.js';
 import { InventoryContainer } from './components/InventoryContainer.js';
 import { AIBehavior } from './components/AIBehavior.js';
 import { AIState } from './components/AIState.js';
-import { LightEmitter } from './components/LightEmitter.js';
 import { Vision } from './components/Vision.js';
 import { Inventory } from './components/Inventory.js';
 import { ActionPoints } from './components/ActionPoints.js';
@@ -21,7 +20,6 @@ import { CombatResolver } from './systems/CombatResolver.js';
 import { getZombieType } from './entities/ZombieTypes.js';
 import { getNPCType } from './entities/NPCTypes.js';
 import { Container } from './inventory/Container.js';
-import { BlueprintRegistry } from './BlueprintRegistry.js';
 
 export const EntityFactory = {
   createPlayer(x, y, customStats = null) {
@@ -204,53 +202,4 @@ export const EntityFactory = {
     return entity;
   },
 
-  createFlashlight(x = 0, y = 0) {
-    const entity = new Entity(null, 'item', x, y, 'flashlight');
-    entity.type = 'item';
-    entity.subtype = 'flashlight';
-    entity.addComponent(new Position({ x, y, level: 0 }));
-    entity.addComponent(new Renderable({ spriteId: 'flashlight', color: '#ffffff', zIndex: 0 }));
-    entity.addComponent(new LightEmitter({ radius: 5, intensity: 1.0, color: '#ffffff', isOn: false }));
-    entity.addComponent('ItemData', { defId: 'flashlight', weight: 1 });
-    entity.precomputeItemFlags();
-    return entity;
-  },
-
-  assembleFromBlueprint(blueprintId) {
-    const blueprint = BlueprintRegistry.get(blueprintId);
-    if (!blueprint) {
-      throw new Error(`Blueprint ${blueprintId} not found in BlueprintRegistry`);
-    }
-
-    const type = blueprint.type || (blueprint.components && blueprint.components.Item ? 'item' : 'npc');
-    const entity = new Entity(null, type);
-    entity.defId = blueprintId;
-    entity.name = blueprint.name || blueprint.id;
-    if (blueprint.subtype) {
-      entity.subtype = blueprint.subtype;
-    }
-
-    if (blueprint.components) {
-      for (const [componentName, componentData] of Object.entries(blueprint.components)) {
-        const ComponentClass = COMPONENT_CLASSES[componentName];
-        if (ComponentClass) {
-          let finalData = { ...componentData };
-          if (componentName === 'Renderable') {
-            if (componentData.sprite && !componentData.spriteId) {
-              finalData.spriteId = componentData.sprite;
-            }
-          }
-          entity.addComponent(new ComponentClass(finalData));
-        } else {
-          entity.addComponent(componentName, componentData);
-        }
-      }
-    }
-
-    if (entity.type === 'item') {
-      entity.precomputeItemFlags();
-    }
-
-    return entity;
-  }
 };

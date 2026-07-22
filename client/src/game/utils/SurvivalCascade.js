@@ -19,7 +19,6 @@ const CASCADE_MAX_PENALTY = 0.5; // fully depleted needs cap stats at 50% of bas
 
 const HP_FLOOR = 10;   // max HP never drops below this, whatever Constitution does
 const AP_BASE = 10;    // max AP before attribute bonus
-const AP_FLOOR = 5;    // max AP never drops below this — never fully incapacitated
 // How hard attributes push max HP / max AP. These are the survivability dials:
 // bump HP_PER_CON for a beefier health pool, AP_ATTR_DIVISOR down for more actions.
 const HP_PER_CON = 0.4;     // max HP gained per point of current Constitution
@@ -278,7 +277,9 @@ export function deriveSecondaryStats(player) {
 
   const oldMaxAp = player.maxAp || 0;
   const apAttrBonus = maxApBonusFromAttributes(player.currentAgility, player.currentPerception);
-  const newMaxAp = Math.max(AP_FLOOR, AP_BASE + apAttrBonus);
+  // R37#2: no AP_FLOOR max() — apAttrBonus is always >= 0, so AP_BASE + bonus
+  // can never fall below the old floor of 5; this now matches deriveSecondaryStats.
+  const newMaxAp = AP_BASE + apAttrBonus;
   player.maxAp = newMaxAp;
   if (newMaxAp !== oldMaxAp) {
     player.ap = Math.max(0, Math.min(newMaxAp, player.ap + (newMaxAp - oldMaxAp)));

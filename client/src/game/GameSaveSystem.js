@@ -854,15 +854,8 @@ export class GameSaveSystem {
     return GameMap.fromJSON(mapData);
   }
 
-  static async restorePlayerFromJSON(playerData) {
-    const { Entity } = await import('./entities/Entity.js');
-    return Entity.fromJSON(playerData);
-  }
-
-  static async restoreCameraFromJSON(cameraData) {
-    const { Camera } = await import('./Camera.js');
-    return Camera.fromJSON(cameraData);
-  }
+  // R39#5: restorePlayerFromJSON / restoreCameraFromJSON were removed — no
+  // callers; the live paths use GameMap.fromJSON and new Camera(...) directly.
 
   /**
    * Internal version comparison helper (semver-lite)

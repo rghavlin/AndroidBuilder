@@ -382,26 +382,45 @@ resolved before this pass (noted inline).
 
 ## Wave 3 — Dead code sweep (low risk, shrinks surface area)
 
-Delete-only, or delete-or-adopt. Do these in a batch; they're safe and make everything else
-easier to read. ~800+ lines total.
+### ✅ COMPLETE (2026-07-22)
+Every candidate was re-verified as genuinely unreferenced before removal. `npm test` green
+(219/219, unchanged); `npm run check` steady at 254 pre-existing TSX errors. **Two candidates
+turned out NOT to be dead** — the review was a snapshot and the code had moved on; both are
+kept and flagged below.
 
-- `MovementHelper.js` — entirely dead + 3 latent bugs (R16#10). Delete.
-- `EntityFactory.createFlashlight` + `assembleFromBlueprint` + `BlueprintRegistry` — dead
-  archetype system, ~60 lines (R15#6). Delete (or adopt to kill the zombie/NPC boilerplate).
-- `LootGenerator`: `applyEasyStartLoot`, `getBuildings`, `MAP_WIDE_UNIQUES` dead block —
-  ~200 lines (R11#9).
-- `client/src/game/Entity.js` root stub — imported nowhere (R13#9).
-- `inventory/index.js` dead legacy half: `ITEM_TEMPLATES`, `createWeapon/createArmor/...`,
-  window globals — ~150 lines; repoint `EquipmentSlots.tsx` at the real modules (R35#6).
-- `__tests__/Container.test.js` — vitest never runs it; move under `test/` or delete (R32#9).
-- `PlayerZombieTracker.updateCurrentVisibility` — no callers (R28#5).
-- `TemplateMapGenerator` legacy ASCII templates + `parseTemplateLayout`/`addRandomWalls`/
-  `addRandomFloors` — ~180 lines, unreachable (R12#9). Confirm the editor's template picker
-  doesn't expose them first.
-- `GameSaveSystem.restorePlayerFromJSON` / `restoreCameraFromJSON` — no callers (R39#5).
-- `SurvivalCascade.AP_FLOOR` — mathematically dead constant (R37#2).
-- Fix docs while you're in there: `PlayerZombieTracker` header is inverted vs behavior
-  (R28#1); `GameMap` "20x20" docstring (R8#12).
+- ✅ `MovementHelper.js` — entirely dead + 3 latent bugs (R16#10). *(Already deleted in T1.)*
+- ✅ `EntityFactory.createFlashlight` + `assembleFromBlueprint` + `BlueprintRegistry` — dead
+  archetype system (R15#6). **Deleted** both methods, the `BlueprintRegistry.js` file, and the
+  now-orphaned `COMPONENT_CLASSES`/`LightEmitter`/`BlueprintRegistry` imports.
+- ✅ `LootGenerator`: `applyEasyStartLoot` (~135 lines), `getBuildings`, and the
+  `MAP_WIDE_UNIQUES` block — **deleted**; also removed the `MAP_WIDE_UNIQUES` constant from
+  `LootTables.js` and its import (R11#9).
+- ✅ `client/src/game/Entity.js` root stub — imported nowhere. **Deleted** (R13#9).
+- ✅ `inventory/index.js` dead legacy half: `ITEM_TEMPLATES`, `createItem`/`createWeapon`/…,
+  `createContainer`, and the dev-only `window.*` globals (incl. the dynamic import of the
+  container test) — **deleted** (R35#6). Reduced to the live barrel re-exports; the 3 importers
+  (`EquipmentSlots.tsx`, `UniversalGrid.tsx`, `ActionContext.jsx`) pull only
+  `Item`/`createItemFromDef`/`ItemTrait`, all still exported — no repoint needed.
+- ⚠️ **KEPT — `__tests__/Container.test.js` is NOT dead** (contradicts R32#9). Its
+  `runContainerTests()` is imported and executed by the live vitest suite
+  `test/inventory/container.test.js:6`. Deleting it would break a running test. Left in place
+  (only its dead `window.*` bridge, driven from index.js, was removed).
+- ✅ `PlayerZombieTracker.updateCurrentVisibility` — no callers. **Deleted**; also fixed the
+  inverted header (R28#5, R28#1).
+- ⚠️ **KEPT — `TemplateMapGenerator` legacy templates are NOT dead** (contradicts R12#9's
+  condition). `small_building`/`mall_section`/`outdoor_area` and their
+  `parseTemplateLayout`/`addRandomWalls`/`addRandomFloors` helpers ARE exposed by the editor's
+  template picker (`editor.tsx:3718-3720`, live `handleGenerateTemplate` buttons). The review
+  said "if the editor exposes them, they bypass the connectivity gate" — which is the real
+  (design/robustness) issue, not dead code. Left in place; the gate-bypass is noted for the
+  design backlog.
+- ✅ `GameSaveSystem.restorePlayerFromJSON` / `restoreCameraFromJSON` — no callers.
+  **Deleted** (kept `restoreGameMapFromJSON`, which the review didn't flag) (R39#5).
+- ✅ `SurvivalCascade.AP_FLOOR` — the `Math.max(AP_FLOOR, …)` floor can never bind
+  (`apAttrBonus >= 0`, so `AP_BASE(10) + bonus > 5`). **Removed** the constant and the `max()`;
+  now consistent with `deriveSecondaryStats` which never floored (R37#2).
+- ✅ Docs: `PlayerZombieTracker` header corrected (tracks zombies that can see the player);
+  `GameMap` "20x20" docstring updated to "variable-size" (R28#1, R8#12).
 
 ---
 

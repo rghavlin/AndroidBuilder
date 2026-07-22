@@ -181,10 +181,8 @@
   "179": "verify_army_tent.js",
   "180": "MusicManager",
   "181": "tmp_verify_fix.js",
-  "182": "test_noise.js",
   "183": "test_noise.js",
   "184": "MockGameMap",
-  "185": "test_noise_assert.js",
   "186": ".dropScent",
   "187": "test_noise_assert.js",
   "194": "TileRenderer.js"

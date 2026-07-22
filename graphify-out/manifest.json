@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784613879.3757658,
-    "ast_hash": "372f860fe05b6c807aeb93591a68c1f6",
+    "mtime": 1784700065.747118,
+    "ast_hash": "db1a511046018ad516171d112cea3642",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -689,11 +689,6 @@
     "ast_hash": "4527779efa846c189383feb70a09d06a",
     "semantic_hash": ""
   },
-  "client/src/game/BlueprintRegistry.js": {
-    "mtime": 1781241150.5680823,
-    "ast_hash": "c95cc39c54e779770e427da743fd2bba",
-    "semantic_hash": "c95cc39c54e779770e427da743fd2bba"
-  },
   "client/src/game/Camera.js": {
     "mtime": 1783572599.9411242,
     "ast_hash": "681bbb9847df338cab024e2a11f07544",
@@ -704,14 +699,9 @@
     "ast_hash": "d792d405264af39ebb487ad2d68433b5",
     "semantic_hash": "d792d405264af39ebb487ad2d68433b5"
   },
-  "client/src/game/Entity.js": {
-    "mtime": 1781142438.0791118,
-    "ast_hash": "e512afbbce15e8144de7f976dc2b7c3b",
-    "semantic_hash": "e512afbbce15e8144de7f976dc2b7c3b"
-  },
   "client/src/game/EntityFactory.js": {
-    "mtime": 1784593818.594884,
-    "ast_hash": "165fff4a7630fa5fee86656a33066e1c",
+    "mtime": 1784699879.5666554,
+    "ast_hash": "51c76e8437405505919def8926b640c6",
     "semantic_hash": ""
   },
   "client/src/game/GameEngine.js": {
@@ -725,8 +715,8 @@
     "semantic_hash": ""
   },
   "client/src/game/GameSaveSystem.js": {
-    "mtime": 1784594117.5476463,
-    "ast_hash": "6c8eb85e6a241fdde3e9bd6c28476db4",
+    "mtime": 1784700278.2966468,
+    "ast_hash": "58034f8efdae49bb249084985c4361bd",
     "semantic_hash": ""
   },
   "client/src/game/ScenarioStorage.js": {
@@ -750,9 +740,9 @@
     "semantic_hash": ""
   },
   "client/src/game/ai/PlayerZombieTracker.js": {
-    "mtime": 1783055873.046112,
-    "ast_hash": "ef6681cdd1e2ead5dceef77fae424df2",
-    "semantic_hash": "ef6681cdd1e2ead5dceef77fae424df2"
+    "mtime": 1784700252.049131,
+    "ast_hash": "861801a12d800a9c7c24b71262316be1",
+    "semantic_hash": ""
   },
   "client/src/game/ai/RabbitAI.js": {
     "mtime": 1783055889.6954901,
@@ -1025,9 +1015,9 @@
     "semantic_hash": "d2e32cad92f1178cd517f6a5e9e64beb"
   },
   "client/src/game/inventory/index.js": {
-    "mtime": 1782722820.9606786,
-    "ast_hash": "ff99e1accd99a393f56bfbd212f53b8d",
-    "semantic_hash": "ff99e1accd99a393f56bfbd212f53b8d"
+    "mtime": 1784700213.2228906,
+    "ast_hash": "53382c4c1cca23ab7d62fae9668f262f",
+    "semantic_hash": ""
   },
   "client/src/game/inventory/traits.js": {
     "mtime": 1783256982.7090094,
@@ -1065,18 +1055,18 @@
     "semantic_hash": ""
   },
   "client/src/game/map/GameMap.js": {
-    "mtime": 1784695248.3774033,
-    "ast_hash": "2e630f39b92a0d104d6a61a7dc9f6bdf",
+    "mtime": 1784700401.704222,
+    "ast_hash": "ba260b7fff3959620c3c383300f307bb",
     "semantic_hash": ""
   },
   "client/src/game/map/LootGenerator.js": {
-    "mtime": 1784621571.9973416,
-    "ast_hash": "1a4f7b427fba75198656a1640daa0edb",
+    "mtime": 1784700127.4819334,
+    "ast_hash": "8df0c88d1ff57c8d92f4676bcaf88afe",
     "semantic_hash": ""
   },
   "client/src/game/map/LootTables.js": {
-    "mtime": 1784162133.0991285,
-    "ast_hash": "907b1b41fb74d8da894d741a4b1f8f45",
+    "mtime": 1784700123.02148,
+    "ast_hash": "4f128d295dc589b506d61fcefef4457e",
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
@@ -1345,8 +1335,8 @@
     "semantic_hash": "92c293a3109316da2ca3951331e09f2c"
   },
   "client/src/game/utils/SurvivalCascade.js": {
-    "mtime": 1783907437.327553,
-    "ast_hash": "775c2ca54c7e0ebb4839a8839892a5b1",
+    "mtime": 1784700385.9936368,
+    "ast_hash": "7c841c1478968858b39994d97e6a2981",
     "semantic_hash": ""
   },
   "client/src/game/utils/TimeUtils.js": {

@@ -1,7 +1,9 @@
 /**
  * Player-Centric Zombie Tracking System
- * Only tracks zombies that are visible to the player to optimize performance
- * and set LastSeen flags appropriately when zombies leave player's sight
+ * Tracks zombies that can SEE the player (i.e. zombies aware of the player),
+ * not zombies the player can see — a zombie's sight range can exceed the
+ * player's FOV, and this drives alert growls + last-known-position handling.
+ * (R28#1: the previous header had this inverted.)
  */
 
 import { LineOfSight } from '../utils/LineOfSight.js';
@@ -202,39 +204,6 @@ export class PlayerZombieTracker {
   clearAllTracking() {
     this.spottedZombies.clear();
     log.debug('All zombie tracking cleared');
-  }
-
-  /**
-   * Update only current visibility tracking without setting LastSeen positions
-   * Used after path-based LastSeen tracking has already been handled
-   * @param {GameMap} gameMap - The game map
-   * @param {Player} player - The player entity
-   * @param {Array} playerFieldOfView - Player's current field of view tiles
-   */
-  updateCurrentVisibility(gameMap, player, playerFieldOfView) {
-    if (!gameMap || !player || !playerFieldOfView) {
-      log.warn('Invalid parameters for updateCurrentVisibility');
-      return;
-    }
-
-    // Get all zombies currently visible to the player
-    const currentlyVisibleZombies = this.getVisibleZombies(gameMap, player, playerFieldOfView);
-
-    // Process newly spotted zombies
-    this.processNewlySpottedZombies(currentlyVisibleZombies, player);
-
-    // Update tracked zombies (but don't process lost sight - that was handled by path checking)
-    this.updateTrackedZombies(currentlyVisibleZombies, player);
-
-    // Remove zombies that are no longer visible (but don't set LastSeen again)
-    const currentVisibleIds = new Set(currentlyVisibleZombies.map(({ zombie }) => zombie.id));
-    for (const [zombieId, trackedData] of this.spottedZombies.entries()) {
-      if (!currentVisibleIds.has(zombieId)) {
-        // Zombie is no longer visible - just remove from tracking without setting LastSeen
-        // (LastSeen was already set during path checking if appropriate)
-        this.spottedZombies.delete(zombieId);
-      }
-    }
   }
 
   /**

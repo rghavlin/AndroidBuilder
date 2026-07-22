@@ -23,7 +23,9 @@ import { gameRandom } from '../utils/SeededRandom.js';
 const log = Logger.scope('GameMap');
 
 /**
- * 20x20 map container with tile management and serialization
+ * Variable-size map container (width x height set at construction) with tile
+ * management, an entity/type spatial index, per-turn simulation, and
+ * serialization.
  */
 export class GameMap extends SafeEventEmitter {
   static isSimulating = false;
