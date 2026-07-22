@@ -625,8 +625,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/AudioContext.jsx": {
-    "mtime": 1784621571.9923413,
-    "ast_hash": "5a910d0ab16e75b124acc9143319c0d2",
+    "mtime": 1784698906.101781,
+    "ast_hash": "07468cf40ea1291f573c0f32f0d76ac9",
     "semantic_hash": ""
   },
   "client/src/contexts/CameraContext.jsx": {
@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1784593764.8383636,
-    "ast_hash": "2e6f2e78dc19aeb9ca792f7442f7b1b1",
+    "mtime": 1784698897.6763864,
+    "ast_hash": "6b194933434460685ceaf673c79e6950",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -675,8 +675,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/SleepContext.jsx": {
-    "mtime": 1783742607.9516168,
-    "ast_hash": "684defa7ea539dc5509c6e0c65b52ef9",
+    "mtime": 1784698891.104067,
+    "ast_hash": "654e4bdaed4946c0e75ea8f694f1e25b",
     "semantic_hash": ""
   },
   "client/src/contexts/ThemeContext.tsx": {
@@ -935,9 +935,9 @@
     "semantic_hash": ""
   },
   "client/src/game/entities/NPCTypes.js": {
-    "mtime": 1782707730.0317886,
-    "ast_hash": "c9b096fdecdf1b08ee140b4a224905ca",
-    "semantic_hash": "c9b096fdecdf1b08ee140b4a224905ca"
+    "mtime": 1784698194.3414133,
+    "ast_hash": "9ba6485c3ccb8ed96cc7bfe3b3fb38fe",
+    "semantic_hash": ""
   },
   "client/src/game/entities/PlaceIcon.js": {
     "mtime": 1784680782.6511567,
@@ -945,8 +945,8 @@
     "semantic_hash": ""
   },
   "client/src/game/entities/Rabbit.js": {
-    "mtime": 1784680778.033309,
-    "ast_hash": "3e3d441298a981db761f36d4e7848e65",
+    "mtime": 1784698667.7880902,
+    "ast_hash": "41e0ef01c1e4e0e16869fcc85911a8eb",
     "semantic_hash": ""
   },
   "client/src/game/entities/TestEntity.js": {
@@ -1000,8 +1000,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
-    "mtime": 1784693417.8384645,
-    "ast_hash": "229e5416defbb98159a3b7b83903906d",
+    "mtime": 1784698433.3607497,
+    "ast_hash": "f2dee14c3e3f9d4f377545ef304c55c8",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemPricing.js": {
@@ -1045,8 +1045,8 @@
     "semantic_hash": "5715d56998f6ea89742ca95e58ff8d0a"
   },
   "client/src/game/managers/SimulationManager.js": {
-    "mtime": 1784114430.139994,
-    "ast_hash": "6c2f6c80e650c0ece00d9652407721ab",
+    "mtime": 1784698726.7499104,
+    "ast_hash": "fffe518cb5e2431dada00d231b883d37",
     "semantic_hash": ""
   },
   "client/src/game/managers/TurnManager.js": {
@@ -1205,8 +1205,8 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/CombatResolver.js": {
-    "mtime": 1783777083.7330847,
-    "ast_hash": "340bbb87e19ae2cd5985eed977f25252",
+    "mtime": 1784698600.2312725,
+    "ast_hash": "7d8f7148c18817cbbb41923882d8cfc7",
     "semantic_hash": ""
   },
   "client/src/game/systems/CombatSystem.js": {
@@ -1235,8 +1235,8 @@
     "semantic_hash": "87a9d8d6bfd296fbcae26add1724c8fa"
   },
   "client/src/game/systems/MovementSystem.js": {
-    "mtime": 1784114444.7033086,
-    "ast_hash": "c142141ca85c7dfc8b71e1ee0ba7458c",
+    "mtime": 1784698748.6508968,
+    "ast_hash": "2e4f38d447749f8387e13c297248f717",
     "semantic_hash": ""
   },
   "client/src/game/systems/TollGateSystem.js": {
@@ -1285,13 +1285,13 @@
     "semantic_hash": "a892a3741d4a30226ad60ae8b9345dc8"
   },
   "client/src/game/utils/GameEvents.js": {
-    "mtime": 1784593698.0465236,
-    "ast_hash": "78b0b22f4b26acdd6e934c62688b8bc6",
+    "mtime": 1784698885.4845777,
+    "ast_hash": "211230716df3078805bf00631701c886",
     "semantic_hash": ""
   },
   "client/src/game/utils/ImageLoader.js": {
-    "mtime": 1784690879.0208368,
-    "ast_hash": "710c848634eb005aaf25e08b134330d7",
+    "mtime": 1784698656.1240542,
+    "ast_hash": "9b0e2c64ab2abf34803497456c13f276",
     "semantic_hash": ""
   },
   "client/src/game/utils/LineOfSight.js": {
@@ -1315,8 +1315,8 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/Pathfinding.js": {
-    "mtime": 1784684144.8457909,
-    "ast_hash": "e227ee837e082a5f455ead9aea0aab12",
+    "mtime": 1784698172.8429818,
+    "ast_hash": "0160493de1550f6ea8f0a9cd8d5e8b51",
     "semantic_hash": ""
   },
   "client/src/game/utils/PlayerHearing.js": {
@@ -2775,8 +2775,8 @@
     "semantic_hash": ""
   },
   "client/src/game/quest/EventRunner.js": {
-    "mtime": 1784680908.4987688,
-    "ast_hash": "33386b7cfa15d4d541d93bedb412bd8a",
+    "mtime": 1784698560.0655856,
+    "ast_hash": "228509691fc1dd2ac3e7c71d87bc6326",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p3.mjs": {
@@ -3100,8 +3100,8 @@
     "semantic_hash": ""
   },
   "test/map/pathfinding.test.js": {
-    "mtime": 1784684299.044107,
-    "ast_hash": "153a963156c214b92b393fa70b29e419",
+    "mtime": 1784699141.0871623,
+    "ast_hash": "4bef9e350d6bf88494717c32bd8bedf7",
     "semantic_hash": ""
   },
   "test/map/terrainProps.test.js": {
@@ -3132,6 +3132,26 @@
   "test/systems/seededRandomness.test.js": {
     "mtime": 1784692292.303928,
     "ast_hash": "d420e2e50b3a889a16e0b6b26857c14a",
+    "semantic_hash": ""
+  },
+  "test/entities/rabbitSpawn.test.js": {
+    "mtime": 1784699196.1890702,
+    "ast_hash": "b2f15ce4ac26383414052cd8f4b7d974",
+    "semantic_hash": ""
+  },
+  "test/inventory/defIdResolution.test.js": {
+    "mtime": 1784699152.4506724,
+    "ast_hash": "abc20caf1f05c02657880fcce4018029",
+    "semantic_hash": ""
+  },
+  "test/quest/eventChainCycle.test.js": {
+    "mtime": 1784699174.6773777,
+    "ast_hash": "c269f1f4fb77a9e04fa2625103c941b9",
+    "semantic_hash": ""
+  },
+  "test/systems/combatResolverAccuracy.test.js": {
+    "mtime": 1784699187.713317,
+    "ast_hash": "b419cf74fef9770918a3a5c1a3f998a9",
     "semantic_hash": ""
   }
 }

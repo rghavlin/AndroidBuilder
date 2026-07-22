@@ -271,20 +271,27 @@ export class CombatResolver {
     const accuracyBonus = (skillLvl - drunkenness) * 0.01;
     const isSling = stats.isSling;
 
+    // R20#5: guard the falloff/floor stats so a weapon whose rangedStats omit
+    // them can't produce NaN hitChance (every shot silently misses past range).
+    // Only the shotgun branch had a fallback; scope/laser/default did not.
+    // `??` preserves a deliberate 0 (no falloff / can-miss-to-zero) per T1.
+    const minAccuracy = stats.minAccuracy ?? 0.1;
+    const accuracyFalloff = stats.accuracyFalloff ?? 0.2;
+
     let baseHitChance = 1.0;
     if (isSling) {
       baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
     } else if (stats.isShotgun) {
       baseHitChance = squaresAway <= (stats.accuracyMaxRange || 5) ? 1.0
-        : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 5) * (stats.accuracyFalloff || 0.2));
+        : Math.max(minAccuracy, 1.0 - (squaresAway - 5) * accuracyFalloff);
     } else if (hasScope) {
       baseHitChance = squaresAway <= 15 ? 1.0
-        : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 15) * stats.accuracyFalloff);
+        : Math.max(minAccuracy, 1.0 - (squaresAway - 15) * accuracyFalloff);
     } else if (hasLaserSight) {
       baseHitChance = squaresAway <= 10 ? 1.0
-        : Math.max(stats.minAccuracy, 1.0 - (squaresAway - 10) * stats.accuracyFalloff);
+        : Math.max(minAccuracy, 1.0 - (squaresAway - 10) * accuracyFalloff);
     } else {
-      baseHitChance = Math.max(stats.minAccuracy, 1.0 - (squaresAway - 1) * stats.accuracyFalloff);
+      baseHitChance = Math.max(minAccuracy, 1.0 - (squaresAway - 1) * accuracyFalloff);
     }
 
     const attributeAim = CombatResolver.perceptionAimBonus(currentAgility, currentPerception);

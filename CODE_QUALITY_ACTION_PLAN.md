@@ -310,31 +310,73 @@ All four P0 bugs fixed and pinned with regression tests. `npm test` green (207/2
     `setTerrain('floor')` fires `terrainChanged`, and `invalidateTile` dirties the 3×3 chunk
     neighborhood. Test: `test/renderer/tileChunkCache.test.js` (3 — 3×3 neighborhood dirtying,
     chunk-border straddle, `invalidateAll` clears).
-- **[P1] `Pathfinding` decrease-key doesn't re-heapify** → A* can return suboptimal paths
+### Wave 2 P1 — ✅ COMPLETE (2026-07-22)
+All P1 bugs fixed and pinned. `npm test` green (219/219, +12 new); `npm run check`
+unchanged at the 254 pre-existing TSX errors (the edited `.jsx`/`.js` modules are untyped —
+every hit is the same `.js`-import baseline). Some items in the original list were already
+resolved before this pass (noted inline).
+
+- **[P1] ✅ `Pathfinding` decrease-key doesn't re-heapify** → A* can return suboptimal paths
   (R7#1). Sift-up after the in-place `f` reduction, or push-and-skip-stale.
-- **[P1] Dead defIds silently empty loot pools:** `NPCTypes` `tool.flashlight`/`tool.matches`
+  - **Done:** lazy-deletion decrease-key — the better-g branch now pushes a *superseding*
+    node (lower f) and repoints `openSetMap` at it; on pop, stale entries are skipped
+    (`closedSet.has` or `openSetMap.get(key) !== current`). Cheaper than adding index
+    tracking to the heap. Test: `test/map/pathfinding.test.js` (+3 — diagonal-shortcut
+    optimality, minimal wall detour, no-path returns []).
+- **[P1] ✅ Dead defIds silently empty loot pools:** `NPCTypes` `tool.flashlight`/`tool.matches`
   (should be `tool.smallflashlight`/`tool.matchbook`) — 22% of the survivor pool produces
   nothing (R14#5). Plus `rain_collector: categories:[null]` and `Rarity.EPIC` (undefined) in
   ItemDefs (R31#1). Fix the strings; the schema test below prevents recurrence.
-- **[P1] `EventRunner` has no chain-cycle detection** → `A→B→A` of non-blocking steps
+  - **Done:** fixed the two NPCTypes defIds; the three `Rarity.EPIC` refs (all `noLoot`
+    vehicles) → `Rarity.EXTREMELY_RARE`. (`rain_collector`'s `[null]` category was already a
+    valid `PROVISION` — resolved earlier.) Test: `test/inventory/defIdResolution.test.js`
+    (3 — every NPC-pool defId resolves; no def carries an unknown rarity; `Rarity.EPIC`
+    stays undefined).
+- **[P1] ✅ `EventRunner` has no chain-cycle detection** → `A→B→A` of non-blocking steps
   recurses to stack overflow (R42#2). Add a visited-set or depth cap (mirror `IntentQueue`'s
   `maxDepth`).
-- **[P1] `CombatResolver` scope branch can produce `NaN`** hit chance from unguarded
+  - **Done:** per-chain `chainVisited` set threaded through `runEvent(opts)`; the `chain`
+    step refuses to re-enter a visited event or exceed `MAX_CHAIN_DEPTH` (50), aborting via
+    `_endRun()` (called while `activeRun` is still set, so the running event is excluded from
+    the immediate auto-recheck — no instant self-restart). Test:
+    `test/quest/eventChainCycle.test.js` (3 — A→B→A and A→A abort without overflow; a long
+    acyclic A→B→C still completes).
+- **[P1] ✅ `CombatResolver` scope branch can produce `NaN`** hit chance from unguarded
   `accuracyFalloff`/`minAccuracy` (R20#5) → every shot misses past 15 tiles. Add the `|| 0.2`
   fallback the sibling branches have.
-- **[P1] `ImageLoader` retries missing images every frame forever** (R49#1–3) — network +
+  - **Done:** `minAccuracy = stats.minAccuracy ?? 0.1` and `accuracyFalloff = stats.accuracyFalloff ?? 0.2`
+    computed once and used by the shotgun/scope/laser/default branches (`??` preserves a
+    deliberate 0). Test: `test/systems/combatResolverAccuracy.test.js` (2 — a scoped weapon
+    with missing stats lands hits at long range; result object is never NaN-driven).
+- **[P1] ✅ `ImageLoader` retries missing images every frame forever** (R49#1–3) — network +
   console spam, and cached fallbacks/nulls never short-circuit. Add the failure-count guard
   the tile loader already has to `getItemImage`/`getPlaceImage`/`getUIImage`.
-- **[P1] `Rabbit` constructor sets `hp` before `maxHp`** (clamp trap, R14#4) — works only by
+  - **Done:** added the `failedImagesCount >= 3` early-return to `getPlaceImage` and
+    `getItemImage`; `getUIImage` now reads the cache with `in` so the deliberately-cached
+    `null` short-circuits (was a truthiness miss → reload every call). (No dedicated test —
+    ImageLoader needs a `global.Image` mock in Node; deferred to the Wave 5 plan.)
+- **[P1] ✅ `Rabbit` constructor sets `hp` before `maxHp`** (clamp trap, R14#4) — works only by
   luck of the Health default. Reorder to match `Door`.
-- **[P1] `SimulationManager` cycle caps exit silently** (R29#2) — a truncated horde turn just
+  - **Done:** `maxHp` set before `hp`. Test: `test/entities/rabbitSpawn.test.js` (1 — hp ===
+    maxHp === 5, never spawns dead).
+- **[P1] ✅ `SimulationManager` cycle caps exit silently** (R29#2) — a truncated horde turn just
   drops actions with zero telemetry. Add a `console.warn` with entity/AP counts when any of
   the three 50/25-cycle caps is hit; consider a per-turn time-budget warning (R29#7).
-- **[P1] `MovementSystem` teleport fallback silently desyncs** position vs. spatial index
+  - **Done:** all three loops (zombie 50, NPC 50, follow-up 25) now `console.warn` with
+    entity/cycle counts on cap overrun (the NPC loop excludes a legitimate demand-break; the
+    per-turn time-budget warning was left as the optional R29#7 extra).
+- **[P1] ✅ `MovementSystem` teleport fallback silently desyncs** position vs. spatial index
   when `moveEntity` isn't a function (R36 — R16#3). Make it throw.
-- **[P1] Event-bus wiring bugs:** `ZOMBIE_ATTACK_RESULT` emitted with no listeners while
+  - **Done:** the non-function fallback now throws instead of teleporting the Position
+    component past all validation (every real map + the harness provides `moveEntity`).
+- **[P1] ✅ Event-bus wiring bugs:** `ZOMBIE_ATTACK_RESULT` emitted with no listeners while
   `AudioContext` listens on `ZOMBIE_ATTACK` (R3#8 — one is a real miswire); dead
   `NPC_DEMAND_TRIGGERED` listener with no emitter (R24#2). Resolve both.
+  - **Done:** the AudioContext handler was correctly on `ZOMBIE_ATTACK` (only its name was
+    misleading — renamed `handleZombieAttackResult` → `handleZombieAttack`); the genuinely
+    dead `ZOMBIE_ATTACK_RESULT` emit (SleepContext, payload matched no consumer; damage/
+    afflictions/log all handled inline) and the never-emitted `NPC_DEMAND_TRIGGERED` listener
+    (GameContext; live path is the actionQueue scan) were removed, along with both constants.
 
 ---
 

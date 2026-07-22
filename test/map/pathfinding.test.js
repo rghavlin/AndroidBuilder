@@ -15,6 +15,43 @@ function floorMap(w, h) {
   return map;
 }
 
+describe('Wave 2 P1 · findPath optimality after decrease-key fix (R7#1)', () => {
+  // The A* open set had a broken decrease-key: a cheaper g for an already-open
+  // node was written in place without re-heapifying, so pop() could return a
+  // stale higher-f node and — with the closed set blocking re-expansion —
+  // settle a suboptimal path. Lazy deletion (push superseding node + skip
+  // stale pops) fixes it; these pin that findPath returns optimal paths.
+  const pathCost = (map, path) => Pathfinding.calculateMovementCost(map, path);
+
+  it('takes the diagonal shortcut rather than a cardinal detour', () => {
+    const map = floorMap(4, 4);
+    const path = Pathfinding.findPath(map, 0, 0, 3, 3, { allowDiagonal: true });
+    expect(path.length).toBe(4);            // start + 3 diagonal steps
+    expect(path[path.length - 1]).toEqual({ x: 3, y: 3 });
+    // 3 diagonals (3 * 1.4 = 4.2) must beat any mixed route.
+    expect(pathCost(map, path)).toBeLessThanOrEqual(4.2 + 1e-6);
+  });
+
+  it('finds the minimal-length detour around a wall', () => {
+    // Vertical wall across the middle with a single gap at the bottom row.
+    const map = floorMap(5, 5);
+    for (let y = 0; y < 4; y++) map.setTerrain(2, y, 'wall');
+    const path = Pathfinding.findPath(map, 0, 2, 4, 2, { allowDiagonal: true });
+    expect(path.length).toBeGreaterThan(1);           // a path exists
+    expect(path[0]).toEqual({ x: 0, y: 2 });
+    expect(path[path.length - 1]).toEqual({ x: 4, y: 2 });
+    // Must route through the gap column at row 4.
+    expect(path.some(p => p.x === 2 && p.y === 4)).toBe(true);
+  });
+
+  it('returns [] when the target is fully walled off', () => {
+    const map = floorMap(5, 5);
+    for (let y = 0; y < 5; y++) map.setTerrain(2, y, 'wall');
+    const path = Pathfinding.findPath(map, 0, 2, 4, 2, { allowDiagonal: false });
+    expect(path).toEqual([]);
+  });
+});
+
 describe('T4 getReachableTiles cheapest-cost correctness', () => {
   it('prices diagonal moves at 1.4 and cardinal chains exactly', () => {
     const map = floorMap(4, 4);

@@ -23,9 +23,12 @@ export class MovementSystem {
     if (typeof gameMap.moveEntity === 'function') {
       moved = gameMap.moveEntity(entity.id, targetX, targetY, { snap: false });
     } else {
-      position.x = targetX;
-      position.y = targetY;
-      moved = true;
+      // R16#3: the old fallback teleported the Position component directly with
+      // no walkability/occupancy check and no tile-contents / spatial-index
+      // update, silently desyncing position from the map. Fail loudly instead
+      // of succeeding falsely — every real map (and the test harness) provides
+      // moveEntity.
+      throw new Error(`[MovementSystem] gameMap.moveEntity is not a function; cannot resolve MoveIntent for ${entity.id} without desyncing the spatial index.`);
     }
 
     if (moved) {

@@ -286,7 +286,10 @@ export const SleepProvider = ({ children }) => {
               } else {
                 addLog(`A zombie swipes at you and misses!`, 'combat');
               }
-              GameEvents.emit(GAME_EVENT.ZOMBIE_ATTACK_RESULT, { success: action.data.success, zombieId: entity.id });
+              // R3#8: ZOMBIE_ATTACK_RESULT was emitted here with no listener
+              // anywhere (its {success,zombieId} payload matched no consumer);
+              // damage, afflictions, and the log line are all handled inline
+              // above. Removed the dead emit.
               hitByZombie = true;
             } else if (entity && (entity.type === EntityType.NPC)) {
               npcInterruption = true;

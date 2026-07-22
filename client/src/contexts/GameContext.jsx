@@ -1679,13 +1679,10 @@ const GameContextInner = ({ children }) => {
 
 
 
-  useEffect(() => {
-    const handleDemand = (data) => {
-      setActiveNpcDemand(data);
-    };
-    GameEvents.on(GAME_EVENT.NPC_DEMAND_TRIGGERED, handleDemand);
-    return () => GameEvents.off(GAME_EVENT.NPC_DEMAND_TRIGGERED, handleDemand);
-  }, []);
+  // R24#2: the NPC_DEMAND_TRIGGERED listener was dead — nothing ever emitted
+  // that event. The live demand trigger is the actionQueue scan that calls
+  // setActiveNpcDemand(demandTriggered) directly (see the DEMAND handling
+  // above). Removed the dead subscription and its constant.
 
   // Decoupled Console Bridge: Listen for launch commands from the root UI layer
   useEffect(() => {

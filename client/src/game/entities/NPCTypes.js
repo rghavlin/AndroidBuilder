@@ -53,9 +53,9 @@ export const NPCTypes = {
         'medical.bandage',
         'medical.antiseptic',
         'tool.battery',
-        'tool.flashlight',
+        'tool.smallflashlight',
         'tool.lighter',
-        'tool.matches',
+        'tool.matchbook',
         'crafting.nail',
         'crafting.rope',
         'crafting.garbage_bag'

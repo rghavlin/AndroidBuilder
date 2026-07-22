@@ -13,9 +13,11 @@ export class Rabbit extends Entity {
     this.blocksMovement = true; // Rabbits block movement (can be hit)
     this.blocksSight = false; // Rabbits don't block sight
 
-    // Rabbit-specific stats
-    this.hp = 5;
+    // Rabbit-specific stats.
+    // R14#4: maxHp BEFORE hp — the hp setter clamps to health.max, so setting
+    // hp first (against a default max) can silently zero/clamp it. Matches Door.
     this.maxHp = 5;
+    this.hp = 5;
     this.maxAP = 25; // Extremely fast
     this.currentAP = 25;
 

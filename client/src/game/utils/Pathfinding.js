@@ -149,8 +149,17 @@ export class Pathfinding {
     while (openSet.size() > 0) {
       const current = openSet.pop();
       if (!current) break;
-      openSetMap.delete(`${current.x},${current.y}`);
-      closedSet.add(`${current.x},${current.y}`);
+      const currentKey = `${current.x},${current.y}`;
+      // R7#1: lazy-deletion decrease-key. The min-heap has no index tracking,
+      // so when a cheaper g is found for an open node we push a superseding
+      // node rather than mutate the old one in place (which would leave the
+      // heap unsorted and let pop() return a stale higher-f node → suboptimal
+      // path). Skip the resulting stale entries here: either the cell was
+      // already finalized, or openSetMap now points at the newer node.
+      if (closedSet.has(currentKey)) continue;
+      if (openSetMap.get(currentKey) !== current) continue;
+      openSetMap.delete(currentKey);
+      closedSet.add(currentKey);
 
       if (current.x === endX && current.y === endY) {
         return this.reconstructPath(current);
@@ -201,9 +210,19 @@ export class Pathfinding {
           openSet.push(newNode);
           openSetMap.set(neighborKey, newNode);
         } else if (tentativeG < existingNode.g) {
-          existingNode.g = tentativeG;
-          existingNode.f = existingNode.g + existingNode.h;
-          existingNode.parent = current;
+          // Push a superseding node (lower f) and repoint openSetMap at it; the
+          // old node stays in the heap but is skipped when popped (see R7#1
+          // guards above). Cheaper than adding index tracking to the heap.
+          const betterNode = {
+            x: neighbor.x,
+            y: neighbor.y,
+            g: tentativeG,
+            h: existingNode.h,
+            f: tentativeG + existingNode.h,
+            parent: current
+          };
+          openSet.push(betterNode);
+          openSetMap.set(neighborKey, betterNode);
         }
       }
     }

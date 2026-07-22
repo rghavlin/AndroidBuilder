@@ -143,6 +143,12 @@ export class ImageLoader {
       return this.images[imageKey];
     }
 
+    // R49#1: stop re-requesting after 3 failures. Without this a missing place
+    // image ran a full path x extension sweep on every render frame forever.
+    if ((this.failedImagesCount.get(imageKey) || 0) >= 3) {
+      return null;
+    }
+
     // Return existing loading promise if already loading
     if (this.loadingPromises.has(imageKey)) {
       return this.loadingPromises.get(imageKey);
@@ -336,8 +342,10 @@ export class ImageLoader {
   async getUIImage(imageName) {
     const imageKey = `ui_${imageName}`;
 
-    // Return cached image if available
-    if (this.images[imageKey]) {
+    // Return cached result if available. R49#3: use `in`, not a truthiness
+    // check — the failure path below caches `null` to mean "don't retry", and
+    // a truthiness check treated that null as a miss and reloaded every call.
+    if (imageKey in this.images) {
       return this.images[imageKey];
     }
 
@@ -439,6 +447,12 @@ export class ImageLoader {
     // Return cached image if available
     if (this.images[imageKey]) {
       return this.images[imageKey];
+    }
+
+    // R49#1: give up after 3 failures (item AND default.png both missing);
+    // otherwise this re-swept every path/extension on every frame indefinitely.
+    if ((this.failedImagesCount.get(imageKey) || 0) >= 3) {
+      return null;
     }
 
     // Return existing loading promise if already loading

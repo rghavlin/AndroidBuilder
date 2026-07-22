@@ -8,6 +8,13 @@ import Logger from '../utils/Logger.js';
 
 const log = Logger.scope('EventRunner');
 
+// R42#2: a chain of non-blocking steps (setFlag/give/chain) recurses
+// synchronously through runEvent -> _processCurrentStep; a cyclic chain
+// (A->B->A, A->A) blows the stack. Chains re-entering a visited event are
+// refused, and a hard cap bounds even acyclic runaway chains (mirrors
+// IntentQueue.maxDepth).
+const MAX_CHAIN_DEPTH = 50;
+
 /**
  * Apply a setNpcAI step's AI mode to an NPC. Exported so the mode table has one
  * home and can be unit-tested without standing up a whole event run.
@@ -322,7 +329,9 @@ class EventRunner {
     if (this.activeRun) return; // one run at a time
     if (event.repeat === 'once' && !opts.ignoreOnce) this.firedOnce.add(event.id);
     log.debug(`Running event "${event.id}" (${event.steps.length} step(s))`);
-    this.activeRun = { event, stepIndex: 0 };
+    // chainVisited (R42#2) carries the set of event ids already entered in the
+    // current synchronous chain; null for a fresh top-level run.
+    this.activeRun = { event, stepIndex: 0, chainVisited: opts.chainVisited || null };
     engine.turnPhase = 'PAUSED_FOR_EVENT';
     this._processCurrentStep();
   }
@@ -467,12 +476,30 @@ class EventRunner {
       }
 
       case 'chain': {
+        const runningEvent = this.activeRun.event;
+        // Set of event ids already entered in this chain (starts with the
+        // running event). Threaded to the next run via opts.chainVisited.
+        const chainVisited = this.activeRun.chainVisited || new Set([runningEvent.id]);
         const target = step.eventId
           ? resolveMapEvents(engine.gameMap?.metadata).find(e => e && e.id === step.eventId)
           : null;
+
+        // R42#2: refuse to re-enter a visited event (cycle) or exceed the depth
+        // cap. _endRun() runs while activeRun is still set, so it excludes the
+        // running event from the immediate auto-recheck (no instant self-restart).
+        if (target && (chainVisited.has(target.id) || chainVisited.size >= MAX_CHAIN_DEPTH)) {
+          log.warn(`[EventRunner] chain aborted — ${chainVisited.has(target.id) ? 'cycle' : 'depth limit'} at "${target.id}" (chain: ${[...chainVisited].join(' -> ')})`);
+          this._endRun();
+          return;
+        }
+
         this.activeRun = null; // release the slot before starting the chained run
-        if (target) this.runEvent(target);
-        else engine.notifyUpdate();
+        if (target) {
+          chainVisited.add(target.id);
+          this.runEvent(target, { chainVisited });
+        } else {
+          engine.notifyUpdate();
+        }
         return;
       }
 

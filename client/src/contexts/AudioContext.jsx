@@ -90,7 +90,7 @@ export const AudioProvider = ({ children }) => {
 
   // Listen for global game events and play sounds automatically
   useEffect(() => {
-    const handleZombieAttackResult = (data) => {
+    const handleZombieAttack = (data) => {
       // 1. Handle structure attacks (doors/windows)
       if (data.targetType === 'door') {
         if (data.damage > 0) audioManager.playOneShot('Bang1');
@@ -240,7 +240,7 @@ export const AudioProvider = ({ children }) => {
       audioManager.playSound('RifleShot');
     };
 
-    GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttackResult);
+    GameEvents.on(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttack);
     GameEvents.on(GAME_EVENT.ZOMBIE_ALERTED, handleZombieAlerted);
     GameEvents.on(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
     GameEvents.on(GAME_EVENT.DOOR_BANG, handleDoorBang);
@@ -259,7 +259,7 @@ export const AudioProvider = ({ children }) => {
     GameEvents.on(GAME_EVENT.TURRET_FIRED, handleTurretFired);
 
     return () => {
-      GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttackResult);
+      GameEvents.off(GAME_EVENT.ZOMBIE_ATTACK, handleZombieAttack);
       GameEvents.off(GAME_EVENT.ZOMBIE_ALERTED, handleZombieAlerted);
       GameEvents.off(GAME_EVENT.ZOMBIE_WAIT, handleZombieWait);
       GameEvents.off(GAME_EVENT.DOOR_BANG, handleDoorBang);

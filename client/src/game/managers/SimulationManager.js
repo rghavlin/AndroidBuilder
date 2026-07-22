@@ -202,6 +202,12 @@ export class SimulationManager {
         aiCycleCounter++;
       }
 
+      // R29#2: the cap used to exit silently — a truncated horde turn dropped
+      // entity actions with no signal ("zombies seem sluggish", no evidence).
+      if (aiCycleCounter >= maxAICycles && newIntentsGenerated) {
+        console.warn(`[SimulationManager] Zombie AI cycle cap (${maxAICycles}) reached with intents still pending — ${ecsEntities.length} entities may have unspent AP this turn.`);
+      }
+
       // Checkpoint 2: Run death check after AI cycle loop completes
       runDeathCheck();
 
@@ -267,6 +273,12 @@ export class SimulationManager {
         }
       }
 
+      // R29#2: warn on cap overrun (a pending demand is a legitimate early exit,
+      // not a truncation).
+      if (npcCycleCounter >= maxAICycles && npcIntentsGenerated && !npcSimContext.demandPending) {
+        console.warn(`[SimulationManager] NPC AI cycle cap (${maxAICycles}) reached with intents still pending — some NPCs may have unspent AP this turn.`);
+      }
+
       // Checkpoint 3: Run death check at the end of the simulation
       runDeathCheck();
 
@@ -316,6 +328,11 @@ export class SimulationManager {
         if (intentCount === 0) break;
         intentQueue.resolve(ecsEntities, engine.worldManager, engine, actionQueue);
         cycles++;
+      }
+
+      // R29#2: warn if the follow-up mini-sim truncated with work still pending.
+      if (cycles >= maxCycles) {
+        console.warn(`[SimulationManager] NPC follow-up cycle cap (${maxCycles}) reached for ${npc.id} — intents may remain unresolved.`);
       }
 
       SimulationManager.checkAndProcessDeaths(gameMap, ecsEntities, intentQueue, actionQueue, player);

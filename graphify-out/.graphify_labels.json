@@ -178,14 +178,14 @@
   "176": "TestMapBuilder",
   "177": "verify_loadmap_dedup_p4_03.mjs",
   "178": "verify_bookstats_init_derived.mjs",
+  "179": "verify_army_tent.js",
   "180": "MusicManager",
+  "181": "tmp_verify_fix.js",
+  "182": "test_noise.js",
   "183": "test_noise.js",
   "184": "MockGameMap",
+  "185": "test_noise_assert.js",
   "186": ".dropScent",
   "187": "test_noise_assert.js",
-  "190": "npcLoadout.test.js",
-  "191": "verify_food_scarcity_p4_09.mjs",
-  "192": "verify_production_frontage.js",
-  "193": ".canSeePosition",
   "194": "TileRenderer.js"
 }

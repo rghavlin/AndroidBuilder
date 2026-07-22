@@ -7,7 +7,6 @@ import { SafeEventEmitter } from './SafeEventEmitter.js';
 export const GAME_EVENT = {
   // Zombie Actions
   ZOMBIE_ATTACK: 'zombie_attack',
-  ZOMBIE_ATTACK_RESULT: 'zombie_attack_result',
   ZOMBIE_MOVE: 'zombie_move',
   ZOMBIE_WANDER: 'zombie_wander',
   ZOMBIE_ALERTED: 'zombie_alerted',
@@ -40,7 +39,6 @@ export const GAME_EVENT = {
 
   // NPC Interaction
   NPC_ATTACK: 'npc_attack',
-  NPC_DEMAND_TRIGGERED: 'npc_demand_triggered',
   NPC_ESCAPED: 'npcEscaped',
   PROJECTILE_FIRED: 'projectile_fired',
   MUZZLE_FLASH: 'muzzle_flash',
