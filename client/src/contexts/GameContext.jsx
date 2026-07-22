@@ -1413,6 +1413,9 @@ const GameContextInner = ({ children }) => {
   // direct-load paths (loadGameFromStateData / loadGameDirect), which differ only
   // in where the state comes from and whether they fire the 'game-loaded' event.
   const applyLoadedState = useCallback((loadedState, { dispatchGameLoaded = false } = {}) => {
+    isStartMenuModeRef.current = false;
+    setIsStartMenuMode(false);
+
     // Sync ALL engine state atomically from the loaded save
     turnManager.cancelPlayback();
     audioManager.stopAllSounds();
@@ -1619,6 +1622,14 @@ const GameContextInner = ({ children }) => {
       wireManagerEvents(initManagerRef.current, runIdRef.current);
     }
 
+    if (config && config.isStartMenu) {
+      isStartMenuModeRef.current = true;
+      setIsStartMenuMode(true);
+    } else {
+      isStartMenuModeRef.current = false;
+      setIsStartMenuMode(false);
+    }
+
     setIsDefeated(false);
     setIsPlayerTurn(true);
     setIsAnimatingZombies(false);
@@ -1713,7 +1724,8 @@ const GameContextInner = ({ children }) => {
     const config = {
       scenarioData: scenarioData || { name: 'StartMenu' },
       easyStart: false,
-      customStats: START_MENU_CHARACTER
+      customStats: START_MENU_CHARACTER,
+      isStartMenu: true
     };
 
     return await initializeGame(config);

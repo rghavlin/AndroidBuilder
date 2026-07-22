@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { usePlayer } from '../../contexts/PlayerContext.jsx';
 import { useGameMap } from '../../contexts/GameMapContext.jsx';
@@ -19,6 +19,7 @@ import DefeatDialog from './DefeatDialog';
 
 function GameScreenContent() {
   const [showStartMenu, setShowStartMenu] = useState(false);
+  const hasAutoInitializedRef = useRef(false);
   const [gameState, setGameState] = useState({
     turn: 15,
     playerName: "Alex Chen",
@@ -70,7 +71,8 @@ function GameScreenContent() {
 
   // Auto-initialize start menu sandbox on initial mount if game is not ready
   useEffect(() => {
-    if (!isGameReady && initializationState === 'idle') {
+    if (!hasAutoInitializedRef.current && !isGameReady && initializationState === 'idle') {
+      hasAutoInitializedRef.current = true;
       console.log('[GameScreenContent] Auto-initializing start menu sandbox...');
       initializeStartMenu();
     }

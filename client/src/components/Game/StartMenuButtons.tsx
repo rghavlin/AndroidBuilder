@@ -57,9 +57,6 @@ export default function StartMenuButtons({ className = '' }: StartMenuButtonsPro
 
   const handleSelectCharacter = async (character: any) => {
     setShowRegistry(false);
-    
-    // Shutdown current start menu sandbox first
-    shutdownGame();
 
     if (pendingScenarioData) {
       console.log('[StartMenuButtons] Starting custom game with character:', character.name, 'and map:', pendingScenarioData.name);
@@ -79,7 +76,6 @@ export default function StartMenuButtons({ className = '' }: StartMenuButtonsPro
 
   const handleLoadSlot = async (slotName: string) => {
     setShowLoadGame(false);
-    shutdownGame();
     console.log(`[StartMenuButtons] Loading slot ${slotName}...`);
     await loadGameDirect(slotName);
   };
