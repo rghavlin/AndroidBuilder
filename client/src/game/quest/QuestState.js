@@ -213,11 +213,11 @@ export class QuestState extends SafeEventEmitter {
   }
 
   fromJSON(data) {
-    this.flags = { ...(data?.flags || {}) };
-    this.vars = { ...(data?.vars || {}) };
-    this.activeQuests = { ...(data?.activeQuests || {}) };
-    this.completedQuests = [...(data?.completedQuests || [])];
-    this.consumed = { ...(data?.consumed || {}) };
+    this.flags = { ...(data?.flags ?? {}) };
+    this.vars = { ...(data?.vars ?? {}) };
+    this.activeQuests = { ...(data?.activeQuests ?? {}) };
+    this.completedQuests = [...(data?.completedQuests ?? [])];
+    this.consumed = { ...(data?.consumed ?? {}) };
   }
 }
 

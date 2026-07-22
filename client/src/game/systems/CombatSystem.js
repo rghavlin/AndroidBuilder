@@ -8,10 +8,15 @@ export const SICKNESS_TURNS = 24;
 const ZOMBIE_SMASH_NOISE = 10;
 
 export class CombatSystem {
-  static resolve(attacker, damageIntent, entities, gameMap, intentQueue, actionQueue = [], engine = null, parentEnvelope = null) {
+  static resolve(attacker, damageIntent, entities, gameMap, intentQueue, actionQueue = [], engine = null, parentEnvelope = null, entityById = null) {
     if (!attacker) return;
 
-    let target = entities.find(e => e.id === damageIntent.targetId);
+    // T3: callers that process many intents per pass (IntentQueue,
+    // CombatSystem.process) build this lookup once and hand it in; otherwise
+    // fall back to the per-call O(E) scan.
+    let target = entityById
+      ? entityById.get(damageIntent.targetId)
+      : entities.find(e => e.id === damageIntent.targetId);
     let isStructure = false;
 
     if (!target && damageIntent.isStructure && gameMap) {
@@ -195,10 +200,14 @@ export class CombatSystem {
       ? entities
       : (entities instanceof Map ? Array.from(entities.values()) : Object.values(entities));
 
+    // T3: one id -> entity lookup for the whole pass (see IntentQueue.resolve).
+    const entityById = new Map();
+    for (const e of entityList) entityById.set(e.id, e);
+
     for (const attacker of entityList) {
       if (attacker.hasComponent('DamageIntent')) {
         const damageIntent = attacker.getComponent('DamageIntent');
-        this.resolve(attacker, damageIntent, entityList, engine?.gameMap, null, actionQueue, engine);
+        this.resolve(attacker, damageIntent, entityList, engine?.gameMap, null, actionQueue, engine, null, entityById);
       }
     }
   }

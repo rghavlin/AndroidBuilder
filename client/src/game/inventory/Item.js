@@ -797,10 +797,13 @@ export class Item extends SafeEventEmitter {
       if ((this.ammoCount || 0) >= amount) {
         this.ammoCount -= amount;
         if (this.ammoCount <= 0 && (this.defId === 'tool.lighter' || this.defId === 'tool.matchbook')) {
-          const invManager = window.gameEngine?.inventoryManager;
-          if (invManager) {
-            invManager.destroyItem(this.instanceId);
-          } else if (this._container) {
+          // T5/R32#1: globalThis, not window — bare `window` throws ReferenceError
+          // under Node (headless tests). Fall back to the local container when no
+          // engine bridge exists OR when the engine's manager doesn't actually
+          // own this item (destroyItem returns false), e.g. in tests.
+          const invManager = globalThis.gameEngine?.inventoryManager;
+          const destroyed = invManager ? invManager.destroyItem(this.instanceId) : false;
+          if (!destroyed && this._container) {
             this._container.removeItem(this.instanceId);
           }
           this.stackCount = 0;
@@ -1123,11 +1126,14 @@ export class Item extends SafeEventEmitter {
 
     if (this.condition <= 0) {
       console.log(`[Item] ${this.name} (${this.instanceId}) has BROKEN!`);
-      // Notify container/inventory system to remove/destroy this item if it breaks
-      const invManager = window.gameEngine?.inventoryManager;
-      if (invManager) {
-        invManager.destroyItem(this.instanceId);
-      } else if (this._container) {
+      // Notify container/inventory system to remove/destroy this item if it breaks.
+      // T5/R32#1: globalThis, not window — bare `window` throws ReferenceError
+      // under Node (headless tests). destroyItem() reports whether it actually
+      // removed the item; if the engine's manager doesn't own it, fall back to
+      // the local container.
+      const invManager = globalThis.gameEngine?.inventoryManager;
+      const destroyed = invManager ? invManager.destroyItem(this.instanceId) : false;
+      if (!destroyed && this._container) {
         this._container.removeItem(this.instanceId);
       }
       this.emitEvent('itemBroken', { item: this });
@@ -1228,19 +1234,17 @@ export class Item extends SafeEventEmitter {
       const myQuality = this.waterQuality || 'clean';
       const otherQuality = otherItem.waterQuality || 'clean';
 
-      console.log(`[Item] Stacking CHECK for ${this.name}: Self=${ammo}/${capacity} (${myQuality}), Other=${otherAmmo}/${capacity} (${otherQuality})`);
+      // (T6: per-mouse-move stacking logs removed — they spammed the console
+      // on every inventory hover. Re-add locally when debugging stacking.)
 
       if (!isEmpty && !otherIsEmpty && myQuality !== otherQuality) {
-        console.log(`[Item] Stacking REJECT: Water quality mismatch (${myQuality} vs ${otherQuality})`);
         return false;
       }
 
       // 2. Both must be exactly Full or exactly Empty to stack, and the amounts must be identical
       if (!(isFull || isEmpty) || !(otherIsFull || otherIsEmpty) || ammo !== otherAmmo) {
-        console.log(`[Item] Stacking REJECT: Water level mismatch. Self: ${ammo}/${capacity} (Full:${isFull}, Empty:${isEmpty}), Other: ${otherAmmo}/${capacity} (Full:${otherIsFull}, Empty:${otherIsEmpty})`);
         return false;
       }
-      console.log(`[Item] Stacking ALLOWED for ${this.name}`);
     }
 
     // Special rule for Batteries: They only stack if they are EMPTY or FULL

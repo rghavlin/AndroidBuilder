@@ -1013,16 +1013,17 @@ export class WorldManager extends SafeEventEmitter {
       });
     }
 
-    worldManager.currentMapId = data.currentMapId || null;
-    worldManager.mapCounter = data.mapCounter || 1;
-    worldManager.firstEntryTurn = data.firstEntryTurn || { map_001: 1 };
-    worldManager.completedMaps = data.completedMaps || [];
-    worldManager.turnsFromEntryToExit = data.turnsFromEntryToExit || {};
-    worldManager.zombiesKilled = data.zombiesKilled || {};
-    worldManager.zombiesSpawned = data.zombiesSpawned || {};
-    worldManager.zombiesInitialCount = data.zombiesInitialCount || {};
-    worldManager.lastReplenishSector = data.lastReplenishSector || {};
-    worldManager.claimedPrizes = data.claimedPrizes || [];
+    // `??` so explicit falsy values from a save survive (T1 falsy-default sweep).
+    worldManager.currentMapId = data.currentMapId ?? null;
+    worldManager.mapCounter = data.mapCounter ?? 1;
+    worldManager.firstEntryTurn = data.firstEntryTurn ?? { map_001: 1 };
+    worldManager.completedMaps = data.completedMaps ?? [];
+    worldManager.turnsFromEntryToExit = data.turnsFromEntryToExit ?? {};
+    worldManager.zombiesKilled = data.zombiesKilled ?? {};
+    worldManager.zombiesSpawned = data.zombiesSpawned ?? {};
+    worldManager.zombiesInitialCount = data.zombiesInitialCount ?? {};
+    worldManager.lastReplenishSector = data.lastReplenishSector ?? {};
+    worldManager.claimedPrizes = data.claimedPrizes ?? [];
 
     logger.info(`Restored from JSON with ${worldManager.maps.size} maps`);
     return worldManager;

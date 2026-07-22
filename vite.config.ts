@@ -1,10 +1,14 @@
-import { defineConfig } from "vite";
+import { defineConfig, type UserConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig(async ({ mode }) => {
   const isDev = mode !== "production" && process.env.NODE_ENV !== "production";
+  // T6/R4#8: strip all console.* + debugger from production builds (633 raw
+  // console calls across the engine, several on hot per-frame paths). Dev
+  // keeps the console. Logger.debug/info stay dev-gated on top of this.
+  const esbuild: UserConfig["esbuild"] = isDev ? {} : { drop: ["console", "debugger"] };
   
   return {
     plugins: [
@@ -29,6 +33,7 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     root: path.resolve(import.meta.dirname, "client"),
+    esbuild,
     build: {
       outDir: path.resolve(import.meta.dirname, "dist/public"),
       emptyOutDir: true,

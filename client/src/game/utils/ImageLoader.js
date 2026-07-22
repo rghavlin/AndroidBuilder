@@ -5,6 +5,11 @@
 import { getZombieType } from '../entities/ZombieTypes.js';
 import { configManager } from './ConfigManager.js';
 
+// T6: load/retry logs fire per frame for missing assets (R49#9). Gate them
+// behind this flag — flip to true locally when debugging asset loading.
+const DEBUG = false;
+const debugLog = (...args) => { if (DEBUG) console.log(...args); };
+
 export class ImageLoader {
   constructor() {
     this.images = {};
@@ -103,14 +108,14 @@ export class ImageLoader {
       } catch (error) {
         // On failure, try to fall back to the base entity type image
         if (imageKey !== entityType) {
-          console.log(`[ImageLoader] Failed to load ${imageKey}, falling back to ${entityType}`);
+          debugLog(`[ImageLoader] Failed to load ${imageKey}, falling back to ${entityType}`);
           const fallback = await this.getImage(entityType);
           if (fallback) return fallback;
         }
         
         const fails = (this.failedImagesCount.get(imageKey) || 0) + 1;
         this.failedImagesCount.set(imageKey, fails);
-        console.warn(`[ImageLoader] No asset found for ${imageKey} or fallback (Attempt ${fails}/3)`);
+        debugLog(`[ImageLoader] No asset found for ${imageKey} or fallback (Attempt ${fails}/3)`);
         return null;
       } finally {
         this.loadingPromises.delete(imageKey);
@@ -152,7 +157,7 @@ export class ImageLoader {
       } catch (error) {
         const fails = (this.failedImagesCount.get(imageKey) || 0) + 1;
         this.failedImagesCount.set(imageKey, fails);
-        console.warn(`[ImageLoader] Failed to load place image: ${placeName} (Attempt ${fails}/3)`);
+        debugLog(`[ImageLoader] Failed to load place image: ${placeName} (Attempt ${fails}/3)`);
         return null;
       } finally {
         this.loadingPromises.delete(imageKey);
@@ -212,12 +217,12 @@ export class ImageLoader {
 
       img.onload = () => {
         if (img.naturalWidth > 0) {
-          console.log(`[ImageLoader] Successfully loaded place image: ${img.src}`);
+          debugLog(`[ImageLoader] Successfully loaded place image: ${img.src}`);
           if (this.onImageLoaded) this.onImageLoaded();
           resolve(img);
         } else {
           // Some browsers trigger onload even for broken images
-          console.warn(`[ImageLoader] Place image reported success but has 0 dimensions: ${img.src}`);
+          debugLog(`[ImageLoader] Place image reported success but has 0 dimensions: ${img.src}`);
           img.onerror();
         }
       };
@@ -278,12 +283,12 @@ export class ImageLoader {
 
       img.onload = () => {
         if (img.naturalWidth > 0) {
-          console.log(`[ImageLoader] Successfully loaded image: ${img.src}`);
+          debugLog(`[ImageLoader] Successfully loaded image: ${img.src}`);
           if (this.onImageLoaded) this.onImageLoaded();
           resolve(img);
         } else {
           // Some browsers trigger onload even for broken images
-          console.warn(`[ImageLoader] Entity image reported success but has 0 dimensions: ${img.src}`);
+          debugLog(`[ImageLoader] Entity image reported success but has 0 dimensions: ${img.src}`);
           img.onerror();
         }
       };
@@ -347,7 +352,7 @@ export class ImageLoader {
         this.images[imageKey] = image;
         return image;
       } catch (error) {
-        console.warn(`[ImageLoader] UI image not found: ${imageName}`);
+        debugLog(`[ImageLoader] UI image not found: ${imageName}`);
         this.images[imageKey] = null;
         return null;
       } finally {
@@ -373,7 +378,7 @@ export class ImageLoader {
       let extensionIndex = 0;
       let basePathIndex = 0;
 
-      console.log(`[ImageLoader] Loading UI image (using same logic as entity images)`);
+      debugLog(`[ImageLoader] Loading UI image (using same logic as entity images)`);
 
       // Use EXACT same paths as entity images but point to UI folder
       // This should work since entity images are loading successfully
@@ -409,7 +414,7 @@ export class ImageLoader {
       };
 
       img.onload = () => {
-        console.log(`[ImageLoader] Successfully loaded UI image: ${img.src}`);
+        debugLog(`[ImageLoader] Successfully loaded UI image: ${img.src}`);
         if (this.onImageLoaded) this.onImageLoaded();
         resolve(img);
       };
@@ -449,7 +454,7 @@ export class ImageLoader {
         return image;
       } catch (error) {
         // Try to load default image as fallback
-        console.log(`[ImageLoader] Item image not found: ${imageId}, trying default...`);
+        debugLog(`[ImageLoader] Item image not found: ${imageId}, trying default...`);
         try {
           const defaultImage = await this.loadItemImage('default');
           this.images[imageKey] = defaultImage;
@@ -458,7 +463,7 @@ export class ImageLoader {
         } catch (defaultError) {
           const fails = (this.failedImagesCount.get(imageKey) || 0) + 1;
           this.failedImagesCount.set(imageKey, fails);
-          console.warn(`[ImageLoader] Failed to load item image: ${imageId} (Attempt ${fails}/3)`);
+          debugLog(`[ImageLoader] Failed to load item image: ${imageId} (Attempt ${fails}/3)`);
           return null;
         }
       } finally {
@@ -527,7 +532,7 @@ export class ImageLoader {
       };
 
       img.onload = () => {
-        console.log(`[ImageLoader] Successfully loaded item image: ${img.src}`);
+        debugLog(`[ImageLoader] Successfully loaded item image: ${img.src}`);
         if (this.onImageLoaded) this.onImageLoaded();
         resolve(img);
       };
@@ -565,7 +570,7 @@ export class ImageLoader {
             const img = new Image();
             img.src = './images/tiles/tileset2.png';
             img.onload = () => {
-              console.log('[ImageLoader] Successfully loaded master sprite sheet tileset2.png');
+              debugLog('[ImageLoader] Successfully loaded master sprite sheet tileset2.png');
               if (this.onImageLoaded) this.onImageLoaded();
               resolve(img);
             };
@@ -685,7 +690,7 @@ export class ImageLoader {
       };
 
       img.onload = () => {
-        console.log(`[ImageLoader] Successfully loaded tile image: ${img.src}`);
+        debugLog(`[ImageLoader] Successfully loaded tile image: ${img.src}`);
         if (this.onImageLoaded) this.onImageLoaded();
         resolve(img);
       };

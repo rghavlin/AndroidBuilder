@@ -35,7 +35,7 @@ export class PlaceIcon extends Entity {
     static fromJSON(data) {
         const icon = new PlaceIcon(data.id, data.x, data.y, data.subtype);
         icon.blocksMovement = data.blocksMovement !== undefined ? data.blocksMovement : true;
-        icon.blocksSight = data.blocksSight || false;
+        icon.blocksSight = data.blocksSight ?? false;
         return icon;
     }
 }

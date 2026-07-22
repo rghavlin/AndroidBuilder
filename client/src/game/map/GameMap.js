@@ -242,8 +242,10 @@ export class GameMap extends SafeEventEmitter {
     const visited = new Set([`${posA.x},${posA.y}`]);
     const maxDist = 30;
 
-    while (queue.length > 0) {
-      const { x, y, dist, closedDoors } = queue.shift();
+    // T4: index pointer instead of queue.shift() (O(n) per dequeue -> O(n^2)).
+    let head = 0;
+    while (head < queue.length) {
+      const { x, y, dist, closedDoors } = queue[head++];
 
       if (x === posB.x && y === posB.y) {
           return closedDoors <= 1;
@@ -1507,12 +1509,13 @@ export class GameMap extends SafeEventEmitter {
    */
   static async fromJSONSelective(data, options = {}) {
     const gameMap = new GameMap(data.width, data.height);
-    gameMap.scentSequenceCounter = data.scentSequenceCounter || 0;
-    gameMap.furniture = data.furniture || [];
-    gameMap.lowSpots = data.lowSpots || [];
-    gameMap.mapNumber = data.mapNumber || 1;
-    gameMap.template = data.template || 'road';
-    gameMap.activeFires = new Set(data.activeFires || []);
+    // `??` so explicit falsy values from a save survive (T1 falsy-default sweep).
+    gameMap.scentSequenceCounter = data.scentSequenceCounter ?? 0;
+    gameMap.furniture = data.furniture ?? [];
+    gameMap.lowSpots = data.lowSpots ?? [];
+    gameMap.mapNumber = data.mapNumber ?? 1;
+    gameMap.template = data.template ?? 'road';
+    gameMap.activeFires = new Set(data.activeFires ?? []);
 
     const { excludeEntityTypes = [], includeEntityTypes = null } = options;
     console.log(`[GameMap] Selective restoration - excluding: [${excludeEntityTypes.join(', ')}], including: ${includeEntityTypes ? `[${includeEntityTypes.join(', ')}]` : 'all'}`);
@@ -1527,13 +1530,14 @@ export class GameMap extends SafeEventEmitter {
 
   static async fromJSON(data) {
     const gameMap = new GameMap(data.width, data.height);
-    gameMap.scentSequenceCounter = data.scentSequenceCounter || 0;
-    gameMap.buildings = data.buildings || [];
-    gameMap.furniture = data.furniture || [];
-    gameMap.lowSpots = data.lowSpots || [];
-    gameMap.mapNumber = data.mapNumber || 1;
-    gameMap.template = data.template || 'road';
-    gameMap.activeFires = new Set(data.activeFires || []);
+    // `??` so explicit falsy values from a save survive (T1 falsy-default sweep).
+    gameMap.scentSequenceCounter = data.scentSequenceCounter ?? 0;
+    gameMap.buildings = data.buildings ?? [];
+    gameMap.furniture = data.furniture ?? [];
+    gameMap.lowSpots = data.lowSpots ?? [];
+    gameMap.mapNumber = data.mapNumber ?? 1;
+    gameMap.template = data.template ?? 'road';
+    gameMap.activeFires = new Set(data.activeFires ?? []);
 
     if (data.specialBuildings && gameMap.buildings.length === 0) {
       gameMap.buildings = data.specialBuildings;

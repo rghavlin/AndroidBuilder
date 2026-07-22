@@ -147,8 +147,8 @@ class EventRunner {
   }
 
   fromJSON(data) {
-    this.firedOnce = new Set(data?.firedOnce || []);
-    this.autoResolved = new Set(data?.autoResolved || []);
+    this.firedOnce = new Set(data?.firedOnce ?? []);
+    this.autoResolved = new Set(data?.autoResolved ?? []);
   }
 
   /**

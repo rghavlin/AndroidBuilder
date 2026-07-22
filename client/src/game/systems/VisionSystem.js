@@ -1,3 +1,5 @@
+import { LineOfSight } from '../utils/LineOfSight.js';
+
 export class VisionSystem {
   static process(entities, worldManager, engine) {
     const entityList = Array.isArray(entities)
@@ -89,155 +91,12 @@ export class VisionSystem {
     return { visibleTiles, visibleEntities };
   }
 
+  /**
+   * Single LOS implementation lives in LineOfSight (T2 — this used to be a
+   * second, drifted Bresenham with its own door-state rules). No maxRange cap
+   * here: calculateVisibility already distance-gates by the Vision range.
+   */
   static hasLineOfSight(gameMap, x0, y0, x1, y1) {
-    if (x0 === x1 && y0 === y1) return true;
-
-    x0 = Math.round(x0);
-    y0 = Math.round(y0);
-    x1 = Math.round(x1);
-    y1 = Math.round(y1);
-
-    const dx = Math.abs(x1 - x0);
-    const dy = Math.abs(y1 - y0);
-    const sx = x0 < x1 ? 1 : -1;
-    const sy = y0 < y1 ? 1 : -1;
-    let err = dx - dy;
-
-    let x = x0;
-    let y = y0;
-
-    const maxIterations = (dx + dy + 2) * 2;
-    let safety = 0;
-
-    while (safety < maxIterations) {
-      safety++;
-
-      const e2 = 2 * err;
-      const xChanged = e2 > -dy;
-      const yChanged = e2 < dx;
-
-      // DIAGONAL CORNER CHECK: If both X and Y are about to change, check the corners.
-      // Each detour must be clear along BOTH legs (matching LineOfSight.js) — otherwise
-      // sight can slip diagonally past a closed door or wall corner.
-      if (xChanged && yChanged) {
-        const corner1 = gameMap.getTile(x + sx, y);
-        const corner2 = gameMap.getTile(x, y + sy);
-
-        let isBlocked1 = !corner1 || this.isTileBlocking(gameMap, x + sx, y)
-          || this.isEdgeBlocked(gameMap, x, y, x + sx, y)
-          || this.isEdgeBlocked(gameMap, x + sx, y, x + sx, y + sy);
-        let isBlocked2 = !corner2 || this.isTileBlocking(gameMap, x, y + sy)
-          || this.isEdgeBlocked(gameMap, x, y, x, y + sy)
-          || this.isEdgeBlocked(gameMap, x, y + sy, x + sx, y + sy);
-
-        if (isBlocked1 && isBlocked2) {
-          return false;
-        }
-      }
-
-      const prevX = x;
-      const prevY = y;
-
-      if (xChanged) {
-        err -= dy;
-        x += sx;
-      }
-      if (yChanged) {
-        err += dx;
-        y += sy;
-      }
-
-      // Check edge block along cardinal steps only — diagonal steps are already
-      // validated by the corner check above (isEdgeBlocked's direction math is
-      // only meaningful for adjacent cardinal tiles).
-      if ((xChanged !== yChanged) && this.isEdgeBlocked(gameMap, prevX, prevY, x, y)) {
-        return false;
-      }
-
-      if (x === x1 && y === y1) {
-        break;
-      }
-
-      // Check intermediate tile
-      if (this.isTileBlocking(gameMap, x, y)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  static isTileBlocking(gameMap, x, y) {
-    const tile = gameMap.getTile(x, y);
-    if (!tile) return true; // Out of bounds blocks sight
-
-    // Terrain check
-    const blockingTerrain = ['wall', 'building', 'tree', 'tent_wall', 'fence'];
-    if (blockingTerrain.includes(tile.terrain)) {
-      return true;
-    }
-
-    // Entity contents check
-    if (tile.contents && Array.isArray(tile.contents)) {
-      for (const entity of tile.contents) {
-        // Doors block sight when closed and not broken
-        // Doors/garage doors block sight when closed and not broken
-        if (entity.type === 'door' || entity.type === 'garage_door') {
-          if (entity.edge !== undefined) continue;
-          if (!entity.isOpen && !entity.isDamaged) {
-            return true;
-          }
-        }
-        // Windows do not block sight
-        if (entity.type === 'window') {
-          continue;
-        }
-        if (entity.blocksSight === true) {
-          return true;
-        }
-        if (['building', 'large_obstacle'].includes(entity.type) || 
-            (entity.subtype && ['building', 'large_obstacle'].includes(entity.subtype))) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  static isEdgeBlocked(gameMap, x1, y1, x2, y2) {
-    const t1 = gameMap.getTile(x1, y1);
-    const t2 = gameMap.getTile(x2, y2);
-    if (!t1 || !t2) return true;
-
-    let dir1to2 = null;
-    let dir2to1 = null;
-    if (x2 > x1) { dir1to2 = 'e'; dir2to1 = 'w'; }
-    else if (x2 < x1) { dir1to2 = 'w'; dir2to1 = 'e'; }
-    else if (y2 > y1) { dir1to2 = 's'; dir2to1 = 'n'; }
-    else if (y2 < y1) { dir1to2 = 'n'; dir2to1 = 's'; }
-    if (!dir1to2) return false;
-
-    const hasWall = (t1.edgeWalls && t1.edgeWalls[dir1to2]) || (t2.edgeWalls && t2.edgeWalls[dir2to1]);
-
-    // Doors clear their edge-wall flag at map load (the Door entity takes over
-    // blocking), so a closed door on this edge must block sight even when no
-    // wall flag remains. Collect breachables BEFORE the no-wall early return.
-    const breachable1 = t1.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === 'garage_door') && (!e.edge || e.edge === dir1to2));
-    const breachable2 = t2.contents.filter(e => (e.type === 'door' || e.type === 'window' || e.type === 'garage_door') && (!e.edge || e.edge === dir2to1));
-    const allBreachable = [...breachable1, ...breachable2];
-
-    if (!hasWall && allBreachable.length === 0) return false;
-
-    if (allBreachable.length === 0) return true; // Solid wall blocks sight
-
-    for (const e of allBreachable) {
-      if ((e.type === 'door' || e.type === 'garage_door') && !e.isOpen && !e.isDamaged) {
-        return true; // Closed door blocks sight
-      }
-      // Open doors or windows (even closed/broken) allow sight
-    }
-
-    return false;
+    return LineOfSight.hasLineOfSight(gameMap, x0, y0, x1, y1, { maxRange: Number.MAX_SAFE_INTEGER }).hasLineOfSight;
   }
 }

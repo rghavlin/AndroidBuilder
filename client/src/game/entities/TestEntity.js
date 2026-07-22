@@ -30,8 +30,8 @@ export class TestEntity extends Entity {
   static fromJSON(data) {
     const entity = new TestEntity(data.id, data.x, data.y, data.subtype);
     entity.blocksMovement = data.blocksMovement;
-    entity.blocksSight = data.blocksSight || false;
-    entity.description = data.description || '';
+    entity.blocksSight = data.blocksSight ?? false;
+    entity.description = data.description ?? '';
     return entity;
   }
 }
@@ -67,7 +67,7 @@ export class Item extends Entity {
     const item = new Item(data.id, data.x, data.y, data.subtype);
     item.blocksMovement = data.blocksMovement;
     item.blocksSight = data.blocksSight;
-    item.name = data.name || '';
+    item.name = data.name ?? '';
     return item;
   }
 }

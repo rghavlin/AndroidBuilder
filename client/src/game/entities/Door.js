@@ -266,7 +266,7 @@ export class Door extends Entity {
         // CRITICAL: Restore visualIsOpen from the saved isOpen state.
         // Without this, all open doors render as closed after a save/load
         // because EntityRenderer.drawDoor checks visualIsOpen, not isOpen.
-        door.visualIsOpen = data.isOpen || false;
+        door.visualIsOpen = data.isOpen ?? false;
         return door;
     }
 }

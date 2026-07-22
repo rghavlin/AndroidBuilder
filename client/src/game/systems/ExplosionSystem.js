@@ -4,6 +4,7 @@ import { NoiseEvent } from '../components/NoiseEvent.js';
 import { DestroyIntent } from '../components/DestroyIntent.js';
 import { FireSystem } from '../systems/FireSystem.js';
 import { DestructionSystem } from './DestructionSystem.js';
+import { isTerrainDestructible } from '../map/TerrainTypes.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
 export class ExplosionSystem {
@@ -173,8 +174,8 @@ export class ExplosionSystem {
       }
     });
 
-    // 4. Doors within blast radius
-    const allDoors = entities.filter(e => e.type === EntityType.DOOR);
+    // 4. Doors within blast radius (T3: O(matches) type index, not a full scan)
+    const allDoors = gameMap.getEntitiesByType(EntityType.DOOR);
     allDoors.forEach(door => {
       const doorX = door.logicalX !== undefined ? door.logicalX : door.x;
       const doorY = door.logicalY !== undefined ? door.logicalY : door.y;
@@ -209,8 +210,8 @@ export class ExplosionSystem {
       }
     });
 
-    // 5. Windows within blast radius
-    const allWindows = entities.filter(e => e.type === EntityType.WINDOW);
+    // 5. Windows within blast radius (T3: O(matches) type index, not a full scan)
+    const allWindows = gameMap.getEntitiesByType(EntityType.WINDOW);
     allWindows.forEach(win => {
       const winX = win.logicalX !== undefined ? win.logicalX : win.x;
       const winY = win.logicalY !== undefined ? win.logicalY : win.y;
@@ -256,8 +257,8 @@ export class ExplosionSystem {
         const tile = gameMap.getTile(tx, ty);
         if (!tile) continue;
 
-        // A. Check if it's a solid wall/building tile
-        if (tile.terrain === 'wall' || tile.terrain === 'building') {
+        // A. Check if it's a solid wall/building tile (single source: TERRAIN_PROPS, T2)
+        if (isTerrainDestructible(tile.terrain)) {
           gameMap.setTerrain(tx, ty, 'floor');
           destroyedWall = true;
         }

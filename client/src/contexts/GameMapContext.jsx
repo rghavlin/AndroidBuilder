@@ -8,6 +8,7 @@ import { EntityType } from '../game/entities/Entity.js';
 import { findEdgeStructure } from '../game/utils/EdgeStructure.js';
 import { VehicleUtils } from '../game/utils/VehicleUtils.js';
 import { isTurretPassableBy, TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
+import { isTerrainWalkable } from '../game/map/TerrainTypes.js';
 
 const GameMapContext = createContext();
 
@@ -78,7 +79,7 @@ export const GameMapProvider = ({ children }) => {
 
       const entityFilter = (tile) => {
         if (!tile.flags || !tile.flags.explored) return false;
-        if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
+        if (!isTerrainWalkable(tile.terrain)) return false; // single source: TERRAIN_PROPS (T2)
 
         // If the player is riding a golf cart, floor tiles are unwalkable
         if (tile.terrain === 'floor' && engine?.riding?.item?.defId === 'vehicle.golf_cart') {
@@ -110,7 +111,10 @@ export const GameMapProvider = ({ children }) => {
       // Phase 25: Drag AP Penalty (Consolidated via VehicleUtils)
       const activeItems = [engine.dragging?.item, engine.riding?.item].filter(Boolean);
       if (activeItems.length > 0 && path.length > 1) {
-        movementCost = VehicleUtils.calculateDragCost(activeItems, path, engine.gameMap, movementCost);
+        movementCost = VehicleUtils.calculateDragCost(activeItems, path, engine.gameMap, movementCost, {
+          playerStrength: player?.currentStrength ?? 20,
+          riddenItemId: engine.riding?.item?.instanceId ?? null
+        });
       }
 
       if (movementCost > player.ap) return;
@@ -144,7 +148,7 @@ export const GameMapProvider = ({ children }) => {
     try {
       const entityFilter = (tile) => {
         if (!tile.flags || !tile.flags.explored) return false;
-        if (['wall', 'building', 'fence', 'tree', 'water', 'tent_wall'].includes(tile.terrain)) return false;
+        if (!isTerrainWalkable(tile.terrain)) return false; // single source: TERRAIN_PROPS (T2)
 
         // If the player is riding a golf cart, floor tiles are unwalkable
         if (tile.terrain === 'floor' && engine?.riding?.item?.defId === 'vehicle.golf_cart') {
@@ -166,7 +170,10 @@ export const GameMapProvider = ({ children }) => {
       // Phase 25: Drag AP Penalty Preview (Consolidated via VehicleUtils)
       const activeHoverItems = [engine.dragging?.item, engine.riding?.item].filter(Boolean);
       if (activeHoverItems.length > 0 && path.length > 1) {
-        apCost = VehicleUtils.calculateDragCost(activeHoverItems, path, engine.gameMap, apCost);
+        apCost = VehicleUtils.calculateDragCost(activeHoverItems, path, engine.gameMap, apCost, {
+          playerStrength: player?.currentStrength ?? 20,
+          riddenItemId: engine.riding?.item?.instanceId ?? null
+        });
       }
       
       const { structure: door } = findEdgeStructure(engine.gameMap, x, y, { type: 'door' });

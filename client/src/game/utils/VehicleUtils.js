@@ -1,6 +1,5 @@
 
 import { ItemTrait } from '../inventory/traits.js';
-import engine from '../GameEngine.js';
 
 /**
  * VehicleUtils - Shared logic for vehicle movement and drag mechanics
@@ -9,14 +8,21 @@ export const VehicleUtils = {
   /**
    * Calculate the total AP cost for dragging an item across a path.
    * Extracts logic from GameMapContext to centralize motorized bonuses and terrain discounts.
-   * 
+   *
+   * T5: caller supplies the player/riding context — this module must not
+   * import the engine singleton.
+   *
    * @param {Item|Array} items - The item(s) being dragged/ridden
    * @param {Array} path - Array of {x, y} coordinates
    * @param {GameMap} gameMap - The map instance for terrain lookup
    * @param {number} baseMovementCost - The player's base walking cost for this path
+   * @param {Object} [context] - { playerStrength = 20, riddenItemId = null }
    * @returns {number} - Final AP cost
    */
-  calculateDragCost(items, path, gameMap, baseMovementCost) {
+  calculateDragCost(items, path, gameMap, baseMovementCost, context = {}) {
+    const playerStrength = context.playerStrength ?? 20;
+    const riddenItemId = context.riddenItemId ?? null;
+
     if (!items || !path || path.length <= 1) return baseMovementCost;
 
     const itemArray = Array.isArray(items) ? items : [items].filter(Boolean);
@@ -39,7 +45,6 @@ export const VehicleUtils = {
           motorBonusValue = item.getMotorizedBonus();
         }
 
-        const playerStrength = engine?.player?.currentStrength ?? 20;
         const strengthBonus = Math.floor(playerStrength / 20); // +1 AP drag bonus for every 20 points of Strength
 
         // Tow assist: if this wagon is hitched to a tow-cart that's currently being
@@ -47,7 +52,7 @@ export const VehicleUtils = {
         let towBonusValue = 0;
         if (item.hitchedToInstanceId) {
           const cart = itemArray.find(it => it.instanceId === item.hitchedToInstanceId);
-          if (cart && engine?.riding?.item?.instanceId === cart.instanceId && typeof cart.getTowBonus === 'function') {
+          if (cart && riddenItemId === cart.instanceId && typeof cart.getTowBonus === 'function') {
             towBonusValue = cart.getTowBonus();
           }
         }

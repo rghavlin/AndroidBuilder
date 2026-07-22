@@ -1,21 +1,24 @@
 export class AIState {
   constructor(properties = {}) {
-    this.behaviorState = properties.behaviorState || 'idle';
-    this.currentTarget = properties.currentTarget || null;
-    this.heardNoise = properties.heardNoise || false;
-    this.noiseCoords = properties.noiseCoords || { x: 0, y: 0 };
-    this.noiseBlacklist = properties.noiseBlacklist || [];
-    this.recentThreats = properties.recentThreats || [];
-    this.goalTarget = properties.goalTarget || null;
-    this.lastSeen = properties.lastSeen || false;
-    this.targetSightedCoords = properties.targetSightedCoords || { x: 0, y: 0 };
-    this.lastScentSequence = properties.lastScentSequence || 0;
-    this.isAlerted = properties.isAlerted || false;
-    this.currentPath = properties.currentPath || null;
-    this.hasDemanded = properties.hasDemanded || false;
-    this.hasExtorted = properties.hasExtorted || false;
-    this.fleeRecoverChance = properties.fleeRecoverChance || 0;
-    this.stunnedTurns = properties.stunnedTurns || 0;
+    // Note: `??` (not `||`) everywhere so legitimate falsy values from a save
+    // (0, false, '') survive deserialization instead of being clobbered by the
+    // default (T1 falsy-default sweep).
+    this.behaviorState = properties.behaviorState ?? 'idle';
+    this.currentTarget = properties.currentTarget ?? null;
+    this.heardNoise = properties.heardNoise ?? false;
+    this.noiseCoords = properties.noiseCoords ?? { x: 0, y: 0 };
+    this.noiseBlacklist = properties.noiseBlacklist ?? [];
+    this.recentThreats = properties.recentThreats ?? [];
+    this.goalTarget = properties.goalTarget ?? null;
+    this.lastSeen = properties.lastSeen ?? false;
+    this.targetSightedCoords = properties.targetSightedCoords ?? { x: 0, y: 0 };
+    this.lastScentSequence = properties.lastScentSequence ?? 0;
+    this.isAlerted = properties.isAlerted ?? false;
+    this.currentPath = properties.currentPath ?? null;
+    this.hasDemanded = properties.hasDemanded ?? false;
+    this.hasExtorted = properties.hasExtorted ?? false;
+    this.fleeRecoverChance = properties.fleeRecoverChance ?? 0;
+    this.stunnedTurns = properties.stunnedTurns ?? 0;
     // Scripted/quest NPCs: when true, NPCAISystem skips this entity
     // entirely (no wandering/fleeing/combat AI) so only explicit event steps
     // (moveEntity, dialog, etc.) control it. See map editor NPC placement and

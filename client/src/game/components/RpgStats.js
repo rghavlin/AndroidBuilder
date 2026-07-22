@@ -9,16 +9,16 @@ export class RpgStats {
     this.baseConstitution = properties.baseConstitution !== undefined ? properties.baseConstitution : 20;
     this.currentConstitution = properties.currentConstitution !== undefined ? properties.currentConstitution : this.baseConstitution;
 
-    // Attribute Experience
-    this.strengthXP = properties.strengthXP || 0;
-    this.agilityXP = properties.agilityXP || 0;
-    this.perceptionXP = properties.perceptionXP || 0;
-    this.constitutionXP = properties.constitutionXP || 0;
+    // Attribute Experience (`??` so explicit 0 from a save is preserved — T1)
+    this.strengthXP = properties.strengthXP ?? 0;
+    this.agilityXP = properties.agilityXP ?? 0;
+    this.perceptionXP = properties.perceptionXP ?? 0;
+    this.constitutionXP = properties.constitutionXP ?? 0;
 
-    this.strengthXpSpent = properties.strengthXpSpent || 0;
-    this.agilityXpSpent = properties.agilityXpSpent || 0;
-    this.perceptionXpSpent = properties.perceptionXpSpent || 0;
-    this.constitutionXpSpent = properties.constitutionXpSpent || 0;
+    this.strengthXpSpent = properties.strengthXpSpent ?? 0;
+    this.agilityXpSpent = properties.agilityXpSpent ?? 0;
+    this.perceptionXpSpent = properties.perceptionXpSpent ?? 0;
+    this.constitutionXpSpent = properties.constitutionXpSpent ?? 0;
 
     // Infection & Treatment
     this.isInfected = properties.isInfected !== undefined ? properties.isInfected : false;

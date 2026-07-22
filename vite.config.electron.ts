@@ -5,6 +5,9 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
   root: "./client",
+  // T6/R4#8: strip all console.* + debugger from the packaged desktop build
+  // (this config is only used by `vite build`; electron-dev uses the dev server).
+  esbuild: { drop: ["console", "debugger"] },
   build: {
     outDir: "../dist",
     emptyOutDir: true,

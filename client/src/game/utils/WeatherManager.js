@@ -2,6 +2,7 @@ import { createItemFromDef, ItemDefs } from '../inventory/ItemDefs.js';
 import { isFloor } from '../map/TerrainTypes.js';
 import { Item } from '../inventory/Item.js';
 import { ItemTrait } from '../inventory/traits.js';
+import { gameRandom } from './SeededRandom.js';
 
 /**
  * WeatherManager - Handles procedural weather cycles
@@ -10,11 +11,15 @@ import { ItemTrait } from '../inventory/traits.js';
 export class WeatherManager {
   static DEBUG = false;
 
-  constructor(engine) {
+  // T7/R48#9: RNG is injectable. Production defaults to the seeded `gameRandom`
+  // (so weather replays from the game seed); tests can pass an isolated
+  // SeededRandom to avoid disturbing the global stream.
+  constructor(engine, rng = gameRandom) {
     this.engine = engine;
+    this.rng = rng;
     this.isRaining = false;
     this.durationRemaining = 0;
-    this.nextEventTurn = Math.floor(24 + Math.random() * 24); // Initial rain between 1-2 days
+    this.nextEventTurn = Math.floor(24 + this.rng.next() * 24); // Initial rain between 1-2 days
     this.intensity = 0;
 
     // Configuration (Turns = Hours)
@@ -35,7 +40,7 @@ export class WeatherManager {
     // Phase 25 Safety: Ensure nextEventTurn isn't stuck in the far future, or 0/null (e.g. from old save data)
     if (!this.isRaining && (this.nextEventTurn <= 0 || !this.nextEventTurn || this.nextEventTurn > currentTurn + this.RAIN_INTERVAL_MAX)) {
       const oldEventTurn = this.nextEventTurn;
-      this.nextEventTurn = currentTurn + Math.floor(this.RAIN_INTERVAL_MIN + Math.random() * (this.RAIN_INTERVAL_MAX - this.RAIN_INTERVAL_MIN));
+      this.nextEventTurn = currentTurn + Math.floor(this.RAIN_INTERVAL_MIN + this.rng.next() * (this.RAIN_INTERVAL_MAX - this.RAIN_INTERVAL_MIN));
       if (WeatherManager.DEBUG) {
         console.log(`[WeatherManager] 🛠️ Safety Reset: nextEventTurn was ${oldEventTurn}, reset to ${this.nextEventTurn} (Turn: ${currentTurn})`);
       }
@@ -94,7 +99,7 @@ export class WeatherManager {
 
         if (existingPuddle) {
           if (existingPuddle.ammoCount < 50) {
-            existingPuddle.ammoCount = Math.min(50, (existingPuddle.ammoCount || 0) + amount);
+            existingPuddle.ammoCount = Math.min(50, (existingPuddle.ammoCount ?? 0) + amount);
             if (WeatherManager.DEBUG) {
               console.log(`[WeatherManager] Puddle on player tile (${spot.x}, ${spot.y}) filled to ${existingPuddle.ammoCount}`);
             }
@@ -168,7 +173,7 @@ export class WeatherManager {
         const isPuddle = itemData.defId === 'environment.water_puddle' || itemData.id === 'environment.water_puddle';
         const maxCapacity = isPuddle ? 50 : (itemData.maxWater || 100);
         
-        const currentAmmo = itemData.ammoCount || 0;
+        const currentAmmo = itemData.ammoCount ?? 0;
         if (currentAmmo < maxCapacity) {
           // If it's a puddle, updatePuddles() already handled it for low spots.
           // We only apply this here for non-puddles or puddles NOT in low spots (if any exist)
@@ -287,8 +292,8 @@ export class WeatherManager {
       console.log(`[WeatherManager] 🌦️ Rain starting at turn ${turn}`);
     }
     this.isRaining = true;
-    this.durationRemaining = Math.floor(this.RAIN_DURATION_MIN + Math.random() * (this.RAIN_DURATION_MAX - this.RAIN_DURATION_MIN + 1));
-    this.intensity = 0.2 + Math.random() * 0.6; // Start with moderate intensity [0.2, 0.8]
+    this.durationRemaining = Math.floor(this.RAIN_DURATION_MIN + this.rng.next() * (this.RAIN_DURATION_MAX - this.RAIN_DURATION_MIN + 1));
+    this.intensity = 0.2 + this.rng.next() * 0.6; // Start with moderate intensity [0.2, 0.8]
     if (WeatherManager.DEBUG) {
       console.log(`[WeatherManager] - Duration: ${this.durationRemaining} turns, Initial Intensity: ${this.intensity.toFixed(2)}`);
     }
@@ -305,7 +310,7 @@ export class WeatherManager {
     this.intensity = 0;
     
     // Schedule next rain event (3-5 days from now)
-    const interval = Math.floor(this.RAIN_INTERVAL_MIN + Math.random() * (this.RAIN_INTERVAL_MAX - this.RAIN_INTERVAL_MIN + 1));
+    const interval = Math.floor(this.RAIN_INTERVAL_MIN + this.rng.next() * (this.RAIN_INTERVAL_MAX - this.RAIN_INTERVAL_MIN + 1));
     this.nextEventTurn = turn + interval;
     if (WeatherManager.DEBUG) {
       console.log(`[WeatherManager] - Next rain event scheduled for turn: ${this.nextEventTurn}`);
@@ -316,7 +321,7 @@ export class WeatherManager {
    * Randomly fluctuate rain intensity
    */
   varyIntensity() {
-    const change = (Math.random() * 2 - 1) * this.INTENSITY_CHANGE_MAX;
+    const change = (this.rng.next() * 2 - 1) * this.INTENSITY_CHANGE_MAX;
     this.intensity = Math.max(0.1, Math.min(1.0, this.intensity + change));
     if (WeatherManager.DEBUG) {
       console.log(`[WeatherManager] - Intensity varied to: ${this.intensity.toFixed(2)}`);
@@ -353,10 +358,11 @@ export class WeatherManager {
    */
   fromJSON(data) {
     if (!data) return;
-    this.isRaining = data.isRaining || false;
-    this.durationRemaining = data.durationRemaining || 0;
-    this.nextEventTurn = data.nextEventTurn || 0;
-    this.intensity = data.intensity || 0;
+    // `??` so explicit false/0 from a save survives (T1 falsy-default sweep).
+    this.isRaining = data.isRaining ?? false;
+    this.durationRemaining = data.durationRemaining ?? 0;
+    this.nextEventTurn = data.nextEventTurn ?? 0;
+    this.intensity = data.intensity ?? 0;
     this.syncToEngine();
   }
 }

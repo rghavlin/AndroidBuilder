@@ -42,6 +42,12 @@ import { SICKNESS_TURNS } from '../systems/CombatSystem.js';
  * CombatContext, outside this queue.
  * ────────────────────────────────────────────────────────────────────────────
  */
+
+// T6: playback logs fire ~3x per action (R30#7). Gate them behind this flag —
+// flip to true locally when debugging turn playback.
+const DEBUG = false;
+const debugLog = (...args) => { if (DEBUG) console.log(...args); };
+
 class TurnManager {
   constructor() {
     this.isProcessing = false;
@@ -59,7 +65,7 @@ class TurnManager {
    * would silently eat enemy hits.
    */
   cancelPlayback() {
-    console.log('[TurnManager] 🛑 Cancellation requested - stopping playback loop');
+    debugLog('[TurnManager] 🛑 Cancellation requested - stopping playback loop');
     this.shouldCancel = true;
     // Release any in-flight SequencerAction promises so the playback loop's
     // current await returns and the finally block can clear isProcessing.
@@ -82,7 +88,7 @@ class TurnManager {
     }
 
     if (!actionQueue || actionQueue.length === 0) {
-      console.log('[TurnManager] 💤 Nothing to process (empty queue)');
+      debugLog('[TurnManager] 💤 Nothing to process (empty queue)');
       return;
     }
 
@@ -90,7 +96,7 @@ class TurnManager {
     this.shouldCancel = false;
     this.flashedEntityIds = new Set();
     const startTime = performance.now();
-    console.log(`[TurnManager] 🎬 START TURN PLAYBACK (${actionQueue.length} actions)`);
+    debugLog(`[TurnManager] 🎬 START TURN PLAYBACK (${actionQueue.length} actions)`);
 
     try {
       // Partition the flat, cycle-ordered queue into independent playback "lanes":
@@ -135,14 +141,14 @@ class TurnManager {
         }
       };
 
-      console.log(`[TurnManager] 🏃 Playing ${lanes.size} parallel lane(s)`);
+      debugLog(`[TurnManager] 🏃 Playing ${lanes.size} parallel lane(s)`);
       await Promise.all(Array.from(lanes.values()).map(playLane));
     } catch (error) {
       console.error(`[TurnManager] ❌ FATAL Playback error:`, error);
     } finally {
       this.isProcessing = false;
       const duration = (performance.now() - startTime).toFixed(2);
-      console.log(`[TurnManager] ✅ FINISH TURN PLAYBACK in ${duration}ms`);
+      debugLog(`[TurnManager] ✅ FINISH TURN PLAYBACK in ${duration}ms`);
     }
   }
 
@@ -168,7 +174,7 @@ class TurnManager {
     }
 
     // Delegate execution to the entity or handle globally
-    console.log(`[TurnManager] >> START ${type} for ${entityId}`);
+    debugLog(`[TurnManager] >> START ${type} for ${entityId}`);
     
     switch (type) {
       case 'MOVE':
@@ -449,7 +455,7 @@ class TurnManager {
         console.warn(`[TurnManager] Unknown action type: ${type}`);
     }
 
-    console.log(`[TurnManager] << FINISH ${type} for ${entityId}`);
+    debugLog(`[TurnManager] << FINISH ${type} for ${entityId}`);
   }
 }
 

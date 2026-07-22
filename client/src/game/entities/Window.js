@@ -276,18 +276,19 @@ export class Window extends Entity {
      * Create from JSON
      */
     static fromJSON(data) {
-        const isBroken = data.isBroken || false;
-        const isOpen = data.isOpen || false;
-        const windowEntity = new Window(data.id, data.x, data.y, data.isLocked || false, isOpen, isBroken, data.edge);
-        
-        // CRITICAL: Always compute visual subtype directly from actual physical state 
+        // `??` so explicit false/0 from a save survives (T1 falsy-default sweep).
+        const isBroken = data.isBroken ?? false;
+        const isOpen = data.isOpen ?? false;
+        const windowEntity = new Window(data.id, data.x, data.y, data.isLocked ?? false, isOpen, isBroken, data.edge);
+
+        // CRITICAL: Always compute visual subtype directly from actual physical state
         // to avoid desynced/stale subtypes saved during catch-up or simulation turns.
         windowEntity.subtype = isBroken ? (isOpen ? 'open' : 'broken') : (isOpen ? 'open' : 'closed');
-        
+
         windowEntity.blocksMovement = data.blocksMovement !== undefined ? data.blocksMovement : true;
         windowEntity.blocksSight = false; // Always false
-        windowEntity.isReinforced = data.isReinforced || false;
-        windowEntity.reinforcementHp = data.reinforcementHp || 0;
+        windowEntity.isReinforced = data.isReinforced ?? false;
+        windowEntity.reinforcementHp = data.reinforcementHp ?? 0;
         windowEntity.hp = data.hp !== undefined ? data.hp : windowEntity.hp;
         windowEntity.maxHp = data.maxHp !== undefined ? data.maxHp : windowEntity.maxHp;
         return windowEntity;

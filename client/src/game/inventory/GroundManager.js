@@ -3,24 +3,52 @@ import { Container } from './Container.js';
 import { Item } from './Item.js';
 import { CategoryPriority, ItemTrait } from './traits.js';
 
-let engine = null;
-import('../GameEngine.js').then(m => {
-  engine = m.default;
-}).catch(err => {
-  console.warn('[GroundManager] Failed to lazily import GameEngine:', err);
-});
-
 /**
  * GroundManager handles intelligent ground item organization and optimization
  * Implements smart grouping, auto-sort, and efficient pickup operations
+ *
+ * T5: engine access is INJECTED via a context provider (see constructor) —
+ * this class no longer imports the engine singleton (it previously used a lazy
+ * dynamic import whose error paths could run before the import resolved,
+ * crashing on `engine.gameMap`).
  */
 export class GroundManager {
-  constructor(groundContainer) {
+  /**
+   * @param {Container} groundContainer
+   * @param {Function|null} contextProvider - () => ({
+   *   gameMap, ridingItemId, draggingItemId, lastSyncedX, lastSyncedY, playerX, playerY
+   * }) — all fields optional; missing context degrades gracefully.
+   */
+  constructor(groundContainer, contextProvider = null) {
     this.groundContainer = groundContainer;
+    this._contextProvider = contextProvider;
     this.categoryAreas = new Map(); // category -> { x, y, width, height }
     this.itemsByCategory = new Map(); // category -> Items[]
     this.lastOptimizationTime = 0;
     this.optimizationInterval = 5000; // 5 seconds
+  }
+
+  /** Current engine context (empty object when no provider was injected). */
+  _context() {
+    return this._contextProvider ? (this._contextProvider() || {}) : {};
+  }
+
+  /**
+   * Last-resort fallback when an item can't fit back into the ground grid:
+   * drop it onto the map tile the ground view is synced to.
+   */
+  _injectItemToMapTile(item) {
+    const ctx = this._context();
+    const map = ctx.gameMap;
+    if (!map) return;
+    const x = ctx.lastSyncedX ?? ctx.playerX ?? 0;
+    const y = ctx.lastSyncedY ?? ctx.playerY ?? 0;
+    if (typeof map.addItemsToTile === 'function') {
+      map.addItemsToTile(x, y, [item]);
+    } else {
+      const existing = map.getItemsOnTile(x, y) || [];
+      map.setItemsOnTile(x, y, [...existing, item]);
+    }
   }
 
   /**
@@ -176,10 +204,11 @@ export class GroundManager {
     }
 
     // 4. Sort the items by priority
+    const { ridingItemId, draggingItemId } = this._context();
     stackedItems.sort((a, b) => {
       // Rule 1: Electric scooter ridden by player takes top priority after exit item
-      const isRiddenA = engine?.riding?.item?.instanceId === a.instanceId;
-      const isRiddenB = engine?.riding?.item?.instanceId === b.instanceId;
+      const isRiddenA = ridingItemId === a.instanceId;
+      const isRiddenB = ridingItemId === b.instanceId;
       if (isRiddenA && !isRiddenB) return -1;
       if (!isRiddenA && isRiddenB) return 1;
 
@@ -192,8 +221,8 @@ export class GroundManager {
       
       if (isVehicleA && isVehicleB) {
         // Whichever vehicle the player is pulling takes first slot
-        const isPulledA = engine?.dragging?.item?.instanceId === a.instanceId;
-        const isPulledB = engine?.dragging?.item?.instanceId === b.instanceId;
+        const isPulledA = draggingItemId === a.instanceId;
+        const isPulledB = draggingItemId === b.instanceId;
         if (isPulledA && !isPulledB) return -1;
         if (!isPulledA && isPulledB) return 1;
 
@@ -379,17 +408,7 @@ export class GroundManager {
         // Return to ground if can't fit in target
         if (!this.groundContainer.addItem(item)) {
           console.error(`[GroundManager] Failed to return item ${item.name} to ground! Forcefully injecting to map tile.`);
-          const map = engine.gameMap;
-          if (map) {
-            const x = engine.inventoryManager?.lastSyncedX !== null && engine.inventoryManager?.lastSyncedX !== undefined ? engine.inventoryManager.lastSyncedX : (engine.player?.x || 0);
-            const y = engine.inventoryManager?.lastSyncedY !== null && engine.inventoryManager?.lastSyncedY !== undefined ? engine.inventoryManager.lastSyncedY : (engine.player?.y || 0);
-            if (typeof map.addItemsToTile === 'function') {
-              map.addItemsToTile(x, y, [item]);
-            } else {
-              const existing = map.getItemsOnTile(x, y) || [];
-              map.setItemsOnTile(x, y, [...existing, item]);
-            }
-          }
+          this._injectItemToMapTile(item);
         }
         failed.push(item);
       }
@@ -503,17 +522,7 @@ export class GroundManager {
         // Return to ground if can't fit
         if (!this.groundContainer.addItem(item)) {
           console.error(`[GroundManager] Failed to return item ${item.name} to ground during quick pickup! Forcefully injecting to map tile.`);
-          const map = engine.gameMap;
-          if (map) {
-            const x = engine.inventoryManager?.lastSyncedX !== null && engine.inventoryManager?.lastSyncedX !== undefined ? engine.inventoryManager.lastSyncedX : (engine.player?.x || 0);
-            const y = engine.inventoryManager?.lastSyncedY !== null && engine.inventoryManager?.lastSyncedY !== undefined ? engine.inventoryManager.lastSyncedY : (engine.player?.y || 0);
-            if (typeof map.addItemsToTile === 'function') {
-              map.addItemsToTile(x, y, [item]);
-            } else {
-              const existing = map.getItemsOnTile(x, y) || [];
-              map.setItemsOnTile(x, y, [...existing, item]);
-            }
-          }
+          this._injectItemToMapTile(item);
         }
         break; // Stop trying once container is full
       }

@@ -1,4 +1,5 @@
 import Logger from './Logger.js';
+import { terrainBlocksSight } from '../map/TerrainTypes.js';
 
 const logger = Logger.scope('LineOfSight');
 
@@ -401,9 +402,20 @@ export class LineOfSight {
       return false;
     }
 
-    // Define which terrains block sight
-    const blockingTerrain = ['wall', 'building', 'tree', 'tent_wall', 'fence'];
-    return blockingTerrain.includes(terrain);
+    // Single source of truth: TERRAIN_PROPS (T2)
+    return terrainBlocksSight(terrain);
+  }
+
+  /**
+   * THE door-state sight matrix (R6#1 — previously three divergent versions):
+   * a door blocks sight iff it is closed AND intact. Open, damaged, or broken
+   * doors let sight through. Doors only carry `isDamaged`; `isBroken` is
+   * checked too so window-like breachables share the rule safely.
+   * @param {Object} door - Door/garage-door entity
+   * @returns {boolean} Whether the door currently blocks sight
+   */
+  static doorBlocksSight(door) {
+    return !door.isOpen && !door.isDamaged && !door.isBroken;
   }
 
   /**
@@ -437,7 +449,7 @@ export class LineOfSight {
 
     for (const e of allBreachable) {
         if (ignoreEntities.includes(e.id)) continue;
-        if ((e.type === 'door' || e.type === 'garage_door') && !e.isOpen && !e.isBroken) return true; // Closed door blocks sight
+        if ((e.type === 'door' || e.type === 'garage_door') && this.doorBlocksSight(e)) return true; // Closed intact door blocks sight
     }
 
     return false;
@@ -461,19 +473,19 @@ export class LineOfSight {
         return false;
       }
 
-      // Check if entity has explicit blocksSight property
-      if (entity.blocksSight !== undefined) {
-        return entity.blocksSight;
-      }
-
-      // Doors block sight when closed
+      // Doors block sight per the single door-state matrix (closed + intact)
       if (entity.type === 'door' || entity.type === 'garage_door') {
-        return !entity.isOpen;
+        return this.doorBlocksSight(entity);
       }
 
       // Windows do not block sight (can see through them)
       if (entity.type === 'window') {
         return false;
+      }
+
+      // Check if entity has explicit blocksSight property
+      if (entity.blocksSight !== undefined) {
+        return entity.blocksSight;
       }
 
       // Define which entity types block sight by default

@@ -1084,8 +1084,8 @@ export class Entity extends SafeEventEmitter {
     const entity = new Entity(data.id, data.type);
     
     // Restore legacy properties for structural entities if they were serialized
-    entity.gridX = data.gridX !== undefined ? data.gridX : (data.logicalX !== undefined ? data.logicalX : data.x || 0);
-    entity.gridY = data.gridY !== undefined ? data.gridY : (data.logicalY !== undefined ? data.logicalY : data.y || 0);
+    entity.gridX = data.gridX !== undefined ? data.gridX : (data.logicalX !== undefined ? data.logicalX : data.x ?? 0);
+    entity.gridY = data.gridY !== undefined ? data.gridY : (data.logicalY !== undefined ? data.logicalY : data.y ?? 0);
     entity.renderX = data.x !== undefined ? data.x : entity.gridX;
     entity.renderY = data.y !== undefined ? data.y : entity.gridY;
     entity.logicalX = entity.gridX;

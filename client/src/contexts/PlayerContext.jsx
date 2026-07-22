@@ -10,6 +10,7 @@ import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
 import { ItemTrait } from '../game/inventory/traits.js';
 import { isTurretPassableBy, TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
+import { isTerrainWalkable } from '../game/map/TerrainTypes.js';
 import { MAX_VISION_RANGE } from '../game/config/VisionConfig.js';
 
 const logger = Logger.scope('PlayerContext');
@@ -217,7 +218,7 @@ export const PlayerProvider = ({ children }) => {
       const tile = gameMap.getTile(pos.x, pos.y);
       const isPassable = tile && !tile.contents.some(e => e.blocksMovement && e.type !== 'window' && e.type !== 'door' && e.type !== 'garage_door') &&
         !tile.contents.some(e => e.defId === TURRET_DEF_ID && !isTurretPassableBy(e, player)) &&
-        !['wall', 'building', 'fence', 'tree'].includes(tile.terrain);
+        isTerrainWalkable(tile.terrain); // single source: TERRAIN_PROPS (T2)
       const hasZombie = tile && tile.contents.some(e => e.type === 'zombie');
       const zombieId = hasZombie ? tile.contents.find(e => e.type === 'zombie')?.id : null;
 

@@ -162,7 +162,7 @@ export class GarageDoor extends Door {
         door.blocksSight = data.blocksSight;
         door.maxHp = data.maxHp !== undefined ? data.maxHp : door.maxHp;
         door.hp = data.hp !== undefined ? data.hp : door.hp;
-        door.visualIsOpen = data.isOpen || false;
+        door.visualIsOpen = data.isOpen ?? false;
         return door;
     }
 }

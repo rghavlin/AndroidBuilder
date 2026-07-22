@@ -63,8 +63,10 @@ describe('Systems / death drops + explosion -> destruction routing', () => {
     activeZombie.currentTarget = zombie;
     activeZombie.behaviorState = 'pursuing';
 
-    map.entityMap.set(zombie.id, zombie);
-    map.entityMap.set(activeZombie.id, activeZombie);
+    // Use addEntity (not bare entityMap.set) so the by-type index is populated —
+    // DestructionSystem clears zombie targeting via getEntitiesByType (T3).
+    map.addEntity(zombie, 2, 2);
+    map.addEntity(activeZombie, 3, 3);
     zombie.hp = 0;
 
     const diedAny = SimulationManager.checkAndProcessDeaths(

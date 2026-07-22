@@ -285,10 +285,10 @@ class GameEngine extends SafeEventEmitter {
       this.turnPhase = gameObjects.interactionState.isPlayerTurn !== undefined 
         ? (gameObjects.interactionState.isPlayerTurn ? 'PLAYER_TURN' : 'SIMULATING')
         : 'PLAYER_TURN';
-      this.isFlashlightOn = gameObjects.interactionState.isFlashlightOn || false;
-      this.isSleeping = gameObjects.interactionState.isSleeping || false;
-      this.sleepProgress = gameObjects.interactionState.sleepProgress || 0;
-      this.targetingItemInstanceId = gameObjects.interactionState.targetingItemInstanceId || null;
+      this.isFlashlightOn = gameObjects.interactionState.isFlashlightOn ?? false;
+      this.isSleeping = gameObjects.interactionState.isSleeping ?? false;
+      this.sleepProgress = gameObjects.interactionState.sleepProgress ?? 0;
+      this.targetingItemInstanceId = gameObjects.interactionState.targetingItemInstanceId ?? null;
       
       // Phase 25: Restore dragging state
       if (gameObjects.interactionState.dragging && this.inventoryManager) {

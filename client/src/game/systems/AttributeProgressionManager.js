@@ -1,6 +1,7 @@
 import engine from '../GameEngine.js';
 import { recalcCharacter } from '../utils/SurvivalCascade.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
+import { gameRandom } from '../utils/SeededRandom.js';
 
 /**
  * AttributeProgressionManager
@@ -170,8 +171,8 @@ export class AttributeProgressionManager {
     if (currentProgress >= requiredXP) {
       stats[xpSpentName] = (stats[xpSpentName] || 0) + requiredXP;
 
-      // Roll 1d3
-      const roll = Math.floor(Math.random() * 3) + 1;
+      // Roll 1d3 — seeded (T7/R38#3): stat rolls must replay from the game seed.
+      const roll = gameRandom.nextInt(1, 3);
 
       // Cap at 100
       stats[statName] = Math.min(100, stats[statName] + roll);

@@ -15,12 +15,14 @@ export class DestructionSystem {
    * @param {Array} actionQueue - Sequential visual actions list
    * @param {Object|null} parentEnvelope - Parent intent envelope for tracking cascade depth
    */
-  static resolve(destroyIntent, entities, gameMap, intentQueue, actionQueue = [], parentEnvelope = null) {
+  static resolve(destroyIntent, entities, gameMap, intentQueue, actionQueue = [], parentEnvelope = null, entityById = null) {
     const targetId = destroyIntent.entityId;
     if (!targetId) return;
 
-    // Find target
-    const target = entities.find(e => e.id === targetId) || (gameMap ? gameMap.getEntity(targetId) : null);
+    // Find target (T3: reuse the per-pass id lookup when the caller built one)
+    const target = (entityById
+      ? entityById.get(targetId)
+      : entities.find(e => e.id === targetId)) || (gameMap ? gameMap.getEntity(targetId) : null);
     
     let x = 0;
     let y = 0;
@@ -70,8 +72,11 @@ export class DestructionSystem {
       gameMap._visionDirty = true;
     }
 
-    // Clear targeting references from zombies
-    const zombies = entities.filter(e => e.type === EntityType.ZOMBIE);
+    // Clear targeting references from zombies (T3: O(matches) type index
+    // instead of scanning every entity)
+    const zombies = (gameMap && typeof gameMap.getEntitiesByType === 'function')
+      ? gameMap.getEntitiesByType(EntityType.ZOMBIE)
+      : entities.filter(e => e.type === EntityType.ZOMBIE);
     zombies.forEach(z => {
       if (z.currentTarget && z.currentTarget.id === targetId) {
         z.currentTarget = null;

@@ -3,6 +3,7 @@
  */
 import { EntityType } from '../entities/Entity.js';
 import { isTurretPassableBy, TURRET_DEF_ID } from '../ai/TurretCombat.js';
+import { isTerrainWalkable } from './TerrainTypes.js';
 import engine from '../GameEngine.js';
 
 
@@ -75,16 +76,17 @@ export class Tile {
         hasEntry = true;
         break;
       }
-      // ONLY allow window entries for non-player entities (zombies/NPCs)
-      if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken) && !isPlayer) {
+      // ONLY allow window entries for non-player entities (zombies/NPCs).
+      // A reinforced window stays blocked even when open/broken — the boards
+      // must be destroyed first (R14#2).
+      if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken) && !item.isReinforced && !isPlayer) {
         hasEntry = true;
         break;
       }
     }
 
-    // 2. Terrain Check (Static obstacles)
-    const unwalkableTerrains = ['wall', 'fence', 'tree', 'water', 'tent_wall', 'deep_water', 'brick', 'metal_wall', 'building'];
-    if (unwalkableTerrains.includes(this.terrain) && !hasEntry) {
+    // 2. Terrain Check (Static obstacles) — single source: TERRAIN_PROPS (T2)
+    if (!isTerrainWalkable(this.terrain) && !hasEntry) {
       // PATHFINDING EXCEPTION: Zombies can path "to" buildings to attack them
       // ONLY if the tile actually contains a door or window to breach.
       const hasBreachable = this.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === EntityType.GARAGE_DOOR);
@@ -101,9 +103,11 @@ export class Tile {
       // Blocking is fully handled by Pathfinding.isEdgeBlocked.
       if ((item.type === EntityType.DOOR || item.type === EntityType.WINDOW || item.type === EntityType.GARAGE_DOOR) && item.edge !== undefined) continue;
       
-      // Bypass for open/broken structures
+      // Bypass for open/broken structures.
+      // Reinforced windows stay blocked even when open/broken — the boards
+      // must be destroyed first (R14#2).
       if ((item.type === EntityType.DOOR || item.type === EntityType.GARAGE_DOOR) && item.isOpen) continue;
-      if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken) && !isPlayer) continue;
+      if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken) && !item.isReinforced && !isPlayer) continue;
 
       // Powered-on turrets block movement for everyone except their own faction
       // (the player can always step onto their own turret to retrieve it). Inert
@@ -285,14 +289,18 @@ export class Tile {
    */
   static fromJSON(data) {
     const tile = new Tile(data.x, data.y, data.terrain);
-    tile.flags = data.flags || {};
-    tile.inventoryItems = data.inventoryItems || [];
-    tile.scent = data.scent || 0;
-    tile.scentSequence = data.scentSequence || 0;
-    tile.waterAmount = data.waterAmount || (data.terrain === 'water' ? 100 : 0);
-    tile.edgeWalls = data.edgeWalls || { n: false, e: false, s: false, w: false };
-    tile.decoration = data.decoration || null;
-    tile.fireTurns = data.fireTurns || 0;
+    // `??` / `!== undefined` throughout: a saved 0/false/'' is legitimate state
+    // and must not be replaced by the default (T1 falsy-default sweep).
+    tile.flags = data.flags ?? {};
+    tile.inventoryItems = data.inventoryItems ?? [];
+    tile.scent = data.scent ?? 0;
+    tile.scentSequence = data.scentSequence ?? 0;
+    // waterAmount: an explicitly saved 0 (e.g. a drained water tile) must not
+    // be refilled to the terrain default.
+    tile.waterAmount = data.waterAmount !== undefined ? data.waterAmount : (data.terrain === 'water' ? 100 : 0);
+    tile.edgeWalls = data.edgeWalls ?? { n: false, e: false, s: false, w: false };
+    tile.decoration = data.decoration ?? null;
+    tile.fireTurns = data.fireTurns ?? 0;
     // Note: contents are restored by GameMap.fromJSON
     return tile;
   }

@@ -2,10 +2,16 @@
 /**
  * AudioManager - Centralized utility for managing game audio
  */
+
+// T6: playback logs fire ~10x per sound effect (R46#7). Gate them behind this
+// flag — flip to true locally when debugging audio.
+const DEBUG = false;
+const debugLog = (...args) => { if (DEBUG) console.log(...args); };
+
 class AudioManager {
   constructor() {
     this.id = Math.random().toString(36).substring(2, 11);
-    console.debug(`[AudioManager] New instance created: ${this.id}`);
+    debugLog(`[AudioManager] New instance created: ${this.id}`);
     this.sounds = new Map(); // Store { instances: Audio[], index: number }
     this.soundDefaults = new Map(); // Store default volume per sound
     this.masterVolume = 1.0;
@@ -72,7 +78,7 @@ class AudioManager {
         instances: null,
         index: 0
       });
-      console.log(`[AudioManager] 📝 Registered sound metadata for "${name}" (lazy pool)`);
+      debugLog(`[AudioManager] 📝 Registered sound metadata for "${name}" (lazy pool)`);
     }
 
     // Phase 25: Also load into Web Audio Buffer for gapless looping if requested
@@ -87,7 +93,7 @@ class AudioManager {
     if (!pool) return null;
 
     if (!pool.instances) {
-      console.debug(`[AudioManager] 🔌 Lazy-initializing HTMLAudio pool for "${name}"`);
+      debugLog(`[AudioManager] 🔌 Lazy-initializing HTMLAudio pool for "${name}"`);
       const poolSize = 3;
       const instances = [];
       for (let i = 0; i < poolSize; i++) {
@@ -116,7 +122,7 @@ class AudioManager {
     const { loop = false, volume = baseVolume, playbackRate = 1.0 } = options;
 
     const finalVolume = volume * this.masterVolume * this.sfxVolume;
-    console.log(`[AudioManager] 🔊 Playing "${name}" via HTMLAudio | Volume: ${finalVolume.toFixed(2)} | Pool Index: ${index}`);
+    debugLog(`[AudioManager] 🔊 Playing "${name}" via HTMLAudio | Volume: ${finalVolume.toFixed(2)} | Pool Index: ${index}`);
 
     try {
       const audio = instances[index];
@@ -126,7 +132,7 @@ class AudioManager {
 
       // Ensure the node is in a playable state
       if (audio.readyState < 2) {
-        console.debug(`[AudioManager] ⏳ Node for "${name}" not ready (readyState: ${audio.readyState}) - forcing load`);
+        debugLog(`[AudioManager] ⏳ Node for "${name}" not ready (readyState: ${audio.readyState}) - forcing load`);
         audio.load();
       }
 
@@ -184,7 +190,7 @@ class AudioManager {
     if (this.audioBuffers.has(name)) return;
     
     try {
-      console.debug(`[AudioManager] 🎵 Loading Web Audio Buffer for "${name}" from: ${path}`);
+      debugLog(`[AudioManager] 🎵 Loading Web Audio Buffer for "${name}" from: ${path}`);
       const response = await fetch(path);
       const arrayBuffer = await response.arrayBuffer();
       const ctx = this._ensureAudioContext();
@@ -193,7 +199,7 @@ class AudioManager {
       }
       const decodedBuffer = await ctx.decodeAudioData(arrayBuffer);
       this.audioBuffers.set(name, decodedBuffer);
-      console.log(`[AudioManager] ✅ Web Audio Buffer ready for "${name}"`);
+      debugLog(`[AudioManager] ✅ Web Audio Buffer ready for "${name}"`);
     } catch (err) {
       console.warn(`[AudioManager] ⚠️ Failed to load Web Audio Buffer for "${name}" (gapless loops will fallback):`, err);
     }
@@ -231,7 +237,7 @@ class AudioManager {
       
       source.start(0);
       this.activeLoops.set(name, { source, gainNode, baseVolume });
-      console.log(`[AudioManager] 🔄 Started gapless loop: "${name}"`);
+      debugLog(`[AudioManager] 🔄 Started gapless loop: "${name}"`);
     } catch (err) {
       console.warn(`[AudioManager] startLoop failed for "${name}", falling back to HTML5 Audio:`, err);
       try {
@@ -273,7 +279,7 @@ class AudioManager {
       gainNode.connect(ctx.destination);
 
       source.start(0);
-      console.log(`[AudioManager] 🎵 One-shot played via WebAudio: "${name}"`);
+      debugLog(`[AudioManager] 🎵 One-shot played via WebAudio: "${name}"`);
     } catch (err) {
       console.warn(`[AudioManager] playOneShot failed for "${name}", falling back to HTML5 Audio:`, err);
       try {
@@ -309,7 +315,7 @@ class AudioManager {
         // Source might have already stopped
       }
       this.activeLoops.delete(name);
-      console.log(`[AudioManager] ⏹️ Stopped gapless loop: "${name}"`);
+      debugLog(`[AudioManager] ⏹️ Stopped gapless loop: "${name}"`);
     }
   }
 
@@ -430,7 +436,7 @@ class AudioManager {
    * Stop all currently playing sounds and loops
    */
   stopAllSounds() {
-    console.log(`[AudioManager] ⏹️ Stopping all sounds...`);
+    debugLog(`[AudioManager] ⏹️ Stopping all sounds...`);
     
     // 1. Stop all HTMLAudio instances
     this.sounds.forEach(pool => {
@@ -452,7 +458,7 @@ class AudioManager {
       } catch (e) {
         // Source might have already stopped
       }
-      console.log(`[AudioManager] ⏹️ Stopped loop: "${name}"`);
+      debugLog(`[AudioManager] ⏹️ Stopped loop: "${name}"`);
     });
     this.activeLoops.clear();
   }

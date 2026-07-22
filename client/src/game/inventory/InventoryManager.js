@@ -9,7 +9,19 @@ import { getHourFromTurn } from '../utils/TimeUtils.js';
 import { CraftingManager } from './CraftingManager.js';
 import audioManager from '../utils/AudioManager.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
-import engine from '../GameEngine.js';
+
+// T5: do NOT statically import the GameEngine singleton here. GameEngine
+// imports THIS module (GameEngine.reset() does `new InventoryManager()`), so a
+// static import is a circular dependency whose evaluation order decides
+// whether module loading crashes with "InventoryManager is not a constructor"
+// whenever this module (or GroundManager/Container) is imported first. The
+// engine registers itself on globalThis in its constructor; read it lazily.
+// All uses below are reads (engine.player/gameMap/riding) or mutations of the
+// objects those reads return, never rebinding `engine` itself — so a
+// pass-through proxy is behavior-identical to the old direct binding.
+const engine = new Proxy({}, {
+  get: (_, prop) => globalThis.gameEngine?.[prop]
+});
 
 // Helpers to check if clothing or a backpack has items inside
 function hasItemsInside(item) {
@@ -76,8 +88,18 @@ export class InventoryManager extends SafeEventEmitter {
 
     this.containers.set('ground', this.groundContainer);
 
-    // Ground management system
-    this.groundManager = new GroundManager(this.groundContainer);
+    // Ground management system. The context provider keeps GroundManager free
+    // of the engine singleton (T5) while preserving the exact live values it
+    // used to read: riding/dragging state and the ground-view sync position.
+    this.groundManager = new GroundManager(this.groundContainer, () => ({
+      gameMap: engine.gameMap,
+      ridingItemId: engine.riding?.item?.instanceId ?? null,
+      draggingItemId: engine.dragging?.item?.instanceId ?? null,
+      lastSyncedX: this.lastSyncedX,
+      lastSyncedY: this.lastSyncedY,
+      playerX: engine.player?.x,
+      playerY: engine.player?.y
+    }));
 
     // Initialize with basic backpack container
     this.initializeDefaultContainers();
@@ -3081,7 +3103,16 @@ export class InventoryManager extends SafeEventEmitter {
           manager.groundContainer = container;
           // CRITICAL: Re-initialize groundManager with the RESTORED container
           // Otherwise it holds a stale reference to the empty container from constructor
-          manager.groundManager = new GroundManager(container);
+          // (same injected context provider as the constructor — T5)
+          manager.groundManager = new GroundManager(container, () => ({
+            gameMap: engine.gameMap,
+            ridingItemId: engine.riding?.item?.instanceId ?? null,
+            draggingItemId: engine.dragging?.item?.instanceId ?? null,
+            lastSyncedX: manager.lastSyncedX,
+            lastSyncedY: manager.lastSyncedY,
+            playerX: engine.player?.x,
+            playerY: engine.player?.y
+          }));
         }
       }
     }

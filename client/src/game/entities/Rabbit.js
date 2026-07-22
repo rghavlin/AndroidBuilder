@@ -184,10 +184,10 @@ export class Rabbit extends Entity {
     rabbit.maxHp = data.maxHp ?? 5;
     rabbit.maxAP = data.maxAP ?? 25;
     rabbit.currentAP = data.currentAP ?? 25;
-    rabbit.isActive = data.isActive || false;
-    rabbit.movementPath = data.movementPath || [];
-    rabbit.isAnimating = data.isAnimating || false;
-    rabbit.animationProgress = data.animationProgress || 0;
+    rabbit.isActive = data.isActive ?? false;
+    rabbit.movementPath = data.movementPath ?? [];
+    rabbit.isAnimating = data.isAnimating ?? false;
+    rabbit.animationProgress = data.animationProgress ?? 0;
     rabbit.gridX = data.gridX !== undefined ? data.gridX : (data.logicalX !== undefined ? data.logicalX : data.x);
     rabbit.gridY = data.gridY !== undefined ? data.gridY : (data.logicalY !== undefined ? data.logicalY : data.y);
     rabbit.renderX = data.x;

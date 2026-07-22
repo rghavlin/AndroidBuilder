@@ -249,14 +249,21 @@ export class Pathfinding {
 
   static getReachableTiles(gameMap, startX, startY, maxCost, options = {}) {
     const reachable = [];
-    const visited = new Set();
-    const queue = [{ x: startX, y: startY, cost: 0 }];
 
-    while (queue.length > 0) {
-      const current = queue.shift();
+    // T4/R7#7: this used to be a FIFO BFS (with an O(n^2) shift()) that marked
+    // tiles visited on first pop. Under variable move costs (1.4 diagonals,
+    // window/structure penalties) first-pop is NOT cheapest-cost, so tiles
+    // could be recorded with an inflated cost or dropped entirely even though
+    // a cheaper route within budget existed. Now a proper Dijkstra: MinHeap
+    // ordered by cost + best-cost relaxation, with stale-heap-entry skipping.
+    const bestCost = new Map([[`${startX},${startY}`, 0]]);
+    const heap = new MinHeap((a, b) => a.cost - b.cost);
+    heap.push({ x: startX, y: startY, cost: 0 });
+
+    while (heap.size() > 0) {
+      const current = heap.pop();
       const key = `${current.x},${current.y}`;
-      if (visited.has(key)) continue;
-      visited.add(key);
+      if (current.cost > bestCost.get(key)) continue; // stale heap entry
 
       if (current.cost > 0) {
         reachable.push({ x: current.x, y: current.y, cost: current.cost });
@@ -271,9 +278,12 @@ export class Pathfinding {
 
         const moveCost = this.getMovementCost(current.x, current.y, neighbor.x, neighbor.y, neighborTile, { ...options, gameMap, isPathfinding: true });
         const totalCost = current.cost + moveCost;
+        if (totalCost > maxCost) continue;
 
-        if (totalCost <= maxCost && !visited.has(`${neighbor.x},${neighbor.y}`)) {
-          queue.push({ x: neighbor.x, y: neighbor.y, cost: totalCost });
+        const neighborKey = `${neighbor.x},${neighbor.y}`;
+        if (totalCost < (bestCost.get(neighborKey) ?? Infinity)) {
+          bestCost.set(neighborKey, totalCost);
+          heap.push({ x: neighbor.x, y: neighbor.y, cost: totalCost });
         }
       }
     }
@@ -487,6 +497,11 @@ export class Pathfinding {
     for (const e of allBreachable) {
        if (e.type === 'window' && isPlayer) {
            // Windows are ALWAYS blocked for players (unwalkable)
+           continue;
+       }
+       // A reinforced window stays blocked even when open/broken — the boards
+       // must be destroyed before anything can climb through (R14#2).
+       if (e.type === 'window' && e.isReinforced) {
            continue;
        }
        if (e.isOpen || e.isBroken || e.isDamaged || ((isZombie || isNPC) && options.isPathfinding) || options.allowBreaching) {
