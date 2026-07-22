@@ -1,3 +1,7 @@
+## God-objects (managed decomposition)
+
+Before adding logic to a god-object file — `entities/Entity.js`, `map/GameMap.js`, `inventory/InventoryManager.js`, `inventory/Item.js`, `map/LootGenerator.js`, `managers/SimulationManager.js` — see AGENTS.md §6. Do not grow them: put new behavior in a system/module operating on components, and extract the nearest seam when you touch one. Targets are in `CODE_QUALITY_ACTION_PLAN.md` (Wave 4).
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.

@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784700065.747118,
-    "ast_hash": "db1a511046018ad516171d112cea3642",
+    "mtime": 1784700957.9811914,
+    "ast_hash": "11691a0a23a6320469a1edb15c298c6f",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -920,8 +920,8 @@
     "semantic_hash": ""
   },
   "client/src/game/entities/Entity.js": {
-    "mtime": 1784693277.337583,
-    "ast_hash": "179274fc71f6f6eaa2f355c81764842d",
+    "mtime": 1784701197.3816895,
+    "ast_hash": "8d2b17ae7e8cf300a0cbb199d62d7089",
     "semantic_hash": ""
   },
   "client/src/game/entities/NPCTypes.js": {
@@ -980,13 +980,13 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/InventoryManager.js": {
-    "mtime": 1784687060.6977293,
-    "ast_hash": "b307c05892545d1e9e2ee00a1427b4ab",
+    "mtime": 1784701207.704409,
+    "ast_hash": "7ea1848ecb049ffb12405a8daca9e1a6",
     "semantic_hash": ""
   },
   "client/src/game/inventory/Item.js": {
-    "mtime": 1784687957.177457,
-    "ast_hash": "facffc4ee30af4ef76b68c6bd882d30e",
+    "mtime": 1784701213.554625,
+    "ast_hash": "a653f19e95a17bb633275559c7baf223",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
@@ -1035,8 +1035,8 @@
     "semantic_hash": "5715d56998f6ea89742ca95e58ff8d0a"
   },
   "client/src/game/managers/SimulationManager.js": {
-    "mtime": 1784698726.7499104,
-    "ast_hash": "fffe518cb5e2431dada00d231b883d37",
+    "mtime": 1784701224.1468594,
+    "ast_hash": "7aa72b939df4686509b1dc3708d83dcd",
     "semantic_hash": ""
   },
   "client/src/game/managers/TurnManager.js": {
@@ -1055,13 +1055,13 @@
     "semantic_hash": ""
   },
   "client/src/game/map/GameMap.js": {
-    "mtime": 1784700401.704222,
-    "ast_hash": "ba260b7fff3959620c3c383300f307bb",
+    "mtime": 1784701203.0830333,
+    "ast_hash": "8cb505a1b33099d7802c023924aeaed7",
     "semantic_hash": ""
   },
   "client/src/game/map/LootGenerator.js": {
-    "mtime": 1784700127.4819334,
-    "ast_hash": "8df0c88d1ff57c8d92f4676bcaf88afe",
+    "mtime": 1784701219.0457864,
+    "ast_hash": "9b4a85677b06a4f262dd4b769b2c94bc",
     "semantic_hash": ""
   },
   "client/src/game/map/LootTables.js": {

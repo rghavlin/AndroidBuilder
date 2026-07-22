@@ -1,3 +1,9 @@
+// ============================================================================
+// ⚠️  GOD-OBJECT UNDER MANAGED DECOMPOSITION — see AGENTS.md §6.
+// Do NOT add new responsibilities here. Put new behavior in a system/module
+// operating on components, and extract the nearest seam when you touch this
+// file. Extraction targets: CODE_QUALITY_ACTION_PLAN.md (Wave 4).
+// ============================================================================
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
 import { LineOfSight } from '../utils/LineOfSight.js';
 import { FactionRegistry } from '../ai/FactionRegistry.js';

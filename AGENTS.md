@@ -193,6 +193,7 @@ npm test        # Unit/integration suite
 - Engine vs. React separation is sacred. Do not run game logic inside React components, and do not render React from the engine.
 - Events are **fire-and-forget**. Never use the event bus to synchronously block the engine.
 - Use semantic Tailwind classes (`bg-background`, `border-border`) rather than hardcoded hex colors in new UI. Canvas colors should reference palette objects, not literals.
+- **God-objects are under managed decomposition.** `entities/Entity.js`, `map/GameMap.js`, `inventory/InventoryManager.js`, `inventory/Item.js`, `map/LootGenerator.js`, and `managers/SimulationManager.js` each carry more than one responsibility and are being split opportunistically. **Do not add new responsibilities to them.** New behavior belongs in a system/module operating on components; when you touch one of these files, extract the cleanest seam rather than growing it. Each carries a header banner pointing here. Extraction targets are listed in `CODE_QUALITY_ACTION_PLAN.md` (Wave 4).
 
 ### Styling
 
