@@ -95,6 +95,10 @@ export function dropZombieDeathLoot(target, x, y, gameMap, lootGenerator, placeI
   const corpseOverrides = getCorpseOverrides(target.subtype);
   if (target.lastAttacker?.type !== 'player') {
     corpseOverrides.earbucksValue = 0;
+  } else if (target.earbucksValue !== undefined) {
+    // Map editor may author a per-zombie earbucks value; otherwise the
+    // zombie.corpse item def default (1) applies.
+    corpseOverrides.earbucksValue = target.earbucksValue;
   }
   const corpse = createItemFromDef('zombie.corpse', corpseOverrides);
   if (corpse) {

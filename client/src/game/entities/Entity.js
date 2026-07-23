@@ -116,6 +116,7 @@ export const SERIALIZED_FIELDS = [
   'subtype', 'blocksMovement', 'name', '_hostileToPlayerOverride', 'equippedWeaponId', 'iconId',
   'typeId', 'isShopkeeper', 'isTollGuard', 'tollPaid', 'tollSidestep', 'tollTarget',
   'factionId', 'sightRange', 'hearingRangeMultiplier', 'hasExited', 'isActive', 'noLoot', 'deaf',
+  'earbucksValue',
   'hp', 'maxHp', 'ap', 'maxAp', 'nutrition', 'maxNutrition', 'hydration',
   'maxHydration', 'energy', 'maxEnergy', 'condition', 'sickness', 'isBleeding', 'woundInfection',
   'drunkenness', 'isStarving', 'isDehydrated', 'meleeHits', 'meleeLvl',

@@ -204,6 +204,7 @@ interface EditorItem {
 //                   to a faction; no longer authored by the current brush.
 interface EntityData {
   type: string; subtype?: string; hp?: number; noLoot?: boolean; deaf?: boolean;
+  earbucksValue?: number;
   typeId?: string; name?: string; isHostile?: boolean; attackOnSight?: boolean;
   factionId?: string;
   iconId?: string; aiDisabled?: boolean;
@@ -400,6 +401,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
         hp: e.hp || undefined,
         noLoot: e.noLoot || undefined,
         deaf: e.deaf || undefined,
+        earbucksValue: e.earbucksValue ?? undefined,
         typeId: e.typeId || undefined,
         name: e.name || undefined,
         factionId: e.factionId || undefined,
@@ -582,6 +584,7 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
                 hp: e.hp,
                 noLoot: e.noLoot,
                 deaf: e.deaf,
+                earbucksValue: e.earbucksValue,
               });
             } else if (e.type === 'npc') {
               // attackOnSight/aiDisabled are AIState fields, so in a serialized
@@ -900,6 +903,7 @@ function exportScenario(scenario: ScenarioData) {
           ...(e.hp ? { hp: e.hp } : {}),
           ...(e.noLoot ? { noLoot: true } : {}),
           ...(e.deaf ? { deaf: true } : {}),
+          ...(e.earbucksValue !== undefined ? { earbucksValue: e.earbucksValue } : {}),
           ...(e.typeId ? { typeId: e.typeId } : {}),
           ...(e.name ? { name: e.name } : {}),
           ...(e.factionId ? { factionId: e.factionId } : {}),
@@ -1014,6 +1018,7 @@ export default function MapEditor() {
   const [zombieSubtype, setZombieSubtype] = useState('basic');
   const [zombieHp, setZombieHp] = useState<number | ''>('');
   const [zombieNoLoot, setZombieNoLoot] = useState(false);
+  const [zombieEarbucksValue, setZombieEarbucksValue] = useState<number | ''>('');
   const [zombieDeaf, setZombieDeaf] = useState(false);
   const [npcTypeId, setNpcTypeId] = useState('survivor');
   const [npcName, setNpcName] = useState('');
@@ -1813,6 +1818,7 @@ export default function MapEditor() {
               ent.subtype = zombieSubtype;
               if (zombieHp !== '') ent.hp = zombieHp as number;
               if (zombieNoLoot) ent.noLoot = true;
+              if (zombieEarbucksValue !== '') ent.earbucksValue = zombieEarbucksValue as number;
               if (zombieDeaf) ent.deaf = true;
             } else if (selectedEntity === 'npc') {
               ent.typeId = npcTypeId;
@@ -1909,7 +1915,7 @@ export default function MapEditor() {
 
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieDeaf, npcTypeId, npcName, npcFactionId, npcIconId, npcAiDisabled, npcLoadout, npcEquippedIndex, selectedItem, turretFactionId, turretIsOn, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieEarbucksValue, zombieDeaf, npcTypeId, npcName, npcFactionId, npcIconId, npcAiDisabled, npcLoadout, npcEquippedIndex, selectedItem, turretFactionId, turretIsOn, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Furniture stamp tool ────────────────────────────────────────────
   // Validates and places a loose furniture stamp at (x, y). Lives outside
@@ -2748,7 +2754,8 @@ export default function MapEditor() {
               subtype: entity.subtype || 'basic',
               hp: entity.hp || undefined,
               noLoot: entity.noLoot || undefined,
-              deaf: entity.deaf || undefined
+              deaf: entity.deaf || undefined,
+              earbucksValue: entity.earbucksValue ?? undefined
             }));
 
           if (spawnedZombies.length === 0) return t;
@@ -3348,6 +3355,15 @@ export default function MapEditor() {
                   <input type="checkbox" checked={zombieNoLoot} onChange={e => setZombieNoLoot(e.target.checked)} />
                   No loot drop on death
                 </label>
+                <label style={{ fontSize: 11, color: '#888' }}>Earbucks value when killed by player (blank = 1)</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={zombieEarbucksValue}
+                  onChange={e => setZombieEarbucksValue(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+                  placeholder="1"
+                  style={{ ...inputStyle, width: '100%' }}
+                />
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
                   <input type="checkbox" checked={zombieDeaf} onChange={e => setZombieDeaf(e.target.checked)} />
                   Deaf (ignores noise, e.g. door opening)
@@ -4853,6 +4869,7 @@ export default function MapEditor() {
                           {ent.subtype ? ` · ${ent.subtype}` : ''}
                           {ent.hp ? ` · ${ent.hp} hp` : ''}
                           {ent.noLoot ? ` · no loot` : ''}
+                          {ent.earbucksValue !== undefined ? ` · earbucks: ${ent.earbucksValue}` : ''}
                           {ent.deaf ? ` · deaf` : ''}
                           {ent.type === 'npc' && ent.name ? ` · "${ent.name}"` : ''}
                           {ent.type === 'npc' && ent.typeId ? ` · ${ent.typeId}` : ''}

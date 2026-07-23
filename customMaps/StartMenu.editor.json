@@ -122549,7 +122549,8 @@
         "entities": [
           {
             "type": "zombie",
-            "subtype": "basic"
+            "subtype": "basic",
+            "earbucksValue": 0
           }
         ],
         "items": []

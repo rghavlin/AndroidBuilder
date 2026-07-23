@@ -1049,6 +1049,7 @@ export class TemplateMapGenerator {
                 }
                 if (e.noLoot && entity) entity.noLoot = true;
                 if (e.deaf && entity) entity.deaf = true;
+                if (e.earbucksValue !== undefined && entity) entity.earbucksValue = e.earbucksValue;
 
                 const registry = templateMapData.metadata?.entityRegistry;
                 if (registry?.entries) {

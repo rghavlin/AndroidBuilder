@@ -55036,7 +55036,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.crowbar-1784792706244-w76vd",
+            "instanceId": "weapon.crowbar-1784795751985-tvumk",
             "defId": "weapon.crowbar",
             "id": "weapon.crowbar",
             "name": "Crowbar",
@@ -58559,7 +58559,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_corn-1784792706244-825sk",
+            "instanceId": "provision.harvestable_corn-1784795751985-7zfm4",
             "defId": "provision.harvestable_corn",
             "id": "provision.harvestable_corn",
             "name": "Harvestable corn",
@@ -66077,7 +66077,8 @@
       "type": "zombie",
       "x": 23,
       "y": 100,
-      "subtype": "basic"
+      "subtype": "basic",
+      "earbucksValue": 0
     },
     {
       "type": "player",
