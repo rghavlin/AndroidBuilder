@@ -58,7 +58,25 @@ export default function OverlayManager() {
 
   const { worldManager } = useGameMap();
 
-  const { dragState } = useInventory();
+  const { dragState, selectedItem, clearSelected } = useInventory();
+
+  // Deselect any cursor-held item when an unrelated menu/overlay opens.
+  // A selected item only has valid uses against the map, inventory grids,
+  // equipment slots, weapons, or the crafting extension window. Opening one of
+  // these modal overlays is an unrelated action, so a lingering selection would
+  // be stale — clear it, mirroring the map-click deselect in MapInterface.
+  // (isExtensionOpen is intentionally excluded: it hosts the crafting UI, which
+  // is a valid drop target for a selected item.)
+  const anyBlockingOverlay =
+    showMainMenu || !!activeTradeNpc || isBartering || isShopOpen ||
+    !!tollGuard || logHistoryOpen || isSkillsOpen || isJournalOpen ||
+    !!activeNpcDemand || !!activeDialog || !!mapTransition;
+
+  React.useEffect(() => {
+    if (anyBlockingOverlay && selectedItem) {
+      clearSelected();
+    }
+  }, [anyBlockingOverlay, selectedItem, clearSelected]);
 
   // Root elements from index.html
   const modalRoot = document.getElementById('modal-root');

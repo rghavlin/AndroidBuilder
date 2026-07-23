@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useGame } from '../../contexts/GameContext.jsx';
 import OptionsWindow from './OptionsWindow';
 import CreditsWindow from './CreditsWindow';
@@ -7,6 +7,10 @@ import ScenarioPickerWindow from './ScenarioPickerWindow';
 import CharacterRegistryWindow from './CharacterRegistryWindow';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useGridSize } from "@/contexts/GridSizeContext";
+import { useTheme } from "../../contexts/ThemeContext";
+import { cn } from "@/lib/utils";
+import { GAP_SIZE } from "../Inventory/constants";
 
 interface StartMenuButtonsProps {
   className?: string;
@@ -14,8 +18,13 @@ interface StartMenuButtonsProps {
 
 interface MenuButtonDef {
   id: string;
-  label: string;
-  imageId: string;
+  /** Pre-labeled image basename in ./images/UI (icon + baked-in label). */
+  image: string;
+  /** 1-based placement + span in the 6x3 tile grid. */
+  col: number;
+  row: number;
+  w: number;
+  h: number;
   tooltip: string;
   action: () => void;
   disabled?: boolean;
@@ -23,6 +32,8 @@ interface MenuButtonDef {
 
 export default function StartMenuButtons({ className = '' }: StartMenuButtonsProps) {
   const { loadGameDirect, initializeGame, shutdownGame } = useGame();
+  const { scalableSlotSize } = useGridSize();
+  const { theme } = useTheme();
   const [showOptions, setShowOptions] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [showLoadGame, setShowLoadGame] = useState(false);
@@ -87,187 +98,156 @@ export default function StartMenuButtons({ className = '' }: StartMenuButtonsPro
     setShowRegistry(true);
   };
 
+  // Pre-labeled tiles packed into a 6-column x 3-row grid at the real grid slot
+  // size, so the cluster reads as if these items were lying together on the
+  // ground. Load Game is a 2x2 (its 128px art scales up like the in-game .357);
+  // every other tile is 2x1 except the 4x1 Credits spear. The packing fills all
+  // 18 cells exactly and mirrors the mockup:
+  //   [Load Game][ Campaign ][Create Char]
+  //   [Load Game][ Free Play][  Options  ]
+  //   [Custom Map][   Credits (4 wide)   ]
+  const slot = scalableSlotSize || 48;
+  const COLS = 6;
+  const ROWS = 3;
+  const gridWidth = COLS * slot + (COLS - 1) * GAP_SIZE;
+
+  // Mirror the grid overlay's per-theme item styling so these tiles restyle in
+  // lockstep with real inventory items when the theme changes. The slab fill is
+  // tuned to the *ground grid cell* colour for each theme (the .inset-slot
+  // backgrounds in index.css) so the tiles read as part of the ground grid
+  // rather than as darker item cards; the icon filter / blend mirror
+  // UniversalGrid.getAdjustedBgColor.
+  const slabBg =
+    theme === 'light' ? '#e4e4e7'
+    : theme === 'light2' ? '#e8ecf2'
+    : theme === 'steampunk' ? 'linear-gradient(to bottom, #58595d 0%, #68696d 100%)'
+    : theme === 'metallic' ? 'var(--metallic-slab)'
+    : 'radial-gradient(circle at center, #242429 0%, #0c0c0f 100%)'; // dark & dark2
+  // Border matched to the ground grid cell border (not the near-black
+  // sunken-item-slab default) so the lattice around the tiles reads as light as
+  // the real grid rather than a heavy dark cage.
+  const slabBorder =
+    theme === 'light' || theme === 'light2' ? 'rgba(0, 0, 0, 0.12)'
+    : theme === 'steampunk' ? '#4a4b4f'
+    : theme === 'metallic' ? '#4a4b4f'
+    : '#2d2d35'; // dark & dark2
+  const iconFilter =
+    theme === 'steampunk' ? 'var(--sp-icon-filter)'
+    : theme === 'metallic' ? 'var(--metallic-icon-filter)'
+    : theme === 'light2' ? 'invert(0.75)'
+    : theme === 'light' ? 'invert(1)'
+    : undefined;
+  const iconBlend =
+    (!theme.startsWith('dark') && theme !== 'metallic') ? 'mix-blend-multiply' : 'mix-blend-screen';
+
+  const buttons: MenuButtonDef[] = [
+    {
+      id: 'load-game', image: 'loadgame', col: 1, row: 1, w: 2, h: 2,
+      tooltip: hasSave ? 'Load a saved game' : 'No save games available',
+      action: () => setShowLoadGame(true), disabled: !hasSave,
+    },
+    {
+      id: 'campaign', image: 'campaign', col: 3, row: 1, w: 2, h: 1,
+      tooltip: 'Story Campaign mode', action: () => {},
+    },
+    {
+      id: 'create-character', image: 'createcharacter', col: 5, row: 1, w: 2, h: 1,
+      tooltip: 'Create & manage custom characters',
+      action: () => { setRegistryMode('manage'); setShowRegistry(true); },
+    },
+    {
+      id: 'free-play', image: 'freeplay', col: 3, row: 2, w: 2, h: 1,
+      tooltip: 'Start a new survival game', action: handleFreePlay,
+    },
+    {
+      id: 'options', image: 'options', col: 5, row: 2, w: 2, h: 1,
+      tooltip: 'Game audio & display settings', action: () => setShowOptions(true),
+    },
+    {
+      id: 'custom-map', image: 'custommap', col: 1, row: 3, w: 2, h: 1,
+      tooltip: 'Play user-created custom scenarios', action: () => setShowScenarios(true),
+    },
+    {
+      id: 'credits', image: 'credits', col: 3, row: 3, w: 4, h: 1,
+      tooltip: 'View game development credits', action: () => setShowCredits(true),
+    },
+  ];
+
+  const renderButton = (def: MenuButtonDef) => {
+    // NOTE: a <div role="button"> (not a <button>) is deliberate. The metallic /
+    // steampunk / light2 themes style every `[data-testid="ground-items-grid"]
+    // button` with heavy gradient card chrome; a div sidesteps that so these
+    // read as bare item tiles on the black panel, like grid items.
+    return (
+      <Tooltip key={def.id}>
+        <TooltipTrigger asChild>
+          <div
+            role="button"
+            tabIndex={def.disabled ? -1 : 0}
+            aria-disabled={def.disabled}
+            aria-label={def.id}
+            data-testid={`start-menu-${def.id}`}
+            onClick={def.disabled ? undefined : def.action}
+            onKeyDown={(e) => {
+              if (!def.disabled && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                def.action();
+              }
+            }}
+            className={`group outline-none transition-transform ${
+              def.disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer active:scale-95'
+            }`}
+            style={{
+              gridColumn: `${def.col} / span ${def.w}`,
+              gridRow: `${def.row} / span ${def.h}`,
+            }}
+          >
+            {/* Themed item slab — same chrome as an inventory item: neutral slab
+                fill, sunken border/highlight, and a recessed inner shadow. */}
+            <div
+              className={cn(
+                "relative w-full h-full rounded-[3px] sunken-item-slab transition-all duration-200",
+                !def.disabled && "group-hover:brightness-125"
+              )}
+              style={{ background: slabBg, borderColor: slabBorder }}
+            >
+              <img
+                src={`./images/UI/${def.image}.png`}
+                alt={def.id}
+                className={cn(
+                  "w-full h-full object-contain pointer-events-none select-none",
+                  iconBlend
+                )}
+                style={{ filter: iconFilter }}
+                onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+              />
+              {/* Recessed inner shadow overlay — softened so the tile fill stays
+                  close to the ground grid tone rather than reading darker. */}
+              <div className="absolute inset-0 pointer-events-none shadow-[inset_0_2px_5px_rgba(0,0,0,0.5)] rounded-[3px]" />
+            </div>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p className="text-xs font-semibold">{def.tooltip}</p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  };
+
   return (
-    <div className={`w-full p-2 bg-black/90 border-b border-border select-none ${className}`}>
-      {/* 3-Row Grid Container matching mockup structure */}
-      <div className="flex flex-col gap-2">
-        {/* Row 1: Load Game (.357), Campaign (Knife), Create Character (Water Bottle) */}
-        <div className="grid grid-cols-3 gap-2 items-center">
-          {/* Load Game (.357 Pistol) */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => setShowLoadGame(true)}
-                disabled={!hasSave}
-                className={`flex flex-col items-center justify-center p-1.5 rounded border transition-all active:scale-95 ${
-                  hasSave 
-                    ? 'bg-zinc-900/90 border-zinc-700 hover:border-zinc-400 hover:bg-zinc-800' 
-                    : 'bg-zinc-950/50 border-zinc-800/40 opacity-40 cursor-not-allowed'
-                }`}
-              >
-                <img
-                  src="./images/items/357.png"
-                  alt="Load Game"
-                  className="h-10 object-contain filter invert contrast-200"
-                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                />
-                <span className="text-[10px] font-black text-white uppercase tracking-wider mt-0.5 drop-shadow">
-                  LOAD GAME
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p className="text-xs font-semibold">{hasSave ? 'Load a saved game' : 'No save games available'}</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {/* Campaign (Knife) - No-op for now */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => {}}
-                className="flex flex-col items-center justify-center p-1.5 rounded border border-zinc-700 bg-zinc-900/90 hover:border-zinc-400 hover:bg-zinc-800 transition-all active:scale-95"
-              >
-                <img
-                  src="./images/items/knife.png"
-                  alt="Campaign"
-                  className="h-7 object-contain filter invert contrast-200"
-                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                />
-                <span className="text-[10px] font-black text-white uppercase tracking-wider mt-0.5 drop-shadow">
-                  CAMPAIGN
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p className="text-xs font-semibold">Story Campaign mode</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {/* Create Character (Water Bottle) */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => {
-                  setRegistryMode('manage');
-                  setShowRegistry(true);
-                }}
-                className="flex flex-col items-center justify-center p-1.5 rounded border border-zinc-700 bg-zinc-900/90 hover:border-zinc-400 hover:bg-zinc-800 transition-all active:scale-95"
-              >
-                <img
-                  src="./images/items/waterbottle.png"
-                  alt="Create Character"
-                  className="h-7 object-contain filter invert contrast-200"
-                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                />
-                <span className="text-[10px] font-black text-white uppercase tracking-wider mt-0.5 drop-shadow text-center leading-none">
-                  CREATE<br/>CHARACTER
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p className="text-xs font-semibold">Create & manage custom characters</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-
-        {/* Row 2: Spacer/Free Play (Molotov), Options (NVG) */}
-        <div className="grid grid-cols-2 gap-2 items-center">
-          {/* Free Play (Molotov Cocktail) */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleFreePlay}
-                className="flex flex-col items-center justify-center p-1.5 rounded border border-amber-600/60 bg-amber-950/40 hover:bg-amber-900/60 hover:border-amber-400 transition-all active:scale-95 shadow-[0_0_10px_rgba(245,158,11,0.15)]"
-              >
-                <img
-                  src="./images/items/molotovcocktail.png"
-                  alt="Free Play"
-                  className="h-8 object-contain filter invert contrast-200"
-                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                />
-                <span className="text-[11px] font-black text-amber-200 uppercase tracking-widest mt-0.5 drop-shadow">
-                  FREE PLAY
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p className="text-xs font-semibold">Start a new survival game</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {/* Options (Night Vision Goggles) */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => setShowOptions(true)}
-                className="flex flex-col items-center justify-center p-1.5 rounded border border-zinc-700 bg-zinc-900/90 hover:border-zinc-400 hover:bg-zinc-800 transition-all active:scale-95"
-              >
-                <img
-                  src="./images/items/nightvision.png"
-                  alt="Options"
-                  className="h-7 object-contain filter invert contrast-200"
-                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                />
-                <span className="text-[10px] font-black text-white uppercase tracking-wider mt-0.5 drop-shadow">
-                  OPTIONS
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p className="text-xs font-semibold">Game audio & display settings</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-
-        {/* Row 3: Custom Map (Wrench), Credits (Spear) */}
-        <div className="grid grid-cols-2 gap-2 items-center">
-          {/* Custom Map (Wrench) */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => setShowScenarios(true)}
-                className="flex flex-col items-center justify-center p-1.5 rounded border border-zinc-700 bg-zinc-900/90 hover:border-zinc-400 hover:bg-zinc-800 transition-all active:scale-95"
-              >
-                <img
-                  src="./images/items/wrench.png"
-                  alt="Custom Map"
-                  className="h-6 object-contain filter invert contrast-200"
-                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                />
-                <span className="text-[10px] font-black text-white uppercase tracking-wider mt-0.5 drop-shadow">
-                  CUSTOM MAP
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p className="text-xs font-semibold">Play user-created custom scenarios</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {/* Credits (Spear) */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => setShowCredits(true)}
-                className="flex flex-col items-center justify-center p-1.5 rounded border border-zinc-700 bg-zinc-900/90 hover:border-zinc-400 hover:bg-zinc-800 transition-all active:scale-95"
-              >
-                <img
-                  src="./images/items/spear.png"
-                  alt="Credits"
-                  className="h-6 object-contain filter invert contrast-200"
-                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                />
-                <span className="text-[10px] font-black text-white uppercase tracking-wider mt-0.5 drop-shadow">
-                  CREDITS
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p className="text-xs font-semibold">View game development credits</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+    <div className={`w-full py-2 bg-black border-b border-border select-none ${className}`}>
+      {/* Menu tiles packed into a 6x3 grid, sized to the real ground slot so they
+          read as items lying together on the ground. */}
+      <div
+        className="grid mx-auto"
+        style={{
+          gridTemplateColumns: `repeat(${COLS}, ${slot}px)`,
+          gridTemplateRows: `repeat(${ROWS}, ${slot}px)`,
+          gap: `${GAP_SIZE}px`,
+          width: `${gridWidth}px`,
+        }}
+      >
+        {buttons.map(renderButton)}
       </div>
 
       {/* Modal Dialog Windows */}
