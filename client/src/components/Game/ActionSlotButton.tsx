@@ -72,7 +72,7 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
       <button
         onClick={handleClick}
         className={cn(
-          "w-12 h-12 rounded flex items-center justify-center transition-colors overflow-hidden relative",
+          "w-12 h-12 rounded flex items-center justify-center transition-colors overflow-hidden relative focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
           "equipment-slot-metal hover:brightness-110", // Base style for action buttons
           // Targeting state: Bright red outline/glow
           item && isTargeting && (

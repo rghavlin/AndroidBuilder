@@ -172,6 +172,11 @@
     user-select: none;
     -webkit-user-select: none;
   }
+
+  button:focus,
+  button:focus-visible {
+    outline: none !important;
+  }
 }
 
 @layer components {

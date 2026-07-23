@@ -532,7 +532,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           <>
             <div className="flex items-center gap-3 shrink-0">
               <button
-                className="w-12 h-12 flex items-center justify-center transition-all active:scale-95 duration-150 shrink-0 equipment-slot-metal hover:brightness-110"
+                className="w-12 h-12 flex items-center justify-center transition-all active:scale-95 duration-150 shrink-0 equipment-slot-metal hover:brightness-110 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0"
                 title="Main Menu"
                 data-testid="main-menu-button"
                 onClick={() => setShowMainMenu(true)}
