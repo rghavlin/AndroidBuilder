@@ -280,32 +280,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749736-zd6sp",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 23,
@@ -461,41 +436,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749736-5rq2j",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 36,
@@ -881,83 +822,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.leather_belt-1784715749736-zph5f",
-            "defId": "crafting.leather_belt",
-            "id": "crafting.leather_belt",
-            "name": "Leather belt",
-            "rarity": "uncommon",
-            "imageId": "leatherbelt",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable",
-              "equippable",
-              "openable-when-nested"
-            ],
-            "equippableSlot": "belt",
-            "categories": [
-              "crafting_material"
-            ],
-            "pileLimitOne": true,
-            "stackMax": 20,
-            "attachmentSlots": [
-              {
-                "id": "holster_left",
-                "name": "Left Holster",
-                "allowedCategories": [
-                  "holster"
-                ]
-              },
-              {
-                "id": "holster_right",
-                "name": "Right Holster",
-                "allowedCategories": [
-                  "holster"
-                ]
-              },
-              {
-                "id": "ammo_left",
-                "name": "Left Ammo",
-                "allowedCategories": [
-                  "ammo_pouch"
-                ]
-              },
-              {
-                "id": "ammo_right",
-                "name": "Right Ammo",
-                "allowedCategories": [
-                  "ammo_pouch"
-                ]
-              },
-              {
-                "id": "pouch",
-                "name": "Pouch",
-                "allowedCategories": [
-                  "belt_pouch"
-                ]
-              },
-              {
-                "id": "tool_ring_left",
-                "name": "Left Ring",
-                "allowedCategories": [
-                  "tool_ring"
-                ]
-              },
-              {
-                "id": "tool_ring_right",
-                "name": "Right Ring",
-                "allowedCategories": [
-                  "tool_ring"
-                ]
-              }
-            ],
-            "description": "Right-click to open equipment slots",
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 28,
@@ -1199,32 +1064,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749736-ec168",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 8,
@@ -1248,32 +1088,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749736-6jswm",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 10,
@@ -1755,41 +1570,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749736-qnxv5",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 10,
@@ -1909,41 +1690,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749736-lpiac",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 20,
@@ -2775,37 +2522,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "environment.water_puddle-1784715749736-4v3cj",
-            "defId": "environment.water_puddle",
-            "id": "environment.water_puddle",
-            "name": "Water puddle",
-            "rarity": "common",
-            "imageId": "waterpuddle",
-            "width": 5,
-            "height": 5,
-            "isPickable": false,
-            "noDrag": true,
-            "traits": [
-              "water_bottle",
-              "consumable",
-              "water_source"
-            ],
-            "maxWater": 50,
-            "ammoCount": 50,
-            "capacity": 50,
-            "waterQuality": "dirty",
-            "categories": [
-              "environment"
-            ],
-            "noLoot": true,
-            "renderFullTile": true,
-            "description": "Use empty bottle or jug to collect dirty water",
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 9,
@@ -2889,33 +2606,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "backpack.school-1784715749736-w521k",
-            "defId": "backpack.school",
-            "id": "backpack.school",
-            "name": "Book Bag",
-            "rarity": "uncommon",
-            "imageId": "bookBag",
-            "width": 3,
-            "height": 3,
-            "traits": [
-              "equippable",
-              "container"
-            ],
-            "categories": [
-              "container"
-            ],
-            "equippableSlot": "backpack",
-            "containerGrid": {
-              "width": 4,
-              "height": 5
-            },
-            "description": "When on the ground, right-click to open",
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 16,
@@ -3071,32 +2762,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749736-a6jvw",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 29,
@@ -3192,41 +2858,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749736-m6ut5",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 37,
@@ -3732,32 +3364,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749736-ff067",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 39,
@@ -5313,96 +4920,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "furniture.electric_mower-1784715749736-wd71f",
-            "defId": "furniture.electric_mower",
-            "id": "furniture.electric_mower",
-            "name": "Electric mower",
-            "noLoot": true,
-            "noPickup": true,
-            "rarity": "rare",
-            "imageId": "electricmower",
-            "categories": [
-              "furniture"
-            ],
-            "width": 4,
-            "height": 5,
-            "traits": [
-              "draggable",
-              "groundOnly",
-              "openable-when-nested",
-              "furniture"
-            ],
-            "dragApPenalty": 1,
-            "renderFullTile": true,
-            "description": "Dissasemble: Wrench",
-            "attachmentSlots": [
-              {
-                "id": "battery",
-                "name": "Power Cell",
-                "allowedCategories": [
-                  "large_battery"
-                ],
-                "allowedItems": [
-                  "tool.large_battery",
-                  "tool.high_capacity_battery"
-                ]
-              }
-            ],
-            "disassembleData": {
-              "toolId": "weapon.wrench",
-              "apCost": 15,
-              "components": [
-                {
-                  "id": "crafting.wheel",
-                  "count": 4
-                },
-                {
-                  "id": "electric_motor",
-                  "count": 1
-                },
-                {
-                  "id": "crafting.mower_blade",
-                  "count": 1
-                },
-                {
-                  "id": "weapon.metal_rod",
-                  "count": 2
-                },
-                {
-                  "id": "crafting.metal_plate",
-                  "count": 1
-                }
-              ]
-            },
-            "condition": null,
-            "attachments": {
-              "battery": {
-                "instanceId": "tool.large_battery-1784715749737-wvn1u",
-                "defId": "tool.large_battery",
-                "id": "tool.large_battery",
-                "name": "Large battery",
-                "rarity": "uncommon",
-                "imageId": "largebattery",
-                "width": 2,
-                "height": 1,
-                "traits": [
-                  "stackable",
-                  "battery"
-                ],
-                "categories": [
-                  "large_battery",
-                  "tool"
-                ],
-                "stackMax": 5,
-                "capacity": 100,
-                "ammoCount": 4
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 8,
@@ -5762,32 +5280,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-bjwfl",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 38,
@@ -5861,67 +5354,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.rag-1784715749737-nbhaw",
-            "defId": "crafting.rag",
-            "id": "crafting.rag",
-            "name": "Rag",
-            "rarity": "common",
-            "imageId": "rag",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material",
-              "fuel"
-            ],
-            "stackMax": 50,
-            "condition": null
-          },
-          {
-            "instanceId": "book.nomad_survivor_2-1784715749737-o1ati",
-            "defId": "book.nomad_survivor_2",
-            "id": "book.nomad_survivor_2",
-            "name": "Nomad Survivor Vol 2",
-            "rarity": "common",
-            "imageId": "nomadsurvivor",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "readable"
-            ],
-            "categories": [
-              "book",
-              "fuel"
-            ],
-            "totalPages": 15,
-            "description": "Learn how to build a Planter box",
-            "condition": null
-          },
-          {
-            "instanceId": "crafting.glass_shard-1784715749737-6l1l4",
-            "defId": "crafting.glass_shard",
-            "id": "crafting.glass_shard",
-            "name": "Glass shard",
-            "rarity": "common",
-            "imageId": "glassshard",
-            "width": 2,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "pileLimitOne": true,
-            "stackMax": 20,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 4,
@@ -7463,32 +6896,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-8nng3",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 12,
@@ -7728,32 +7136,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-u1few",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 32,
@@ -8441,10 +7824,1588 @@
           "s": false,
           "w": false
         },
+        "contents": []
+      },
+      {
+        "x": 9,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 10,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 11,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 12,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 13,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 14,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 15,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 16,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 17,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 18,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 19,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 20,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 21,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 22,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 23,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 24,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 25,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 26,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 27,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 28,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 29,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 30,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 31,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 32,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 33,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 34,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 35,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 36,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 37,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 38,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 39,
+        "y": 16,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 1,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 2,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 3,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 4,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 5,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 6,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 7,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 8,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 9,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 10,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 11,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 12,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 13,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 14,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 15,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 16,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 17,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 18,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 19,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 20,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 21,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 22,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 23,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 24,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 25,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 26,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 27,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 28,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 29,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 30,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 31,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 32,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 33,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 34,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 35,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 36,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 37,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 38,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 39,
+        "y": 17,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 1,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 2,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 3,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 4,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 5,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 6,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 7,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 8,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 9,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 10,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 11,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 12,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 13,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 14,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 15,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 16,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 17,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 18,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 19,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 20,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 21,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 22,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 23,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 24,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 25,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 26,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 27,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 28,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 29,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 30,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 31,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 32,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 33,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 34,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 35,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 36,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 37,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 38,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 39,
+        "y": 18,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 1,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 2,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 3,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 4,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 5,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 6,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 7,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 8,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 9,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 10,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 11,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 12,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 13,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 14,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 15,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 16,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 17,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 18,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 19,
+        "y": 19,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.golf_cart-1784715749737-9zl65",
+            "instanceId": "vehicle.golf_cart-1784783047718-49xs7",
             "defId": "vehicle.golf_cart",
             "id": "vehicle.golf_cart",
             "name": "Golf Cart",
@@ -8542,1698 +9503,11 @@
                   "count": 2
                 }
               ]
-            },
-            "ammoCount": 0,
-            "condition": null,
-            "attachments": {
-              "battery_front": {
-                "instanceId": "tool.large_battery-1784715749737-5miir",
-                "defId": "tool.large_battery",
-                "id": "tool.large_battery",
-                "name": "Large battery",
-                "rarity": "uncommon",
-                "imageId": "largebattery",
-                "width": 2,
-                "height": 1,
-                "traits": [
-                  "stackable",
-                  "battery"
-                ],
-                "categories": [
-                  "large_battery",
-                  "tool"
-                ],
-                "stackMax": 5,
-                "capacity": 100,
-                "ammoCount": 49
-              }
             }
           }
         ]
       },
       {
-        "x": 9,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "tool.battery_powered_hotplate-1784715749737-wq0gu",
-            "defId": "tool.battery_powered_hotplate",
-            "id": "tool.battery_powered_hotplate",
-            "name": "Battery-powered hotplate",
-            "rarity": "rare",
-            "imageId": "batterypoweredhotplate",
-            "width": 2,
-            "height": 2,
-            "traits": [
-              "battery-powered"
-            ],
-            "categories": [
-              "tool"
-            ],
-            "isOn": false,
-            "lightRange": 2,
-            "lightType": "glow",
-            "attachmentSlots": [
-              {
-                "id": "battery",
-                "name": "Power Cell",
-                "allowedCategories": [
-                  "large_battery"
-                ],
-                "allowedItems": [
-                  "tool.large_battery",
-                  "tool.high_capacity_battery"
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "x": 10,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 20,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 21,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 22,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 23,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 24,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 25,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 26,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 27,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 28,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 29,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 30,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 31,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 32,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 33,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 34,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 35,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 36,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 37,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 38,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 39,
-        "y": 16,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 20,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 21,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 22,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 23,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-ok1aw",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
-      },
-      {
-        "x": 24,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 25,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 26,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 27,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 28,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 29,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 30,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 31,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 32,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 33,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-dgj69",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
-      },
-      {
-        "x": 34,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 35,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 36,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 37,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 38,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 39,
-        "y": 17,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 20,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 21,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 22,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 23,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 24,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 25,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 26,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 27,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 28,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 29,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 30,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 31,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 32,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 33,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 34,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 35,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 36,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 37,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 38,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 39,
-        "y": 18,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 19,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
         "x": 20,
         "y": 19,
         "terrain": "grass",
@@ -11557,32 +10831,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-qtue9",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 10,
@@ -11750,41 +10999,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749737-uk106",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 24,
@@ -12880,50 +12095,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "food.cannedsoup-1784715749737-0pdn6",
-            "defId": "food.cannedsoup",
-            "id": "food.cannedsoup",
-            "name": "Canned Soup",
-            "rarity": "uncommon",
-            "imageId": "cannedsoup",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable",
-              "consumable"
-            ],
-            "categories": [
-              "food"
-            ],
-            "stackMax": 10,
-            "consumptionEffects": {
-              "nutrition": 5,
-              "hydration": 2
-            },
-            "condition": null
-          },
-          {
-            "instanceId": "tool.cooking_pot-1784715749737-j1m11",
-            "defId": "tool.cooking_pot",
-            "id": "tool.cooking_pot",
-            "name": "Cooking pot",
-            "rarity": "common",
-            "imageId": "cookingpot",
-            "width": 2,
-            "height": 2,
-            "traits": [
-              "degradable"
-            ],
-            "categories": [
-              "tool",
-              "cooking_pot"
-            ],
-            "condition": 44
-          }
-        ]
+        "contents": []
       },
       {
         "x": 35,
@@ -13345,41 +12517,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749737-8a52y",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 30,
@@ -13499,32 +12637,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-gqfgj",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       }
     ],
     [
@@ -13658,32 +12771,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-zv5ju",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 11,
@@ -14177,30 +13265,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "tool.matchbook-1784715749737-y8rig",
-            "defId": "tool.matchbook",
-            "id": "tool.matchbook",
-            "name": "Matchbook",
-            "rarity": "uncommon",
-            "imageId": "matchbook",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "charge-based"
-            ],
-            "categories": [
-              "tool"
-            ],
-            "stackMax": 1,
-            "capacity": 15,
-            "ammoCount": 8,
-            "spawnAmmoPercent": 1,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 12,
@@ -14416,32 +13481,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-te16b",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 30,
@@ -14767,41 +13807,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749737-3b3tx",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 17,
@@ -14921,32 +13927,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-z98rc",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 27,
@@ -15176,32 +14157,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-xz5vj",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 6,
@@ -15815,41 +14771,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749737-0rfr4",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 17,
@@ -15969,41 +14891,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749737-x654x",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 27,
@@ -16763,32 +15651,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-ixoq4",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 10,
@@ -17004,41 +15867,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749737-qdgst",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 28,
@@ -17472,41 +16301,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749737-q4u5r",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 24,
@@ -18386,92 +17181,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "vehicle.electric_scooter-1784715749737-b31wk",
-            "defId": "vehicle.electric_scooter",
-            "id": "vehicle.electric_scooter",
-            "name": "Electric Scooter",
-            "noLoot": true,
-            "rarity": "rare",
-            "imageId": "electricscooter",
-            "width": 4,
-            "height": 3,
-            "traits": [
-              "draggable",
-              "vehicle",
-              "wagon",
-              "scooter"
-            ],
-            "categories": [
-              "vehicle"
-            ],
-            "description": "Zoom! Dissasemble: Wrench",
-            "dragApPenalty": 1,
-            "rideApBonus": 0.5,
-            "renderFullTile": true,
-            "attachmentSlots": [
-              {
-                "id": "battery",
-                "name": "Battery",
-                "allowedCategories": [
-                  "large_battery"
-                ],
-                "allowedItems": [
-                  "tool.large_battery",
-                  "tool.high_capacity_battery"
-                ]
-              }
-            ],
-            "disassembleData": {
-              "toolId": "weapon.wrench",
-              "apCost": 10,
-              "components": [
-                {
-                  "id": "electric_motor",
-                  "count": 1
-                },
-                {
-                  "id": "weapon.metal_rod",
-                  "count": 1
-                },
-                {
-                  "id": "crafting.wheel",
-                  "count": 2
-                },
-                {
-                  "id": "crafting.metal_plate",
-                  "count": 1
-                }
-              ]
-            },
-            "condition": null,
-            "attachments": {
-              "battery": {
-                "instanceId": "tool.large_battery-1784715749737-m6bg7",
-                "defId": "tool.large_battery",
-                "id": "tool.large_battery",
-                "name": "Large battery",
-                "rarity": "uncommon",
-                "imageId": "largebattery",
-                "width": 2,
-                "height": 1,
-                "traits": [
-                  "stackable",
-                  "battery"
-                ],
-                "categories": [
-                  "large_battery",
-                  "tool"
-                ],
-                "stackMax": 5,
-                "capacity": 100,
-                "ammoCount": 19
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 17,
@@ -18495,32 +17205,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.stone-1784715749737-rat8m",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50,
-            "condition": null
-          }
-        ]
+        "contents": []
       },
       {
         "x": 19,
@@ -18664,41 +17349,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.stick-1784715749737-lpz9s",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 31,
@@ -19820,135 +18471,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "vehicle.golf_cart-1784715749737-nvwfx",
-            "defId": "vehicle.golf_cart",
-            "id": "vehicle.golf_cart",
-            "name": "Golf Cart",
-            "noLoot": true,
-            "noPickup": true,
-            "rarity": "extremely_rare",
-            "imageId": "golfcart",
-            "width": 5,
-            "height": 7,
-            "traits": [
-              "draggable",
-              "groundOnly",
-              "container",
-              "vehicle",
-              "wagon",
-              "scooter"
-            ],
-            "categories": [
-              "furniture",
-              "vehicle"
-            ],
-            "dragApPenalty": 3,
-            "motorAssistBonus": 0.5,
-            "rideApBonus": 0.5,
-            "powerEfficiency": 0.5,
-            "canTow": true,
-            "terrainModifiers": {
-              "road": -0.5,
-              "sidewalk": -0.5
-            },
-            "renderFullTile": true,
-            "containerGrid": {
-              "width": 5,
-              "height": 3,
-              "isVehicle": true
-            },
-            "attachmentSlots": [
-              {
-                "id": "motor_front",
-                "name": "Front Motor",
-                "allowedItems": [
-                  "electric_motor"
-                ]
-              },
-              {
-                "id": "battery_front",
-                "name": "Front Power Cell",
-                "allowedCategories": [
-                  "large_battery"
-                ],
-                "allowedItems": [
-                  "tool.large_battery",
-                  "tool.high_capacity_battery"
-                ]
-              },
-              {
-                "id": "motor_rear",
-                "name": "Rear Motor",
-                "allowedItems": [
-                  "electric_motor"
-                ]
-              },
-              {
-                "id": "battery_rear",
-                "name": "Rear Power Cell",
-                "allowedCategories": [
-                  "large_battery"
-                ],
-                "allowedItems": [
-                  "tool.large_battery",
-                  "tool.high_capacity_battery"
-                ]
-              }
-            ],
-            "defaultAttachments": {
-              "motor_front": "electric_motor",
-              "battery_front": "tool.large_battery",
-              "motor_rear": "electric_motor",
-              "battery_rear": "tool.large_battery"
-            },
-            "disassembleData": {
-              "toolId": "weapon.wrench",
-              "apCost": 15,
-              "components": [
-                {
-                  "id": "weapon.metal_rod",
-                  "count": 2
-                },
-                {
-                  "id": "crafting.wheel",
-                  "count": 4
-                },
-                {
-                  "id": "crafting.metal_plate",
-                  "count": 2
-                }
-              ]
-            },
-            "ammoCount": 0,
-            "condition": null,
-            "attachments": {
-              "battery_front": {
-                "instanceId": "tool.large_battery-1784715749737-bxhpv",
-                "defId": "tool.large_battery",
-                "id": "tool.large_battery",
-                "name": "Large battery",
-                "rarity": "uncommon",
-                "imageId": "largebattery",
-                "width": 2,
-                "height": 1,
-                "traits": [
-                  "stackable",
-                  "battery"
-                ],
-                "categories": [
-                  "large_battery",
-                  "tool"
-                ],
-                "stackMax": 5,
-                "capacity": 100,
-                "ammoCount": 83
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 4,
@@ -20790,91 +19313,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "crafting.metal_plate-1784715749737-4v1qg",
-            "defId": "crafting.metal_plate",
-            "id": "crafting.metal_plate",
-            "name": "Metal plate",
-            "rarity": "uncommon",
-            "imageId": "metalplate",
-            "width": 2,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "stackMax": 5,
-            "condition": null
-          },
-          {
-            "instanceId": "weapon.stick-1784715749737-l6u0m",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 64,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          },
-          {
-            "instanceId": "weapon.stick-1784715749737-ll9cs",
-            "defId": "weapon.stick",
-            "id": "weapon.stick",
-            "name": "Stick",
-            "rarity": "common",
-            "imageId": "stick",
-            "width": 4,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "crafting_material",
-              "fuel"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.6,
-              "damage": {
-                "min": 1,
-                "max": 5
-              }
-            }
-          }
-        ]
+        "contents": []
       },
       {
         "x": 34,
@@ -20962,8 +19401,8 @@
     "spawnZones": {
       "playerStart": [
         {
-          "x": 9,
-          "y": 16
+          "x": 19,
+          "y": 20
         }
       ]
     }
@@ -20971,8 +19410,8 @@
   "entities": [
     {
       "type": "player",
-      "x": 9,
-      "y": 16,
+      "x": 19,
+      "y": 20,
       "subtype": null
     }
   ],

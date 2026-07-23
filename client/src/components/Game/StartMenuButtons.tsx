@@ -14,6 +14,8 @@ import { GAP_SIZE } from "../Inventory/constants";
 
 interface StartMenuButtonsProps {
   className?: string;
+  isTransparentGround?: boolean;
+  tileImageUrl?: string;
 }
 
 interface MenuButtonDef {
@@ -30,7 +32,7 @@ interface MenuButtonDef {
   disabled?: boolean;
 }
 
-export default function StartMenuButtons({ className = '' }: StartMenuButtonsProps) {
+export default function StartMenuButtons({ className = '', isTransparentGround = false, tileImageUrl }: StartMenuButtonsProps) {
   const { loadGameDirect, initializeGame, shutdownGame } = useGame();
   const { scalableSlotSize } = useGridSize();
   const { theme } = useTheme();
@@ -98,39 +100,20 @@ export default function StartMenuButtons({ className = '' }: StartMenuButtonsPro
     setShowRegistry(true);
   };
 
-  // Pre-labeled tiles packed into a 6-column x 3-row grid at the real grid slot
-  // size, so the cluster reads as if these items were lying together on the
-  // ground. Load Game is a 2x2 (its 128px art scales up like the in-game .357);
-  // every other tile is 2x1 except the 4x1 Credits spear. The packing fills all
-  // 18 cells exactly and mirrors the mockup:
-  //   [Load Game][ Campaign ][Create Char]
-  //   [Load Game][ Free Play][  Options  ]
-  //   [Custom Map][   Credits (4 wide)   ]
   const slot = scalableSlotSize || 48;
   const COLS = 6;
   const ROWS = 3;
   const gridWidth = COLS * slot + (COLS - 1) * GAP_SIZE;
+  const gridHeight = ROWS * slot + (ROWS - 1) * GAP_SIZE;
 
-  // Mirror the grid overlay's per-theme item styling so these tiles restyle in
-  // lockstep with real inventory items when the theme changes. The slab fill is
-  // tuned to the *ground grid cell* colour for each theme (the .inset-slot
-  // backgrounds in index.css) so the tiles read as part of the ground grid
-  // rather than as darker item cards; the icon filter / blend mirror
-  // UniversalGrid.getAdjustedBgColor.
-  const slabBg =
-    theme === 'light' ? '#e4e4e7'
-    : theme === 'light2' ? '#e8ecf2'
-    : theme === 'steampunk' ? 'linear-gradient(to bottom, #58595d 0%, #68696d 100%)'
-    : theme === 'metallic' ? 'var(--metallic-slab)'
-    : 'radial-gradient(circle at center, #242429 0%, #0c0c0f 100%)'; // dark & dark2
-  // Border matched to the ground grid cell border (not the near-black
-  // sunken-item-slab default) so the lattice around the tiles reads as light as
-  // the real grid rather than a heavy dark cage.
-  const slabBorder =
-    theme === 'light' || theme === 'light2' ? 'rgba(0, 0, 0, 0.12)'
-    : theme === 'steampunk' ? '#4a4b4f'
-    : theme === 'metallic' ? '#4a4b4f'
-    : '#2d2d35'; // dark & dark2
+  const getItemSlabBg = (themeName: string) => {
+    if (themeName === 'light2') return 'rgba(255, 255, 255, 0.15)';
+    if (themeName === 'steampunk') return 'var(--sp-slab)';
+    if (themeName === 'metallic') return 'var(--metallic-slab)';
+    if (themeName === 'light') return '#e4e4e7';
+    return 'var(--card)'; // dark & dark2 item background
+  };
+
   const iconFilter =
     theme === 'steampunk' ? 'var(--sp-icon-filter)'
     : theme === 'metallic' ? 'var(--metallic-icon-filter)'
@@ -174,10 +157,11 @@ export default function StartMenuButtons({ className = '' }: StartMenuButtonsPro
   ];
 
   const renderButton = (def: MenuButtonDef) => {
-    // NOTE: a <div role="button"> (not a <button>) is deliberate. The metallic /
-    // steampunk / light2 themes style every `[data-testid="ground-items-grid"]
-    // button` with heavy gradient card chrome; a div sidesteps that so these
-    // read as bare item tiles on the black panel, like grid items.
+    const leftPos = (def.col - 1) * (slot + GAP_SIZE);
+    const topPos = (def.row - 1) * (slot + GAP_SIZE);
+    const buttonWidth = def.w * slot + (def.w - 1) * GAP_SIZE;
+    const buttonHeight = def.h * slot + (def.h - 1) * GAP_SIZE;
+
     return (
       <Tooltip key={def.id}>
         <TooltipTrigger asChild>
@@ -194,23 +178,20 @@ export default function StartMenuButtons({ className = '' }: StartMenuButtonsPro
                 def.action();
               }
             }}
-            className={`group outline-none transition-transform ${
-              def.disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer active:scale-95'
-            }`}
+            className={cn(
+              "absolute z-10 pointer-events-auto select-none rounded-[3px] sunken-item-slab transition-all duration-200 group outline-none",
+              def.disabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer active:scale-95 hover:brightness-125"
+            )}
             style={{
-              gridColumn: `${def.col} / span ${def.w}`,
-              gridRow: `${def.row} / span ${def.h}`,
+              left: `${leftPos}px`,
+              top: `${topPos}px`,
+              width: `${buttonWidth}px`,
+              height: `${buttonHeight}px`,
+              background: getItemSlabBg(theme),
             }}
+            data-inventory-ui="true"
           >
-            {/* Themed item slab — same chrome as an inventory item: neutral slab
-                fill, sunken border/highlight, and a recessed inner shadow. */}
-            <div
-              className={cn(
-                "relative w-full h-full rounded-[3px] sunken-item-slab transition-all duration-200",
-                !def.disabled && "group-hover:brightness-125"
-              )}
-              style={{ background: slabBg, borderColor: slabBorder }}
-            >
+            <div className="w-full h-full relative">
               <img
                 src={`./images/UI/${def.image}.png`}
                 alt={def.id}
@@ -221,9 +202,8 @@ export default function StartMenuButtons({ className = '' }: StartMenuButtonsPro
                 style={{ filter: iconFilter }}
                 onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
               />
-              {/* Recessed inner shadow overlay — softened so the tile fill stays
-                  close to the ground grid tone rather than reading darker. */}
-              <div className="absolute inset-0 pointer-events-none shadow-[inset_0_2px_5px_rgba(0,0,0,0.5)] rounded-[3px]" />
+              {/* Recessed inner shadow overlay — exact same as UniversalGrid item overlays */}
+              <div className="absolute inset-0 pointer-events-none shadow-[inset_0_3px_6px_rgba(0,0,0,0.85)] rounded-[3px] z-10" />
             </div>
           </div>
         </TooltipTrigger>
@@ -235,19 +215,57 @@ export default function StartMenuButtons({ className = '' }: StartMenuButtonsPro
   };
 
   return (
-    <div className={`w-full py-2 bg-black border-b border-border select-none ${className}`}>
-      {/* Menu tiles packed into a 6x3 grid, sized to the real ground slot so they
-          read as items lying together on the ground. */}
+    <div className={cn("w-full py-2 border-b border-border select-none flex justify-center", className)}>
       <div
-        className="grid mx-auto"
+        className="relative flex-shrink-0"
         style={{
-          gridTemplateColumns: `repeat(${COLS}, ${slot}px)`,
-          gridTemplateRows: `repeat(${ROWS}, ${slot}px)`,
-          gap: `${GAP_SIZE}px`,
           width: `${gridWidth}px`,
+          height: `${gridHeight}px`,
         }}
       >
-        {buttons.map(renderButton)}
+        {/* Layer 1: Ground grid cells mesh (18 1x1 slots) */}
+        <div
+          className={cn(
+            "grid absolute inset-0 select-none",
+            isTransparentGround && tileImageUrl && "tile-backed-grid"
+          )}
+          style={{
+            gridTemplateColumns: `repeat(${COLS}, ${slot}px)`,
+            gridTemplateRows: `repeat(${ROWS}, ${slot}px)`,
+            gap: `${GAP_SIZE}px`,
+            width: `${gridWidth}px`,
+            height: `${gridHeight}px`,
+            ...(isTransparentGround && tileImageUrl ? {
+              backgroundImage: `url(${tileImageUrl})`,
+              backgroundRepeat: 'repeat',
+              backgroundSize: '64px',
+            } : {}),
+          }}
+          data-inventory-ui="true"
+        >
+          {Array.from({ length: COLS * ROWS }).map((_, i) => {
+            const x = i % COLS;
+            const y = Math.floor(i / COLS);
+            return (
+              <div
+                key={`menu-bg-slot-${x}-${y}`}
+                className={cn(
+                  "flex-shrink-0 relative rounded-[3px]",
+                  isTransparentGround ? "transparent-ground-slot" : "inset-slot"
+                )}
+                style={{ width: `${slot}px`, height: `${slot}px` }}
+              />
+            );
+          })}
+        </div>
+
+        {/* Layer 2: Menu Button Item Overlays */}
+        <div
+          className="absolute inset-0 select-none pointer-events-none"
+          style={{ width: `${gridWidth}px`, height: `${gridHeight}px` }}
+        >
+          {buttons.map(renderButton)}
+        </div>
       </div>
 
       {/* Modal Dialog Windows */}
