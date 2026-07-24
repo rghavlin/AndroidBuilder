@@ -1689,11 +1689,29 @@ export const InventoryProvider = ({ children }) => {
     } else {
       // For a single bottle, we'll use the item itself.
       // We MUST remove it from its current container temporarily so it doesn't
-      // collide with itself when we call addItem with origin coordinates.
+      // collide with itself (or get folded into a sibling stack) when we call
+      // addItem with origin coordinates.
       setSelectedItem(null);
-      const currentContainer = bottle._container;
-      if (currentContainer) {
-        currentContainer.removeItem(bottle.instanceId);
+      // Authoritative removal keyed by instanceId. Relying on the live
+      // `_container` backref alone caused a prod-only duplication ("2 empty
+      // bottles -> 3 dirty water"): when that backref was stale/null (e.g. the
+      // selected object was a re-rendered copy) the bottle was never removed,
+      // and the stack-merge in addItem below then folded its count into a
+      // sibling dirty-water stack while the original stayed in its slot as a
+      // filled-but-zombie bottle. inventoryManager.removeItem() locates the
+      // live instance recursively (any container/pocket/backpack), so it clears
+      // the real grid cell regardless of a stale backref.
+      let removed = engine.inventoryManager.removeItem(bottle.instanceId);
+      if (!removed) {
+        const originContainer = engine.inventoryManager.getContainer(originContainerId) || bottle._container;
+        removed = originContainer?.removeItem?.(bottle.instanceId);
+      }
+      if (!removed) {
+        // The instance genuinely can't be located. Do NOT proceed to the
+        // merge below — that is exactly what would duplicate it.
+        addLog('Could not fill bottle — inventory desync. Reopen the container and try again.', 'error');
+        engine.notifyUpdate();
+        return;
       }
     }
 

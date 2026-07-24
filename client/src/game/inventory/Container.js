@@ -642,6 +642,10 @@ export class Container {
     for (const existingItem of this.items.values()) {
       if (remainingItem.stackCount === 0) break;
 
+      // Never stack an item into itself (guards against the item already being
+      // present in this container's map when addItem is called with it).
+      if (existingItem.instanceId === remainingItem.instanceId) continue;
+
       if (existingItem.canStackWith(remainingItem)) {
         const stackableAmount = existingItem.getStackableAmount(remainingItem);
 

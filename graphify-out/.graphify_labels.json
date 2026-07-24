@@ -130,10 +130,8 @@
   "128": "API Query Client",
   "129": "verify_direct_load_capacity_p3_07.mjs",
   "130": "Entity Transformation Scripts",
-  "131": "sheet.tsx",
   "132": "Food Scarcity Logic",
   "133": "test_noise.js",
-  "134": ".syncWithMap",
   "135": ".applyArmorAbsorption",
   "136": "Extended LOS Testing",
   "137": "verify_road_template_p3_09.mjs",
@@ -148,7 +146,6 @@
   "146": "Image Cropping Scripts",
   "147": "JSON Export Scripts",
   "148": "Entity Fix Scripts",
-  "149": "Quadrant",
   "150": "migrateEvents.js",
   "151": "NPM Configuration Testing",
   "152": "table.tsx",
@@ -178,6 +175,5 @@
   "187": "verify_rain_collector_size.mjs",
   "190": "verify_loadmap_dedup_p4_03.mjs",
   "191": "verify_worldmanager_populate_p4_02.mjs",
-  "192": "bench_houses.mjs",
   "194": "TileRenderer.js"
 }

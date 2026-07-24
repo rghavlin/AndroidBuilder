@@ -2544,6 +2544,11 @@ export class InventoryManager extends SafeEventEmitter {
   _findStackRecursive(container, item) {
     if (!container || !container.items) return null;
     for (const existingItem of container.items.values()) {
+      // Never merge an item into itself. If `item` is still present in the
+      // container being searched (a caller forgot to remove it first, or a
+      // stale backref made the removal a no-op), matching it against itself
+      // would fold its own count away and leave a zombie in the grid.
+      if (existingItem.instanceId === item.instanceId) continue;
       if (existingItem.canStackWith(item) && existingItem.stackCount < existingItem.stackMax) {
         return { existingItem, container };
       }

@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784887089.2011414,
-    "ast_hash": "f6d716c77174317e69fcbd4ea4e5a5a1",
+    "mtime": 1784896172.2267501,
+    "ast_hash": "490adaee8a7b89f1cdb86432749c73de",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -655,8 +655,8 @@
     "semantic_hash": "6e101a2bf5eb2c2342cf7276b698bab5"
   },
   "client/src/contexts/InventoryContext.jsx": {
-    "mtime": 1784160466.4343863,
-    "ast_hash": "f5f2096facffa6c57343adeacb40d77d",
+    "mtime": 1784896122.3150823,
+    "ast_hash": "0133035de820f7932686ba652e4f30e0",
     "semantic_hash": ""
   },
   "client/src/contexts/LogContext.jsx": {
@@ -960,8 +960,8 @@
     "semantic_hash": "d342a11f234705f1b3bf03b338da08dc"
   },
   "client/src/game/inventory/Container.js": {
-    "mtime": 1784160497.2769046,
-    "ast_hash": "d6775a6bd0273eab0f1345da8c97118c",
+    "mtime": 1784896141.4688358,
+    "ast_hash": "6ccf2959658edbd2ab385e791d264e05",
     "semantic_hash": ""
   },
   "client/src/game/inventory/CraftingManager.js": {
@@ -980,8 +980,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/InventoryManager.js": {
-    "mtime": 1784701207.704409,
-    "ast_hash": "7ea1848ecb049ffb12405a8daca9e1a6",
+    "mtime": 1784896135.7496672,
+    "ast_hash": "a6d1c7735138adf4ae38e55c94ffd1ab",
     "semantic_hash": ""
   },
   "client/src/game/inventory/Item.js": {
@@ -3187,6 +3187,16 @@
   "customMaps/saveMapTest.scenario.json": {
     "mtime": 1784868771.0174968,
     "ast_hash": "6c88cf7c85495cc95ffc6fcf6985fb91",
+    "semantic_hash": ""
+  },
+  "test/inventory/fillBottleDuplication.test.js": {
+    "mtime": 1784896201.7173874,
+    "ast_hash": "57e7d101c5d63c4ee66b614ef7617426",
+    "semantic_hash": ""
+  },
+  "test/map/snareCatch.test.js": {
+    "mtime": 1784891016.6812432,
+    "ast_hash": "4c452b8d37d8cfad2553877385fcccd7",
     "semantic_hash": ""
   }
 }
