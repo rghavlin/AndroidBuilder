@@ -1,7 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Outfit (SIL Open Font License) — bundled locally so the app makes NO runtime
+   web request. Drop Outfit-Black.ttf (weight 900) into client/public/fonts/.
+   Used by .menu-btn-stencil (start-menu buttons). */
+@font-face {
+  font-family: 'Outfit';
+  src: url('/fonts/Outfit-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 @font-face {
   font-family: 'Boston Traffic';

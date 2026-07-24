@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, session, net, ipcMain } from 'electron';
+import { app, BrowserWindow, Menu, session, ipcMain } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
@@ -486,15 +486,20 @@ ipcMain.handle('list-saves', async () => {
 });
 
 app.whenReady().then(() => {
-  // Explicitly deny geolocation and other unused permissions to prevent Windows location warnings
+  // Default-deny: a local game needs no web-platform permissions. Anything not
+  // explicitly allowlisted (currently nothing) is refused, so a compromised or
+  // misbehaving renderer cannot reach geolocation/camera/mic/usb/serial/hid/
+  // bluetooth/etc. Add a permission name to ALLOWED_PERMISSIONS only if a real
+  // feature needs it.
+  const ALLOWED_PERMISSIONS = new Set([]);
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
-    const blockedPermissions = ['geolocation', 'notifications', 'midi', 'clipboard-read', 'media'];
-    if (blockedPermissions.includes(permission)) {
-      console.log(`[Permission] Blocking ${permission} request`);
-      return callback(false);
-    }
-    // Allow others by default, or you can be more restrictive
-    callback(true);
+    const allowed = ALLOWED_PERMISSIONS.has(permission);
+    if (!allowed) console.log(`[Permission] Denying ${permission} request`);
+    callback(allowed);
+  });
+  // Synchronous counterpart (navigator.permissions.query, media capability checks).
+  session.defaultSession.setPermissionCheckHandler((webContents, permission) => {
+    return ALLOWED_PERMISSIONS.has(permission);
   });
 
   createWindow();

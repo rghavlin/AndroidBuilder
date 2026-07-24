@@ -10,6 +10,14 @@ import { configManager } from './ConfigManager.js';
 const DEBUG = false;
 const debugLog = (...args) => { if (DEBUG) console.log(...args); };
 
+// Terrains that have no dedicated texture in a given tile set. The renderer
+// already color-fills these (TileRenderer BW_TERRAIN_COLORS), so getTileImage
+// skips the network attempt entirely instead of 404-spamming every extension
+// and path. Keyed by tileSet name.
+const TILESET_MISSING_TERRAINS = {
+  'b&w': new Set(['water', 'wall', 'tent_wall', 'tent_floor']),
+};
+
 export class ImageLoader {
   constructor() {
     this.images = {};
@@ -188,11 +196,9 @@ export class ImageLoader {
 
       const basePaths = placeName === 'barrier' ? [
         './images/map/',
-        '/images/map/',
         this.basePath.root + 'map/'
       ] : [
         this.basePath.places,
-        '/images/places/',
         './images/places/'
       ];
 
@@ -258,7 +264,6 @@ export class ImageLoader {
       // Robust absolute paths based on environment detection
       const basePaths = [
         this.basePath.entities,
-        '/images/entities/',
         './images/entities/'
       ];
 
@@ -392,7 +397,6 @@ export class ImageLoader {
       // This should work since entity images are loading successfully
       const basePaths = [
         this.basePath.UI,
-        '/images/UI/',
         './images/UI/'
       ];
 
@@ -516,7 +520,6 @@ export class ImageLoader {
       // Use same path structure as entity and UI images
       const basePaths = [
         this.basePath.items,
-        '/images/items/',
         './images/items/'
       ];
 
@@ -607,6 +610,13 @@ export class ImageLoader {
 
     const imageKey = `tile_${terrainType}`;
 
+    // This terrain has no texture in the current tile set — render as color fill
+    // without attempting (and failing) any image load. Checked live against the
+    // current tileSet so switching sets re-enables textures that DO exist there.
+    if (TILESET_MISSING_TERRAINS[this.tileSet]?.has(terrainType)) {
+      return null;
+    }
+
     // Return cached image if available
     if (this.images[imageKey]) {
       return this.images[imageKey];
@@ -674,7 +684,6 @@ export class ImageLoader {
       // Use same path structure
       const basePaths = [
         `${this.basePath.tiles}${subFolder}`,
-        `/images/tiles/${subFolder}`,
         `./images/tiles/${subFolder}`
       ];
 
@@ -816,7 +825,6 @@ export class ImageLoader {
 
       const basePaths = [
         `${this.basePath.decorations}${type}/`,
-        `/images/tiles/decorations/${type}/`,
         `./images/tiles/decorations/${type}/`
       ];
 

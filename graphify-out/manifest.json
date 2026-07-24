@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784865916.4701335,
-    "ast_hash": "f66c2214aa5c0a7ad899b6750171b97e",
+    "mtime": 1784880520.4820907,
+    "ast_hash": "521bc59bc605f3ade1b9d92f8bbdce8e",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1784696922.650146,
-    "ast_hash": "52595313f8e0302fcc4a51302c3c5dee",
+    "mtime": 1784880441.4596112,
+    "ast_hash": "029babf2c39e40a64a35715eb87182db",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -1280,8 +1280,8 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/ImageLoader.js": {
-    "mtime": 1784698656.1240542,
-    "ast_hash": "9b0e2c64ab2abf34803497456c13f276",
+    "mtime": 1784880815.2835662,
+    "ast_hash": "a52eaa08bf681479dcd2672a83505cd8",
     "semantic_hash": ""
   },
   "client/src/game/utils/LineOfSight.js": {
@@ -1460,8 +1460,8 @@
     "semantic_hash": "80e251754baef8eb5a7473e940af3313"
   },
   "electron/main.js": {
-    "mtime": 1784868950.8567102,
-    "ast_hash": "5895dfa34f7547e18c70a73c17038646",
+    "mtime": 1784870852.204094,
+    "ast_hash": "ea29f56c7065985b1defb4a48ccb5d2e",
     "semantic_hash": ""
   },
   "electron/preload.js": {
@@ -2390,8 +2390,8 @@
     "semantic_hash": "b8f5cc4f28cdc56eb14fc0e604ab5009"
   },
   "vite.config.electron.ts": {
-    "mtime": 1784860122.436823,
-    "ast_hash": "f702b0ec9615b04f1aa1605b15563b39",
+    "mtime": 1784879446.6552033,
+    "ast_hash": "465310156f6b822189a88877e2f038ee",
     "semantic_hash": ""
   },
   "vite.config.ts": {
@@ -3135,8 +3135,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/StartMenuButtons.tsx": {
-    "mtime": 1784769165.569368,
-    "ast_hash": "86ebc7e870fa6b25107c488311d5d98c",
+    "mtime": 1784881949.7239017,
+    "ast_hash": "a2f5e173938737b9613027ba23c097fa",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.editor.json": {

@@ -69,6 +69,30 @@ export default function StartMenuButtons({ className = '', isTransparentGround =
   };
 
   const handleSelectCharacter = async (character: any) => {
+    // Warn (and, on confirm, delete) if this character is already tied to
+    // active save games — starting a new game clobbers those saves.
+    try {
+      const slots = await GameSaveSystem.listSaveSlots();
+      const conflictingSlots = slots.filter((s: any) => s.characterId === character.id);
+
+      if (conflictingSlots.length > 0) {
+        const confirmDelete = window.confirm(
+          `Warning: The character "${character.name}" is already in use in ${conflictingSlots.length} active save game(s). ` +
+          `Starting a new game will delete the existing save games for this character.\n\n` +
+          `Do you want to proceed and delete the conflicting saves?`
+        );
+        if (!confirmDelete) return;
+
+        for (const slot of conflictingSlots) {
+          await GameSaveSystem.deleteSaveSlot(slot.slotName);
+        }
+        // Refresh the Load Game button's enabled state after deletion.
+        await checkSave();
+      }
+    } catch (e) {
+      console.warn('[StartMenuButtons] Failed to scan or delete conflicting saves:', e);
+    }
+
     setShowRegistry(false);
 
     if (pendingScenarioData) {

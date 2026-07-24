@@ -1065,7 +1065,10 @@ export default function MapCanvas({
   // Preload entity images on initialization
   useEffect(() => {
     const preloadEntityImages = async () => {
-      const commonEntityTypes = [EntityType.PLAYER, EntityType.ZOMBIE, EntityType.ITEM, EntityType.NPC, EntityType.PLACE_ICON, EntityType.RABBIT];
+      // NOTE: PLACE_ICON is intentionally excluded — place icons render by
+      // subtype (getImage(PLACE_ICON, subtype)); there is no base place_icon.png,
+      // so preloading it only produced 404s.
+      const commonEntityTypes = [EntityType.PLAYER, EntityType.ZOMBIE, EntityType.ITEM, EntityType.NPC, EntityType.RABBIT];
       await imageLoader.preloadImages(commonEntityTypes);
 
       // Preload the default item image for ground piles
