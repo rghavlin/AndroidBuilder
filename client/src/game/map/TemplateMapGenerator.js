@@ -681,6 +681,12 @@ export class TemplateMapGenerator {
    * @returns {Promise<{ gameMap: Object, mapData: Object, validation: Object, attempts: number }>}
    */
   async generateFromScenario(scenarioData) {
+    if (!scenarioData || !Array.isArray(scenarioData.tiles)) {
+      throw new Error(
+        `generateFromScenario: scenario "${scenarioData?.name ?? '(unnamed)'}" has no tile data ` +
+        `(tiles=${typeof scenarioData?.tiles}). The scenario file may be missing from the build.`
+      );
+    }
     const { ScenarioMapGenerator } = await import('./generators/ScenarioMapGenerator.js');
     const builder = new MapBuilder(scenarioData.width, scenarioData.height);
     const generator = new ScenarioMapGenerator(scenarioData);

@@ -118,7 +118,8 @@
     "files": [
       "electron/**/*",
       "dist/**/*",
-      "package.json"
+      "package.json",
+      "customMaps/**/*.scenario.json"
     ],
     "extraFiles": [
       {

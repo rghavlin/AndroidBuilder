@@ -1722,11 +1722,18 @@ const GameContextInner = ({ children }) => {
     setIsStartMenuMode(true);
 
     const config = {
-      scenarioData: scenarioData || { name: 'StartMenu' },
       easyStart: false,
       customStats: START_MENU_CHARACTER,
       isStartMenu: true
     };
+    if (scenarioData && Array.isArray(scenarioData.tiles)) {
+      config.scenarioData = scenarioData;
+    } else {
+      // Missing/malformed StartMenu scenario (e.g. not bundled in the packaged
+      // build): fall back to a generated template map so the menu still loads
+      // instead of crashing initialization on undefined tile data.
+      console.warn('[GameContext] StartMenu scenario unavailable or missing tiles — using a generated map for the menu background.');
+    }
 
     return await initializeGame(config);
   }, [initializeGame]);

@@ -33,6 +33,33 @@ function getMimeType(filePath) {
   return mimeTypes[ext] || 'application/octet-stream';
 }
 
+// Resolve `rawName` against `dir` and guarantee the result stays inside `dir`.
+// Blocks path traversal ("../"), absolute paths, and drive-letter escapes from
+// any renderer-supplied save/scenario name. Throws if the path would escape.
+function safeResolve(dir, rawName) {
+  if (typeof rawName !== 'string' || rawName.length === 0) {
+    throw new Error('Invalid file name');
+  }
+  const root = path.resolve(dir);
+  const resolved = path.resolve(root, rawName);
+  if (resolved !== root && !resolved.startsWith(root + path.sep)) {
+    throw new Error('Path escapes target directory');
+  }
+  return resolved;
+}
+
+// Defense-in-depth for every BrowserWindow: deny popups and block navigation to
+// any origin other than the local dev server / bundled files. nodeIntegration is
+// already off and contextIsolation on, but this stops a stray link or injected
+// URL from steering the renderer to a remote origin.
+function hardenWindow(win) {
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  win.webContents.on('will-navigate', (event, url) => {
+    const allowed = url.startsWith('http://localhost:5000') || url.startsWith('file://');
+    if (!allowed) event.preventDefault();
+  });
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -56,23 +83,21 @@ function createWindow() {
   // Set up protocol to serve images and other resources in production
   if (!isDev) {
     mainWindow.webContents.session.protocol.handle('file', (request) => {
+      const distRoot = path.resolve(path.join(__dirname, '..', 'dist'));
       const pathname = new URL(request.url).pathname;
+
+      // Resolve the request to an absolute path, then require it to live inside
+      // dist/. All production assets are bundled there; anything outside (e.g.
+      // file:///C:/Users/... probing) is refused rather than streamed.
       let filePath;
-      
       if (/^\/[a-zA-Z]:\//.test(pathname)) {
-        const absolutePath = decodeURIComponent(pathname.substring(1));
-        // Check if it's a request for local app assets (images, sounds, assets, default.png, etc.)
-        const driveMatch = pathname.match(/^\/[a-zA-Z]:\/(.*)/);
-        const relativePath = driveMatch ? decodeURIComponent(driveMatch[1]) : '';
-        const distPath = path.join(__dirname, '..', 'dist', relativePath);
-        
-        if (fs.existsSync(distPath) && !fs.statSync(distPath).isDirectory()) {
-          filePath = distPath;
-        } else {
-          filePath = absolutePath;
-        }
+        filePath = path.resolve(decodeURIComponent(pathname.substring(1)));
       } else {
-        filePath = path.join(__dirname, '..', 'dist', decodeURIComponent(pathname));
+        filePath = path.resolve(path.join(distRoot, decodeURIComponent(pathname)));
+      }
+
+      if (filePath !== distRoot && !filePath.startsWith(distRoot + path.sep)) {
+        return new Response('Forbidden', { status: 403 });
       }
 
       try {
@@ -125,7 +150,12 @@ function createWindow() {
     const htmlPath = path.join(__dirname, '..', 'dist', 'index.html');
     if (isDev) console.log('Loading HTML from:', htmlPath);
     mainWindow.loadFile(htmlPath);
+    // [TEMP DIAGNOSTIC] kept for ONE verification build so any residual packaged
+    // error is visible. Remove this line once the packaged launch is confirmed working.
+    mainWindow.webContents.openDevTools();
   }
+
+  hardenWindow(mainWindow);
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
@@ -158,7 +188,7 @@ const scenarioDir = path.join(__dirname, '..', 'customMaps');
 ipcMain.handle('save-scenario', async (event, name, data) => {
   try {
     if (!fs.existsSync(scenarioDir)) fs.mkdirSync(scenarioDir, { recursive: true });
-    const filePath = path.join(scenarioDir, `${name}.scenario.json`);
+    const filePath = safeResolve(scenarioDir, `${name}.scenario.json`);
     const content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
     fs.writeFileSync(filePath, content, 'utf-8');
     return { success: true, path: filePath };
@@ -170,7 +200,7 @@ ipcMain.handle('save-scenario', async (event, name, data) => {
 ipcMain.handle('save-scenario-editor', async (event, name, data) => {
   try {
     if (!fs.existsSync(scenarioDir)) fs.mkdirSync(scenarioDir, { recursive: true });
-    const filePath = path.join(scenarioDir, `${name}.editor.json`);
+    const filePath = safeResolve(scenarioDir, `${name}.editor.json`);
     const content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
     fs.writeFileSync(filePath, content, 'utf-8');
     return { success: true, path: filePath };
@@ -225,7 +255,7 @@ ipcMain.handle('list-entity-images', async () => {
 
 ipcMain.handle('load-scenario', async (event, fileName) => {
   try {
-    const filePath = path.join(scenarioDir, fileName);
+    const filePath = safeResolve(scenarioDir, fileName);
     if (!fs.existsSync(filePath)) return null;
     return fs.readFileSync(filePath, 'utf-8');
   } catch (error) {
@@ -235,7 +265,7 @@ ipcMain.handle('load-scenario', async (event, fileName) => {
 
 ipcMain.handle('load-scenario-editor', async (event, name) => {
   try {
-    const filePath = path.join(scenarioDir, `${name}.editor.json`);
+    const filePath = safeResolve(scenarioDir, `${name}.editor.json`);
     if (!fs.existsSync(filePath)) return null;
     return fs.readFileSync(filePath, 'utf-8');
   } catch (error) {
@@ -245,7 +275,7 @@ ipcMain.handle('load-scenario-editor', async (event, name) => {
 
 ipcMain.handle('delete-scenario', async (event, fileName) => {
   try {
-    const filePath = path.join(scenarioDir, fileName);
+    const filePath = safeResolve(scenarioDir, fileName);
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     // Also delete editor state file
     const editorFile = filePath.replace('.scenario.json', '.editor.json');
@@ -279,6 +309,8 @@ ipcMain.handle('open-game-window', async () => {
     const htmlPath = path.join(__dirname, '..', 'dist', 'index.html');
     gameWindow.loadFile(htmlPath, { hash: '#/' });
   }
+
+  hardenWindow(gameWindow);
 
   gameWindow.once('ready-to-show', () => gameWindow.show());
 
@@ -325,6 +357,8 @@ ipcMain.handle('open-editor-window', async () => {
     editorWindow.loadFile(htmlPath, { hash: '#/editor' });
   }
 
+  hardenWindow(editorWindow);
+
   editorWindow.once('ready-to-show', () => editorWindow.show());
   editorWindow.on('closed', () => { editorWindow = null; });
 
@@ -339,7 +373,7 @@ ipcMain.handle('save-game', async (event, slotName, data) => {
     if (!fs.existsSync(saveDir)) {
       fs.mkdirSync(saveDir, { recursive: true });
     }
-    const filePath = path.join(saveDir, `${slotName}.json`);
+    const filePath = safeResolve(saveDir, `${slotName}.json`);
     const content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
     fs.writeFileSync(filePath, content, 'utf-8');
     return { success: true };
@@ -351,7 +385,7 @@ ipcMain.handle('save-game', async (event, slotName, data) => {
 
 ipcMain.handle('load-game', async (event, slotName) => {
   try {
-    const filePath = path.join(saveDir, `${slotName}.json`);
+    const filePath = safeResolve(saveDir, `${slotName}.json`);
     if (!fs.existsSync(filePath)) return null;
     const content = fs.readFileSync(filePath, 'utf-8');
     return content;
@@ -363,7 +397,7 @@ ipcMain.handle('load-game', async (event, slotName) => {
 
 ipcMain.handle('delete-game', async (event, slotName) => {
   try {
-    const filePath = path.join(saveDir, `${slotName}.json`);
+    const filePath = safeResolve(saveDir, `${slotName}.json`);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }

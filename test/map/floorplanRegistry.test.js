@@ -230,6 +230,22 @@ describe('FloorplanRegistry authored plans', () => {
     expect(v.errors.some(e => /unreachable/.test(e))).toBe(true);
   });
 
+  it('validateFloorplan flags furniture blocking a doorway (opens-into tile)', () => {
+    // Bathtub sits on the tile the interior door opens INTO — the door tile
+    // itself is clear, so only the both-sides check catches this.
+    const blocked = {
+      id: 'blocked', width: 6, height: 6,
+      grid: ['WWWLLL', 'WWWLLL', 'WWWLLL', 'LLLLLL', 'LLLLLL', 'LLLLLL'],
+      legend: { W: 'bathroom', L: 'living' },
+      doors: [{ x: 2, y: 1, edge: 'e' }],          // W<->L, opens into (3,1)
+      entrance: { x: 3, y: 5, edge: 's' }, back: { x: 4, y: 0, edge: 'n' },
+      furniture: [{ type: 'bathtub', x: 3, y: 1, rot: 0 }], // 1x2 sits on (3,1)-(3,2)
+    };
+    const v = validateFloorplan(blocked);
+    expect(v.ok).toBe(false);
+    expect(v.errors.some(e => /blocks the doorway/.test(e))).toBe(true);
+  });
+
   it('orientFloorplan matches expected dims per frontage', () => {
     const p = FLOORPLANS[0];
     expect(orientFloorplan(p, 'south').width).toBe(p.width);

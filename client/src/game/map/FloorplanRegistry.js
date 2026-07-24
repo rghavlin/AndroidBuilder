@@ -67,6 +67,40 @@ export function rotateFloorplan(plan, turns) {
   return p;
 }
 
+const EDGE_MIRROR_H = { n: 'n', s: 's', e: 'w', w: 'e' }; // edge under a horizontal flip
+// A left-right flip preserves rotation parity (so footprint dims are unchanged)
+// but reverses the facing of directional pieces: 90°<->270°, 0°/180° unchanged.
+const ROT_MIRROR_H = { 0: 0, 1: 3, 2: 2, 3: 1 };
+
+/**
+ * Mirror a floorplan horizontally (flip about the vertical axis): (x,y) ->
+ * (W-1-x, y). Width/height are unchanged. This doubles the apparent variety of
+ * the authored catalog for free — a canonical plan and its mirror read as two
+ * different houses — and a mirrored plan stays valid (contiguity, reachability,
+ * hall width and furniture fit are all symmetric under a flip).
+ */
+export function mirrorFloorplanH(plan) {
+  const W = plan.width, H = plan.height;
+  const grid = plan.grid.map(row => row.split('').reverse().join(''));
+  const flip = (d) => ({ x: W - 1 - d.x, y: d.y, edge: EDGE_MIRROR_H[d.edge] });
+  const furniture = (plan.furniture || []).map(f => {
+    const base = FLOORPLAN_FOOTPRINTS[f.type] || { w: 1, h: 1 };
+    const fw = (f.rot % 2) ? base.h : base.w; // dims are flip-invariant (parity kept)
+    return { type: f.type, x: W - fw - f.x, y: f.y, rot: ROT_MIRROR_H[f.rot] };
+  });
+  return {
+    id: plan.id,
+    width: W,
+    height: H,
+    grid,
+    legend: plan.legend,
+    doors: plan.doors.map(flip),
+    entrance: plan.entrance ? flip(plan.entrance) : undefined,
+    back: plan.back ? flip(plan.back) : undefined,
+    furniture,
+  };
+}
+
 // Canonical front faces south; rotate CW this many times to face the frontage.
 const FRONTAGE_TURNS = { south: 0, west: 1, north: 2, east: 3 };
 
@@ -361,6 +395,18 @@ export function validateFloorplan(plan) {
     }
     if (roomChars.size > 1) {
       errors.push(`furniture ${label} spans rooms {${[...roomChars].join(',')}} (straddles a wall)`);
+    }
+  }
+
+  // A doorway must be clear on BOTH sides: furniture may not sit on the door
+  // tile (checked above) NOR on the tile the door opens into, or it visually
+  // blocks the doorway and reads as furniture jammed into a door. Interior doors
+  // only — exterior doors open to the outside, which is never furnished.
+  for (const d of plan.doors) {
+    const n = neighborOf(d);
+    const k = `${n.x},${n.y}`;
+    if (occupied.has(k)) {
+      errors.push(`furniture ${occupied.get(k)} blocks the doorway of door ${JSON.stringify(d)} (opens into ${k})`);
     }
   }
 
@@ -1133,6 +1179,295 @@ const L_HALL_14 = {
   ],
 };
 
+// --- Great-room archetype ----------------------------------------------
+// No dedicated corridor: the LIVING room is the circulation hub. It spans a
+// full-width band through the middle and everything opens directly off it —
+// bedrooms + bath along the back, kitchen carved into a front corner. This
+// reads as a fundamentally different house from the back-hall-front plans even
+// at the same footprint.
+
+const GREAT_ROOM_14 = {
+  id: 'great_room_14',
+  width: 14,
+  height: 14,
+  //        01234567890123
+  grid: [
+    'AAAAAAWWWWBBBB', // y0  A=bedroom, W=bathroom, B=bedroom (back)
+    'AAAAAAWWWWBBBB', // y1
+    'AAAAAAWWWWBBBB', // y2
+    'AAAAAAWWWWBBBB', // y3
+    'AAAAAAWWWWBBBB', // y4
+    'LLLLLLLLLLLLLL', // y5  L=living hub (full-width band)
+    'LLLLLLLLLLLLLL', // y6
+    'LLLLLLLLLLLLLL', // y7
+    'KKKKKLLLLLLLLL', // y8  K=kitchen carved into the front-left corner
+    'KKKKKLLLLLLLLL', // y9
+    'KKKKKLLLLLLLLL', // y10
+    'KKKKKLLLLLLLLL', // y11
+    'KKKKKLLLLLLLLL', // y12
+    'KKKKKLLLLLLLLL', // y13 (front — entrance opens into the living hub)
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 5, edge: 'n' },   // bedroom A  <-> living
+    { x: 8, y: 5, edge: 'n' },   // bathroom W <-> living
+    { x: 11, y: 5, edge: 'n' },  // bedroom B  <-> living
+    { x: 4, y: 10, edge: 'e' },  // kitchen K  <-> living
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },      // bedroom A (west of the back door)
+    { type: 'bed', x: 12, y: 0, rot: 0 },     // bedroom B
+    { type: 'toilet', x: 6, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 9, y: 3, rot: 0 },  // bathroom, east wall
+    { type: 'couch', x: 6, y: 13, rot: 2 },   // living couch on south wall (east of the entrance)
+    { type: 'table', x: 10, y: 9, rot: 0 },   // living table
+    { type: 'counter', x: 0, y: 8, rot: 0 },  // kitchen counter on north wall
+    { type: 'table', x: 2, y: 9, rot: 0 },    // kitchen table
+  ],
+};
+
+const GREAT_ROOM_12 = {
+  id: 'great_room_12',
+  width: 12,
+  height: 12,
+  //        012345678901
+  grid: [
+    'AAAAAWWBBBBB', // y0  A=bedroom, W=bathroom, B=bedroom (back)
+    'AAAAAWWBBBBB', // y1
+    'AAAAAWWBBBBB', // y2
+    'AAAAAWWBBBBB', // y3
+    'LLLLLLLLLLLL', // y4  L=living hub (full-width band)
+    'LLLLLLLLLLLL', // y5
+    'LLLLLLLLLLLL', // y6
+    'KKKKLLLLLLLL', // y7  K=kitchen carved into the front-left corner
+    'KKKKLLLLLLLL', // y8
+    'KKKKLLLLLLLL', // y9
+    'KKKKLLLLLLLL', // y10
+    'KKKKLLLLLLLL', // y11 (front — entrance opens into the living hub)
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 4, edge: 'n' },   // bedroom A  <-> living
+    { x: 5, y: 4, edge: 'n' },   // bathroom W <-> living
+    { x: 9, y: 4, edge: 'n' },   // bedroom B  <-> living
+    { x: 3, y: 8, edge: 'e' },   // kitchen K  <-> living
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },      // bedroom A (west of the back door)
+    { type: 'bed', x: 10, y: 0, rot: 0 },     // bedroom B
+    { type: 'toilet', x: 5, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 6, y: 1, rot: 0 },  // bathroom, east wall
+    { type: 'couch', x: 8, y: 11, rot: 2 },   // living couch on south wall (east of the entrance)
+    { type: 'table', x: 8, y: 8, rot: 0 },    // living table
+    { type: 'counter', x: 0, y: 7, rot: 0 },  // kitchen counter on north wall
+    { type: 'table', x: 1, y: 8, rot: 0 },    // kitchen table
+  ],
+};
+
+// Small great-room for the 10x10 lots (the smallest tier, which otherwise has
+// only one authored plan). One bedroom + bath across the back, living hub band,
+// kitchen corner up front.
+const GREAT_ROOM_10 = {
+  id: 'great_room_10',
+  width: 10,
+  height: 10,
+  //        0123456789
+  grid: [
+    'AAAAAAWWWW', // y0  A=bedroom, W=bathroom (back)
+    'AAAAAAWWWW', // y1
+    'AAAAAAWWWW', // y2
+    'AAAAAAWWWW', // y3
+    'LLLLLLLLLL', // y4  L=living hub band
+    'LLLLLLLLLL', // y5
+    'LLLLLLLLLL', // y6
+    'KKKKLLLLLL', // y7  K=kitchen corner
+    'KKKKLLLLLL', // y8
+    'KKKKLLLLLL', // y9 (front — entrance opens into the living hub)
+  ],
+  legend: { A: 'bedroom', W: 'bathroom', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 4, edge: 'n' },   // bedroom A  <-> living
+    { x: 7, y: 4, edge: 'n' },   // bathroom W <-> living
+    { x: 3, y: 8, edge: 'e' },   // kitchen K  <-> living
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },      // bedroom A (west of the back door)
+    { type: 'toilet', x: 6, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 9, y: 2, rot: 0 },  // bathroom, east wall
+    { type: 'couch', x: 7, y: 9, rot: 2 },    // living couch on south wall (east of the entrance)
+    { type: 'table', x: 7, y: 5, rot: 0 },    // living table
+    { type: 'counter', x: 0, y: 7, rot: 0 },  // kitchen counter on north wall
+  ],
+};
+
+// Wide great-rooms (no hall) for the wide-but-short lots (18-22 wide, 12 tall),
+// which otherwise only ever get a parallel-hall house. Living hub spans the
+// middle; bedrooms + bath across the back, kitchen carved into a front corner.
+const GREAT_ROOM_18 = {
+  id: 'great_room_18',
+  width: 18,
+  height: 12,
+  //        012345678901234567
+  grid: [
+    'AAAAAAAWWWWBBBBBBB', // y0  A=bedroom, W=bathroom, B=bedroom (back)
+    'AAAAAAAWWWWBBBBBBB', // y1
+    'AAAAAAAWWWWBBBBBBB', // y2
+    'AAAAAAAWWWWBBBBBBB', // y3
+    'AAAAAAAWWWWBBBBBBB', // y4
+    'LLLLLLLLLLLLLLLLLL', // y5  L=living hub (full-width band)
+    'LLLLLLLLLLLLLLLLLL', // y6
+    'LLLLLLLLLLLLLLLLLL', // y7
+    'KKKKKKLLLLLLLLLLLL', // y8  K=kitchen carved into the front-left corner
+    'KKKKKKLLLLLLLLLLLL', // y9
+    'KKKKKKLLLLLLLLLLLL', // y10
+    'KKKKKKLLLLLLLLLLLL', // y11 (front — entrance opens into the living hub)
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 5, edge: 'n' },   // bedroom A  <-> living
+    { x: 8, y: 5, edge: 'n' },   // bathroom W <-> living
+    { x: 14, y: 5, edge: 'n' },  // bedroom B  <-> living
+    { x: 5, y: 9, edge: 'e' },   // kitchen K  <-> living
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },      // bedroom A (west of the back door)
+    { type: 'bed', x: 15, y: 0, rot: 0 },     // bedroom B
+    { type: 'toilet', x: 7, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 10, y: 3, rot: 0 }, // bathroom, east wall
+    { type: 'couch', x: 11, y: 11, rot: 2 },  // living couch on south wall (east of the entrance)
+    { type: 'table', x: 13, y: 8, rot: 0 },   // living table
+    { type: 'counter', x: 0, y: 8, rot: 0 },  // kitchen counter on north wall
+    { type: 'table', x: 2, y: 9, rot: 0 },    // kitchen table
+  ],
+};
+
+const GREAT_ROOM_20 = {
+  id: 'great_room_20',
+  width: 20,
+  height: 12,
+  //        01234567890123456789
+  grid: [
+    'AAAAAAAWWWWWWBBBBBBB', // y0  A=bedroom, W=bathroom, B=bedroom (back)
+    'AAAAAAAWWWWWWBBBBBBB', // y1
+    'AAAAAAAWWWWWWBBBBBBB', // y2
+    'AAAAAAAWWWWWWBBBBBBB', // y3
+    'AAAAAAAWWWWWWBBBBBBB', // y4
+    'LLLLLLLLLLLLLLLLLLLL', // y5  L=living hub (full-width band)
+    'LLLLLLLLLLLLLLLLLLLL', // y6
+    'LLLLLLLLLLLLLLLLLLLL', // y7
+    'KKKKKKKLLLLLLLLLLLLL', // y8  K=kitchen carved into the front-left corner
+    'KKKKKKKLLLLLLLLLLLLL', // y9
+    'KKKKKKKLLLLLLLLLLLLL', // y10
+    'KKKKKKKLLLLLLLLLLLLL', // y11 (front — entrance opens into the living hub)
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 2, y: 5, edge: 'n' },   // bedroom A  <-> living
+    { x: 9, y: 5, edge: 'n' },   // bathroom W <-> living
+    { x: 16, y: 5, edge: 'n' },  // bedroom B  <-> living
+    { x: 6, y: 9, edge: 'e' },   // kitchen K  <-> living
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },      // bedroom A (west of the back door)
+    { type: 'bed', x: 17, y: 0, rot: 0 },     // bedroom B
+    { type: 'toilet', x: 7, y: 0, rot: 0 },   // bathroom
+    { type: 'bathtub', x: 12, y: 3, rot: 0 }, // bathroom, east wall
+    { type: 'couch', x: 13, y: 11, rot: 2 },  // living couch on south wall (east of the entrance)
+    { type: 'table', x: 15, y: 8, rot: 0 },   // living table
+    { type: 'counter', x: 0, y: 8, rot: 0 },  // kitchen counter on north wall
+    { type: 'table', x: 2, y: 9, rot: 0 },    // kitchen table
+  ],
+};
+
+// Wide perpendicular (front-to-back) centre hall for wide-but-short lots: the
+// hall runs the depth of the house with two rooms on each side and the living
+// room wrapping the front. Front and back doors line up through the hall.
+const CENTER_HALL_16 = {
+  id: 'center_hall_16',
+  width: 16,
+  height: 12,
+  // Centre hall runs the FULL depth (front wall to back wall); the front and
+  // back doors line up straight through it. Bedrooms flank the back; living down
+  // the left, bath + kitchen down the right. Every doorway is clear on both
+  // sides so no furniture ends up jammed into a door.
+  //        0123456789012345
+  grid: [
+    'AAAAAAAHHBBBBBBB', // y0  A=bedroom, H=centre hall, B=bedroom
+    'AAAAAAAHHBBBBBBB', // y1
+    'AAAAAAAHHBBBBBBB', // y2
+    'AAAAAAAHHBBBBBBB', // y3
+    'AAAAAAAHHBBBBBBB', // y4
+    'AAAAAAAHHWWWWWWW', // y5  W=bathroom
+    'LLLLLLLHHWWWWWWW', // y6  L=living
+    'LLLLLLLHHWWWWWWW', // y7
+    'LLLLLLLHHKKKKKKK', // y8  K=kitchen
+    'LLLLLLLHHKKKKKKK', // y9
+    'LLLLLLLHHKKKKKKK', // y10
+    'LLLLLLLHHKKKKKKK', // y11 (front — entrance opens straight into the hall)
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 7, y: 2, edge: 'w' },   // bedroom A  <-> hall
+    { x: 8, y: 2, edge: 'e' },   // bedroom B  <-> hall
+    { x: 8, y: 6, edge: 'e' },   // bathroom W <-> hall
+    { x: 7, y: 9, edge: 'w' },   // living L   <-> hall
+    { x: 8, y: 10, edge: 'e' },  // kitchen K  <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },      // bedroom A
+    { type: 'bed', x: 14, y: 0, rot: 0 },     // bedroom B
+    { type: 'toilet', x: 11, y: 5, rot: 0 },  // bathroom
+    { type: 'bathtub', x: 14, y: 5, rot: 0 }, // bathroom, east wall
+    { type: 'counter', x: 14, y: 8, rot: 0 }, // kitchen counter on north wall
+    { type: 'table', x: 11, y: 9, rot: 0 },   // kitchen table
+    { type: 'couch', x: 1, y: 11, rot: 2 },   // living couch on south wall
+    { type: 'table', x: 2, y: 7, rot: 0 },    // living table
+  ],
+};
+
+// Small perpendicular centre hall for the small tier (10 tall). Same idea as
+// CENTER_HALL_16 shrunk: two rooms each side of a front-to-back hall, living
+// wrapping the front.
+const CENTER_HALL_SMALL = {
+  id: 'center_hall_small',
+  width: 12,
+  height: 10,
+  // Small centre hall running the FULL depth (front-to-back), same clean shape
+  // as CENTER_HALL_16 shrunk for the small tier. Front/back doors line up
+  // through the hall; every doorway is clear on both sides.
+  //        012345678901
+  grid: [
+    'AAAAAHHBBBBB', // y0  A=bedroom, H=centre hall, B=bedroom
+    'AAAAAHHBBBBB', // y1
+    'AAAAAHHBBBBB', // y2
+    'AAAAAHHBBBBB', // y3
+    'AAAAAHHWWWWW', // y4  W=bathroom
+    'LLLLLHHWWWWW', // y5  L=living
+    'LLLLLHHKKKKK', // y6  K=kitchen
+    'LLLLLHHKKKKK', // y7
+    'LLLLLHHKKKKK', // y8
+    'LLLLLHHKKKKK', // y9 (front — entrance opens straight into the hall)
+  ],
+  legend: { A: 'bedroom', B: 'bedroom', W: 'bathroom', H: 'hall', L: 'living', K: 'kitchen' },
+  doors: [
+    { x: 5, y: 2, edge: 'w' },   // bedroom A  <-> hall
+    { x: 6, y: 2, edge: 'e' },   // bedroom B  <-> hall
+    { x: 6, y: 4, edge: 'e' },   // bathroom W <-> hall
+    { x: 5, y: 7, edge: 'w' },   // living L   <-> hall
+    { x: 6, y: 7, edge: 'e' },   // kitchen K  <-> hall
+  ],
+  furniture: [
+    { type: 'bed', x: 0, y: 0, rot: 0 },      // bedroom A
+    { type: 'bed', x: 10, y: 0, rot: 0 },     // bedroom B
+    { type: 'toilet', x: 11, y: 4, rot: 0 },  // bathroom
+    { type: 'bathtub', x: 10, y: 4, rot: 0 }, // bathroom, east wall
+    { type: 'counter', x: 10, y: 6, rot: 0 }, // kitchen counter on north wall
+    { type: 'table', x: 8, y: 7, rot: 0 },    // kitchen table
+    { type: 'couch', x: 1, y: 9, rot: 2 },    // living couch on south wall
+    { type: 'table', x: 0, y: 5, rot: 0 },    // living table
+  ],
+};
+
 // Exterior doors for each floorplan, in canonical (front=south) orientation.
 // Entrance is always on the south wall; back door is always on the north wall.
 // Both are placed in public rooms (living/kitchen/hall) or bedrooms for the back
@@ -1161,9 +1496,38 @@ const EXTERIOR_DOORS = {
   // L-hall: entrance at the foot of the hall's vertical leg; the hall never
   // reaches the back wall, so the back door opens into bedroom A.
   l_hall_14: { entrance: { x: 1, y: 13, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
+  // Great-room plans: entrance opens into the living hub; back door into a bedroom.
+  great_room_14: { entrance: { x: 9, y: 13, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
+  great_room_12: { entrance: { x: 7, y: 11, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
+  great_room_10: { entrance: { x: 6, y: 9, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
+  great_room_18: { entrance: { x: 10, y: 11, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
+  great_room_20: { entrance: { x: 12, y: 11, edge: 's' }, back: { x: 2, y: 0, edge: 'n' } },
+  // Perpendicular centre-hall plans: front and back doors line up through the hall.
+  center_hall_16: { entrance: { x: 7, y: 11, edge: 's' }, back: { x: 7, y: 0, edge: 'n' } },
+  center_hall_small: { entrance: { x: 5, y: 9, edge: 's' }, back: { x: 5, y: 0, edge: 'n' } },
 };
 
-const FLOORPLANS = [RANCH_2BED_1BATH, RANCH_1BED_OPEN, COTTAGE_1BED, COTTAGE_OPEN_LIVING, RANCH_2BED_1BATH_TALL, BUNGALOW_2BED_WIDE, BUNGALOW_3BED_WIDE, COTTAGE_2BED_TALL, RANCH_2BED_WIDE, BUNGALOW_2BED_LARGE, RANCH_3BED, RANCH_3BED_TALL, BUNGALOW_3BED_EXTRA_WIDE, SMALL_1BED_10, SMALL_2BED_12, SMALL_2BED_14, SMALL_2BED_16, CENTER_HALL_12, CENTER_HALL_14, L_HALL_14];
+const FLOORPLANS = [RANCH_2BED_1BATH, RANCH_1BED_OPEN, COTTAGE_1BED, COTTAGE_OPEN_LIVING, RANCH_2BED_1BATH_TALL, BUNGALOW_2BED_WIDE, BUNGALOW_3BED_WIDE, COTTAGE_2BED_TALL, RANCH_2BED_WIDE, BUNGALOW_2BED_LARGE, RANCH_3BED, RANCH_3BED_TALL, BUNGALOW_3BED_EXTRA_WIDE, SMALL_1BED_10, SMALL_2BED_12, SMALL_2BED_14, SMALL_2BED_16, CENTER_HALL_12, CENTER_HALL_14, L_HALL_14, GREAT_ROOM_14, GREAT_ROOM_12, GREAT_ROOM_10, GREAT_ROOM_18, GREAT_ROOM_20, CENTER_HALL_16, CENTER_HALL_SMALL];
+
+// Layout family for each plan, used to balance selection so no single archetype
+// (historically the parallel back-hall-front plan) dominates what the player
+// sees. 'parallel' = hall parallel to the street, living+kitchen across the
+// front; 'perp' = a hall reaching front-to-back (centre hall or the L-hall,
+// whose leg meets the front door); 'open' = no hall, the living room is the
+// circulation hub.
+const ARCHETYPES = {
+  ranch_2bed_1bath: 'parallel', ranch_1bed_open: 'parallel', cottage_1bed: 'parallel',
+  cottage_open_living: 'parallel', ranch_2bed_1bath_tall: 'parallel', bungalow_2bed_wide: 'parallel',
+  bungalow_3bed_wide: 'parallel', cottage_2bed_tall: 'parallel', ranch_2bed_wide: 'parallel',
+  bungalow_2bed_large: 'parallel', ranch_3bed: 'parallel', ranch_3bed_tall: 'parallel',
+  bungalow_3bed_extra_wide: 'parallel', small_1bed_10: 'parallel', small_2bed_12: 'parallel',
+  small_2bed_14: 'parallel', small_2bed_16: 'parallel',
+  center_hall_12: 'perp', center_hall_14: 'perp', center_hall_16: 'perp', center_hall_small: 'perp',
+  l_hall_14: 'perp',
+  great_room_14: 'open', great_room_12: 'open', great_room_10: 'open',
+  great_room_18: 'open', great_room_20: 'open',
+};
+for (const p of FLOORPLANS) p.archetype = ARCHETYPES[p.id] || 'parallel';
 
 // Attach exterior doors to each floorplan object so rotation and consumers can
 // treat them as a single structure.
@@ -1193,25 +1557,61 @@ const SIZES = [...new Set(FLOORPLANS.map(p => `${p.width}x${p.height}`))]
   .map(k => { const [w, h] = k.split('x').map(Number); return { w, h, key: k }; })
   .sort((a, b) => (b.w * b.h) - (a.w * a.h));
 
+// A chosen plan may be drawn from a smaller-than-largest footprint as long as it
+// keeps at least this fraction of the largest fitting plan's AREA. This stops
+// selection from collapsing to the single largest-size plan for a given lot
+// (the main reason houses looked identical) while keeping the building from
+// floating tiny inside an oversized lot.
+const FIT_AREA_BAND = 0.7;
+
 /**
  * Pick an authored floorplan that fits a lot of (maxW x maxH) once oriented to
  * `frontage`. The plan is rotated by frontage at stamp time (even turns keep the
  * canonical dims, odd turns swap them), so the fit test must use those ORIENTED
  * dims — otherwise a portrait plan could be stamped landscape and overflow the
- * lot. Snaps DOWN to the largest-area authored plan that fits. Seed-stable.
- * Returns { plan } or null when nothing fits.
+ * lot.
+ *
+ * Rather than snapping to the single largest-area footprint, this gathers EVERY
+ * authored plan that fits and whose area is within FIT_AREA_BAND of the largest
+ * fitting one, then picks uniformly across that pool and flips it horizontally
+ * half the time. Uniform-over-plans naturally favours the sizes that carry more
+ * distinct archetypes, and the mirror doubles the effective catalog — together
+ * these give real per-lot variation instead of one house per footprint.
+ * Seed-stable. Returns { plan } (id preserved through the mirror) or null.
  */
 export function pickFloorplan(maxW, maxH, frontage = 'south') {
   const swap = ((FRONTAGE_TURNS[frontage] ?? 0) % 2) === 1;
+  // Fitting sizes, largest-area first (SIZES is presorted by area desc).
+  const fitting = [];
   for (const s of SIZES) {
     const ow = swap ? s.h : s.w;
     const oh = swap ? s.w : s.h;
     if (ow > maxW || oh > maxH) continue;
-    const options = BY_SIZE.get(s.key);
-    const plan = options[gameRandom.nextInt(0, options.length - 1)];
-    return { plan };
+    fitting.push(s);
   }
-  return null;
+  if (fitting.length === 0) return null;
+
+  const maxArea = fitting[0].w * fitting[0].h;
+  // Group the in-band candidates by layout family so we can balance across
+  // families instead of letting the most-populated one (parallel-hall) win by
+  // sheer count.
+  const byArchetype = new Map();
+  for (const s of fitting) {
+    if (s.w * s.h < FIT_AREA_BAND * maxArea) continue;
+    for (const p of BY_SIZE.get(s.key)) {
+      if (!byArchetype.has(p.archetype)) byArchetype.set(p.archetype, []);
+      byArchetype.get(p.archetype).push(p);
+    }
+  }
+  // Pick a family uniformly among those present, then a plan within it. This
+  // gives every distinct arrangement roughly equal screen time regardless of
+  // how many size variants each family happens to have authored.
+  const families = [...byArchetype.keys()];
+  const family = families[gameRandom.nextInt(0, families.length - 1)];
+  const options = byArchetype.get(family);
+  let plan = options[gameRandom.nextInt(0, options.length - 1)];
+  if (gameRandom.nextBool(0.5)) plan = mirrorFloorplanH(plan);
+  return { plan };
 }
 
 export { FLOORPLANS };
