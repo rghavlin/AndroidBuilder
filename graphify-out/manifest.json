@@ -80,14 +80,14 @@
     "semantic_hash": "3ecda95f3b7fdde635f3b6f6e5ffdcea"
   },
   "client/src/components/Game/EarbucksDisplay.tsx": {
-    "mtime": 1784352100.9675994,
-    "ast_hash": "510d2fcfc39e9e9ebc9602f26dab8ad3",
+    "mtime": 1784883203.0650437,
+    "ast_hash": "6445e6c8d1ae5e3f89f4cb742bbc8186",
     "semantic_hash": ""
   },
   "client/src/components/Game/EarbucksShopWindow.tsx": {
-    "mtime": 1782720903.604911,
-    "ast_hash": "d26cd877d925f00ea6e158bfba23ca86",
-    "semantic_hash": "d26cd877d925f00ea6e158bfba23ca86"
+    "mtime": 1784883208.1008189,
+    "ast_hash": "1bebb1ea3abc1531de404d5196b0cfe6",
+    "semantic_hash": ""
   },
   "client/src/components/Game/ErrorBoundary.tsx": {
     "mtime": 1765436395.6511643,
@@ -1405,8 +1405,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1784795404.4353871,
-    "ast_hash": "5690411f04253f8153d340084d46edd6",
+    "mtime": 1784883211.5420902,
+    "ast_hash": "283c214ea6db56d3ced103628f3e33d6",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {

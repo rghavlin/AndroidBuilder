@@ -43,7 +43,7 @@ export default function EarbucksDisplay() {
       data-testid="earbucks-display"
     >
       <img
-        src="/images/UI/earbuck.png"
+        src="./images/UI/earbuck.png"
         alt="Earbucks"
         className="w-6 h-6 object-contain shrink-0"
         style={{

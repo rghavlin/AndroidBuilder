@@ -3707,7 +3707,7 @@ export default function MapEditor() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
             {exitImage ? (
-              <img src="/images/items/exit.png" style={{ width: 14, height: 14, objectFit: 'contain' }} alt="Exit" />
+              <img src="./images/items/exit.png" style={{ width: 14, height: 14, objectFit: 'contain' }} alt="Exit" />
             ) : (
               <span style={{ color: '#0ff', fontWeight: 'bold' }}>T</span>
             )}Map Transition

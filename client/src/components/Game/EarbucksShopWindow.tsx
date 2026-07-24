@@ -96,7 +96,7 @@ function ShopItemRow({ item, mapId, playerEarbucks, onBuySuccess, onBuyFail }: S
         {/* Price Tag */}
         <div className="flex items-center gap-1 bg-zinc-900 border border-white/5 px-2.5 py-1 rounded-lg shrink-0">
           <img
-            src="/images/UI/earbuck.png"
+            src="./images/UI/earbuck.png"
             alt="Earbuck"
             className="w-4 h-4 object-contain"
             style={{ imageRendering: 'pixelated' }}
@@ -220,7 +220,7 @@ export default function EarbucksShopWindow({ mapId, onClose }: EarbucksShopWindo
           </span>
           <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl shadow-[0_0_10px_rgba(34,197,94,0.05)]">
             <img
-              src="/images/UI/earbuck.png"
+              src="./images/UI/earbuck.png"
               alt="Earbucks"
               className="w-6 h-6 object-contain"
               style={{ imageRendering: 'pixelated' }}
