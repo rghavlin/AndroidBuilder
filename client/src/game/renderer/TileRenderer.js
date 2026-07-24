@@ -814,15 +814,15 @@ export const TileRenderer = {
       ctx.lineTo(x + pad + w - leg, y + pad + h + leg);
       ctx.stroke();
     } else if (type === 'table') {
-      // 6-person dining table (spans 2x3 tiles)
+      // 4-person dining table (spans 2x2 tiles)
       const tablePad = tileSize * 0.3;
       const tW = tileSize * 2 - tablePad * 2;
-      const tH = tileSize * 3 - tablePad * 2;
+      const tH = tileSize * 2 - tablePad * 2;
       ctx.fillRect(x + tablePad, y + tablePad, tW, tH);
       ctx.strokeRect(x + tablePad, y + tablePad, tW, tH);
       // center detail
       ctx.beginPath();
-      ctx.ellipse(x + tileSize, y + tileSize * 1.5, tW * 0.15, tH * 0.1, 0, 0, Math.PI * 2);
+      ctx.ellipse(x + tileSize, y + tileSize, tW * 0.15, tH * 0.15, 0, 0, Math.PI * 2);
       ctx.stroke();
 
       const chairW = tileSize * 0.45;
@@ -835,18 +835,16 @@ export const TileRenderer = {
       ctx.lineTo(x + tileSize + chairW/2, y + pad + backThick);
       ctx.stroke();
 
-      ctx.strokeRect(x + tileSize - chairW/2, y + tileSize * 3 - pad - chairH, chairW, chairH);
+      ctx.strokeRect(x + tileSize - chairW/2, y + tileSize * 2 - pad - chairH, chairW, chairH);
       ctx.beginPath();
-      ctx.moveTo(x + tileSize - chairW/2, y + tileSize * 3 - pad - backThick);
-      ctx.lineTo(x + tileSize + chairW/2, y + tileSize * 3 - pad - backThick);
+      ctx.moveTo(x + tileSize - chairW/2, y + tileSize * 2 - pad - backThick);
+      ctx.lineTo(x + tileSize + chairW/2, y + tileSize * 2 - pad - backThick);
       ctx.stroke();
 
-      // left/right chairs (vertical backs) - two on each long side
+      // left/right chairs (vertical backs) - one on each side
       const sideChairs = [
-        { cx: x + pad, cy: y + tileSize - chairH/2 },
-        { cx: x + pad, cy: y + tileSize * 2 - chairH/2 },
-        { cx: x + tileSize * 2 - pad - chairH, cy: y + tileSize - chairH/2 },
-        { cx: x + tileSize * 2 - pad - chairH, cy: y + tileSize * 2 - chairH/2 }
+        { cx: x + pad, cy: y + tileSize - chairW / 2 },
+        { cx: x + tileSize * 2 - pad - chairH, cy: y + tileSize - chairW / 2 }
       ];
       for (const c of sideChairs) {
         ctx.strokeRect(c.cx, c.cy, chairH, chairW);

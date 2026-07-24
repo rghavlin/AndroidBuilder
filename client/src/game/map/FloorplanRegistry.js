@@ -112,7 +112,7 @@ export function orientFloorplan(plan, frontage) {
 // Footprints must match FurniturePlanner.FURNITURE_FOOTPRINTS / TileRenderer.
 export const FLOORPLAN_FOOTPRINTS = {
   bed: { w: 2, h: 3 },
-  table: { w: 2, h: 3 },
+  table: { w: 2, h: 2 },
   couch: { w: 3, h: 1 },
   desk: { w: 2, h: 1 },
   counter: { w: 2, h: 1 },
@@ -448,7 +448,7 @@ const COTTAGE_1BED = {
     { type: 'bathtub', x: 11, y: 3, rot: 0 },
     { type: 'couch', x: 4, y: 11, rot: 2 },   // living couch on the south wall (east of the entrance)
     { type: 'counter', x: 7, y: 7, rot: 0 }, // kitchen counter on hall wall
-    { type: 'table', x: 8, y: 8, rot: 0 },   // kitchen table centered, not against the wall
+    { type: 'table', x: 9, y: 9, rot: 0 },   // kitchen table centered, not against the wall
   ],
 };
 
@@ -1091,7 +1091,7 @@ const CENTER_HALL_12 = {
     { type: 'bathtub', x: 11, y: 5, rot: 0 }, // bathroom, east wall
     { type: 'couch', x: 1, y: 11, rot: 2 },   // living couch on south wall
     { type: 'counter', x: 7, y: 7, rot: 0 },  // kitchen counter on hall wall
-    { type: 'table', x: 9, y: 8, rot: 0 },    // kitchen table
+    { type: 'table', x: 9, y: 9, rot: 0 },    // kitchen table centered
   ],
 };
 

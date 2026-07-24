@@ -19,7 +19,7 @@ import { makeGameMapGrid, findRooms, assignRoles } from './RoomGraph.js';
 // Base (unrotated) footprints in tiles, matching TileRenderer's drawings.
 export const FURNITURE_FOOTPRINTS = {
   bed: { w: 2, h: 3 },
-  table: { w: 2, h: 3 },
+  table: { w: 2, h: 2 },
   couch: { w: 3, h: 1 },
   desk: { w: 2, h: 1 },
   counter: { w: 2, h: 1 },
@@ -71,6 +71,7 @@ function roomCanHold(room, type) {
 
   switch (type) {
     case 'table':
+      return minSpan >= 2 && maxSpan >= 2;
     case 'bed':
       return minSpan >= 2 && maxSpan >= 3;
     case 'couch':
