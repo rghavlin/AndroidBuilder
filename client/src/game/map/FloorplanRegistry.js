@@ -447,6 +447,7 @@ const COTTAGE_1BED = {
     { type: 'toilet', x: 9, y: 0, rot: 0 },  // bathroom
     { type: 'bathtub', x: 11, y: 3, rot: 0 },
     { type: 'couch', x: 4, y: 11, rot: 2 },   // living couch on the south wall (east of the entrance)
+    { type: 'chair', x: 0, y: 9, rot: 3 },   // living chair on west wall
     { type: 'counter', x: 7, y: 7, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 9, y: 9, rot: 0 },   // kitchen table centered, not against the wall
   ],
@@ -934,6 +935,7 @@ const SMALL_1BED_10 = {
     { type: 'toilet', x: 7, y: 0, rot: 0 },  // bathroom
     { type: 'bathtub', x: 9, y: 2, rot: 0 }, // bathroom, east wall
     { type: 'couch', x: 3, y: 9, rot: 2 },   // living couch on south wall
+    { type: 'chair', x: 0, y: 7, rot: 3 },   // living chair on west wall
     { type: 'counter', x: 6, y: 6, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 7, y: 7, rot: 0 },   // kitchen table
   ],
@@ -970,6 +972,7 @@ const SMALL_2BED_12 = {
     { type: 'toilet', x: 5, y: 0, rot: 0 },  // bathroom
     { type: 'bathtub', x: 6, y: 2, rot: 0 }, // bathroom, east wall
     { type: 'couch', x: 3, y: 9, rot: 2 },   // living couch on south wall
+    { type: 'chair', x: 0, y: 7, rot: 3 },   // living chair on west wall
     { type: 'counter', x: 6, y: 6, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 8, y: 7, rot: 0 },   // kitchen table
   ],
@@ -1006,6 +1009,7 @@ const SMALL_2BED_14 = {
     { type: 'toilet', x: 7, y: 0, rot: 0 },  // bathroom
     { type: 'bathtub', x: 8, y: 2, rot: 0 }, // bathroom, east wall
     { type: 'couch', x: 4, y: 9, rot: 2 },   // living couch on south wall
+    { type: 'chair', x: 0, y: 7, rot: 3 },   // living chair on west wall
     { type: 'counter', x: 7, y: 6, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 10, y: 7, rot: 0 },  // kitchen table
   ],
@@ -1044,6 +1048,7 @@ const SMALL_2BED_16 = {
     { type: 'toilet', x: 6, y: 0, rot: 0 },  // bathroom
     { type: 'bathtub', x: 7, y: 2, rot: 0 }, // bathroom, east wall
     { type: 'couch', x: 5, y: 9, rot: 2 },   // living couch on south wall
+    { type: 'chair', x: 0, y: 7, rot: 3 },   // living chair on west wall
     { type: 'counter', x: 8, y: 6, rot: 0 }, // kitchen counter on hall wall
     { type: 'table', x: 11, y: 7, rot: 0 },  // kitchen table
   ],
@@ -1090,6 +1095,7 @@ const CENTER_HALL_12 = {
     { type: 'toilet', x: 7, y: 4, rot: 0 },   // bathroom
     { type: 'bathtub', x: 11, y: 5, rot: 0 }, // bathroom, east wall
     { type: 'couch', x: 1, y: 11, rot: 2 },   // living couch on south wall
+    { type: 'chair', x: 0, y: 8, rot: 3 },    // living chair on west wall
     { type: 'counter', x: 7, y: 7, rot: 0 },  // kitchen counter on hall wall
     { type: 'table', x: 9, y: 9, rot: 0 },    // kitchen table centered
   ],

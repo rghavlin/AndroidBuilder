@@ -318,10 +318,18 @@ export function planFurniture(gameMap) {
     const occupied = new Set();
     for (const room of rooms) {
       const plan = FURNISH_PLAN[room.role] || [];
+      let hasTable = false;
       for (const entry of plan) {
         if (!roomCanHold(room, entry.type)) continue;
         if (entry.minArea && room.area < entry.minArea) continue;
         const piece = tryPlaceStrategic(gameMap, grid, room, occupied, privateRoomTiles, entry.type, entry.strategy);
+        if (piece) {
+          gameMap.furniture.push(piece);
+          if (entry.type === 'table') hasTable = true;
+        }
+      }
+      if (room.role === 'living' && !hasTable) {
+        const piece = tryPlaceStrategic(gameMap, grid, room, occupied, privateRoomTiles, 'chair', 'wall');
         if (piece) gameMap.furniture.push(piece);
       }
     }

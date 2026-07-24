@@ -19,7 +19,9 @@ const CSP = [
   "worker-src 'self' file: blob:",
   "object-src 'none'",
   "base-uri 'none'",
-  "frame-ancestors 'none'",
+  // NOTE: frame-ancestors is intentionally omitted — it is ignored when a CSP is
+  // delivered via <meta> (header-only directive) and only produced a console
+  // warning. Framing isn't a threat for a local Electron app anyway.
   "form-action 'none'",
 ].join("; ");
 

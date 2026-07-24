@@ -1065,10 +1065,15 @@ export default function MapCanvas({
   // Preload entity images on initialization
   useEffect(() => {
     const preloadEntityImages = async () => {
-      // NOTE: PLACE_ICON is intentionally excluded — place icons render by
-      // subtype (getImage(PLACE_ICON, subtype)); there is no base place_icon.png,
-      // so preloading it only produced 404s.
-      const commonEntityTypes = [EntityType.PLAYER, EntityType.ZOMBIE, EntityType.ITEM, EntityType.NPC, EntityType.RABBIT];
+      // NOTE: PLACE_ICON and ITEM are intentionally excluded.
+      //  - Place icons render by subtype (getImage(PLACE_ICON, subtype)); there is
+      //    no base place_icon.png.
+      //  - Generic items render via their specific sprite, falling back to
+      //    getItemImage('default') (images/items/default.png). The base
+      //    images/entities/item.png is an empty 0-byte placeholder that nothing
+      //    renders from, so preloading it only produced 404s (the empty .png
+      //    fails to decode, then the loader probes .jpg/.jpeg/.gif/.svg).
+      const commonEntityTypes = [EntityType.PLAYER, EntityType.ZOMBIE, EntityType.NPC, EntityType.RABBIT];
       await imageLoader.preloadImages(commonEntityTypes);
 
       // Preload the default item image for ground piles
