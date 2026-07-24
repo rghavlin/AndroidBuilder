@@ -191,6 +191,5 @@
   "189": "mapRestoreParity.test.js",
   "190": "test_noise.js",
   "191": "test_noise_assert.js",
-  "192": "verify_saveload.mjs",
   "194": "TileRenderer.js"
 }

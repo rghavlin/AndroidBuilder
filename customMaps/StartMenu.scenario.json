@@ -55036,23 +55036,23 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.crowbar-1784795751985-tvumk",
-            "defId": "weapon.crowbar",
-            "id": "weapon.crowbar",
-            "name": "Crowbar",
+            "instanceId": "weapon.hammer-1784865434813-rhw9c",
+            "defId": "weapon.hammer",
+            "id": "weapon.hammer",
+            "name": "Hammer",
             "rarity": "uncommon",
-            "imageId": "crowbar",
+            "imageId": "hammer",
             "width": 3,
             "height": 2,
             "traits": [
               "equippable",
-              "degradable",
-              "canBreakDoors"
+              "degradable"
             ],
             "equippableSlot": "melee",
             "categories": [
               "weapon",
-              "tool"
+              "tool",
+              "hammer"
             ],
             "condition": 100,
             "combat": {
@@ -55061,8 +55061,7 @@
                 "min": 2,
                 "max": 8
               }
-            },
-            "description": "Right click to use on doors and windows"
+            }
           }
         ]
       },
@@ -58559,7 +58558,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_corn-1784795751985-7zfm4",
+            "instanceId": "provision.harvestable_corn-1784865434813-1mzqb",
             "defId": "provision.harvestable_corn",
             "id": "provision.harvestable_corn",
             "name": "Harvestable corn",

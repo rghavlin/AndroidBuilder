@@ -1415,6 +1415,10 @@ const GameContextInner = ({ children }) => {
   const applyLoadedState = useCallback((loadedState, { dispatchGameLoaded = false } = {}) => {
     isStartMenuModeRef.current = false;
     setIsStartMenuMode(false);
+    // Loading a save is real gameplay — re-enable autosave. Without this the flag
+    // stays true from the start-menu sandbox (StartMenu.scenario.json has
+    // noAutosave:true), so a resumed game would silently never autosave.
+    noAutosaveRef.current = false;
 
     // Sync ALL engine state atomically from the loaded save
     turnManager.cancelPlayback();
@@ -1532,6 +1536,9 @@ const GameContextInner = ({ children }) => {
       
       setTurn(loadedState.turn);
       setTurnPhase(loadedState.interactionState?.isPlayerTurn !== undefined ? (loadedState.interactionState.isPlayerTurn ? 'PLAYER_TURN' : 'SIMULATING') : 'PLAYER_TURN');
+      // Loading a save is real gameplay — re-enable autosave (the flag is left
+      // true by the start-menu sandbox, whose scenario has noAutosave:true).
+      noAutosaveRef.current = false;
       setIsAutosaving(false);
       setIsGameReady(true);
       setIsDefeated(false);

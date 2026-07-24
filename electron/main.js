@@ -183,12 +183,40 @@ app.commandLine.appendSwitch('disable-blink-features', 'Geolocation');
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 // --- IPC Scenario Handlers (customMaps/) ---
-const scenarioDir = path.join(__dirname, '..', 'customMaps');
+// Shipped scenarios live next to the app — read-only inside app.asar in the
+// packaged build. User-created / edited scenarios must go to a writable per-user
+// location (mirroring how game saves use userData), or the editor's Save fails
+// silently on the read-only asar. In dev both point at the same repo folder, so
+// authoring still writes straight into customMaps/ for version control.
+const bundledScenarioDir = path.join(__dirname, '..', 'customMaps');
+const userScenarioDir = isDev
+  ? bundledScenarioDir
+  : path.join(app.getPath('userData'), 'customMaps');
+
+// Directories to search when READING, in priority order (a user copy shadows the
+// bundled one). Deduped when dev collapses both to the same path.
+function scenarioReadDirs() {
+  return userScenarioDir === bundledScenarioDir
+    ? [userScenarioDir]
+    : [userScenarioDir, bundledScenarioDir];
+}
+
+// Resolve an existing scenario file for reading across both locations, or null.
+// safeResolve confines `name` to each directory (blocks path traversal).
+function resolveScenarioForRead(name) {
+  for (const dir of scenarioReadDirs()) {
+    try {
+      const p = safeResolve(dir, name);
+      if (fs.existsSync(p) && !fs.statSync(p).isDirectory()) return p;
+    } catch (e) { /* traversal attempt for this dir — skip */ }
+  }
+  return null;
+}
 
 ipcMain.handle('save-scenario', async (event, name, data) => {
   try {
-    if (!fs.existsSync(scenarioDir)) fs.mkdirSync(scenarioDir, { recursive: true });
-    const filePath = safeResolve(scenarioDir, `${name}.scenario.json`);
+    if (!fs.existsSync(userScenarioDir)) fs.mkdirSync(userScenarioDir, { recursive: true });
+    const filePath = safeResolve(userScenarioDir, `${name}.scenario.json`);
     const content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
     fs.writeFileSync(filePath, content, 'utf-8');
     return { success: true, path: filePath };
@@ -199,8 +227,8 @@ ipcMain.handle('save-scenario', async (event, name, data) => {
 
 ipcMain.handle('save-scenario-editor', async (event, name, data) => {
   try {
-    if (!fs.existsSync(scenarioDir)) fs.mkdirSync(scenarioDir, { recursive: true });
-    const filePath = safeResolve(scenarioDir, `${name}.editor.json`);
+    if (!fs.existsSync(userScenarioDir)) fs.mkdirSync(userScenarioDir, { recursive: true });
+    const filePath = safeResolve(userScenarioDir, `${name}.editor.json`);
     const content = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
     fs.writeFileSync(filePath, content, 'utf-8');
     return { success: true, path: filePath };
@@ -211,22 +239,26 @@ ipcMain.handle('save-scenario-editor', async (event, name, data) => {
 
 ipcMain.handle('list-scenarios', async () => {
   try {
-    if (!fs.existsSync(scenarioDir)) return [];
-    const files = fs.readdirSync(scenarioDir);
-    const scenarios = [];
-    for (const file of files) {
-      if (file.endsWith('.scenario.json')) {
-        const filePath = path.join(scenarioDir, file);
+    // Merge shipped + user scenarios, keyed by fileName so a user copy shadows
+    // the bundled one (bundled applied first, user last / wins).
+    const byFile = new Map();
+    const dirs = userScenarioDir === bundledScenarioDir
+      ? [bundledScenarioDir]
+      : [bundledScenarioDir, userScenarioDir];
+    for (const dir of dirs) {
+      if (!fs.existsSync(dir)) continue;
+      for (const file of fs.readdirSync(dir)) {
+        if (!file.endsWith('.scenario.json')) continue;
         try {
-          const content = fs.readFileSync(filePath, 'utf-8');
+          const content = fs.readFileSync(path.join(dir, file), 'utf-8');
           const data = JSON.parse(content);
-          scenarios.push({ name: data.name || file, width: data.width, height: data.height, fileName: file });
+          byFile.set(file, { name: data.name || file, width: data.width, height: data.height, fileName: file });
         } catch (err) {
           console.warn('[Scenario IPC] Corrupt scenario file:', file);
         }
       }
     }
-    return scenarios.sort((a, b) => a.name.localeCompare(b.name));
+    return [...byFile.values()].sort((a, b) => a.name.localeCompare(b.name));
   } catch (error) {
     return [];
   }
@@ -255,9 +287,8 @@ ipcMain.handle('list-entity-images', async () => {
 
 ipcMain.handle('load-scenario', async (event, fileName) => {
   try {
-    const filePath = safeResolve(scenarioDir, fileName);
-    if (!fs.existsSync(filePath)) return null;
-    return fs.readFileSync(filePath, 'utf-8');
+    const filePath = resolveScenarioForRead(fileName);
+    return filePath ? fs.readFileSync(filePath, 'utf-8') : null;
   } catch (error) {
     return null;
   }
@@ -265,9 +296,8 @@ ipcMain.handle('load-scenario', async (event, fileName) => {
 
 ipcMain.handle('load-scenario-editor', async (event, name) => {
   try {
-    const filePath = safeResolve(scenarioDir, `${name}.editor.json`);
-    if (!fs.existsSync(filePath)) return null;
-    return fs.readFileSync(filePath, 'utf-8');
+    const filePath = resolveScenarioForRead(`${name}.editor.json`);
+    return filePath ? fs.readFileSync(filePath, 'utf-8') : null;
   } catch (error) {
     return null;
   }
@@ -275,7 +305,9 @@ ipcMain.handle('load-scenario-editor', async (event, name) => {
 
 ipcMain.handle('delete-scenario', async (event, fileName) => {
   try {
-    const filePath = safeResolve(scenarioDir, fileName);
+    // Only the user's writable copy can be removed; bundled (shipped) scenarios
+    // are read-only, so deleting a shipped-only scenario is a no-op success.
+    const filePath = safeResolve(userScenarioDir, fileName);
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     // Also delete editor state file
     const editorFile = filePath.replace('.scenario.json', '.editor.json');

@@ -1,16 +1,16 @@
 # Graph Report - AndroidBuilder  (2026-07-23)
 
 ## Corpus Check
-- 582 files · ~6,371,907 words
+- 582 files · ~6,372,171 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3595 nodes · 9146 edges · 194 communities (148 shown, 46 thin omitted)
+- 3595 nodes · 9146 edges · 194 communities (145 shown, 49 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 135 edges (avg confidence: 0.78)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f6047823`
+- Built from commit: `2d17e56e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -219,7 +219,7 @@
 - 1-file cycle: `test/balance/apEconomy.mjs -> test/balance/apEconomy.mjs`
 - 1-file cycle: `test/balance/balance.mjs -> test/balance/balance.mjs`
 
-## Communities (194 total, 46 thin omitted)
+## Communities (194 total, 49 thin omitted)
 
 ### Community 0 - "traits.js"
 Cohesion: 0.06
@@ -250,8 +250,8 @@ Cohesion: 0.09
 Nodes (20): AITargeting, attacker, dead, far, firstFarIdx, gameMap, gm2, lastNearIdx (+12 more)
 
 ### Community 8 - "Tooltip Components"
-Cohesion: 0.10
-Nodes (12): Door, door, gm, player, z, door, engineMock, map (+4 more)
+Cohesion: 0.09
+Nodes (13): Door, door, gm, player, z, testZombieBug(), door, engineMock (+5 more)
 
 ### Community 9 - "Entity Component System"
 Cohesion: 0.07
@@ -298,20 +298,20 @@ Cohesion: 0.16
 Nodes (11): args, base, rows, runs, scenario, secs, startSeed, summary (+3 more)
 
 ### Community 21 - "World Progression and Spawning"
-Cohesion: 0.04
-Nodes (28): ActionPoints, AIState, Consumable, EquippedArmor, Inventory, InventoryContainer, Item, MeleeWeapon (+20 more)
+Cohesion: 0.05
+Nodes (18): ActionPoints, AIState, Inventory, PlayerSkills, PlayerWallet, SurvivalStats, Vision, __dirname (+10 more)
 
 ### Community 22 - "Game Initialization Manager"
-Cohesion: 0.16
-Nodes (3): GameInitializationManager, initManager, runDebug()
+Cohesion: 0.08
+Nodes (11): log, NOTE: This only moves the camera view, not any entities, LootProgression, MapProgression, GameInitializationManager, INIT_STATES, initManager, runDebug() (+3 more)
 
 ### Community 23 - "Door"
 Cohesion: 0.06
 Nodes (24): TurretAI, engine, NOTE: equipItem intentionally has NO "Items inside" guard (unlike moveItem)., _warnedCatchAllProps, getItemName(), ItemDefs, FireMode, getFuelValue() (+16 more)
 
 ### Community 24 - "Turret Combat Logic"
-Cohesion: 0.05
-Nodes (14): Burnable, RpgStats, Rabbit, SequencerAction, FireSystem, gm, serialized, map (+6 more)
+Cohesion: 0.06
+Nodes (12): Rabbit, SequencerAction, FireSystem, gm, serialized, map, mockTile, npc (+4 more)
 
 ### Community 25 - "Inventory Management System"
 Cohesion: 0.05
@@ -426,8 +426,8 @@ Cohesion: 0.15
 Nodes (5): PlayerZombieTracker, map, player, tracker, zombie
 
 ### Community 55 - "pagination.tsx"
-Cohesion: 0.07
-Nodes (20): AIBehavior, Health, LightEmitter, Movable, Position, Renderable, aiCustom, aiDefault (+12 more)
+Cohesion: 0.04
+Nodes (30): AIBehavior, Consumable, EquippedArmor, Health, InventoryContainer, Item, LightEmitter, MeleeWeapon (+22 more)
 
 ### Community 56 - "Menubar UI Components"
 Cohesion: 0.12
@@ -446,8 +446,8 @@ Cohesion: 0.12
 Nodes (15): CATEGORY_PRICES, field(), FLAT_PRICES, FREE_ITEMS, getItemPrice(), hasCategory(), hasTrait(), healValue() (+7 more)
 
 ### Community 61 - "Inventory Persistence Tests"
-Cohesion: 0.12
-Nodes (11): DamageIntent, MoveIntent, IntentQueue, AISystem, CombatSystem, MovementSystem, VisionSystem, computeHearingZone() (+3 more)
+Cohesion: 0.13
+Nodes (12): DamageIntent, MoveIntent, IntentQueue, AISystem, CombatSystem, MovementSystem, VisionSystem, computeHearingZone() (+4 more)
 
 ### Community 62 - "Save Game Management"
 Cohesion: 0.08
@@ -462,8 +462,8 @@ Cohesion: 0.11
 Nodes (6): MockCanvasContext, mockEngine, mockLocalStorage, mockSprites, mockVisibilitySet, runTest()
 
 ### Community 66 - "Form UI Components"
-Cohesion: 0.23
-Nodes (4): Item, TestEntity, assert(), verify()
+Cohesion: 0.10
+Nodes (6): Burnable, RpgStats, Item, TestEntity, assert(), verify()
 
 ### Community 67 - "Door Interaction Logic"
 Cohesion: 0.09
@@ -504,10 +504,6 @@ Nodes (7): isInsideTollGate(), isInStartArea(), logger, ZombieReplenishmentSyste
 ### Community 77 - "Item Factory Methods"
 Cohesion: 0.16
 Nodes (6): NPCTypes, findAttackSlotPath(), isMeleeAttackPosition(), runCycle(), emptyTiles(), loadScenario()
-
-### Community 79 - ".executeTransition"
-Cohesion: 0.11
-Nodes (3): WorldManager, assert(), verify()
 
 ### Community 80 - "Electron Build Config"
 Cohesion: 0.17
@@ -665,13 +661,9 @@ Nodes (4): content, fs, lines, path
 Cohesion: 0.25
 Nodes (7): gameMap, itemsOnTile, loadedGrid, loadedSafe, originalGrid, originalSafe, safeData
 
-### Community 144 - "Row"
-Cohesion: 0.29
-Nodes (3): MockMap, mockPlayer, verifySpawning()
-
 ### Community 145 - ".runTurn"
-Cohesion: 0.08
-Nodes (32): EntityFactory, testCornerBug(), testDiagonalBug(), build(), run(), runOscillationTest(), runTest(), testHuntingDoorBug() (+24 more)
+Cohesion: 0.09
+Nodes (30): EntityFactory, testCornerBug(), testDiagonalBug(), build(), run(), runOscillationTest(), runTest(), testHuntingDoorBug() (+22 more)
 
 ### Community 146 - "Image Cropping Scripts"
 Cohesion: 0.50
@@ -700,10 +692,6 @@ Nodes (4): entities, wm, wm2, zombies
 ### Community 171 - "test_noise_assert.js"
 Cohesion: 0.10
 Nodes (10): BaseMapGenerator, NOTE: tile-fire ticking lives on GameMap.processTileFires(), which iterates, gameRandom, makeSeededRandom(), brokenScopeStats, builder, mapData, t0 (+2 more)
-
-### Community 172 - "verify_saveload.mjs"
-Cohesion: 0.13
-Nodes (6): log, NOTE: This only moves the camera view, not any entities, LootProgression, MapProgression, INIT_STATES, EventEmitter
 
 ### Community 173 - ".recordHit"
 Cohesion: 0.20
@@ -740,7 +728,7 @@ Nodes (22): tryFollowScent(), ScentTrail, gm, lead, player, trail, zs, cheb() (+
 ## Knowledge Gaps
 - **931 isolated node(s):** `inputContent`, `ActionSlotButtonProps`, `BarterWindowProps`, `BuildingTooltipProps`, `CharacterCreatorProps` (+926 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **46 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **49 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_

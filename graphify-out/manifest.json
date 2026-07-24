@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784860026.666136,
-    "ast_hash": "4e7ca4bfb279a6fbe95439d3e84c22e7",
+    "mtime": 1784865916.4701335,
+    "ast_hash": "f66c2214aa5c0a7ad899b6750171b97e",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1784860110.15255,
-    "ast_hash": "33bf303e0cfe506ffe7aabd4f0d89995",
+    "mtime": 1784866385.9516,
+    "ast_hash": "3c4ccb279c012ea05a6874b21cfe9807",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -1460,8 +1460,8 @@
     "semantic_hash": "80e251754baef8eb5a7473e940af3313"
   },
   "electron/main.js": {
-    "mtime": 1784860145.0855248,
-    "ast_hash": "8588513e141b7d55ec5caddd0f94b7dd",
+    "mtime": 1784868950.8567102,
+    "ast_hash": "5895dfa34f7547e18c70a73c17038646",
     "semantic_hash": ""
   },
   "electron/preload.js": {
@@ -3140,13 +3140,13 @@
     "semantic_hash": ""
   },
   "customMaps/StartMenu.editor.json": {
-    "mtime": 1784795751.0984652,
-    "ast_hash": "af42ed8e4ad3be100935377fd00458aa",
+    "mtime": 1784865433.666217,
+    "ast_hash": "ac7a45538a8c09e4aeb38cd77381ece7",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.scenario.json": {
-    "mtime": 1784795752.0189526,
-    "ast_hash": "e7bf3509f92fc1b37c6e1714e3ed3d3a",
+    "mtime": 1784865434.8502102,
+    "ast_hash": "af591d810cca602111d22b5fbe31a282",
     "semantic_hash": ""
   },
   "test/ai/aiStateTransitions.test.js": {
@@ -3177,6 +3177,16 @@
   "scratch/verify_zombie_earbucks_value.mjs": {
     "mtime": 1784795583.7280762,
     "ast_hash": "c18277f15c715ed6323ba93eef6d9e47",
+    "semantic_hash": ""
+  },
+  "customMaps/saveMapTest.editor.json": {
+    "mtime": 1784868769.8956885,
+    "ast_hash": "cf2ae5555c5f09d85ca9fde16bdea28e",
+    "semantic_hash": ""
+  },
+  "customMaps/saveMapTest.scenario.json": {
+    "mtime": 1784868771.0174968,
+    "ast_hash": "6c88cf7c85495cc95ffc6fcf6985fb91",
     "semantic_hash": ""
   }
 }

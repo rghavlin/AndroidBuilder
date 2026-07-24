@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1784852132.2466733,
-    "ast_hash": "eefc4628f7729bd8034ef75e34b73edc",
+    "mtime": 1784865916.4701335,
+    "ast_hash": "f66c2214aa5c0a7ad899b6750171b97e",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1784722399.8257093,
-    "ast_hash": "e86d5e8988b4eaa7170d722f6290d148",
+    "mtime": 1784866385.9516,
+    "ast_hash": "3c4ccb279c012ea05a6874b21cfe9807",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -1090,8 +1090,8 @@
     "semantic_hash": "9ef85efd7fec69c93a92b57d52c97760"
   },
   "client/src/game/map/TemplateMapGenerator.js": {
-    "mtime": 1784795443.6141682,
-    "ast_hash": "3b3aaeef234726f5ce745e0c4e0f1413",
+    "mtime": 1784860116.3151772,
+    "ast_hash": "6b7074bb937f4cf0b2e2e37f14e2aa14",
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
@@ -1460,8 +1460,8 @@
     "semantic_hash": "80e251754baef8eb5a7473e940af3313"
   },
   "electron/main.js": {
-    "mtime": 1784856335.2726178,
-    "ast_hash": "5b0ed07629c71e31d236b938f869bf1b",
+    "mtime": 1784860145.0855248,
+    "ast_hash": "8588513e141b7d55ec5caddd0f94b7dd",
     "semantic_hash": ""
   },
   "electron/preload.js": {
@@ -1470,8 +1470,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1784182192.6575086,
-    "ast_hash": "9fa38c71d3086af869fb27116e54db79",
+    "mtime": 1784860099.6508257,
+    "ast_hash": "4e7bce79e3e28f652e1e3a3537a30e94",
     "semantic_hash": ""
   },
   "postcss.config.js": {
@@ -2390,7 +2390,7 @@
     "semantic_hash": "b8f5cc4f28cdc56eb14fc0e604ab5009"
   },
   "vite.config.electron.ts": {
-    "mtime": 1784687919.8885894,
+    "mtime": 1784860122.436823,
     "ast_hash": "f702b0ec9615b04f1aa1605b15563b39",
     "semantic_hash": ""
   },
@@ -3140,13 +3140,13 @@
     "semantic_hash": ""
   },
   "customMaps/StartMenu.editor.json": {
-    "mtime": 1784795751.0984652,
-    "ast_hash": "af42ed8e4ad3be100935377fd00458aa",
+    "mtime": 1784865433.666217,
+    "ast_hash": "ac7a45538a8c09e4aeb38cd77381ece7",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.scenario.json": {
-    "mtime": 1784795752.0189526,
-    "ast_hash": "e7bf3509f92fc1b37c6e1714e3ed3d3a",
+    "mtime": 1784865434.8502102,
+    "ast_hash": "af591d810cca602111d22b5fbe31a282",
     "semantic_hash": ""
   },
   "test/ai/aiStateTransitions.test.js": {
