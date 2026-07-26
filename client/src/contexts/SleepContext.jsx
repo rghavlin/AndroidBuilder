@@ -316,7 +316,8 @@ export const SleepProvider = ({ children }) => {
           isBleeding: player.isBleeding,
           isStarving: player.isStarving,
           isDehydrated: player.isDehydrated,
-          condition: player.condition,
+          // Omit derived `condition` — updatePlayerStats writes it back through
+          // the setter, which poisons the stored fallback (see GameContext).
           sickness: player.sickness,
           woundInfection: player.woundInfection,
           drunkenness: player.drunkenness,

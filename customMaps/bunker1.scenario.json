@@ -1,8 +1,9 @@
 {
-  "name": "zombie corpse test",
+  "name": "bunker1",
   "width": 20,
   "height": 20,
   "noAutosave": true,
+  "alwaysDark": true,
   "tiles": [
     [
       {
@@ -1496,21 +1497,21 @@
       {
         "x": 3,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 4,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1520,10 +1521,10 @@
       {
         "x": 5,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
-          "e": false,
+          "n": true,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -1544,21 +1545,21 @@
       {
         "x": 7,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 8,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1568,9 +1569,9 @@
       {
         "x": 9,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1580,9 +1581,9 @@
       {
         "x": 10,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1592,10 +1593,10 @@
       {
         "x": 11,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
-          "e": false,
+          "n": true,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -1616,21 +1617,21 @@
       {
         "x": 13,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 14,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1640,10 +1641,10 @@
       {
         "x": 15,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
-          "e": false,
+          "n": true,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -1738,19 +1739,19 @@
       {
         "x": 3,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 4,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1762,7 +1763,7 @@
       {
         "x": 5,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1774,11 +1775,11 @@
       {
         "x": 6,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -1786,7 +1787,7 @@
       {
         "x": 7,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1798,7 +1799,7 @@
       {
         "x": 8,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1810,7 +1811,7 @@
       {
         "x": 9,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1822,7 +1823,7 @@
       {
         "x": 10,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1834,7 +1835,7 @@
       {
         "x": 11,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1846,11 +1847,11 @@
       {
         "x": 12,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -1858,7 +1859,7 @@
       {
         "x": 13,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1870,7 +1871,7 @@
       {
         "x": 14,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1882,10 +1883,10 @@
       {
         "x": 15,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -1980,23 +1981,23 @@
       {
         "x": 3,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
       {
         "x": 4,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2004,11 +2005,11 @@
       {
         "x": 5,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2028,19 +2029,19 @@
       {
         "x": 7,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 8,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2052,7 +2053,7 @@
       {
         "x": 9,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2064,7 +2065,7 @@
       {
         "x": 10,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2076,10 +2077,10 @@
       {
         "x": 11,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2100,23 +2101,23 @@
       {
         "x": 13,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
       {
         "x": 14,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2124,11 +2125,11 @@
       {
         "x": 15,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2270,23 +2271,23 @@
       {
         "x": 7,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
       {
         "x": 8,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2294,7 +2295,7 @@
       {
         "x": 9,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2306,11 +2307,11 @@
       {
         "x": 10,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2318,11 +2319,11 @@
       {
         "x": 11,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2536,12 +2537,12 @@
       {
         "x": 9,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -2778,12 +2779,12 @@
       {
         "x": 9,
         "y": 11,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -3020,12 +3021,12 @@
       {
         "x": 9,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -3262,12 +3263,12 @@
       {
         "x": 9,
         "y": 13,
-        "terrain": "grass",
+        "terrain": "garagefloor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -3280,1326 +3281,312 @@
           "e": false,
           "s": false,
           "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 11,
+        "y": 13,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 12,
+        "y": 13,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 13,
+        "y": 13,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 14,
+        "y": 13,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 15,
+        "y": 13,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 16,
+        "y": 13,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 17,
+        "y": 13,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 18,
+        "y": 13,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 19,
+        "y": 13,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 14,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 1,
+        "y": 14,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 2,
+        "y": 14,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 3,
+        "y": 14,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 4,
+        "y": 14,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 5,
+        "y": 14,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 6,
+        "y": 14,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 7,
+        "y": 14,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 8,
+        "y": 14,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 9,
+        "y": 14,
+        "terrain": "garagefloor",
+        "edgeWalls": {
+          "n": false,
+          "e": true,
+          "s": true,
+          "w": true
         },
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.battle_rifle-1783418821621-xntw0",
-            "defId": "weapon.battle_rifle",
-            "id": "weapon.battle_rifle",
-            "name": "Battle rifle",
-            "rarity": "extremely_rare",
-            "imageId": "battlerifle",
-            "width": 5,
-            "height": 2,
+            "instanceId": "tool.smallflashlight-1785108388051-ao12w",
+            "defId": "tool.smallflashlight",
+            "id": "tool.smallflashlight",
+            "name": "Flashlight",
+            "rarity": "uncommon",
+            "imageId": "flashlight",
+            "width": 2,
+            "height": 1,
             "traits": [
               "equippable",
-              "container",
+              "degradable",
+              "battery-powered",
               "openable-when-nested"
             ],
-            "equippableSlot": "long_gun",
+            "equippableSlot": "flashlight",
             "categories": [
-              "weapon",
-              "gun"
+              "tool"
             ],
+            "condition": 100,
+            "lightRange": 8,
+            "lightType": "beam",
             "attachmentSlots": [
               {
-                "id": "barrel",
-                "name": "Barrel",
+                "id": "battery",
+                "name": "Battery",
+                "type": "battery",
                 "allowedCategories": [
-                  "suppressor"
+                  "battery"
                 ]
-              },
-              {
-                "id": "sight",
-                "name": "Optic",
-                "allowedCategories": [
-                  "rifle_scope",
-                  "laser_sight"
-                ]
-              },
-              {
-                "id": "ammo",
-                "name": "Magazine",
-                "hidden": true,
-                "allowedCategories": [
-                  "ammo"
+              }
+            ],
+            "attachments": {
+              "battery": {
+                "instanceId": "tool.battery-1785108388051-rhg8o",
+                "defId": "tool.battery",
+                "id": "tool.battery",
+                "name": "Battery",
+                "rarity": "uncommon",
+                "imageId": "battery",
+                "width": 1,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
                 ],
-                "allowedItems": [
-                  "attachment.556_magazine"
-                ]
-              }
-            ],
-            "rangedStats": {
-              "noiseRadius": 18,
-              "damage": {
-                "min": 5,
-                "max": 18
-              },
-              "accuracyFalloff": 0.05,
-              "minAccuracy": 0.05
-            },
-            "fireMode": "single",
-            "availableFireModes": [
-              "single",
-              "burst"
-            ]
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-tqllk",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-iq8jh",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-xuoz4",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-t1uc3",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-1appi",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-j73cn",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-r7tov",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-ux0ru",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-8asfz",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-0hv6w",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-020iz",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-ce703",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-1xrt1",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-tr5rn",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-xpj6w",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-it5j5",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-m69s9",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-s0yd6",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-vr5yc",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-yaqnm",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-yhxcc",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-czxf1",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-j800x",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-jgepa",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-rlymg",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-92ssi",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-kjc94",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-4yzw1",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-j3dd6",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-h5ko3",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-fiv5f",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-kubl2",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-y8upp",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-euao0",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-e3abb",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-rnc0n",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-k43g9",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-wuvn6",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-9bipg",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-n613j",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-l25v4",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-nwo1d",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-orqw0",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-6x7oi",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "ammo.556-1783418821621-6oeg4",
-            "defId": "ammo.556",
-            "id": "ammo.556",
-            "name": "5.56 Ammo",
-            "rarity": "uncommon",
-            "imageId": "556ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 2,
-            "spawnStackMax": 7
-          },
-          {
-            "instanceId": "attachment.556_magazine-1783418821621-vev66",
-            "defId": "attachment.556_magazine",
-            "id": "attachment.556_magazine",
-            "name": "5.56 Mag",
-            "rarity": "rare",
-            "imageId": "556mag",
-            "width": 2,
-            "height": 1,
-            "traits": [
-              "magazine"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "capacity": 20,
-            "ammoDefId": "ammo.556"
-          },
-          {
-            "instanceId": "attachment.556_magazine-1783418821621-uz5uh",
-            "defId": "attachment.556_magazine",
-            "id": "attachment.556_magazine",
-            "name": "5.56 Mag",
-            "rarity": "rare",
-            "imageId": "556mag",
-            "width": 2,
-            "height": 1,
-            "traits": [
-              "magazine"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "capacity": 20,
-            "ammoDefId": "ammo.556"
-          },
-          {
-            "instanceId": "weapon.makeshift_knife-1783418821621-nb4mb",
-            "defId": "weapon.makeshift_knife",
-            "id": "weapon.makeshift_knife",
-            "name": "Makeshift knife",
-            "rarity": "common",
-            "imageId": "makeshiftknife",
-            "noLoot": true,
-            "width": 2,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "tool",
-              "knife"
-            ],
-            "condition": 100,
-            "fragility": 4,
-            "combat": {
-              "hitChance": 0.65,
-              "damage": {
-                "min": 2,
-                "max": 5
+                "categories": [
+                  "battery",
+                  "tool"
+                ],
+                "stackMax": 10,
+                "capacity": 10,
+                "ammoCount": 10
               }
             }
           },
           {
-            "instanceId": "weapon.knife-1783418821621-xqk8v",
-            "defId": "weapon.knife",
-            "id": "weapon.knife",
-            "name": "Knife",
+            "instanceId": "placeable.stairs_up-1785108388051-p48z7",
+            "defId": "placeable.stairs_up",
+            "id": "placeable.stairs_up",
+            "name": "Stairs Up",
             "rarity": "common",
-            "imageId": "knife",
-            "width": 2,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "degradable"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "tool",
-              "knife"
-            ],
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.65,
-              "damage": {
-                "min": 1,
-                "max": 4
-              }
-            }
-          },
-          {
-            "instanceId": "weapon.makeshift_hammer-1783418821621-4txhb",
-            "defId": "weapon.makeshift_hammer",
-            "id": "weapon.makeshift_hammer",
-            "name": "Makeshift hammer",
-            "noLoot": true,
-            "rarity": "common",
-            "imageId": "Makeshifthammer",
+            "imageId": "stairsup",
             "width": 3,
-            "height": 2,
+            "height": 3,
+            "noDrag": true,
             "traits": [
-              "equippable",
-              "degradable"
+              "groundOnly"
             ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "tool",
-              "hammer"
-            ],
-            "condition": 100,
-            "fragility": 4,
-            "combat": {
-              "hitChance": 0.7,
-              "damage": {
-                "min": 3,
-                "max": 9
-              }
-            }
-          },
-          {
-            "instanceId": "backpack.hiking-1783418821621-609g3",
-            "defId": "backpack.hiking",
-            "id": "backpack.hiking",
-            "name": "Hiking Backpack",
-            "rarity": "extremely_rare",
-            "imageId": "hikingBackpack",
-            "width": 5,
-            "height": 5,
-            "traits": [
-              "equippable",
-              "container"
-            ],
-            "categories": [
-              "container"
-            ],
-            "equippableSlot": "backpack",
-            "containerGrid": {
-              "width": 6,
-              "height": 10
-            },
-            "description": "When on the ground, right-click to open"
-          },
-          {
-            "instanceId": "crafting.stone-1783418821621-q0w1m",
-            "defId": "crafting.stone",
-            "id": "crafting.stone",
-            "name": "Stone",
-            "rarity": "common",
-            "imageId": "stone",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "crafting_material"
-            ],
-            "spawnBias": {
-              "outside": 10,
-              "inside": 0
-            },
-            "pileLimitOne": true,
-            "stackMax": 50
+            "noLoot": true,
+            "renderFullTile": true
           }
         ]
-      },
-      {
-        "x": 11,
-        "y": 13,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 13,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 13,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 13,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 13,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 13,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 13,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 13,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 13,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 14,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 14,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 14,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 14,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 14,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 14,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 14,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 14,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 14,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 14,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
       },
       {
         "x": 10,
@@ -5934,85 +4921,28 @@
     ]
   ],
   "metadata": {
+    "alwaysDark": true,
     "buildings": [],
+    "furniture": [],
     "specialBuildings": [],
     "doors": [],
+    "garageDoors": [],
     "windows": [],
     "placeIcons": [],
     "spawnZones": {
       "playerStart": [
         {
-          "x": 10,
-          "y": 13
+          "x": 9,
+          "y": 14
         }
       ]
     }
   },
   "entities": [
     {
-      "type": "zombie",
-      "x": 5,
-      "y": 11,
-      "subtype": "runner"
-    },
-    {
-      "type": "zombie",
-      "x": 6,
-      "y": 11,
-      "subtype": "peeper"
-    },
-    {
-      "type": "zombie",
-      "x": 7,
-      "y": 11,
-      "subtype": "crawler"
-    },
-    {
-      "type": "zombie",
-      "x": 8,
-      "y": 11,
-      "subtype": "fat"
-    },
-    {
-      "type": "zombie",
-      "x": 9,
-      "y": 11,
-      "subtype": "soldier"
-    },
-    {
-      "type": "zombie",
-      "x": 10,
-      "y": 11,
-      "subtype": "firefighter"
-    },
-    {
-      "type": "zombie",
-      "x": 11,
-      "y": 11,
-      "subtype": "swat"
-    },
-    {
-      "type": "zombie",
-      "x": 12,
-      "y": 11,
-      "subtype": "acid"
-    },
-    {
-      "type": "zombie",
-      "x": 13,
-      "y": 11,
-      "subtype": "spitter"
-    },
-    {
-      "type": "zombie",
-      "x": 15,
-      "y": 11,
-      "subtype": "mutant"
-    },
-    {
       "type": "player",
-      "x": 10,
-      "y": 13,
+      "x": 9,
+      "y": 14,
       "subtype": null
     }
   ],

@@ -875,7 +875,10 @@ const GameContextInner = ({ children }) => {
         isBleeding: player.isBleeding,
         sickness: player.sickness,
         woundInfection: player.woundInfection,
-        condition: player.condition,
+        // NOTE: do NOT sync `condition` here — it is a DERIVED getter, and
+        // updatePlayerStats writes every key back onto the entity through the
+        // setter. Round-tripping it poisoned the stored fallback (e.g. a stale
+        // 'Bleeding' that survived bandaging and blocked HP regen forever).
         drunkenness: player.drunkenness
       });
 

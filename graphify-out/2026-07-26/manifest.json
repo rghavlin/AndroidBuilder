@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1785102897.382612,
-    "ast_hash": "dfc14bd52591bcfff775ddd7afdcd714",
+    "mtime": 1784896172.2267501,
+    "ast_hash": "490adaee8a7b89f1cdb86432749c73de",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1785102820.3572571,
-    "ast_hash": "8252b1ac2d654b077b0e871e78eca1dc",
+    "mtime": 1784866385.9516,
+    "ast_hash": "3c4ccb279c012ea05a6874b21cfe9807",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -675,8 +675,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/SleepContext.jsx": {
-    "mtime": 1785102838.3015664,
-    "ast_hash": "88a50a31abc921e1e52a9c128ea74483",
+    "mtime": 1784698891.104067,
+    "ast_hash": "654e4bdaed4946c0e75ea8f694f1e25b",
     "semantic_hash": ""
   },
   "client/src/contexts/ThemeContext.tsx": {
@@ -920,8 +920,8 @@
     "semantic_hash": ""
   },
   "client/src/game/entities/Entity.js": {
-    "mtime": 1785102998.520706,
-    "ast_hash": "e2506fe1a0808f091afd8d0fd4a0a1a7",
+    "mtime": 1784795436.223198,
+    "ast_hash": "9417ecdb61f8846a940fb458183d4fc3",
     "semantic_hash": ""
   },
   "client/src/game/entities/NPCTypes.js": {
@@ -3197,11 +3197,6 @@
   "test/map/snareCatch.test.js": {
     "mtime": 1784891016.6812432,
     "ast_hash": "4c452b8d37d8cfad2553877385fcccd7",
-    "semantic_hash": ""
-  },
-  "test/entities/conditionDerived.test.js": {
-    "mtime": 1785102955.292116,
-    "ast_hash": "2e00a7814d0ca5ad93260d0a71020501",
     "semantic_hash": ""
   }
 }

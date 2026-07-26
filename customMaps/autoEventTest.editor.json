@@ -1,5 +1,5 @@
 {
-  "name": "saveMapTest",
+  "name": "autoEventTest",
   "width": 20,
   "height": 20,
   "tiles": [
@@ -5257,11 +5257,7 @@
             "window": false
           }
         },
-        "entities": [
-          {
-            "type": "player"
-          }
-        ],
+        "entities": [],
         "items": []
       },
       {
@@ -5695,7 +5691,11 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "player"
+          }
+        ],
         "items": []
       },
       {
@@ -10849,13 +10849,98 @@
     ]
   ],
   "buildings": [],
+  "noAutosave": true,
   "lowSpots": [],
   "bubbleEvents": [],
-  "chainDialogEvents": [],
-  "events": [],
+  "chainDialogEvents": [
+    {
+      "id": "ev1",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "0"
+        }
+      ],
+      "oneShot": true
+    },
+    {
+      "id": "ev2",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "1"
+        }
+      ],
+      "oneShot": true
+    }
+  ],
+  "events": [
+    {
+      "id": "ev1",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [
+        {
+          "kind": "var",
+          "var": "ev1",
+          "op": "==",
+          "value": 0
+        }
+      ],
+      "repeat": "whileConditions",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "0"
+        },
+        {
+          "type": "setVar",
+          "var": "ev1",
+          "op": "set",
+          "varValue": 1
+        }
+      ]
+    },
+    {
+      "id": "ev2",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [
+        {
+          "kind": "var",
+          "var": "ev1",
+          "op": "==",
+          "value": 1
+        }
+      ],
+      "repeat": "whileConditions",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "1"
+        },
+        {
+          "type": "setVar",
+          "var": "ev1",
+          "op": "set",
+          "varValue": 0
+        }
+      ]
+    }
+  ],
   "questRegistry": {
     "flags": [],
-    "vars": [],
+    "vars": [
+      {
+        "name": "ev1"
+      }
+    ],
     "quests": [],
     "factions": [],
     "factionStances": {}

@@ -260,20 +260,18 @@ export function applySurvivalCascade(player) {
 }
 
 // Derives maxHp/maxAp from current attributes and reconciles hp/ap against the new
-// caps: a drop in the cap takes the difference off current hp/ap like damage, and a
-// rise in the cap adds the difference to current hp/ap like healing. Because HP_FLOOR
-// (10) keeps maxHp at or above the player's starting HP, the hp clamp can never reach
-// 0, so it never trips death. maxHp uses current Constitution: starvation shrinks the
-// bonus but the floor guarantees it never falls below HP_FLOOR.
+// caps. HP is a pure clamp: a drop in maxHp only reduces current hp when the player
+// was at (or above) the new cap — a player already below maxHp takes no "damage" from
+// an attribute reduction, and a rise in the cap grants no free healing. Because
+// HP_FLOOR (10) keeps maxHp at or above the player's starting HP, the hp clamp can
+// never reach 0, so it never trips death. maxHp uses current Constitution: starvation
+// shrinks the bonus but the floor guarantees it never falls below HP_FLOOR.
 export function deriveSecondaryStats(player) {
   if (!player) return;
 
-  const oldMaxHp = player.maxHp || 0;
   const newMaxHp = maxHpFromAttributes(player.currentConstitution);
   player.maxHp = newMaxHp;
-  if (newMaxHp !== oldMaxHp) {
-    player.hp = Math.max(0, Math.min(newMaxHp, player.hp + (newMaxHp - oldMaxHp)));
-  }
+  player.hp = Math.min(newMaxHp, player.hp);
 
   const oldMaxAp = player.maxAp || 0;
   const apAttrBonus = maxApBonusFromAttributes(player.currentAgility, player.currentPerception);

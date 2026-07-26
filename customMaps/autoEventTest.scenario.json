@@ -1,5 +1,5 @@
 {
-  "name": "garagedoorTest",
+  "name": "autoEventTest",
   "width": 20,
   "height": 20,
   "noAutosave": true,
@@ -2246,21 +2246,21 @@
       {
         "x": 5,
         "y": 9,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 9,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2270,9 +2270,9 @@
       {
         "x": 7,
         "y": 9,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2282,9 +2282,9 @@
       {
         "x": 8,
         "y": 9,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2294,9 +2294,9 @@
       {
         "x": 9,
         "y": 9,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -2306,10 +2306,10 @@
       {
         "x": 10,
         "y": 9,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
-          "e": true,
+          "n": false,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -2488,19 +2488,19 @@
       {
         "x": 5,
         "y": 10,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 10,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2512,7 +2512,7 @@
       {
         "x": 7,
         "y": 10,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2524,7 +2524,7 @@
       {
         "x": 8,
         "y": 10,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2536,7 +2536,7 @@
       {
         "x": 9,
         "y": 10,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2548,10 +2548,10 @@
       {
         "x": 10,
         "y": 10,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -2730,19 +2730,19 @@
       {
         "x": 5,
         "y": 11,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 11,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2754,7 +2754,7 @@
       {
         "x": 7,
         "y": 11,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2766,7 +2766,7 @@
       {
         "x": 8,
         "y": 11,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2778,7 +2778,7 @@
       {
         "x": 9,
         "y": 11,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2790,10 +2790,10 @@
       {
         "x": 10,
         "y": 11,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -2972,19 +2972,19 @@
       {
         "x": 5,
         "y": 12,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 12,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2996,7 +2996,7 @@
       {
         "x": 7,
         "y": 12,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3008,7 +3008,7 @@
       {
         "x": 8,
         "y": 12,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3020,7 +3020,7 @@
       {
         "x": 9,
         "y": 12,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3032,10 +3032,10 @@
       {
         "x": 10,
         "y": 12,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -3214,23 +3214,23 @@
       {
         "x": 5,
         "y": 13,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
-          "w": true
+          "s": false,
+          "w": false
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 13,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -3238,11 +3238,11 @@
       {
         "x": 7,
         "y": 13,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -3250,11 +3250,11 @@
       {
         "x": 8,
         "y": 13,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -3262,11 +3262,11 @@
       {
         "x": 9,
         "y": 13,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -3274,11 +3274,11 @@
       {
         "x": 10,
         "y": 13,
-        "terrain": "garagefloor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
-          "s": true,
+          "e": false,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -3547,28 +3547,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "ammo.308-1784622077765-3p5o5",
-            "defId": "ammo.308",
-            "id": "ammo.308",
-            "name": ".308 Ammo",
-            "rarity": "uncommon",
-            "imageId": "308ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 1,
-            "spawnStackMax": 3
-          }
-        ]
+        "contents": []
       },
       {
         "x": 13,
@@ -3762,151 +3741,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "vehicle.golf_cart-1784622077765-bxgw5",
-            "defId": "vehicle.golf_cart",
-            "id": "vehicle.golf_cart",
-            "name": "Golf Cart",
-            "noLoot": true,
-            "noPickup": true,
-            "imageId": "golfcart",
-            "width": 5,
-            "height": 7,
-            "traits": [
-              "draggable",
-              "groundOnly",
-              "container",
-              "vehicle",
-              "wagon",
-              "scooter"
-            ],
-            "categories": [
-              "furniture",
-              "vehicle"
-            ],
-            "dragApPenalty": 3,
-            "motorAssistBonus": 0.5,
-            "rideApBonus": 0.5,
-            "powerEfficiency": 0.5,
-            "canTow": true,
-            "terrainModifiers": {
-              "road": -0.5,
-              "sidewalk": -0.5
-            },
-            "renderFullTile": true,
-            "containerGrid": {
-              "width": 5,
-              "height": 3,
-              "isVehicle": true
-            },
-            "attachmentSlots": [
-              {
-                "id": "motor_front",
-                "name": "Front Motor",
-                "allowedItems": [
-                  "electric_motor"
-                ]
-              },
-              {
-                "id": "battery_front",
-                "name": "Front Power Cell",
-                "allowedCategories": [
-                  "large_battery"
-                ],
-                "allowedItems": [
-                  "tool.large_battery",
-                  "tool.high_capacity_battery"
-                ]
-              },
-              {
-                "id": "motor_rear",
-                "name": "Rear Motor",
-                "allowedItems": [
-                  "electric_motor"
-                ]
-              },
-              {
-                "id": "battery_rear",
-                "name": "Rear Power Cell",
-                "allowedCategories": [
-                  "large_battery"
-                ],
-                "allowedItems": [
-                  "tool.large_battery",
-                  "tool.high_capacity_battery"
-                ]
-              }
-            ],
-            "defaultAttachments": {
-              "motor_front": "electric_motor",
-              "battery_front": "tool.large_battery",
-              "motor_rear": "electric_motor",
-              "battery_rear": "tool.large_battery"
-            },
-            "disassembleData": {
-              "toolId": "weapon.wrench",
-              "apCost": 15,
-              "components": [
-                {
-                  "id": "weapon.metal_rod",
-                  "count": 2
-                },
-                {
-                  "id": "crafting.wheel",
-                  "count": 4
-                },
-                {
-                  "id": "crafting.metal_plate",
-                  "count": 2
-                }
-              ]
-            }
-          },
-          {
-            "instanceId": "tool.large_battery-1784622077765-o0ojb",
-            "defId": "tool.large_battery",
-            "id": "tool.large_battery",
-            "name": "Large battery",
-            "rarity": "uncommon",
-            "imageId": "largebattery",
-            "width": 2,
-            "height": 1,
-            "traits": [
-              "stackable",
-              "battery"
-            ],
-            "categories": [
-              "large_battery",
-              "tool"
-            ],
-            "stackMax": 5,
-            "capacity": 100,
-            "ammoCount": 100
-          },
-          {
-            "instanceId": "tool.large_battery-1784622077765-hzmhj",
-            "defId": "tool.large_battery",
-            "id": "tool.large_battery",
-            "name": "Large battery",
-            "rarity": "uncommon",
-            "imageId": "largebattery",
-            "width": 2,
-            "height": 1,
-            "traits": [
-              "stackable",
-              "battery"
-            ],
-            "categories": [
-              "large_battery",
-              "tool"
-            ],
-            "stackMax": 5,
-            "capacity": 100,
-            "ammoCount": 100
-          }
-        ]
+        "contents": []
       },
       {
         "x": 9,
@@ -3942,38 +3777,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.crowbar-1784622077765-0nqqg",
-            "defId": "weapon.crowbar",
-            "id": "weapon.crowbar",
-            "name": "Crowbar",
-            "rarity": "uncommon",
-            "imageId": "crowbar",
-            "width": 3,
-            "height": 2,
-            "traits": [
-              "equippable",
-              "degradable",
-              "canBreakDoors"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "tool"
-            ],
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.7,
-              "damage": {
-                "min": 2,
-                "max": 8
-              }
-            },
-            "description": "Right click to use on doors and windows"
-          }
-        ]
+        "contents": []
       },
       {
         "x": 12,
@@ -5045,61 +4849,15 @@
     "buildings": [],
     "furniture": [],
     "specialBuildings": [],
-    "doors": [
-      {
-        "x": 10,
-        "y": 12,
-        "isLocked": true,
-        "isKeylocked": true,
-        "isOpen": false,
-        "edge": "e"
-      }
-    ],
-    "garageDoors": [
-      {
-        "x": 6,
-        "y": 13,
-        "isLocked": false,
-        "isKeylocked": false,
-        "isOpen": false,
-        "edge": "s",
-        "groupId": "garage-group-6-13-s"
-      },
-      {
-        "x": 7,
-        "y": 13,
-        "isLocked": false,
-        "isKeylocked": false,
-        "isOpen": false,
-        "edge": "s",
-        "groupId": "garage-group-6-13-s"
-      },
-      {
-        "x": 8,
-        "y": 13,
-        "isLocked": false,
-        "isKeylocked": false,
-        "isOpen": false,
-        "edge": "s",
-        "groupId": "garage-group-6-13-s"
-      },
-      {
-        "x": 9,
-        "y": 13,
-        "isLocked": false,
-        "isKeylocked": false,
-        "isOpen": false,
-        "edge": "s",
-        "groupId": "garage-group-6-13-s"
-      }
-    ],
+    "doors": [],
+    "garageDoors": [],
     "windows": [],
     "placeIcons": [],
     "spawnZones": {
       "playerStart": [
         {
-          "x": 11,
-          "y": 15
+          "x": 9,
+          "y": 10
         }
       ]
     }
@@ -5107,62 +4865,105 @@
   "entities": [
     {
       "type": "player",
-      "x": 11,
-      "y": 15,
+      "x": 9,
+      "y": 10,
       "subtype": null
     }
   ],
   "eventTriggers": [
     {
-      "x": 11,
-      "y": 12,
-      "id": "1",
-      "steps": [],
-      "oneShot": false
+      "chainOnly": true,
+      "id": "ev1",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "0"
+        }
+      ],
+      "oneShot": true
+    },
+    {
+      "chainOnly": true,
+      "id": "ev2",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "1"
+        }
+      ],
+      "oneShot": true
     }
   ],
   "mapTransitions": [],
   "events": [
     {
-      "id": "1",
+      "id": "ev1",
       "placement": {
-        "kind": "tile",
-        "x": 11,
-        "y": 12
+        "kind": "chainOnly"
       },
-      "trigger": "onEnter",
+      "trigger": "auto",
       "preconditions": [
         {
-          "kind": "itemInInventory",
-          "defId": "ammo.308",
-          "count": 1
+          "kind": "var",
+          "var": "ev1",
+          "op": "==",
+          "value": 0
         }
       ],
-      "repeat": "everyTime",
+      "repeat": "whileConditions",
       "steps": [
         {
-          "type": "controlEntity",
-          "entityTag": "1",
-          "entityAction": "unlock"
+          "type": "dialog",
+          "speaker": "",
+          "text": "0"
+        },
+        {
+          "type": "setVar",
+          "var": "ev1",
+          "op": "set",
+          "varValue": 1
+        }
+      ]
+    },
+    {
+      "id": "ev2",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [
+        {
+          "kind": "var",
+          "var": "ev1",
+          "op": "==",
+          "value": 1
+        }
+      ],
+      "repeat": "whileConditions",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "1"
+        },
+        {
+          "type": "setVar",
+          "var": "ev1",
+          "op": "set",
+          "varValue": 0
         }
       ]
     }
   ],
-  "entityRegistry": {
-    "entries": [
+  "questRegistry": {
+    "flags": [],
+    "vars": [
       {
-        "tag": "1",
-        "type": "door",
-        "x": 10,
-        "y": 12
-      },
-      {
-        "tag": "door-10-12-e",
-        "type": "door",
-        "x": 10,
-        "y": 12,
-        "description": "Keylocked door at (10,12)"
+        "name": "ev1"
       }
-    ]
+    ],
+    "quests": [],
+    "factions": [],
+    "factionStances": {}
   }
 }

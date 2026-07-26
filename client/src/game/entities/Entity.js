@@ -149,6 +149,11 @@ export const EntityType = {
   GARAGE_DOOR: 'garage_door'
 };
 
+// Condition values that the `condition` getter DERIVES from real flags
+// (isBleeding/woundInfection/sickness/drunkenness). The stored fallback field
+// must never contain one of these — see the guard in `get condition`.
+const DERIVED_CONDITIONS = new Set(['Bleeding', 'Wound Infection', 'Diseased', 'Drunk']);
+
 export class Entity extends SafeEventEmitter {
   constructor(id, type, x = 0, y = 0, subtype = null) {
     super();
@@ -385,16 +390,33 @@ export class Entity extends SafeEventEmitter {
       if (stats.woundInfection) return 'Wound Infection';
       if (stats.sickness > 0) return 'Diseased';
       if (stats.drunkenness > 0) return 'Drunk';
-      return stats.condition || 'Normal';
+      // `condition` is DERIVED: the four branches above compute it from the
+      // real flags. The stored `stats.condition` is only a fallback for custom
+      // states and must never hold one of those derived keywords — but a prior
+      // round-trip (reading this getter and writing it back through the setter,
+      // e.g. the per-turn stat-sync while bleeding) could have poisoned it. If
+      // it did, ignore it: a stale 'Bleeding' here would otherwise pin the
+      // player out of HP regen forever, even after the wound is bandaged. This
+      // also self-heals saves already corrupted by that bug.
+      const stored = stats.condition;
+      return (stored && !DERIVED_CONDITIONS.has(stored)) ? stored : 'Normal';
     }
-    return this._condition || (this.type === 'item' ? null : 'Normal');
+    const storedFallback = this._condition;
+    if (this.type === 'item') return storedFallback ?? null;
+    return (storedFallback && !DERIVED_CONDITIONS.has(storedFallback)) ? storedFallback : 'Normal';
   }
   set condition(v) {
+    // The stored condition is only a fallback for custom states; the derived
+    // keywords are computed by the getter from real flags. Never persist one
+    // here — a round-trip that writes the derived getter value back (the
+    // per-turn stat-sync bug) would otherwise strand the player off 'Normal'
+    // (e.g. stale 'Bleeding' surviving a bandage and blocking HP regen).
+    const val = (typeof v === 'string' && DERIVED_CONDITIONS.has(v)) ? 'Normal' : v;
     let stats = this.getComponent('SurvivalStats');
     if (stats) {
-      stats.condition = v;
+      stats.condition = val;
     } else {
-      this._condition = v;
+      this._condition = val;
     }
     this.notifyChange();
   }
