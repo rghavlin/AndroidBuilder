@@ -54,13 +54,20 @@ export class QuestState extends SafeEventEmitter {
     return this.vars[name] ?? 0;
   }
 
+  // Type-agnostic: a var may hold a number or a string (its declared type
+  // lives in the map's registry, not here). A string value is stored as-is;
+  // anything else is coerced to a number, so existing numeric callers behave
+  // exactly as before.
   setVar(name, value) {
-    this.vars[name] = Number(value) || 0;
+    this.vars[name] = (typeof value === 'string') ? value : (Number(value) || 0);
     this.emit('questStateChanged', { kind: 'var', name });
   }
 
+  // Numeric-only: 'add' is meaningless for string vars (the editor only offers
+  // 'set' for those). Coerces both sides so a string operand can't corrupt the
+  // running total.
   addVar(name, delta) {
-    this.setVar(name, this.getVar(name) + (Number(delta) || 0));
+    this.setVar(name, (Number(this.getVar(name)) || 0) + (Number(delta) || 0));
   }
 
   getConsumed(defId) {
@@ -163,7 +170,7 @@ export class QuestState extends SafeEventEmitter {
         case 'setVar':
           if (reward.var) {
             if (reward.op === 'add') this.addVar(reward.var, reward.varValue || 0);
-            else this.setVar(reward.var, reward.varValue || 0);
+            else this.setVar(reward.var, reward.varValue ?? 0);
           }
           break;
         default:
@@ -189,7 +196,11 @@ export class QuestState extends SafeEventEmitter {
     }
     for (const v of registry.vars || []) {
       if (!v || !v.name) continue;
-      if (!(v.name in this.vars)) this.setVar(v.name, Number(v.initialValue) || 0);
+      if (v.name in this.vars) continue;
+      // Seed with the declared initial value, defaulting per type ('' for a
+      // string var, 0 for a number var). setVar preserves the string as-is.
+      const init = v.initialValue ?? (v.type === 'string' ? '' : 0);
+      this.setVar(v.name, init);
     }
   }
 

@@ -9,10 +9,16 @@ export interface Condition {
   defId?: string;
   count?: number;
   flag?: string;
-  value?: boolean | number;
+  value?: boolean | number | string;
   var?: string;
   op?: CompareOp;
 }
+
+// Global variables may hold either a number (reputation, kills, ammo…) or a
+// string (a chosen name, a branch id…). Declared per-var in the map's
+// Switches & Variables registry; the runtime store (QuestState) is
+// type-agnostic and keeps whatever value it's handed.
+export type VarType = 'number' | 'string';
 
 export type PlacementKind = 'tile' | 'proximity' | 'chainOnly';
 export interface Placement {
@@ -52,7 +58,7 @@ export interface EventStep {
   // setVar
   var?: string;
   op?: 'set' | 'add';
-  varValue?: number;
+  varValue?: number | string;
   // lockMovement
   until?: Condition[];
   // wait
@@ -143,7 +149,11 @@ export interface FlagDef {
 export interface VarDef {
   name: string;
   description?: string;
-  initialValue?: number; // defaults to 0 if omitted
+  // Omitted means 'number' (back-compat: every var authored before string
+  // support was numeric).
+  type?: VarType;
+  // For a number var, defaults to 0 if omitted; for a string var, ''.
+  initialValue?: number | string;
 }
 
 export interface QuestTaskDef {
@@ -169,7 +179,7 @@ export interface QuestReward {
   // setVar
   var?: string;
   op?: 'set' | 'add';
-  varValue?: number;
+  varValue?: number | string;
 }
 
 export interface QuestDef {

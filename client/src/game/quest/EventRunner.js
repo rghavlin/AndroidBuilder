@@ -405,8 +405,9 @@ class EventRunner {
 
       case 'setVar':
         if (engine.questState && step.var) {
+          // 'set' preserves a string value (incl. '') via ??; 'add' is numeric.
           if (step.op === 'add') engine.questState.addVar(step.var, step.varValue || 0);
-          else engine.questState.setVar(step.var, step.varValue || 0);
+          else engine.questState.setVar(step.var, step.varValue ?? 0);
         }
         this.activeRun.stepIndex++;
         this._processCurrentStep();

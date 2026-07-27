@@ -1,5 +1,9 @@
 import React from 'react';
-import type { GameEvent, EventStep, Condition, ConditionKind, PlacementKind, TriggerType, RepeatMode, StepType, CompareOp, QuestDef, QuestReward, QuestRewardType } from '@/game/quest/eventTypes';
+import type { GameEvent, EventStep, Condition, ConditionKind, PlacementKind, TriggerType, RepeatMode, StepType, CompareOp, QuestDef, QuestReward, QuestRewardType, VarType } from '@/game/quest/eventTypes';
+
+// name -> declared type for authored global vars. A var missing from the map
+// (or with no entry) is treated as a number, matching VarDef's omitted default.
+type VarTypes = Record<string, VarType>;
 
 // ─── Local style constants (match editor.tsx's dark theme) ────────────────
 const inputStyle: React.CSSProperties = {
@@ -71,7 +75,7 @@ function emptyCondition(): Condition {
 
 // ─── Condition row editor (reused for preconditions / endWhen / lockMovement.until) ───
 function ConditionRow({
-  cond, onChange, onRemove, itemOptions, knownFlags, knownVars,
+  cond, onChange, onRemove, itemOptions, knownFlags, knownVars, varTypes,
 }: {
   cond: Condition;
   onChange: (c: Condition) => void;
@@ -79,7 +83,9 @@ function ConditionRow({
   itemOptions: { id: string; name: string }[];
   knownFlags: string[];
   knownVars: string[];
+  varTypes: VarTypes;
 }) {
+  const varIsString = cond.kind === 'var' && varTypes[cond.var || ''] === 'string';
   return (
     <div style={rowStyle}>
       <select
@@ -123,14 +129,24 @@ function ConditionRow({
 
       {cond.kind === 'var' && (
         <>
-          <select style={{ ...inputStyle, width: 110 }} value={cond.var || ''} onChange={e => onChange({ ...cond, var: e.target.value })}>
+          <select style={{ ...inputStyle, width: 110 }} value={cond.var || ''} onChange={e => {
+            const nextVar = e.target.value;
+            // Reset op/value to defaults suited to the newly-picked var's type
+            // (text vars only compare == / !=; numbers keep the current op).
+            if (varTypes[nextVar] === 'string') onChange({ ...cond, var: nextVar, op: '==', value: '' });
+            else onChange({ ...cond, var: nextVar, value: typeof cond.value === 'number' ? cond.value : 0, op: cond.op && cond.op !== '==' && cond.op !== '!=' ? cond.op : '>=' });
+          }}>
             <option value="">select variable…</option>
             {knownVars.map(v => <option key={v} value={v}>{v}</option>)}
           </select>
-          <select style={{ ...inputStyle, width: 56 }} value={cond.op || '>='} onChange={e => onChange({ ...cond, op: e.target.value as CompareOp })}>
-            {['==', '!=', '>=', '<=', '>', '<'].map(o => <option key={o} value={o}>{o}</option>)}
+          <select style={{ ...inputStyle, width: 56 }} value={cond.op || (varIsString ? '==' : '>=')} onChange={e => onChange({ ...cond, op: e.target.value as CompareOp })}>
+            {(varIsString ? ['==', '!='] : ['==', '!=', '>=', '<=', '>', '<']).map(o => <option key={o} value={o}>{o}</option>)}
           </select>
-          <input type="number" style={{ ...inputStyle, width: 64 }} value={Number(cond.value ?? 0)} onChange={e => onChange({ ...cond, value: Number(e.target.value) || 0 })} />
+          {varIsString ? (
+            <input type="text" style={{ ...inputStyle, width: 90 }} placeholder="text value" value={typeof cond.value === 'string' ? cond.value : ''} onChange={e => onChange({ ...cond, value: e.target.value })} />
+          ) : (
+            <input type="number" style={{ ...inputStyle, width: 64 }} value={Number(cond.value ?? 0)} onChange={e => onChange({ ...cond, value: Number(e.target.value) || 0 })} />
+          )}
         </>
       )}
 
@@ -149,13 +165,14 @@ function ConditionRow({
 }
 
 export function ConditionListEditor({
-  conds, onChange, itemOptions, knownFlags, knownVars,
+  conds, onChange, itemOptions, knownFlags, knownVars, varTypes = {},
 }: {
   conds: Condition[];
   onChange: (c: Condition[]) => void;
   itemOptions: { id: string; name: string }[];
   knownFlags: string[];
   knownVars: string[];
+  varTypes?: VarTypes;
 }) {
   return (
     <div>
@@ -169,6 +186,7 @@ export function ConditionListEditor({
           itemOptions={itemOptions}
           knownFlags={knownFlags}
           knownVars={knownVars}
+          varTypes={varTypes}
           onChange={next => onChange(conds.map((x, j) => (j === i ? next : x)))}
           onRemove={() => onChange(conds.filter((_, j) => j !== i))}
         />
@@ -200,7 +218,7 @@ function emptyReward(type: QuestRewardType): QuestReward {
 }
 
 function QuestRewardRow({
-  reward, onChange, onRemove, itemOptions, knownFlags, knownVars,
+  reward, onChange, onRemove, itemOptions, knownFlags, knownVars, varTypes,
 }: {
   reward: QuestReward;
   onChange: (r: QuestReward) => void;
@@ -208,7 +226,9 @@ function QuestRewardRow({
   itemOptions: { id: string; name: string }[];
   knownFlags: string[];
   knownVars: string[];
+  varTypes: VarTypes;
 }) {
+  const rewardVarIsString = reward.type === 'setVar' && varTypes[reward.var || ''] === 'string';
   return (
     <div style={rowStyle}>
       <select
@@ -245,15 +265,29 @@ function QuestRewardRow({
 
       {reward.type === 'setVar' && (
         <>
-          <select style={{ ...inputStyle, flex: 1 }} value={reward.var || ''} onChange={e => onChange({ ...reward, var: e.target.value })}>
+          <select style={{ ...inputStyle, flex: 1 }} value={reward.var || ''} onChange={e => {
+            const nextVar = e.target.value;
+            // A text var can only be 'set' (not 'add'); reset op/value to match.
+            if (varTypes[nextVar] === 'string') onChange({ ...reward, var: nextVar, op: 'set', varValue: '' });
+            else onChange({ ...reward, var: nextVar, varValue: typeof reward.varValue === 'number' ? reward.varValue : 0 });
+          }}>
             <option value="">select variable…</option>
             {knownVars.map(v => <option key={v} value={v}>{v}</option>)}
           </select>
-          <select style={{ ...inputStyle, width: 70 }} value={reward.op || 'set'} onChange={e => onChange({ ...reward, op: e.target.value as 'set' | 'add' })}>
-            <option value="set">set</option>
-            <option value="add">add</option>
-          </select>
-          <input type="number" style={{ ...inputStyle, width: 70 }} value={reward.varValue ?? 0} onChange={e => onChange({ ...reward, varValue: Number(e.target.value) || 0 })} />
+          {rewardVarIsString ? (
+            <>
+              <span style={{ fontSize: 11, color: '#888' }}>set</span>
+              <input type="text" style={{ ...inputStyle, width: 90 }} placeholder="text value" value={typeof reward.varValue === 'string' ? reward.varValue : ''} onChange={e => onChange({ ...reward, op: 'set', varValue: e.target.value })} />
+            </>
+          ) : (
+            <>
+              <select style={{ ...inputStyle, width: 70 }} value={reward.op || 'set'} onChange={e => onChange({ ...reward, op: e.target.value as 'set' | 'add' })}>
+                <option value="set">set</option>
+                <option value="add">add</option>
+              </select>
+              <input type="number" style={{ ...inputStyle, width: 70 }} value={typeof reward.varValue === 'number' ? reward.varValue : 0} onChange={e => onChange({ ...reward, varValue: Number(e.target.value) || 0 })} />
+            </>
+          )}
         </>
       )}
 
@@ -263,13 +297,14 @@ function QuestRewardRow({
 }
 
 export function QuestRewardEditor({
-  rewards, onChange, itemOptions, knownFlags, knownVars,
+  rewards, onChange, itemOptions, knownFlags, knownVars, varTypes = {},
 }: {
   rewards: QuestReward[];
   onChange: (r: QuestReward[]) => void;
   itemOptions: { id: string; name: string }[];
   knownFlags: string[];
   knownVars: string[];
+  varTypes?: VarTypes;
 }) {
   return (
     <div>
@@ -280,6 +315,7 @@ export function QuestRewardEditor({
           itemOptions={itemOptions}
           knownFlags={knownFlags}
           knownVars={knownVars}
+          varTypes={varTypes}
           onChange={next => onChange(rewards.map((x, j) => (j === i ? next : x)))}
           onRemove={() => onChange(rewards.filter((_, j) => j !== i))}
         />
@@ -291,7 +327,7 @@ export function QuestRewardEditor({
 
 // ─── One step's own editor section ─────────────────────────────────────────
 function StepEditor({
-  step, index, total, onChange, onRemove, onMoveUp, onMoveDown, onPickCoord, itemOptions, knownEventIds, knownFlags, knownVars, knownEntities, knownQuests, knownFactions,
+  step, index, total, onChange, onRemove, onMoveUp, onMoveDown, onPickCoord, itemOptions, knownEventIds, knownFlags, knownVars, varTypes, knownEntities, knownQuests, knownFactions,
 }: {
   step: EventStep;
   index: number;
@@ -305,10 +341,12 @@ function StepEditor({
   knownEventIds: string[];
   knownFlags: string[];
   knownVars: string[];
+  varTypes: VarTypes;
   knownEntities: { tag: string; label: string; type?: string }[];
   knownQuests: QuestDef[];
   knownFactions: { id: string; name: string }[];
 }) {
+  const stepVarIsString = step.type === 'setVar' && varTypes[step.var || ''] === 'string';
   const badgeColors: Partial<Record<StepType, string>> = {
     dialog: '#1d4f8a', speech: '#1d4f8a', give: '#1d6b3a', setFlag: '#7a5a12', setVar: '#7a5a12',
     lockMovement: '#7a1e1e', unlockMovement: '#7a1e1e', lockActions: '#8a1e3a', unlockActions: '#8a1e3a', wait: '#444', chain: '#5a3a7a',
@@ -390,15 +428,29 @@ function StepEditor({
         <div>
           {knownVars.length === 0 && <p style={{ fontSize: 10, color: '#c96', margin: '0 0 6px' }}>No variables defined yet — add one via "Switches &amp; Variables" in the left panel.</p>}
           <div style={rowStyle}>
-            <select style={{ ...inputStyle, flex: 1 }} value={step.var || ''} onChange={e => onChange({ ...step, var: e.target.value })}>
+            <select style={{ ...inputStyle, flex: 1 }} value={step.var || ''} onChange={e => {
+              const nextVar = e.target.value;
+              // A text var can only be 'set' (not 'add'); reset op/value to match.
+              if (varTypes[nextVar] === 'string') onChange({ ...step, var: nextVar, op: 'set', varValue: '' });
+              else onChange({ ...step, var: nextVar, varValue: typeof step.varValue === 'number' ? step.varValue : 0 });
+            }}>
               <option value="">select variable…</option>
               {knownVars.map(v => <option key={v} value={v}>{v}</option>)}
             </select>
-            <select style={{ ...inputStyle, width: 70 }} value={step.op || 'set'} onChange={e => onChange({ ...step, op: e.target.value as 'set' | 'add' })}>
-              <option value="set">set</option>
-              <option value="add">add</option>
-            </select>
-            <input type="number" style={{ ...inputStyle, width: 70 }} value={step.varValue ?? 0} onChange={e => onChange({ ...step, varValue: Number(e.target.value) || 0 })} />
+            {stepVarIsString ? (
+              <>
+                <span style={{ fontSize: 11, color: '#888' }}>set</span>
+                <input type="text" style={{ ...inputStyle, width: 90 }} placeholder="text value" value={typeof step.varValue === 'string' ? step.varValue : ''} onChange={e => onChange({ ...step, op: 'set', varValue: e.target.value })} />
+              </>
+            ) : (
+              <>
+                <select style={{ ...inputStyle, width: 70 }} value={step.op || 'set'} onChange={e => onChange({ ...step, op: e.target.value as 'set' | 'add' })}>
+                  <option value="set">set</option>
+                  <option value="add">add</option>
+                </select>
+                <input type="number" style={{ ...inputStyle, width: 70 }} value={typeof step.varValue === 'number' ? step.varValue : 0} onChange={e => onChange({ ...step, varValue: Number(e.target.value) || 0 })} />
+              </>
+            )}
           </div>
         </div>
       )}
@@ -406,7 +458,7 @@ function StepEditor({
       {step.type === 'lockMovement' && (
         <div>
           <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Unlocks when all pass:</div>
-          <ConditionListEditor conds={step.until || []} onChange={c => onChange({ ...step, until: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} />
+          <ConditionListEditor conds={step.until || []} onChange={c => onChange({ ...step, until: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} varTypes={varTypes} />
         </div>
       )}
 
@@ -420,7 +472,7 @@ function StepEditor({
             Blocks movement AND map interactions (doors, windows, NPCs, combat) — End Turn still works.
             Unlocks when all pass:
           </div>
-          <ConditionListEditor conds={step.until || []} onChange={c => onChange({ ...step, until: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} />
+          <ConditionListEditor conds={step.until || []} onChange={c => onChange({ ...step, until: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} varTypes={varTypes} />
         </div>
       )}
 
@@ -587,13 +639,14 @@ export interface EventWindowProps {
   knownEventIds: string[];
   knownFlags: string[];
   knownVars: string[];
+  varTypes?: VarTypes;
   knownEntities: { tag: string; label: string; type?: string }[];
   knownQuests: QuestDef[];
   knownFactions?: { id: string; name: string }[];
 }
 
 export default function EventWindow({
-  event, onChange, onSave, onCancel, onDelete, onPickPlacement, onPickStepCoord, itemOptions, knownEventIds, knownFlags, knownVars, knownEntities, knownQuests, knownFactions = [],
+  event, onChange, onSave, onCancel, onDelete, onPickPlacement, onPickStepCoord, itemOptions, knownEventIds, knownFlags, knownVars, varTypes = {}, knownEntities, knownQuests, knownFactions = [],
 }: EventWindowProps) {
   const setSteps = (steps: EventStep[]) => onChange({ ...event, steps });
   const showEndCondition = event.trigger === 'auto' || event.trigger === 'parallel';
@@ -620,7 +673,7 @@ export default function EventWindow({
 
           <div>
             <div style={sectionLabelStyle}>Preconditions <span style={{ color: '#666', fontWeight: 'normal' }}>— all must pass</span></div>
-            <ConditionListEditor conds={event.preconditions} onChange={c => onChange({ ...event, preconditions: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} />
+            <ConditionListEditor conds={event.preconditions} onChange={c => onChange({ ...event, preconditions: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} varTypes={varTypes} />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
@@ -673,7 +726,7 @@ export default function EventWindow({
           {showEndCondition && (
             <div>
               <div style={sectionLabelStyle}>End condition <span style={{ color: '#666', fontWeight: 'normal' }}>— once true, this event stops firing for good</span></div>
-              <ConditionListEditor conds={event.endWhen || []} onChange={c => onChange({ ...event, endWhen: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} />
+              <ConditionListEditor conds={event.endWhen || []} onChange={c => onChange({ ...event, endWhen: c })} itemOptions={itemOptions} knownFlags={knownFlags} knownVars={knownVars} varTypes={varTypes} />
             </div>
           )}
 
@@ -689,6 +742,7 @@ export default function EventWindow({
                 knownEventIds={knownEventIds}
                 knownFlags={knownFlags}
                 knownVars={knownVars}
+                varTypes={varTypes}
                 knownEntities={knownEntities}
                 knownQuests={knownQuests}
                 knownFactions={knownFactions}

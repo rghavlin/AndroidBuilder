@@ -4,7 +4,7 @@ import { ItemDefs, createItemFromDef } from '@/game/inventory/ItemDefs';
 import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 import { migrateLegacyEvents, downconvertEvents, resolveMapEvents } from '@/game/quest/migrateEvents';
-import { emptyEvent, emptyQuestRegistry, emptyEntityRegistry, type GameEvent, type QuestRegistry, type EntityRegistry, type EntityRegistryEntry, type FactionDef, type Stance, type PlayerDisposition } from '@/game/quest/eventTypes';
+import { emptyEvent, emptyQuestRegistry, emptyEntityRegistry, type GameEvent, type QuestRegistry, type EntityRegistry, type EntityRegistryEntry, type FactionDef, type Stance, type PlayerDisposition, type VarType } from '@/game/quest/eventTypes';
 import { BUILTIN_FACTIONS, builtinStanceValue } from '@/game/ai/FactionRegistry';
 import { TURRET_DEF_ID } from '@/game/ai/TurretCombat';
 import EventWindow, { ConditionListEditor, QuestRewardEditor } from '@/components/MapEditor/EventWindow';
@@ -1179,7 +1179,8 @@ export default function MapEditor() {
   const [newFlagInitial, setNewFlagInitial] = useState(false);
   const [newVarName, setNewVarName] = useState('');
   const [newVarDesc, setNewVarDesc] = useState('');
-  const [newVarInitial, setNewVarInitial] = useState<number>(0);
+  const [newVarType, setNewVarType] = useState<VarType>('number');
+  const [newVarInitial, setNewVarInitial] = useState<number | string>(0);
 
   const [registryTab, setRegistryTab] = useState<'flags' | 'vars' | 'quests' | 'factions'>('flags');
   const [newFactionName, setNewFactionName] = useState('');
@@ -1317,22 +1318,49 @@ export default function MapEditor() {
     const name = newVarName.trim();
     if (!name) return;
     if (questRegistry.vars.some(v => v.name === name)) { setStatusMsg(`Variable "${name}" already exists`); return; }
-    setQuestRegistry(prev => ({ ...prev, vars: [...prev.vars, { name, ...(newVarDesc.trim() ? { description: newVarDesc.trim() } : {}), ...(newVarInitial !== 0 ? { initialValue: newVarInitial } : {}) }] }));
+    // 'number' type is the omitted default; only persist `type` for strings.
+    // A string keeps a non-empty initial value; a number keeps a non-zero one.
+    const isString = newVarType === 'string';
+    const initial = isString ? String(newVarInitial ?? '') : (Number(newVarInitial) || 0);
+    const keepInitial = isString ? initial !== '' : initial !== 0;
+    setQuestRegistry(prev => ({ ...prev, vars: [...prev.vars, {
+      name,
+      ...(newVarDesc.trim() ? { description: newVarDesc.trim() } : {}),
+      ...(isString ? { type: 'string' as VarType } : {}),
+      ...(keepInitial ? { initialValue: initial } : {}),
+    }] }));
     setNewVarName('');
     setNewVarDesc('');
+    setNewVarType('number');
     setNewVarInitial(0);
-  }, [newVarName, newVarDesc, newVarInitial, questRegistry]);
+  }, [newVarName, newVarDesc, newVarType, newVarInitial, questRegistry]);
 
   const removeVarDef = useCallback((name: string) => {
     setQuestRegistry(prev => ({ ...prev, vars: prev.vars.filter(v => v.name !== name) }));
   }, []);
 
-  const updateVarDef = useCallback((name: string, fields: Partial<{ description: string; initialValue: number }>) => {
+  const updateVarDef = useCallback((name: string, fields: Partial<{ description: string; initialValue: number | string; type: VarType }>) => {
     setQuestRegistry(prev => ({
       ...prev,
-      vars: prev.vars.map(v => v.name === name ? { ...v, ...fields } : v)
+      vars: prev.vars.map(v => {
+        if (v.name !== name) return v;
+        const next = { ...v, ...fields };
+        // Switching type resets the initial value to the new type's default so
+        // a leftover number can't linger on a string var (or vice-versa).
+        if (fields.type && fields.type !== (v.type || 'number')) {
+          next.initialValue = fields.type === 'string' ? '' : 0;
+        }
+        return next;
+      })
     }));
   }, []);
+
+  // name -> declared type, so the Event Window's value inputs (conditions,
+  // setVar steps, quest rewards) can render a text vs number box per var.
+  const varTypes = useMemo<Record<string, VarType>>(
+    () => Object.fromEntries(questRegistry.vars.map(v => [v.name, v.type || 'number'])),
+    [questRegistry.vars]
+  );
 
   // ─── Factions ─────────────────────────────────────────────────────────────
   // Full faction list = built-ins (from FactionRegistry) + author-created ones.
@@ -3889,6 +3917,7 @@ export default function MapEditor() {
           knownEventIds={knownEventIds}
           knownFlags={questRegistry.flags.map(f => f.name)}
           knownVars={questRegistry.vars.map(v => v.name)}
+          varTypes={varTypes}
           knownEntities={knownEntities}
           knownQuests={questRegistry.quests || []}
           knownFactions={allFactions.map(f => ({ id: f.id, name: f.name }))}
@@ -3966,35 +3995,70 @@ export default function MapEditor() {
             {registryTab === 'vars' && (
               <div>
                 <p style={{ fontSize: 11, color: '#888', marginBottom: 12 }}>
-                  Define numerical variables here (numbers like reputation, kills, or ammo counts).
+                  Define variables here. A <b>number</b> var holds a count (reputation, kills, ammo);
+                  a <b>text</b> var holds a string (a chosen name, a branch id). The initial-value box
+                  switches to match the type.
                 </p>
-                <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Variables (numbers)</label>
+                <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Variables</label>
                 {questRegistry.vars.length === 0 && <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>None yet.</div>}
-                {questRegistry.vars.map(v => (
+                {questRegistry.vars.map(v => {
+                  const vType: VarType = v.type || 'number';
+                  return (
                   <div key={v.name} style={{ display: 'flex', gap: 4, alignItems: 'center', background: '#1a1a1a', border: '1px solid #333', borderRadius: 3, padding: '4px 8px', marginTop: 4 }}>
-                    <div style={{ flex: 1, minWidth: 100, fontSize: 12, color: '#ddd', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={v.name}>
+                    <div style={{ flex: 1, minWidth: 90, fontSize: 12, color: '#ddd', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={v.name}>
                       {v.name}
                     </div>
                     <input
                       value={v.description || ''}
                       onChange={e => updateVarDef(v.name, { description: e.target.value })}
                       placeholder="description (optional)"
-                      style={{ ...inputStyle, flex: 2, fontSize: 11, minWidth: 80 }}
+                      style={{ ...inputStyle, flex: 2, fontSize: 11, minWidth: 70 }}
                     />
-                    <input
-                      type="number"
-                      value={v.initialValue ?? 0}
-                      onChange={e => updateVarDef(v.name, { initialValue: Number(e.target.value) || 0 })}
-                      placeholder="starts at"
-                      style={{ ...inputStyle, width: 80, fontSize: 11 }}
-                    />
+                    <select
+                      value={vType}
+                      onChange={e => updateVarDef(v.name, { type: e.target.value as VarType })}
+                      style={{ ...inputStyle, width: 74, fontSize: 11 }}
+                    >
+                      <option value="number">number</option>
+                      <option value="string">text</option>
+                    </select>
+                    {vType === 'string' ? (
+                      <input
+                        type="text"
+                        value={typeof v.initialValue === 'string' ? v.initialValue : ''}
+                        onChange={e => updateVarDef(v.name, { initialValue: e.target.value })}
+                        placeholder="starts as"
+                        style={{ ...inputStyle, width: 90, fontSize: 11 }}
+                      />
+                    ) : (
+                      <input
+                        type="number"
+                        value={typeof v.initialValue === 'number' ? v.initialValue : 0}
+                        onChange={e => updateVarDef(v.name, { initialValue: Number(e.target.value) || 0 })}
+                        placeholder="starts at"
+                        style={{ ...inputStyle, width: 74, fontSize: 11 }}
+                      />
+                    )}
                     <button onClick={() => removeVarDef(v.name)} style={{ fontSize: 10, color: '#c44', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>Remove</button>
                   </div>
-                ))}
+                  );
+                })}
                 <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
-                  <input value={newVarName} onChange={e => setNewVarName(e.target.value)} placeholder="e.g. reputation" style={{ ...inputStyle, flex: 1 }} />
-                  <input value={newVarDesc} onChange={e => setNewVarDesc(e.target.value)} placeholder="description (optional)" style={{ ...inputStyle, flex: 1 }} />
-                  <input type="number" value={newVarInitial} onChange={e => setNewVarInitial(Number(e.target.value) || 0)} placeholder="starts at" style={{ ...inputStyle, width: 80 }} />
+                  <input value={newVarName} onChange={e => setNewVarName(e.target.value)} placeholder="e.g. reputation" style={{ ...inputStyle, flex: 1, minWidth: 70 }} />
+                  <input value={newVarDesc} onChange={e => setNewVarDesc(e.target.value)} placeholder="description (optional)" style={{ ...inputStyle, flex: 1, minWidth: 70 }} />
+                  <select
+                    value={newVarType}
+                    onChange={e => { const t = e.target.value as VarType; setNewVarType(t); setNewVarInitial(t === 'string' ? '' : 0); }}
+                    style={{ ...inputStyle, width: 74 }}
+                  >
+                    <option value="number">number</option>
+                    <option value="string">text</option>
+                  </select>
+                  {newVarType === 'string' ? (
+                    <input type="text" value={String(newVarInitial ?? '')} onChange={e => setNewVarInitial(e.target.value)} placeholder="starts as" style={{ ...inputStyle, width: 90 }} />
+                  ) : (
+                    <input type="number" value={Number(newVarInitial) || 0} onChange={e => setNewVarInitial(Number(e.target.value) || 0)} placeholder="starts at" style={{ ...inputStyle, width: 74 }} />
+                  )}
                   <button onClick={addVarDef} style={btnStyle('#2a7a2a')}>Add</button>
                 </div>
               </div>
@@ -4054,6 +4118,7 @@ export default function MapEditor() {
                               itemOptions={allItems}
                               knownFlags={questRegistry.flags.map(f => f.name)}
                               knownVars={questRegistry.vars.map(v => v.name)}
+                              varTypes={varTypes}
                             />
                           </div>
                         </div>
@@ -4086,6 +4151,7 @@ export default function MapEditor() {
                         itemOptions={allItems}
                         knownFlags={questRegistry.flags.map(f => f.name)}
                         knownVars={questRegistry.vars.map(v => v.name)}
+                        varTypes={varTypes}
                       />
                     </div>
                   </div>
