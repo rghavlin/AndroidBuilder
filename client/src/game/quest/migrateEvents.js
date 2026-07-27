@@ -11,7 +11,7 @@
  *     trigger: 'onEnter' | 'onInteract' | 'auto' | 'parallel',
  *     preconditions: Condition[],
  *     endWhen?: Condition[],
- *     repeat: 'once' | 'everyTime' | 'whileConditions',
+ *     repeat: 'once' | 'everyTime' | 'whileConditions' | 'oncePerTurn',
  *     steps: EventStep[],
  *   }
  *
@@ -142,8 +142,8 @@ export function downconvertEvents(events) {
     }
 
     const oneShot = ev.repeat !== 'everyTime';
-    if (ev.repeat === 'whileConditions') {
-      console.warn(`[downconvertEvents] event "${ev.id}": repeat:'whileConditions' has no legacy equivalent, treated as one-shot on down-convert.`);
+    if (ev.repeat === 'whileConditions' || ev.repeat === 'oncePerTurn') {
+      console.warn(`[downconvertEvents] event "${ev.id}": repeat:'${ev.repeat}' has no legacy equivalent, treated as one-shot on down-convert.`);
     }
 
     if (ev.placement?.kind === 'proximity') {

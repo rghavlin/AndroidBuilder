@@ -23,7 +23,7 @@ export interface Placement {
 }
 
 export type TriggerType = 'onEnter' | 'onInteract' | 'auto' | 'parallel';
-export type RepeatMode = 'once' | 'everyTime' | 'whileConditions';
+export type RepeatMode = 'once' | 'everyTime' | 'whileConditions' | 'oncePerTurn';
 
 export type StepType =
   | 'dialog' | 'speech' | 'give' | 'setFlag' | 'setVar'

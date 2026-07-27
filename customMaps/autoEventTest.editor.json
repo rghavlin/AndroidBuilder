@@ -10889,7 +10889,7 @@
           "value": 0
         }
       ],
-      "repeat": "whileConditions",
+      "repeat": "oncePerTurn",
       "steps": [
         {
           "type": "dialog",
@@ -10918,7 +10918,7 @@
           "value": 1
         }
       ],
-      "repeat": "whileConditions",
+      "repeat": "oncePerTurn",
       "steps": [
         {
           "type": "dialog",

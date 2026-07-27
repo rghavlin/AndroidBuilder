@@ -977,7 +977,15 @@ const GameContextInner = ({ children }) => {
       } else {
         setTurnPhase('PLAYER_TURN');
         console.log(`[GameContext] ✅ Turn completed successfully [ID:${timestamp}] - UI Enabled`);
-        
+
+        // A new turn just began (engine.turn was bumped in playbackTurn), so
+        // re-check auto/parallel events: a repeat:'oncePerTurn' event whose
+        // conditions still prevail becomes eligible again and fires now, even
+        // if the player ended the turn without moving. Runs may re-pause the
+        // turn (PAUSED_FOR_EVENT) — that's fine, it's the same path the
+        // PLAYER_MOVE_ENDED handler uses.
+        eventRunner.checkAutoEvents();
+
         if (autosaveTimeoutRef.current) {
           clearTimeout(autosaveTimeoutRef.current);
         }

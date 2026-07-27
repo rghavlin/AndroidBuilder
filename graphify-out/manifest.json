@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1785102820.3572571,
-    "ast_hash": "8252b1ac2d654b077b0e871e78eca1dc",
+    "mtime": 1785110604.1121657,
+    "ast_hash": "0cb3963c4e4247f3f442c5ffbfd3c2c2",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -1443,16 +1443,6 @@
     "mtime": 1782989916.0615418,
     "ast_hash": "9809c15f6b6b72946853c9ef61a55a28",
     "semantic_hash": "9809c15f6b6b72946853c9ef61a55a28"
-  },
-  "customMaps/zombie corpse test.editor.json": {
-    "mtime": 1783418820.6817975,
-    "ast_hash": "563fef0f21fead51ab8cd685506f512a",
-    "semantic_hash": "563fef0f21fead51ab8cd685506f512a"
-  },
-  "customMaps/zombie corpse test.scenario.json": {
-    "mtime": 1783418821.625161,
-    "ast_hash": "043c628582b2aea8866a0b4944f88243",
-    "semantic_hash": "043c628582b2aea8866a0b4944f88243"
   },
   "debug_lab_gen.js": {
     "mtime": 1778580779.763323,
@@ -2745,8 +2735,8 @@
     "semantic_hash": ""
   },
   "client/src/game/quest/migrateEvents.js": {
-    "mtime": 1783997380.6064074,
-    "ast_hash": "5fd82503749e302e0d332b8fbc3796c3",
+    "mtime": 1785110620.6601934,
+    "ast_hash": "bda4f1ed9bf072831aabb8ea4902478d",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p1.mjs": {
@@ -2755,18 +2745,18 @@
     "semantic_hash": ""
   },
   "client/src/components/MapEditor/EventWindow.tsx": {
-    "mtime": 1784594207.093164,
-    "ast_hash": "93da6ae67775b17781382a9d2f7ccd3f",
+    "mtime": 1785110608.869782,
+    "ast_hash": "5d9b0fb28be3ef4e147a6f1b93c23b98",
     "semantic_hash": ""
   },
   "client/src/game/quest/eventTypes.ts": {
-    "mtime": 1784593698.0428324,
-    "ast_hash": "c15728c0243dff5b0ae744fa35a093c3",
+    "mtime": 1785110563.6573827,
+    "ast_hash": "34c48b5b7f24b3df1cfeb2c735803fec",
     "semantic_hash": ""
   },
   "client/src/game/quest/EventRunner.js": {
-    "mtime": 1784698560.0655856,
-    "ast_hash": "228509691fc1dd2ac3e7c71d87bc6326",
+    "mtime": 1785110593.85618,
+    "ast_hash": "fdb0adc52605294c9b683e0109dcbcaf",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p3.mjs": {
@@ -3034,16 +3024,6 @@
     "ast_hash": "31c39ee9a2d14927e209b7718e6942c8",
     "semantic_hash": ""
   },
-  "customMaps/garagedoorTest.editor.json": {
-    "mtime": 1784622076.8798373,
-    "ast_hash": "04a78de1a035c325a3a6c5e316178bae",
-    "semantic_hash": ""
-  },
-  "customMaps/garagedoorTest.scenario.json": {
-    "mtime": 1784622077.7688768,
-    "ast_hash": "9bff85d89c3f55d96838809730ab46f6",
-    "semantic_hash": ""
-  },
   "test/systems/keylocked_doors.test.js": {
     "mtime": 1784618788.8741493,
     "ast_hash": "40086550b5a63e2ef0091a29319f46ee",
@@ -3179,16 +3159,6 @@
     "ast_hash": "c18277f15c715ed6323ba93eef6d9e47",
     "semantic_hash": ""
   },
-  "customMaps/saveMapTest.editor.json": {
-    "mtime": 1784868769.8956885,
-    "ast_hash": "cf2ae5555c5f09d85ca9fde16bdea28e",
-    "semantic_hash": ""
-  },
-  "customMaps/saveMapTest.scenario.json": {
-    "mtime": 1784868771.0174968,
-    "ast_hash": "6c88cf7c85495cc95ffc6fcf6985fb91",
-    "semantic_hash": ""
-  },
   "test/inventory/fillBottleDuplication.test.js": {
     "mtime": 1784896201.7173874,
     "ast_hash": "57e7d101c5d63c4ee66b614ef7617426",
@@ -3202,6 +3172,31 @@
   "test/entities/conditionDerived.test.js": {
     "mtime": 1785102955.292116,
     "ast_hash": "2e00a7814d0ca5ad93260d0a71020501",
+    "semantic_hash": ""
+  },
+  "customMaps/autoEventTest.editor.json": {
+    "mtime": 1785110189.3687344,
+    "ast_hash": "fa6f800faf872f3e1b1dcd63b827b34c",
+    "semantic_hash": ""
+  },
+  "customMaps/autoEventTest.scenario.json": {
+    "mtime": 1785110190.388585,
+    "ast_hash": "115ecb13067c78ff43aa2a37c33d2e41",
+    "semantic_hash": ""
+  },
+  "customMaps/bunker1.editor.json": {
+    "mtime": 1785108387.3586326,
+    "ast_hash": "4e67aa9c70cb523ea0caf27ccd1d2986",
+    "semantic_hash": ""
+  },
+  "customMaps/bunker1.scenario.json": {
+    "mtime": 1785108388.054323,
+    "ast_hash": "b2d8883961501d9606c2c21818678bf1",
+    "semantic_hash": ""
+  },
+  "test/quest/eventOncePerTurn.test.js": {
+    "mtime": 1785110679.8580408,
+    "ast_hash": "ce204dff245a4422afdf7880bce07982",
     "semantic_hash": ""
   }
 }

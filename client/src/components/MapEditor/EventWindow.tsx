@@ -648,6 +648,7 @@ export default function EventWindow({
                 <option value="once">Once</option>
                 <option value="everyTime">Every time</option>
                 <option value="whileConditions">While conditions</option>
+                <option value="oncePerTurn">Once per turn (while conditions)</option>
               </select>
             </label>
           </div>

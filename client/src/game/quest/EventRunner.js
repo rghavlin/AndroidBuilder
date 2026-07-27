@@ -61,6 +61,10 @@ class EventRunner {
   constructor() {
     this.activeRun = null; // { event, stepIndex } | null
     this.firedOnce = new Set();
+    // repeat:'oncePerTurn' throttle — eventId -> engine.turn it last fired on.
+    // Such an event stays eligible while its preconditions prevail, but fires
+    // at most once per game turn (re-fires next turn if conditions still hold).
+    this.lastFiredTurn = new Map();
     // Auto/parallel events whose endWhen has passed — a one-way latch so an
     // event never fires again via the auto/onEnter path once its "obligation"
     // is resolved, independent of repeat mode.
@@ -128,6 +132,7 @@ class EventRunner {
   reset() {
     this.activeRun = null;
     this.firedOnce = new Set();
+    this.lastFiredTurn = new Map();
     this.autoResolved = new Set();
     this.activeLocks = [];
     engine.movementLocked = false;
@@ -150,12 +155,16 @@ class EventRunner {
     return {
       firedOnce: [...this.firedOnce],
       autoResolved: [...this.autoResolved],
+      // Persist the per-turn throttle so a save/load within the same turn
+      // doesn't let a oncePerTurn event fire a second time that turn.
+      lastFiredTurn: [...this.lastFiredTurn],
     };
   }
 
   fromJSON(data) {
     this.firedOnce = new Set(data?.firedOnce ?? []);
     this.autoResolved = new Set(data?.autoResolved ?? []);
+    this.lastFiredTurn = new Map(data?.lastFiredTurn ?? []);
   }
 
   /**
@@ -217,6 +226,7 @@ class EventRunner {
   _isEligible(ev, ctx) {
     if (!ev || !ev.steps || ev.steps.length === 0) return false;
     if (ev.repeat === 'once' && this.firedOnce.has(ev.id)) return false;
+    if (ev.repeat === 'oncePerTurn' && this.lastFiredTurn.get(ev.id) === engine.turn) return false;
     if (this.autoResolved.has(ev.id)) return false;
     if (ev.endWhen && ev.endWhen.length > 0 && evalAll(ev.endWhen, ctx)) {
       this.autoResolved.add(ev.id);
@@ -328,6 +338,7 @@ class EventRunner {
     if (!event || !event.steps || event.steps.length === 0) return;
     if (this.activeRun) return; // one run at a time
     if (event.repeat === 'once' && !opts.ignoreOnce) this.firedOnce.add(event.id);
+    if (event.repeat === 'oncePerTurn' && !opts.ignoreOnce) this.lastFiredTurn.set(event.id, engine.turn);
     log.debug(`Running event "${event.id}" (${event.steps.length} step(s))`);
     // chainVisited (R42#2) carries the set of event ids already entered in the
     // current synchronous chain; null for a fresh top-level run.
