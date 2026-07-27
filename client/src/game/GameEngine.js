@@ -7,7 +7,7 @@ import { ItemTrait } from './inventory/traits.js';
 import { WeatherManager } from './utils/WeatherManager.js';
 import { QuestState } from './quest/QuestState.js';
 import { FactionRegistry } from './ai/FactionRegistry.js';
-import { getSightRangeForHour, MAX_VISION_RANGE, FLASHLIGHT_RANGE } from './config/VisionConfig.js';
+import { getSightRangeForHour, getEffectiveHour, getLightMode, isNightHour, MAX_VISION_RANGE, FLASHLIGHT_RANGE } from './config/VisionConfig.js';
 import { getHourFromTurn } from './utils/TimeUtils.js';
 
 
@@ -442,19 +442,17 @@ class GameEngine extends SafeEventEmitter {
 
        const roundX = Math.round(posX);
        const roundY = Math.round(posY);
-       const isMapAlwaysDark = !!(this.gameMap?.metadata?.alwaysDark);
-       let isNight = this._fovOptions.isNight;
-       let baseRange;
+       // Lighting is driven entirely by the map's *effective* hour: the real
+       // clock hour on a normal map, or the hour an always_light/always_dark map
+       // is pinned to (noon / midnight). Both ambient sight range and isNight
+       // fall out of that one number, so a powered interior behaves exactly like
+       // a standard map at noon — see VisionConfig.getEffectiveHour.
+       const lightMode = getLightMode(this.gameMap?.metadata);
+       const effectiveHour = getEffectiveHour(this.gameMap?.metadata, getHourFromTurn(this.turn));
+       const isNight = isNightHour(effectiveHour);
+       // Base ambient sight range for that hour (15 at noon, before perception bonus)
+       const baseRange = getSightRangeForHour(effectiveHour, this._fovOptions.maxRange);
 
-       if (isMapAlwaysDark) {
-         isNight = true;
-         baseRange = 1.5;
-       } else {
-         // Calculate base ambient sight range based on hour of the day (base 15 before perception bonus)
-         const hour = getHourFromTurn(this.turn);
-         baseRange = getSightRangeForHour(hour, this._fovOptions.maxRange);
-       }
-       
        const { isFlashlightOn, flashlightRange, isAimingWithScope, isNightVision } = this._fovOptions;
        let range = isNight ? (isFlashlightOn ? Math.max(baseRange, flashlightRange) : baseRange) : baseRange;
        
@@ -480,9 +478,11 @@ class GameEngine extends SafeEventEmitter {
        range += perceptionBonus;
 
        // Weather reduction: reduce sight range by 15% when raining, 20% in heavy rain (intensity > 0.7)
-       // Skip weather reduction if the player is inside (standing on floor or tent_floor terrain) or map is always dark
+       // Skip weather reduction if the player is inside (standing on floor or
+       // tent_floor terrain). Both pinned light modes are interior facilities
+       // (powered / unpowered), so weather never reaches the player there.
        const playerTile = this.gameMap.getTile(roundX, roundY);
-       const isInside = (playerTile && isIndoorFloor(playerTile.terrain)) || isMapAlwaysDark;
+       const isInside = (playerTile && isIndoorFloor(playerTile.terrain)) || lightMode !== 'time_dependent';
        if (!isInside && this.weather && this.weather.type === 'rain') {
          const isHeavyRain = this.weather.intensity > 0.7;
          const reduction = isHeavyRain ? 0.20 : 0.15;
@@ -606,9 +606,14 @@ class GameEngine extends SafeEventEmitter {
       // MapCanvas no longer rebuilds it from the FOV array every frame.
       const fovSet = new Set();
       this.playerFieldOfView.forEach(pos => {
-        const tile = this.gameMap.getTile(pos.x, pos.y);
-        if (tile) tile.flags.explored = true;
-        fovSet.add(`${Math.round(pos.x)},${Math.round(pos.y)}`);
+        const rx = Math.round(pos.x);
+        const ry = Math.round(pos.y);
+        const tile = this.gameMap.getTile(rx, ry);
+        if (tile) {
+          if (!tile.flags) tile.flags = {};
+          tile.flags.explored = true;
+        }
+        fovSet.add(`${rx},${ry}`);
       });
       this.playerFovSet = fovSet;
       return true;

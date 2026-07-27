@@ -36,7 +36,7 @@ export type StepType =
   | 'lockMovement' | 'unlockMovement' | 'lockActions' | 'unlockActions'
   | 'wait' | 'chain'
   | 'moveEntity' | 'startQuest' | 'setQuestTask' | 'setNpcAI'
-  | 'controlEntity' | 'setFactionStance';
+  | 'controlEntity' | 'setFactionStance' | 'setLightMode';
 
 export interface EventStep {
   type: StepType;
@@ -85,6 +85,8 @@ export interface EventStep {
   factionTo?: string;
   stance?: Stance | PlayerDisposition;
   mirror?: boolean;
+  // setLightMode: change map lighting dynamically ('always_dark' | 'always_light' | 'time_dependent')
+  lightMode?: 'always_dark' | 'always_light' | 'time_dependent';
 }
 
 export interface GameEvent {

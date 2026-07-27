@@ -44,6 +44,7 @@ const STEP_TYPE_OPTIONS: { id: StepType; label: string }[] = [
   { id: 'setFactionStance', label: 'Set faction stance' },
   { id: 'startQuest', label: 'Start quest' },
   { id: 'setQuestTask', label: 'Set quest task' },
+  { id: 'setLightMode', label: 'Set map light mode' },
 ];
 
 function emptyStep(type: StepType): EventStep {
@@ -65,6 +66,7 @@ function emptyStep(type: StepType): EventStep {
     case 'setFactionStance': return { type, factionFrom: '', factionTo: 'player', stance: 'hostile' };
     case 'startQuest': return { type, questId: '' };
     case 'setQuestTask': return { type, questId: '', taskIndex: 0 };
+    case 'setLightMode': return { type, lightMode: 'always_light' };
     default: return { type };
   }
 }
@@ -351,6 +353,7 @@ function StepEditor({
     dialog: '#1d4f8a', speech: '#1d4f8a', give: '#1d6b3a', setFlag: '#7a5a12', setVar: '#7a5a12',
     lockMovement: '#7a1e1e', unlockMovement: '#7a1e1e', lockActions: '#8a1e3a', unlockActions: '#8a1e3a', wait: '#444', chain: '#5a3a7a',
     moveEntity: '#2b6b3a', setNpcAI: '#2b6b3a', controlEntity: '#2b6b3a', setFactionStance: '#7a1e1e', startQuest: '#4a2582', setQuestTask: '#4a2582',
+    setLightMode: '#7a5a12',
   };
   const label = STEP_TYPE_OPTIONS.find(o => o.id === step.type)?.label || step.type;
 
@@ -622,6 +625,21 @@ function StepEditor({
               </select>
             </div>
           )}
+        </div>
+      )}
+
+      {step.type === 'setLightMode' && (
+        <div style={rowStyle}>
+          <span style={{ fontSize: 11, color: '#888' }}>Set map light mode:</span>
+          <select
+            style={{ ...inputStyle, flex: 1 }}
+            value={step.lightMode || 'always_light'}
+            onChange={e => onChange({ ...step, lightMode: e.target.value as 'always_dark' | 'always_light' | 'time_dependent' })}
+          >
+            <option value="always_dark">Always Dark (Underground / No Power)</option>
+            <option value="always_light">Always Light (Full Power / Constant Light)</option>
+            <option value="time_dependent">Time Dependent (Normal Day-Night Cycle)</option>
+          </select>
         </div>
       )}
     </div>

@@ -18,6 +18,7 @@ import eventRunner from '../game/quest/EventRunner.js';
 import { applyMapRegistries } from '../game/quest/QuestState.js';
 import { resolveMapEvents } from '../game/quest/migrateEvents.js';
 import Logger from '../game/utils/Logger.js';
+import { getEffectiveHour, isNightHour } from '../game/config/VisionConfig.js';
 import { ScenarioStorage } from '../game/ScenarioStorage.js';
 import { useAudio } from './AudioContext.jsx';
 import { useOverlays } from './OverlayContext';
@@ -178,12 +179,12 @@ const GameContextInner = ({ children }) => {
     engine.notifyUpdate();
   }, []);
   const hour = getHourFromTurn(turn);
-  const isNight = useMemo(() => {
-    if (engine.gameMap?.metadata?.alwaysDark) {
-      return true;
-    }
-    return hour >= 20 || hour < 6;
-  }, [hour, enginePulse]);
+  // always_light/always_dark maps are pinned to noon/midnight, so night-ness is
+  // just "is the map's effective hour a night hour" (see VisionConfig).
+  const isNight = useMemo(
+    () => isNightHour(getEffectiveHour(engine.gameMap?.metadata, hour)),
+    [hour, enginePulse]
+  );
 
   // Phase 7: Robust light state for internal GameContext callers
   // Note: These use the local inventoryManager state directly, avoiding the broken useInventory() hierarchy
@@ -1119,12 +1120,11 @@ const GameContextInner = ({ children }) => {
     eventRunner.advance();
   }, []);
 
-  // Replay just the dialog steps (tutorial video + caption) of the event at the
-  // player's current tile, ignoring repeat:'once' state. Used by the
-  // placeable.help item click. Deliberately does NOT re-run the event's other
-  // steps (speech/give/setFlag/chain/...) — those already happened the first
-  // time and shouldn't fire again just because the player wants to rewatch a
-  // video.
+  // Activate the event at the player's current tile from the placeable.help
+  // item click. Runs the event in full the first time and replays only its
+  // dialog steps afterwards — see EventRunner.activateEvent. (A tile event the
+  // player already walked onto has fired, so clicking "?" replays its video
+  // without re-running give/setFlag; one that never fired runs properly.)
   const fireDialogAtPlayerTile = useCallback(() => {
     const player = engine.player;
     const gameMap = engine.gameMap;
@@ -1132,18 +1132,16 @@ const GameContextInner = ({ children }) => {
     const events = resolveMapEvents(gameMap.metadata);
     const event = events.find(e => e?.placement?.kind === 'tile' && e.placement.x === player.x && e.placement.y === player.y);
     if (!event) return;
-    const dialogSteps = (event.steps || []).filter(s => s.type === 'dialog');
-    if (dialogSteps.length === 0) return;
-    eventRunner.runEvent({ ...event, steps: dialogSteps }, { ignoreOnce: true });
+    eventRunner.activateEvent(event);
   }, []);
 
   // Fire the event a placed help item ("?") explicitly references by id (see
-  // its editor "Help Item Event" picker → Item.eventId). Like
-  // fireDialogAtPlayerTile, this replays only the event's dialog steps (text +
-  // video) with ignoreOnce so the player can re-open the tutorial at will
-  // without re-running one-shot give/setFlag steps. Unlike that helper it
-  // resolves the event by id rather than by the player's tile, so the item and
-  // the (typically chain-only, non-auto-firing) event needn't share a tile.
+  // its editor "Help Item Event" picker → Item.eventId). Resolves the event by
+  // id rather than by the player's tile, so the item and the (typically
+  // chain-only, non-auto-firing) event needn't share a tile — which is what
+  // makes these items usable as hand-placed switches. Runs the event in full on
+  // first activation and replays only its dialog steps once a repeat:'once'
+  // event has already run; see EventRunner.activateEvent.
   const fireHelpEvent = useCallback((eventId) => {
     if (!eventId) return;
     const gameMap = engine.gameMap;
@@ -1154,9 +1152,7 @@ const GameContextInner = ({ children }) => {
       console.warn(`[GameContext] Help item references unknown event id "${eventId}"`);
       return;
     }
-    const dialogSteps = (event.steps || []).filter(s => s.type === 'dialog');
-    if (dialogSteps.length === 0) return;
-    eventRunner.runEvent({ ...event, steps: dialogSteps }, { ignoreOnce: true });
+    eventRunner.activateEvent(event);
   }, []);
 
   const attachInventorySyncListener = useCallback((player, inventoryManager) => {

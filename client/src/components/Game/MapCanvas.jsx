@@ -13,6 +13,8 @@ import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { configManager } from '../../game/utils/ConfigManager.js';
 import { EntityType } from '../../game/entities/Entity.js';
 import { isIndoorFloor } from '../../game/map/TerrainTypes.js';
+import { getEffectiveHour, isNightHour } from '../../game/config/VisionConfig.js';
+import { getHourFromTurn } from '../../game/utils/TimeUtils.js';
 import { ItemDefs } from '../../game/inventory/ItemDefs.js';
 import engine from '../../game/GameEngine.js';
 import { getScaleFactor } from '../../hooks/useWindowSize';
@@ -454,7 +456,9 @@ export default function MapCanvas({
       //   2. blur that mask ONCE to feather only the outer boundary,
       //   3. use it to subtract fog (source-out) so the lit region is uniform
       //      inside and softly faded at its edge.
-      const isDark = isNight || gameMap?.metadata?.alwaysDark;
+      // Pinned-light maps tint by their effective hour (noon / midnight) rather
+      // than the wall clock, so a powered interior reads exactly like midday.
+      const isDark = isNightHour(getEffectiveHour(gameMap?.metadata, getHourFromTurn(engine.turn)));
       const overlayColor = isDark ? 'rgba(0, 5, 20, 0.55)' : 'rgba(0, 0, 0, 0.45)';
       // Day: fully clear visible tiles. Night: leave a subtle blue tint so
       // visible areas still feel dim, matching the old 0.3 tint.

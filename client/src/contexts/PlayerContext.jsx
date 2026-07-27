@@ -11,7 +11,8 @@ import { EntityType } from '../game/entities/Entity.js';
 import { ItemTrait } from '../game/inventory/traits.js';
 import { isTurretPassableBy, TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
 import { isTerrainWalkable } from '../game/map/TerrainTypes.js';
-import { MAX_VISION_RANGE } from '../game/config/VisionConfig.js';
+import { MAX_VISION_RANGE, getEffectiveHour, isNightHour } from '../game/config/VisionConfig.js';
+import { getHourFromTurn } from '../game/utils/TimeUtils.js';
 
 const logger = Logger.scope('PlayerContext');
 
@@ -252,7 +253,9 @@ export const PlayerProvider = ({ children }) => {
       }
 
       // Sync vision parameters to engine for frame-by-frame movement recalculation
-      const activeIsNight = isNight || !!(gameMap?.metadata?.alwaysDark);
+      // On a pinned (always_light/always_dark) map the caller's clock-derived
+      // isNight doesn't apply — the map's effective hour decides. See VisionConfig.
+      const activeIsNight = isNightHour(getEffectiveHour(gameMap?.metadata, getHourFromTurn(engine.turn)));
       engine.setFOVOptions({ 
         isNight: activeIsNight, 
         isFlashlightOn, 

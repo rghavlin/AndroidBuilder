@@ -3,6 +3,8 @@
   "width": 20,
   "height": 90,
   "noAutosave": true,
+  "alwaysDark": true,
+  "lightMode": "always_dark",
   "tiles": [
     [
       {
@@ -21177,7 +21179,25 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "placeable.help-1785139451411-bza52",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "eventId": "lightsOn"
+          }
+        ]
       },
       {
         "x": 10,
@@ -21664,7 +21684,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.golf_cart-1785133177880-5gxmf",
+            "instanceId": "vehicle.golf_cart-1785139451411-etgop",
             "defId": "vehicle.golf_cart",
             "id": "vehicle.golf_cart",
             "name": "Golf Cart",
@@ -21766,7 +21786,7 @@
             },
             "attachments": {
               "motor_front": {
-                "instanceId": "electric_motor-1785133177880-v2p78",
+                "instanceId": "electric_motor-1785139451411-j2g3q",
                 "defId": "electric_motor",
                 "id": "electric_motor",
                 "name": "Electric motor",
@@ -21781,7 +21801,7 @@
                 ]
               },
               "battery_front": {
-                "instanceId": "tool.large_battery-1785133177880-51mnv",
+                "instanceId": "tool.large_battery-1785139451411-hol31",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -21802,7 +21822,7 @@
                 "ammoCount": 100
               },
               "motor_rear": {
-                "instanceId": "electric_motor-1785133177880-i4tbx",
+                "instanceId": "electric_motor-1785139451411-75b0g",
                 "defId": "electric_motor",
                 "id": "electric_motor",
                 "name": "Electric motor",
@@ -21817,7 +21837,7 @@
                 ]
               },
               "battery_rear": {
-                "instanceId": "tool.large_battery-1785133177880-37b1o",
+                "instanceId": "tool.large_battery-1785139451411-lsini",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -21840,7 +21860,7 @@
             }
           },
           {
-            "instanceId": "weapon.deserteagle-1785133177880-4rswh",
+            "instanceId": "weapon.deserteagle-1785139451411-nv5z2",
             "defId": "weapon.deserteagle",
             "id": "weapon.deserteagle",
             "name": "Desert Eagle",
@@ -21897,7 +21917,7 @@
             }
           },
           {
-            "instanceId": "ammo.de-1785133177881-iiep1",
+            "instanceId": "ammo.de-1785139451411-oaprb",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -21916,7 +21936,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785133177881-e6x2s",
+            "instanceId": "ammo.de-1785139451411-4pqgq",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -21935,7 +21955,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785133177881-ajk7y",
+            "instanceId": "ammo.de-1785139451411-byiau",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -21954,7 +21974,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785133177881-g46pq",
+            "instanceId": "ammo.de-1785139451411-glz09",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -21973,7 +21993,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785133177881-ihge9",
+            "instanceId": "ammo.de-1785139451411-s5g05",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -21992,7 +22012,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "attachment.de_magazine-1785133177881-2a76j",
+            "instanceId": "attachment.de_magazine-1785139451411-w0bon",
             "defId": "attachment.de_magazine",
             "id": "attachment.de_magazine",
             "name": "Desert Eagle Mag",
@@ -22011,7 +22031,7 @@
             "ammoDefId": "ammo.de"
           },
           {
-            "instanceId": "attachment.suppressor-1785133177881-i0agf",
+            "instanceId": "attachment.suppressor-1785139451411-78k0v",
             "defId": "attachment.suppressor",
             "id": "attachment.suppressor",
             "name": "Suppressor",
@@ -22149,6 +22169,8 @@
     ]
   ],
   "metadata": {
+    "alwaysDark": true,
+    "lightMode": "always_dark",
     "buildings": [],
     "furniture": [],
     "specialBuildings": [],
@@ -22195,18 +22217,6 @@
   },
   "entities": [
     {
-      "type": "zombie",
-      "x": 6,
-      "y": 81,
-      "subtype": "basic"
-    },
-    {
-      "type": "zombie",
-      "x": 9,
-      "y": 87,
-      "subtype": "basic"
-    },
-    {
       "type": "player",
       "x": 9,
       "y": 89,
@@ -22246,6 +22256,17 @@
       "chainOnly": true,
       "id": "closeGarage",
       "steps": [],
+      "oneShot": true
+    },
+    {
+      "chainOnly": true,
+      "id": "lightsOn",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "lights on"
+        }
+      ],
       "oneShot": true
     }
   ],
@@ -22340,6 +22361,26 @@
           "entityAction": "lock"
         }
       ]
+    },
+    {
+      "id": "lightsOn",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "setLightMode",
+          "lightMode": "always_light"
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "lights on"
+        }
+      ]
     }
   ],
   "questRegistry": {
@@ -22352,6 +22393,9 @@
         "name": "words",
         "type": "string",
         "initialValue": "wordsWords"
+      },
+      {
+        "name": "lightsOn"
       }
     ],
     "quests": [],

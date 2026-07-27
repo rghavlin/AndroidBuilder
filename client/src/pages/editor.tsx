@@ -238,6 +238,7 @@ interface ScenarioData {
   playerSpawn: { x: number; y: number } | null;
   noAutosave?: boolean;
   alwaysDark?: boolean;
+  lightMode?: 'always_dark' | 'always_light' | 'time_dependent';
   seed?: number;
   lowSpots?: { x: number; y: number }[];
   bubbleEvents?: BubbleEvent[];
@@ -293,7 +294,7 @@ function sanitizeTiles(tiles: any[][]): TileData[][] {
   );
 }
 
-function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; alwaysDark?: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry; entityRegistry: EntityRegistry; furniture?: FurniturePiece[] } {
+function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; alwaysDark?: boolean; lightMode?: 'always_dark' | 'always_light' | 'time_dependent'; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry; entityRegistry: EntityRegistry; furniture?: FurniturePiece[] } {
   const w = scenario.width;
   const h = scenario.height;
   const tiles = createEmptyGrid(w, h);
@@ -499,6 +500,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     buildings: scenario.metadata?.buildings || [],
     noAutosave: scenario.noAutosave ?? false,
     alwaysDark: scenario.alwaysDark ?? scenario.metadata?.alwaysDark ?? false,
+    lightMode: scenario.lightMode || scenario.metadata?.lightMode || (scenario.alwaysDark || scenario.metadata?.alwaysDark ? 'always_dark' : 'time_dependent'),
     seed: scenario.seed ?? scenario.metadata?.seed,
     lowSpots: scenario.metadata?.lowSpots || scenario.lowSpots || [],
     bubbleEvents: resolvedBubbleEvents || [],
@@ -510,7 +512,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
   };
 }
 
-function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; alwaysDark?: boolean; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry; entityRegistry: EntityRegistry; furniture?: FurniturePiece[] } {
+function saveGameMapToEditorState(mapData: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; alwaysDark?: boolean; lightMode?: 'always_dark' | 'always_light' | 'time_dependent'; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry; entityRegistry: EntityRegistry; furniture?: FurniturePiece[] } {
   const w = mapData.width;
   const h = mapData.height;
   const tiles = createEmptyGrid(w, h);
@@ -706,6 +708,7 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
     buildings: mapData.buildings || [],
     noAutosave: mapData.noAutosave ?? false,
     alwaysDark: mapData.alwaysDark ?? mapData.metadata?.alwaysDark ?? false,
+    lightMode: mapData.lightMode || mapData.metadata?.lightMode || (mapData.alwaysDark || mapData.metadata?.alwaysDark ? 'always_dark' : 'time_dependent'),
     seed: mapData.seed ?? mapData.metadata?.seed,
     lowSpots: mapData.metadata?.lowSpots || mapData.lowSpots || [],
     bubbleEvents: resolvedBubbleEvents2 || [],
@@ -1026,7 +1029,7 @@ function exportScenario(scenario: ScenarioData) {
     })
   );
 
-  // Dual-write the unified GameEvent model alongside the legacy eventTriggers/
+// Dual-write the unified GameEvent model alongside the legacy eventTriggers/
   // bubbleEvents arrays: `scenario.events` (the editor's lossless authored list —
   // see allEditorEvents) is the canonical source and is what Phase 3's runtime
   // runner actually reads (resolveMapEvents prefers metadata.events). It is NOT
@@ -1042,10 +1045,12 @@ function exportScenario(scenario: ScenarioData) {
     height: scenario.height,
     ...(scenario.noAutosave ? { noAutosave: true } : {}),
     ...(scenario.alwaysDark ? { alwaysDark: true } : {}),
+    ...(scenario.lightMode ? { lightMode: scenario.lightMode } : {}),
     seed: scenario.seed,
     tiles,
     metadata: {
       alwaysDark: scenario.alwaysDark,
+      lightMode: scenario.lightMode || (scenario.alwaysDark ? 'always_dark' : 'time_dependent'),
       buildings: scenario.buildings,
       seed: scenario.seed,
       furniture: scenario.furniture || [],
@@ -1081,7 +1086,7 @@ export default function MapEditor() {
   const [height, setHeight] = useState(20);
   const [scenarioName, setScenarioName] = useState('untitled');
   const [noAutosave, setNoAutosave] = useState(false);
-  const [alwaysDark, setAlwaysDark] = useState(false);
+  const [lightMode, setLightMode] = useState<'always_dark' | 'always_light' | 'time_dependent'>('time_dependent');
   const [tiles, setTiles] = useState<TileData[][]>(() => createEmptyGrid(20, 20));
   const [buildings, setBuildings] = useState<BuildingMeta[]>([]);
   const [zoom, setZoom] = useState(1.0);
@@ -2479,7 +2484,8 @@ export default function MapEditor() {
       width, height, tiles, buildings,
       playerSpawn: getPlayerSpawn(),
       noAutosave: noAutosave || undefined,
-      alwaysDark: alwaysDark || undefined,
+      alwaysDark: lightMode === 'always_dark' || undefined,
+      lightMode: lightMode,
       seed: mapSeed !== '' ? Number(mapSeed) : undefined,
       lowSpots: mapLowSpots,
       bubbleEvents,
@@ -2508,7 +2514,8 @@ export default function MapEditor() {
       tiles,
       buildings,
       noAutosave: noAutosave || undefined,
-      alwaysDark: alwaysDark || undefined,
+      alwaysDark: lightMode === 'always_dark' || undefined,
+      lightMode: lightMode,
       seed: mapSeed !== '' ? Number(mapSeed) : undefined,
       lowSpots: mapLowSpots,
       bubbleEvents,
@@ -2572,7 +2579,7 @@ export default function MapEditor() {
         setTiles(sanitizeTiles(editor.tiles));
         setBuildings(editor.buildings || []);
         setNoAutosave(editor.noAutosave ?? false);
-        setAlwaysDark(editor.alwaysDark ?? false);
+        setLightMode(editor.lightMode || (editor.alwaysDark ? 'always_dark' : 'time_dependent'));
         setMapSeed(editor.seed !== undefined ? editor.seed : '');
         setMapLowSpots(editor.lowSpots || []);
         setBubbleEvents((editor as any).bubbleEvents || []);
@@ -2599,7 +2606,7 @@ export default function MapEditor() {
     setTiles(sanitizeTiles(editor.tiles));
     setBuildings(editor.buildings || []);
     setNoAutosave(editor.noAutosave ?? false);
-    setAlwaysDark(editor.alwaysDark ?? false);
+    setLightMode(editor.lightMode || (editor.alwaysDark ? 'always_dark' : 'time_dependent'));
     setMapSeed(editor.seed !== undefined ? editor.seed : '');
     setMapLowSpots(editor.lowSpots || []);
     setBubbleEvents((editor as any).bubbleEvents || data.bubbleEvents || []);
@@ -3337,10 +3344,16 @@ export default function MapEditor() {
             <input type="checkbox" checked={noAutosave} onChange={e => setNoAutosave(e.target.checked)} />
             Disable autosave
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer', marginTop: 2 }}>
-            <input type="checkbox" checked={alwaysDark} onChange={e => setAlwaysDark(e.target.checked)} />
-            Always dark (indoors/underground)
-          </label>
+          <label style={{ fontSize: 11, color: '#888', marginTop: 4 }}>Map Light Mode</label>
+          <select
+            value={lightMode}
+            onChange={e => setLightMode(e.target.value as 'always_dark' | 'always_light' | 'time_dependent')}
+            style={{ background: '#222', border: '1px solid #444', color: '#ddd', padding: '4px 8px', borderRadius: 3, fontSize: 12 }}
+          >
+            <option value="time_dependent">Time Dependent (Normal Day-Night Cycle)</option>
+            <option value="always_dark">Always Dark (Underground / No Power)</option>
+            <option value="always_light">Always Light (Full Power / Constant Light)</option>
+          </select>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             <button onClick={handleExport} style={btnStyle('#2a7a2a')}>Publish</button>
             <button onClick={handleSaveEditor} style={btnStyle('#555')}>Save</button>

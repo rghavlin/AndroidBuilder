@@ -13,6 +13,7 @@ import { isSpecialBuilding } from './BuildingTypes.js';
 import { isInsideCompound } from './MapUtils.js';
 import { TEMPLATE_METADATA } from '../config/TemplateConfig.js';
 import { MAP_GEN_CONFIG } from '../config/MapGenConfig.js';
+import { getLightMode } from '../config/VisionConfig.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
 /**
@@ -704,9 +705,14 @@ export class TemplateMapGenerator {
     mapData.metadata.questRegistry = scenarioData.questRegistry || { flags: [], vars: [], factions: [], factionStances: {} };
     mapData.metadata.entityRegistry = scenarioData.entityRegistry || { entries: [] };
     mapData.metadata.mapTransitions = scenarioData.mapTransitions || [];
-    if (scenarioData.metadata?.alwaysDark || scenarioData.alwaysDark) {
-      mapData.metadata.alwaysDark = true;
-    }
+    // Scenario files carry lightMode at the top level, under metadata, or (for
+    // maps authored before lightMode existed) only as the legacy alwaysDark flag.
+    const lightMode = getLightMode({
+      lightMode: scenarioData.metadata?.lightMode || scenarioData.lightMode,
+      alwaysDark: scenarioData.metadata?.alwaysDark || scenarioData.alwaysDark,
+    });
+    mapData.metadata.lightMode = lightMode;
+    mapData.metadata.alwaysDark = (lightMode === 'always_dark');
     if (scenarioData.metadata?.spawnZones) {
       mapData.metadata.spawnZones = { ...mapData.metadata.spawnZones, ...scenarioData.metadata.spawnZones };
     }

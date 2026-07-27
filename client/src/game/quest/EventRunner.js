@@ -6,6 +6,7 @@ import { interpolateText } from './interpolate.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import { FactionRegistry } from '../ai/FactionRegistry.js';
 import Logger from '../utils/Logger.js';
+import { getLightMode } from '../config/VisionConfig.js';
 
 const log = Logger.scope('EventRunner');
 
@@ -364,6 +365,35 @@ class EventRunner {
     this._processCurrentStep();
   }
 
+  /**
+   * Run an event the player activated by hand (clicking a placed help/switch
+   * item, or the "?" on their own tile) rather than by walking into it.
+   *
+   * First activation runs the event in full — a hand-placed switch that flips
+   * the lights, opens a door or sets a flag has to actually do those things.
+   * Once a repeat:'once' event has already run, further activations replay only
+   * its dialog steps, so re-reading a tutorial (its original purpose) can't
+   * re-grant items or re-fire one-shot state changes. repeat:'everyTime' events
+   * run in full every time, as authored.
+   *
+   * @param {object} event - a resolved GameEvent (not a step-filtered copy)
+   */
+  activateEvent(event) {
+    if (!event || !event.steps || event.steps.length === 0) return;
+    const alreadyRan =
+      (event.repeat === 'once' && this.firedOnce.has(event.id)) ||
+      (event.repeat === 'oncePerTurn' && this.lastFiredTurn.get(event.id) === engine.turn);
+
+    if (!alreadyRan) {
+      this.runEvent(event);
+      return;
+    }
+
+    const dialogSteps = event.steps.filter(s => s.type === 'dialog');
+    if (dialogSteps.length === 0) return;
+    this.runEvent({ ...event, steps: dialogSteps }, { ignoreOnce: true });
+  }
+
   /** Advance past the current blocking step (dialog/speech dismissed by the player). */
   advance() {
     if (!this.activeRun) return;
@@ -665,6 +695,23 @@ class EventRunner {
             case 'unlock': if (typeof ent.forceUnlock === 'function') ent.forceUnlock(); else ent.unlock?.(); break;
             default: log.warn(`[EventRunner] controlEntity: unknown action "${step.entityAction}"`);
           }
+          engine.notifyUpdate();
+        }
+        this.activeRun.stepIndex++;
+        this._processCurrentStep();
+        return;
+      }
+
+      case 'setLightMode': {
+        if (engine.gameMap) {
+          if (!engine.gameMap.metadata) engine.gameMap.metadata = {};
+          const mode = getLightMode({ lightMode: step.lightMode });
+          engine.gameMap.metadata.lightMode = mode;
+          // Keep the legacy flag in sync — saves and older readers still use it.
+          engine.gameMap.metadata.alwaysDark = (mode === 'always_dark');
+          log.info(`[EventRunner] Light mode set to "${mode}"`);
+          engine.invalidateFOV();
+          engine.recalculateFOV();
           engine.notifyUpdate();
         }
         this.activeRun.stepIndex++;
