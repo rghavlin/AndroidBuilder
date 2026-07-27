@@ -1185,8 +1185,8 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/AttributeProgressionManager.js": {
-    "mtime": 1784692078.8878036,
-    "ast_hash": "fe8593021eefe92d42d51be75726f650",
+    "mtime": 1785116571.628818,
+    "ast_hash": "90e36720cd6725a2ecdc53dc97adbe84",
     "semantic_hash": ""
   },
   "client/src/game/systems/AudioSystem.js": {
@@ -3175,13 +3175,13 @@
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.editor.json": {
-    "mtime": 1785111025.3827415,
-    "ast_hash": "6b6103de7dff55ed7a737571acf62420",
+    "mtime": 1785115066.855556,
+    "ast_hash": "cf0a9ef8b37485fa2b443b23629064b8",
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.scenario.json": {
-    "mtime": 1785111028.4849358,
-    "ast_hash": "6df8013143099e8cac61aa34259986ac",
+    "mtime": 1785115067.8231516,
+    "ast_hash": "112b3cd0d88e3072c0e94887598c9ff1",
     "semantic_hash": ""
   },
   "customMaps/bunker1.editor.json": {

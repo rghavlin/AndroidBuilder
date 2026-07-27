@@ -182,6 +182,7 @@
   "180": "MusicManager",
   "181": "accordion.tsx",
   "182": "verify",
+  "183": "verify_bookstats_init_derived.mjs",
   "184": "MockGameMap",
   "186": ".dropScent",
   "187": "verify_rain_collector_size.mjs",

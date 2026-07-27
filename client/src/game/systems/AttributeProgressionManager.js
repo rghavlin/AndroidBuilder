@@ -10,10 +10,9 @@ import { gameRandom } from '../utils/SeededRandom.js';
  */
 // Master pacing dial for attribute leveling. XP to raise an attribute currently at
 // `value` by one 1d3 roll = ATTR_XP_COEF * value^1.5. Still value-based, so pushing a
-// stat toward the 100 cap costs progressively more (natural diminishing returns) — but
-// the coefficient was 100, which made a base-20 stat need ~8,900 XP at a 4-per-hit
-// trickle (thousands of hits per level). Lower this to level attributes more often.
-const ATTR_XP_COEF = 6;
+// stat toward the 100 cap costs progressively more (natural diminishing returns).
+// Halved from 6 to 3 to double leveling frequency across the board.
+const ATTR_XP_COEF = 3;
 
 export class AttributeProgressionManager {
   static getRequiredXP(currentStatLevel) {
