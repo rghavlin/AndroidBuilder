@@ -2745,8 +2745,8 @@
     "semantic_hash": ""
   },
   "client/src/components/MapEditor/EventWindow.tsx": {
-    "mtime": 1785111997.2203565,
-    "ast_hash": "c5306b8930d8990f3f9ae9d5ed3ac675",
+    "mtime": 1785112986.0975769,
+    "ast_hash": "5b287e6785fb841acd07adc6e948c3f6",
     "semantic_hash": ""
   },
   "client/src/game/quest/eventTypes.ts": {
@@ -2755,8 +2755,8 @@
     "semantic_hash": ""
   },
   "client/src/game/quest/EventRunner.js": {
-    "mtime": 1785111799.156437,
-    "ast_hash": "89e63695ab12ffcdf8c29ecb78a8bca9",
+    "mtime": 1785112986.0986395,
+    "ast_hash": "dd65e8b79ecf8fe56b401279c29c0ad4",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p3.mjs": {
@@ -2780,8 +2780,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/JournalUI.tsx": {
-    "mtime": 1784073022.1003125,
-    "ast_hash": "f85060e2c1875ac6f4309f7e326a4dbf",
+    "mtime": 1785112986.0965018,
+    "ast_hash": "c103d4d643d82b948ee2dfd49aedfe42",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p5.mjs": {
@@ -3202,6 +3202,16 @@
   "test/quest/stringVars.test.js": {
     "mtime": 1785112055.434439,
     "ast_hash": "58ba8905c87a27a048afee345ad98918",
+    "semantic_hash": ""
+  },
+  "client/src/game/quest/interpolate.js": {
+    "mtime": 1785112600.1373544,
+    "ast_hash": "d8f895e04aba70487d313a58a9178a76",
+    "semantic_hash": ""
+  },
+  "test/quest/interpolateText.test.js": {
+    "mtime": 1785112642.4890058,
+    "ast_hash": "5cc60d7084068768f29ef7f6d15a735f",
     "semantic_hash": ""
   }
 }

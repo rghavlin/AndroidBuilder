@@ -1,16 +1,16 @@
 # Graph Report - AndroidBuilder  (2026-07-26)
 
 ## Corpus Check
-- 587 files · ~6,374,146 words
+- 589 files · ~6,374,682 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3617 nodes · 9194 edges · 175 communities (130 shown, 45 thin omitted)
+- 3621 nodes · 9208 edges · 187 communities (135 shown, 52 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 135 edges (avg confidence: 0.78)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e2ff7590`
+- Built from commit: `855dd0be`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -119,9 +119,11 @@
 - Table UI Components
 - Faction Registry System
 - Inventory Item Management
+- Starting Road Generation
 - LineOfSight.js
 - .generateNextMap
 - Music and Playlist Manager
+- Seeded Random Utilities
 - Zombie Line-of-Sight Testing
 - React Error Boundaries
 - MockCtx
@@ -156,6 +158,7 @@
 - verify_flee_recovery.mjs
 - Tile Listener Testing
 - DialogOverlay.tsx
+- ZombieTypes.js
 - .runTurn
 - Image Cropping Scripts
 - JSON Export Scripts
@@ -166,14 +169,23 @@
 - table.tsx
 - Electron Preload Script
 - navigation-menu.tsx
+- get
 - Firestation Layout Verification
 - Special Window Layouts
 - Vite Electron Configuration
 - Place Icon Serialization
+- ._interpolateStep
+- Row
+- verify_army_tent.js
+- verify_map4_frontage.js
 - test_exhaustive_los.js
+- verify_production_frontage.js
 - TestMapBuilder
+- drawer.tsx
+- test_safe_fix.js
 - MusicManager
-- verify_crop_rendering.js
+- accordion.tsx
+- verify
 - MockGameMap
 - .dropScent
 - verify_rain_collector_size.mjs
@@ -191,26 +203,26 @@
 10. `TemplateMapGenerator` - 59 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `useCarousel()` --references--> `react`  [EXTRACTED]
-  client/src/components/ui/carousel.tsx → package.json
-- `useChart()` --references--> `react`  [EXTRACTED]
-  client/src/components/ui/chart.tsx → package.json
-- `useFormField()` --references--> `react`  [EXTRACTED]
-  client/src/components/ui/form.tsx → package.json
-- `useSidebar()` --references--> `react`  [EXTRACTED]
-  client/src/components/ui/sidebar.tsx → package.json
 - `addPlayer()` --references--> `EntityFactory`  [EXTRACTED]
   scratch/diagnose_sidestep2.mjs → client/src/game/EntityFactory.js
+- `addPlayer()` --references--> `EntityFactory`  [EXTRACTED]
+  scratch/diagnose_sidestep.mjs → client/src/game/EntityFactory.js
+- `useHashLocation()` --references--> `react`  [EXTRACTED]
+  client/src/App.tsx → package.json
+- `EarbucksShopWindow()` --references--> `react`  [EXTRACTED]
+  client/src/components/Game/EarbucksShopWindow.tsx → package.json
+- `MapCanvas()` --references--> `react`  [EXTRACTED]
+  client/src/components/Game/MapCanvas.jsx → package.json
 
 ## Import Cycles
 - 1-file cycle: `test/balance/apEconomy.mjs -> test/balance/apEconomy.mjs`
 - 1-file cycle: `test/balance/balance.mjs -> test/balance/balance.mjs`
 
-## Communities (175 total, 45 thin omitted)
+## Communities (187 total, 52 thin omitted)
 
 ### Community 0 - "traits.js"
-Cohesion: 0.04
-Nodes (37): ItemCategory, RarityWeights, FOOD_SCARCITY, LOOT_CONSTANTS, MAP_WIDE_REQUIREMENTS, SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT, allErrors (+29 more)
+Cohesion: 0.22
+Nodes (4): generator, indoorMap, MockGameMap, outdoorMap
 
 ### Community 1 - "UI Components"
 Cohesion: 0.05
@@ -218,27 +230,31 @@ Nodes (47): ARCHETYPES, BUNGALOW_2BED_LARGE, BUNGALOW_2BED_WIDE, BUNGALOW_3BED_E
 
 ### Community 3 - "Game Engine Context"
 Cohesion: 0.07
-Nodes (46): ActionSlotButton(), ActionSlotButtonProps, EarbucksDisplay(), EarbucksShopWindowProps, ShopItemRow(), ShopItemRowProps, GameEventLog(), GameEventLogProps (+38 more)
+Nodes (36): ActionSlotButton(), ActionSlotButtonProps, EarbucksDisplay(), EarbucksShopWindowProps, ShopItemRow(), ShopItemRowProps, GameEventLog(), GameEventLogProps (+28 more)
 
 ### Community 4 - "AI and Inventory Systems"
-Cohesion: 0.12
-Nodes (31): BarterWindow(), BarterWindowProps, EarbucksShopWindow(), InventoryExtensionWindowProps, InventoryPanel(), TollWindow(), TollWindowProps, BackpackGrid() (+23 more)
+Cohesion: 0.08
+Nodes (45): BarterWindow(), BarterWindowProps, EarbucksShopWindow(), InventoryExtensionWindowProps, InventoryPanel(), PlayerSkillsWindowProps, TollWindow(), TollWindowProps (+37 more)
 
 ### Community 5 - "NPC AI Behavior"
 Cohesion: 0.17
-Nodes (7): getProgressionForMap(), computeTollGateLayout(), TOLLGATE_DEFAULTS, AnimalSpawner, NPCSpawner, NOTE: this only PLACES the gate. The turret-firing rules during a toll run, runDebug()
+Nodes (8): getProgressionForMap(), computeTollGateLayout(), TOLLGATE_DEFAULTS, AnimalSpawner, NPCSpawner, NOTE: this only PLACES the gate. The turret-firing rules during a toll run, assert(), verify()
+
+### Community 6 - "Action Intent System"
+Cohesion: 0.03
+Nodes (40): ActionPoints, AIBehavior, Consumable, EquippedArmor, Health, Inventory, InventoryContainer, Item (+32 more)
 
 ### Community 7 - "Shop and Log UI"
-Cohesion: 0.09
-Nodes (20): AITargeting, attacker, dead, far, firstFarIdx, gameMap, gm2, lastNearIdx (+12 more)
+Cohesion: 0.21
+Nodes (4): compressString(), decompressString(), runTest(), runDebug()
 
 ### Community 8 - "Tooltip Components"
 Cohesion: 0.13
 Nodes (8): Door, door, engineMock, map, moveIntent, player, z1, z2
 
 ### Community 9 - "Entity Component System"
-Cohesion: 0.10
-Nodes (17): DamageIntent, DestroyIntent, MoveIntent, NoiseEvent, IntentQueue, AISystem, AudioSystem, CombatSystem (+9 more)
+Cohesion: 0.08
+Nodes (19): DamageIntent, DestroyIntent, MoveIntent, NoiseEvent, IntentQueue, AISystem, AudioSystem, CombatSystem (+11 more)
 
 ### Community 10 - "Item Metadata and Traits"
 Cohesion: 0.08
@@ -253,15 +269,15 @@ Cohesion: 0.16
 Nodes (13): OptionsWindowProps, CraftingCategory, SelectContent, SelectItem, SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator (+5 more)
 
 ### Community 13 - "Entity and Item Types"
-Cohesion: 0.04
-Nodes (22): MAP_GEN_CONFIG, BuildingTypes, isSpecialBuilding(), SPECIAL_BUILDING_SPECS, isInsideCompound(), NOTE: previously spawned a 'placeable.help' ("?") item on every legacy, TemplateMapGenerator, ASSERT_FURNISHED (+14 more)
+Cohesion: 0.05
+Nodes (10): TemplateMapGenerator, ASSERT_FURNISHED, KNOWN_TYPES, REPORT_ONLY, assert(), verify(), generator, layout (+2 more)
 
 ### Community 14 - "Rabbit AI State"
-Cohesion: 0.03
-Nodes (48): ActionPoints, AIBehavior, AIState, Consumable, EquippedArmor, Health, Inventory, InventoryContainer (+40 more)
+Cohesion: 0.04
+Nodes (21): AIState, Burnable, PlaceIcon, Rabbit, SequencerAction, gm, serialized, aiComp (+13 more)
 
 ### Community 15 - "HUD and Dialog UI"
-Cohesion: 0.13
+Cohesion: 0.21
 Nodes (3): COMPONENT_NAME_BY_CTOR, DERIVED_CONDITIONS, set()
 
 ### Community 16 - "Shop and Pricing Config"
@@ -269,40 +285,36 @@ Cohesion: 0.12
 Nodes (12): door, doorNoTag, entityMap, MockEntity, officerBob, player, resBob, resDoor (+4 more)
 
 ### Community 17 - "Entity Spawning and Scent"
-Cohesion: 0.14
-Nodes (12): FormControl, FormDescription, FormFieldContext, FormFieldContextValue, FormItem, FormItemContext, FormItemContextValue, FormLabel (+4 more)
+Cohesion: 0.15
+Nodes (11): FormControl, FormDescription, FormFieldContext, FormFieldContextValue, FormItem, FormItemContext, FormItemContextValue, FormLabel (+3 more)
 
 ### Community 18 - "Map Template Generation"
-Cohesion: 0.16
-Nodes (9): CharacterRegistryWindow(), CreditsWindow(), StartMenuProps, CharacterRegistry, clear(), confirm(), setItem(), store (+1 more)
+Cohesion: 0.18
+Nodes (10): CharacterRegistryWindow(), CharacterRegistryWindowProps, StartMenuProps, CharacterRegistry, idbStore, clear(), confirm(), setItem() (+2 more)
 
 ### Community 19 - "Character and Menu Windows"
-Cohesion: 0.16
-Nodes (22): CharacterCreatorProps, StatAdjusterCardProps, CharacterRegistryWindowProps, CreditsWindowProps, DefeatDialog(), HelpWindow(), HelpWindowProps, VideoItem (+14 more)
+Cohesion: 0.14
+Nodes (22): CharacterCreatorProps, StatAdjusterCardProps, CreditsWindowProps, DefeatDialog(), HelpWindow(), HelpWindowProps, VideoItem, DisplaySlot (+14 more)
 
 ### Community 20 - "Game Map Management"
 Cohesion: 0.16
 Nodes (11): args, base, rows, runs, scenario, secs, startSeed, summary (+3 more)
 
 ### Community 21 - "World Progression and Spawning"
-Cohesion: 0.08
-Nodes (7): BaseMapGenerator, gameRandom, makeSeededRandom(), SeededRandom, brokenScopeStats, templates, tmg
+Cohesion: 0.06
+Nodes (23): MapProgression, getSightRangeForHour(), engine, INIT_STATES, log, logger, SafeEventEmitter, gameRandom (+15 more)
 
 ### Community 22 - "Game Initialization Manager"
-Cohesion: 0.10
-Nodes (9): LootProgression, MapProgression, GameInitializationManager, INIT_STATES, initManager, runDebug(), MockMap, mockPlayer (+1 more)
+Cohesion: 0.14
+Nodes (3): GameInitializationManager, initManager, runDebug()
 
-### Community 23 - "Door"
-Cohesion: 0.08
-Nodes (19): dropZombieDeathLoot(), getBrainstemColor(), getBrainstemStewColors(), getCorpseOverrides(), ZombieCorpseConfig, CraftingManager, getItemName(), getFuelValue() (+11 more)
+### Community 25 - "Inventory Management System"
+Cohesion: 0.05
+Nodes (14): hasItemsInside(), InventoryManager, isClothingOrBackpack(), runContainerTests(), runTest(), run(), run(), testSerialization() (+6 more)
 
 ### Community 26 - "Action Queue Processing"
-Cohesion: 0.03
-Nodes (72): AttributeCard(), AttributeCardProps, CompactSkillRow(), CompactSkillRowProps, SkillProgressBar(), SkillProgressBarProps, AccordionContent, AccordionItem (+64 more)
-
-### Community 27 - "useGame"
-Cohesion: 0.16
-Nodes (4): fakeInv, FakeInventoryManager, newQuestState, savedData
+Cohesion: 0.10
+Nodes (26): AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter(), AlertDialogHeader(), AlertDialogOverlay, AlertDialogTitle (+18 more)
 
 ### Community 28 - "Combat and Turn Management"
 Cohesion: 0.12
@@ -313,28 +325,36 @@ Cohesion: 0.06
 Nodes (37): Separator, SheetContent, SheetContentProps, SheetDescription, SheetFooter(), SheetHeader(), SheetOverlay, SheetTitle (+29 more)
 
 ### Community 30 - "Map Generation Config"
-Cohesion: 0.06
-Nodes (16): Container, _warnedCatchAllProps, testResults, CategoryDisplayName, CategoryPriority, FUEL_VALUES, ItemTrait, SlotDisplayName (+8 more)
+Cohesion: 0.05
+Nodes (38): LootProgression, testResults, CategoryDisplayName, CategoryPriority, EquipmentSlot, FUEL_VALUES, ItemCategory, ItemTrait (+30 more)
 
 ### Community 31 - "EventRunner"
-Cohesion: 0.14
-Nodes (13): Carousel, CarouselApi, CarouselContent, CarouselContext, CarouselContextProps, CarouselItem, CarouselNext, CarouselOptions (+5 more)
+Cohesion: 0.15
+Nodes (12): Carousel, CarouselApi, CarouselContent, CarouselContext, CarouselContextProps, CarouselItem, CarouselNext, CarouselOptions (+4 more)
 
 ### Community 32 - "Container Grid Logic"
-Cohesion: 0.07
-Nodes (21): ExplosionSystem, actionQueue, activeZombie, diedAny, ecsEntities, explosionIntent, intentQueue, item (+13 more)
+Cohesion: 0.09
+Nodes (20): actionQueue, activeZombie, diedAny, ecsEntities, explosionIntent, intentQueue, item, itemDef (+12 more)
+
+### Community 34 - "Camera Viewport Control"
+Cohesion: 0.10
+Nodes (3): Camera, log, NOTE: This only moves the camera view, not any entities
 
 ### Community 35 - "Dialog and Button UI"
-Cohesion: 0.14
-Nodes (5): runContainerTests(), testSerialization(), KNOWN_FAILURES, results, verifyLoadSwaps()
+Cohesion: 0.17
+Nodes (16): AttributeCard(), AttributeCardProps, CompactSkillRow(), CompactSkillRowProps, SkillProgressBar(), SkillProgressBarProps, applySurvivalCascade(), deriveSecondaryStats() (+8 more)
 
 ### Community 36 - "Loot and Layout Estimation"
 Cohesion: 0.14
 Nodes (22): PocketLayouts, beltArea(), buildCapacity(), cellsByType, COLLECTION_RATE, collectItem(), footprintOf(), gridArea() (+14 more)
 
 ### Community 37 - "Road and Town Generation"
-Cohesion: 0.23
-Nodes (7): isInsideTollGate(), isInStartArea(), logger, ZombieReplenishmentSystem, ZombieSpawner, buildings, runVerification()
+Cohesion: 0.17
+Nodes (5): DevConsoleProps, DevConsoleShopManager(), TabType, CardFooter, Input
+
+### Community 38 - "Building Layout Builder"
+Cohesion: 0.19
+Nodes (3): MapBuilder, verify(), test()
 
 ### Community 39 - "Tile Rendering and Cache"
 Cohesion: 0.19
@@ -342,7 +362,7 @@ Nodes (3): MockEntity, MockGameMap, runTests()
 
 ### Community 40 - "Line of Sight System"
 Cohesion: 0.06
-Nodes (14): compare(), evalAll(), evalCondition(), EventRunner, QuestState, applyItemGrants(), changeEvents, ctx (+6 more)
+Nodes (14): compare(), evalAll(), evalCondition(), applyNpcAIMode(), EventRunner, QuestState, changeEvents, ctx (+6 more)
 
 ### Community 41 - "Map Editor Tools"
 Cohesion: 0.09
@@ -353,36 +373,36 @@ Cohesion: 0.19
 Nodes (10): args, config, secs, seeds, startSeed, t0, fuzzSeed(), OP (+2 more)
 
 ### Community 44 - "ImageLoader"
-Cohesion: 0.14
-Nodes (19): MapTransitionDialogProps, NPCDemandDialogProps, TutorialEndDialog(), TutorialEndDialogProps, SplitDialog(), Command, CommandEmpty, CommandGroup (+11 more)
+Cohesion: 0.27
+Nodes (12): MapTransitionDialogProps, NPCDemandDialogProps, TutorialEndDialog(), TutorialEndDialogProps, SplitDialog(), Button, DialogContent, DialogDescription (+4 more)
 
 ### Community 45 - "Asset Image Loader"
 Cohesion: 0.24
 Nodes (4): CharacterCreator(), PlayerSkillsUI(), CombatResolver, fireManyAtLongRange()
 
 ### Community 46 - "Turret AI Testing"
-Cohesion: 0.12
-Nodes (13): compressString(), decompressString(), DEFAULT_PLAYER_STATS, GameSaveSystem, idbStore, runTest(), clear(), getItem() (+5 more)
+Cohesion: 0.14
+Nodes (9): DEFAULT_PLAYER_STATS, GameSaveSystem, clear(), getItem(), runTests(), setItem(), assert(), verify() (+1 more)
 
 ### Community 47 - "Game Engine State"
-Cohesion: 0.19
-Nodes (7): LineOfSight, slope(), main(), main(), main(), test(), los()
+Cohesion: 0.15
+Nodes (10): LineOfSight, logger, Quadrant, slope(), main(), main(), main(), testWindowSide() (+2 more)
 
 ### Community 48 - "Build and Dev Dependencies"
 Cohesion: 0.10
 Nodes (21): devDependencies, autoprefixer, cross-env, electron, electron-builder, esbuild, postcss, @replit/vite-plugin-cartographer (+13 more)
 
 ### Community 49 - "DevConsole.tsx"
-Cohesion: 0.20
-Nodes (7): formatTimestamp(), LoadGameWindow(), MainMenuWindow(), formatTimestamp(), SaveGameWindow(), StartMenu(), IndexedDBStore
+Cohesion: 0.18
+Nodes (8): CreditsWindow(), MainMenuWindow(), OptionsWindow(), StartMenu(), MenuButtonDef, StartMenuButtons(), StartMenuButtonsProps, IndexedDBStore
 
 ### Community 50 - "Window and Door Interaction"
-Cohesion: 0.19
+Cohesion: 0.21
 Nodes (3): Window, mockLocalStorage, runTest()
 
 ### Community 51 - "Rendering Optimization Tests"
-Cohesion: 0.17
-Nodes (5): DevConsoleProps, DevConsoleShopManager(), TabType, CardFooter, Input
+Cohesion: 0.22
+Nodes (9): DEFAULT_SHOP_CATALOG, MAP_1_CATALOG, MAP_2_CATALOG, SHOP_CATALOG_BY_MAP, EMPTY_CATALOG, assert(), verify(), assert() (+1 more)
 
 ### Community 52 - "TypeScript Configuration"
 Cohesion: 0.11
@@ -393,16 +413,16 @@ Cohesion: 0.14
 Nodes (15): BUILTIN_FACTIONS, BUILTIN_STANCES, builtinStanceValue(), cloneStances(), deltaKeys, DISPOSITION, DISPOSITIONS, FactionRegistry (+7 more)
 
 ### Community 55 - "pagination.tsx"
-Cohesion: 0.06
-Nodes (11): Rabbit, FireSystem, NOTE: tile-fire ticking lives on GameMap.processTileFires(), which iterates, gm, serialized, map, mockTile, npc (+3 more)
+Cohesion: 0.16
+Nodes (6): map, player, tracker, zombie, gm, wm
 
 ### Community 56 - "Menubar UI Components"
 Cohesion: 0.12
 Nodes (11): Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarLabel, MenubarRadioItem, MenubarSeparator, MenubarShortcut() (+3 more)
 
 ### Community 57 - "Entity Serialization Tests"
-Cohesion: 0.25
-Nodes (7): gameMap, itemsOnTile, loadedGrid, loadedSafe, originalGrid, originalSafe, safeData
+Cohesion: 0.12
+Nodes (15): backpack, backpackGrid, consumed, consumedFromGround, deserialized, groundContainer, invManager, itemsInside (+7 more)
 
 ### Community 59 - "UI Framework Config"
 Cohesion: 0.12
@@ -416,17 +436,21 @@ Nodes (9): FIRESTARTER_DEF_IDS, frameRenderFlags, getDominantItemCached(), getDo
 Cohesion: 0.23
 Nodes (4): Item, TestEntity, assert(), verify()
 
+### Community 63 - "Crafting Recipe Verification"
+Cohesion: 0.20
+Nodes (8): Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut()
+
 ### Community 64 - "Ground Item Management"
-Cohesion: 0.08
-Nodes (11): Item, MeleeWeapon, EntityType, NOTE: do NOT force itemsModified for every container/attachment item., Pathfinding, testResults, buildMap(), mapWithEdgeWindow() (+3 more)
+Cohesion: 0.11
+Nodes (10): EntityType, NPCTypes, NOTE: do NOT force itemsModified for every container/attachment item., Pathfinding, runTest(), buildMap(), mapWithEdgeWindow(), emptyTiles() (+2 more)
 
 ### Community 65 - "Scenario Map Generation"
 Cohesion: 0.11
 Nodes (6): MockCanvasContext, mockEngine, mockLocalStorage, mockSprites, mockVisibilitySet, runTest()
 
 ### Community 66 - "Form UI Components"
-Cohesion: 0.20
-Nodes (9): DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut(), DropdownMenuSubContent (+1 more)
+Cohesion: 0.29
+Nodes (7): dropZombieDeathLoot(), getBrainstemColor(), getBrainstemStewColors(), getCorpseOverrides(), ZombieCorpseConfig, dropCorpse(), fakeMap
 
 ### Community 67 - "Door Interaction Logic"
 Cohesion: 0.09
@@ -437,32 +461,20 @@ Cohesion: 0.21
 Nodes (6): deriveRoadBands(), MirroredWindingRoadGenerator, hasRoadFrontage(), isInsideBuilding(), PatchedMirroredWindingRoadGenerator, runTest()
 
 ### Community 70 - "Toast Notification State"
-Cohesion: 0.07
-Nodes (31): hashLocation(), hashNavigate(), useHashLocation(), Toast, ToastAction, ToastActionElement, ToastClose, ToastDescription (+23 more)
-
-### Community 71 - "Carousel UI Components"
-Cohesion: 0.27
-Nodes (3): log, NOTE: This only moves the camera view, not any entities, Logger
+Cohesion: 0.06
+Nodes (34): hashLocation(), hashNavigate(), useHashLocation(), ScreenScaler(), ScreenScalerProps, Toast, ToastAction, ToastActionElement (+26 more)
 
 ### Community 72 - "Toast UI Components"
-Cohesion: 0.15
-Nodes (9): DevConsole(), exportScenario(), main(), runTests(), assert(), verify(), MockGameMap, testWallGapFix() (+1 more)
+Cohesion: 0.13
+Nodes (15): DevConsole(), getAdjustedBgColor(), UniversalGrid(), ActionProvider(), hasItemsInside(), InventoryProvider(), isClothingOrBackpack(), getBrainPulpOverrides() (+7 more)
 
 ### Community 73 - "World Object Spawning"
-Cohesion: 0.06
-Nodes (63): MapInterface(), OverlayManager(), StartModeDialog(), StartModeDialogProps, ActionContext, ActionProvider(), AudioProvider(), CameraContext (+55 more)
-
-### Community 74 - "Map Tile Logic"
-Cohesion: 0.32
-Nodes (3): gridItems(), getPoweredTurretForEntity(), chargerContents()
+Cohesion: 0.07
+Nodes (36): StartModeDialog(), StartModeDialogProps, ActionContext, AudioContext, AudioProvider(), CameraContext, CameraProvider(), CombatContext (+28 more)
 
 ### Community 75 - "Map Serialization Tests"
-Cohesion: 0.16
-Nodes (8): createItemFromDef(), getFoodRejectionChance(), LootGenerator, isInsideAnyBuilding(), isFloor(), assert(), verify(), makeItems()
-
-### Community 79 - ".executeTransition"
-Cohesion: 0.11
-Nodes (3): WorldManager, assert(), verify()
+Cohesion: 0.05
+Nodes (21): getFoodRejectionChance(), LootGenerator, findSouthTransitionTile(), isInsideAnyBuilding(), isInsideCompound(), isInsideTollGate(), isInStartArea(), isFloor() (+13 more)
 
 ### Community 80 - "Electron Build Config"
 Cohesion: 0.17
@@ -481,12 +493,12 @@ Cohesion: 0.17
 Nodes (10): campfire, groundItemsInContainer, isCampfireVisible, isCampfireVisibleInitially, isTileAroundCampfireVisible, isTileAroundCampfireVisibleCase2, items, map (+2 more)
 
 ### Community 85 - "context-menu.tsx"
-Cohesion: 0.12
-Nodes (16): FIXED_TEMPLATE_ASSIGNMENTS, getTemplateForMapNumber(), TEMPLATE_METADATA, logger, gen, generatorTemplates, mapData, northX (+8 more)
+Cohesion: 0.17
+Nodes (11): FIXED_TEMPLATE_ASSIGNMENTS, getTemplateForMapNumber(), TEMPLATE_METADATA, gen, generatorTemplates, mapData, northX, roadTemplate (+3 more)
 
 ### Community 86 - "FurniturePlanner.js"
-Cohesion: 0.09
-Nodes (31): clearOfOccupied(), contactSides(), footprintPlaceable(), FURNISH_PLAN, FURNITURE_FOOTPRINTS, HEAD_SIDE, planFurniture(), resolveRoles() (+23 more)
+Cohesion: 0.10
+Nodes (28): clearOfOccupied(), contactSides(), footprintPlaceable(), FURNISH_PLAN, FURNITURE_FOOTPRINTS, HEAD_SIDE, planFurniture(), resolveRoles() (+20 more)
 
 ### Community 87 - "TurretCombat.js"
 Cohesion: 0.07
@@ -496,17 +508,17 @@ Nodes (11): TileChunkCache, BW_TERRAIN_COLORS, GRASS_VARIANTS, LIGHT_TERRAIN_COL
 Cohesion: 0.18
 Nodes (9): before, harvestable, items, map, offenders, plant, plantEntity, stalePlant (+1 more)
 
-### Community 92 - "Chart UI Components"
-Cohesion: 0.16
-Nodes (3): fakeInv, FakeInventoryManager, registry
-
 ### Community 93 - "Command UI Components"
-Cohesion: 0.07
-Nodes (23): BuildingTooltip(), BuildingTooltipProps, CropTooltip(), CropTooltipProps, DoorTooltip(), DoorTooltipProps, LootTooltip(), LootTooltipProps (+15 more)
+Cohesion: 0.06
+Nodes (36): BuildingTooltip(), BuildingTooltipProps, CropTooltip(), CropTooltipProps, DoorTooltip(), DoorTooltipProps, LootTooltip(), LootTooltipProps (+28 more)
 
 ### Community 94 - "DevConsole.tsx"
-Cohesion: 0.28
+Cohesion: 0.29
 Nodes (13): applyKnob(), ATTR_KNOBS, avg(), cloneScenario(), configurePlayerVitals(), livingZombies(), nearest(), pct() (+5 more)
+
+### Community 95 - "Weapon Attachment Logic"
+Cohesion: 0.14
+Nodes (3): BranchingRoadGenerator, RoadNetwork, makeSeededRandom()
 
 ### Community 96 - "Project Package Metadata"
 Cohesion: 0.20
@@ -514,19 +526,19 @@ Nodes (9): author, description, license, main, name, optionalDependencies, buffe
 
 ### Community 97 - "Registry Storage Tests"
 Cohesion: 0.06
-Nodes (32): RabbitAI, getNPCType(), getZombieType(), doorsForBuilding(), floodFill(), PLAYER_FLOOD_OPTS, validateConnectivity(), findAttackSlotPath() (+24 more)
+Nodes (33): RabbitAI, getNPCType(), getZombieType(), doorsForBuilding(), floodFill(), PLAYER_FLOOD_OPTS, validateConnectivity(), findAttackSlotPath() (+25 more)
 
 ### Community 98 - "Item Stacking Verification"
-Cohesion: 0.25
-Nodes (5): engine, expected, fresh, loaded, readableIds
+Cohesion: 0.20
+Nodes (9): DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut(), DropdownMenuSubContent (+1 more)
 
 ### Community 99 - "Building Hallway Tests"
-Cohesion: 0.14
+Cohesion: 0.17
 Nodes (3): ENEMY_TYPES, GameHarness, NOTE: GameHarness drives the global engine/gameRandom singletons, so only
 
 ### Community 101 - "Table UI Components"
-Cohesion: 0.17
-Nodes (11): CraftingRecipes, runTest(), runVerification(), assert(), verify(), isUncommonDrop, recipe, verifyMolotov() (+3 more)
+Cohesion: 0.21
+Nodes (9): CraftingRecipes, runTest(), runVerification(), assert(), verify(), verifyMolotov(), runTest(), hammerRecipe (+1 more)
 
 ### Community 102 - "Faction Registry System"
 Cohesion: 0.15
@@ -534,15 +546,19 @@ Nodes (3): getItem(), MockGameMap, runTests()
 
 ### Community 103 - "Inventory Item Management"
 Cohesion: 0.07
-Nodes (17): TurretAI, NPCTypes, engine, NOTE: equipItem intentionally has NO "Items inside" guard (unlike moveItem)., ItemDefs, EquipmentSlot, FireMode, Rarity (+9 more)
+Nodes (33): TurretAI, engine, NOTE: equipItem intentionally has NO "Items inside" guard (unlike moveItem)., _warnedCatchAllProps, createItemFromDef(), ItemDefs, FireMode, getFuelValue() (+25 more)
 
-### Community 106 - ".generateNextMap"
-Cohesion: 0.22
-Nodes (6): findSouthTransitionTile(), m1, m2, m3, r1, r2
+### Community 104 - "Starting Road Generation"
+Cohesion: 0.33
+Nodes (5): ToggleGroup, ToggleGroupContext, ToggleGroupItem, Toggle, toggleVariants
 
 ### Community 107 - "Music and Playlist Manager"
 Cohesion: 0.33
 Nodes (4): escalated, map, player, shopkeeper
+
+### Community 108 - "Seeded Random Utilities"
+Cohesion: 0.29
+Nodes (3): MockMap, mockPlayer, verifySpawning()
 
 ### Community 109 - "Zombie Line-of-Sight Testing"
 Cohesion: 0.17
@@ -553,52 +569,52 @@ Cohesion: 0.25
 Nodes (3): GameErrorBoundary, Props, State
 
 ### Community 111 - "MockCtx"
-Cohesion: 0.09
-Nodes (26): ScreenScaler(), ScreenScalerProps, FloatingContainer(), FloatingContainerProps, FloatingContainerOverlay(), FloatingContainerOverlayProps, ItemContextMenuProps, WeaponModPanel() (+18 more)
+Cohesion: 0.20
+Nodes (9): ContextMenuCheckboxItem, ContextMenuContent, ContextMenuItem, ContextMenuLabel, ContextMenuRadioItem, ContextMenuSeparator, ContextMenuShortcut(), ContextMenuSubContent (+1 more)
 
 ### Community 112 - "Electron Main Process"
 Cohesion: 0.23
 Nodes (11): bundledScenarioDir, createWindow(), __dirname, __filename, getMimeType(), hardenWindow(), mimeTypes, resolveScenarioForRead() (+3 more)
 
 ### Community 113 - "EarbucksShopSystem"
-Cohesion: 0.09
-Nodes (22): DEFAULT_SHOP_CATALOG, MAP_1_CATALOG, MAP_2_CATALOG, SHOP_CATALOG_BY_MAP, CATEGORY_PRICES, field(), FLAT_PRICES, FREE_ITEMS (+14 more)
+Cohesion: 0.06
+Nodes (35): AITargeting, CATEGORY_PRICES, field(), FLAT_PRICES, FREE_ITEMS, getItemPrice(), hasCategory(), hasTrait() (+27 more)
 
 ### Community 115 - ".addItem"
-Cohesion: 0.67
-Nodes (3): removeDestroyedTurret(), runTest(), warnCalls
+Cohesion: 0.29
+Nodes (6): removeDestroyedTurret(), gridItems(), getPoweredTurretForEntity(), chargerContents(), runTest(), warnCalls
 
 ### Community 116 - "SurvivalCascade.js"
-Cohesion: 0.29
-Nodes (4): ScenarioPickerWindow(), electronStorage, idbStorage, ScenarioStorage
+Cohesion: 0.24
+Nodes (6): ScenarioInfo, ScenarioPickerWindow(), ScenarioPickerWindowProps, electronStorage, idbStorage, ScenarioStorage
 
 ### Community 117 - "saveGameMapToEditorState"
-Cohesion: 0.40
-Nodes (4): run(), run(), assert(), verify()
-
-### Community 118 - "log"
-Cohesion: 0.05
-Nodes (19): Burnable, getSightRangeForHour(), PlaceIcon, engine, SequencerAction, NOTE: Structural damage (hp reduction, break/open flags) was already, applyNpcAIMode(), log (+11 more)
+Cohesion: 0.33
+Nodes (4): entities, wm, wm2, zombies
 
 ### Community 119 - "EquippedArmor"
-Cohesion: 0.22
-Nodes (4): generator, indoorMap, MockGameMap, outdoorMap
+Cohesion: 0.20
+Nodes (9): cm, container, inContainer, mockInv, singleItem, stack, stack2, waterBottleDef (+1 more)
 
 ### Community 121 - ".getBeltContainers"
 Cohesion: 0.25
 Nodes (5): hasCorner, map, MockGameMap, outOfRange, visible
+
+### Community 122 - "tmp_verify_zombie_loot.js"
+Cohesion: 0.33
+Nodes (5): builder, mapData, t0, t1, t2
 
 ### Community 123 - "verify_water_stacking.mjs"
 Cohesion: 0.20
 Nodes (9): bottle1, bottle2, bottle3, bottle4, bottle5, canStackEmpty, canStackFull, canStackPartial (+1 more)
 
 ### Community 124 - "OTP Input Components"
-Cohesion: 0.33
-Nodes (5): InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot, input-otp
+Cohesion: 0.06
+Nodes (22): Alert, AlertDescription, AlertTitle, alertVariants, Avatar, AvatarFallback, AvatarImage, Checkbox (+14 more)
 
 ### Community 125 - "table.tsx"
-Cohesion: 0.14
-Nodes (19): GameControls(), GameControlsProps, STAT_COLORS, StatBar, StatBarProps, GameScreenContent(), InfectionHUD(), JournalUI() (+11 more)
+Cohesion: 0.12
+Nodes (33): GameControls(), GameControlsProps, STAT_COLORS, StatBar, StatBarProps, GameScreenContent(), InfectionHUD(), MapInterface() (+25 more)
 
 ### Community 126 - "test_inventory_ecs.mjs"
 Cohesion: 0.25
@@ -613,8 +629,8 @@ Cohesion: 0.33
 Nodes (5): content, filepath, propsToRemove, propsToRemoveFromJson, propsToRemoveJson
 
 ### Community 131 - "chart.tsx"
-Cohesion: 0.18
-Nodes (8): ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent, THEMES, useChart()
+Cohesion: 0.13
+Nodes (12): useCarousel(), ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent, THEMES (+4 more)
 
 ### Community 132 - "Food Scarcity Logic"
 Cohesion: 0.60
@@ -628,25 +644,29 @@ Nodes (10): escalateFactionAgainstPlayer(), factionOf(), getAttackableTurretOnTi
 Cohesion: 0.40
 Nodes (4): content, fs, lines, path
 
+### Community 140 - "RoadGenerator"
+Cohesion: 0.16
+Nodes (8): MAP_GEN_CONFIG, BuildingTypes, isSpecialBuilding(), SPECIAL_BUILDING_SPECS, LAYOUT, RoadGenerator, NOTE: previously spawned a 'placeable.help' ("?") item on every legacy, assert()
+
 ### Community 141 - "verify_flee_recovery.mjs"
 Cohesion: 0.50
 Nodes (4): EntityRegistry, GameEvent, QuestRegistry, ScenarioData
 
+### Community 144 - "ZombieTypes.js"
+Cohesion: 0.50
+Nodes (3): ZombieTooltip(), ZombieTooltipProps, ZombieTypes
+
 ### Community 145 - ".runTurn"
-Cohesion: 0.06
-Nodes (41): EntityFactory, testCornerBug(), testDiagonalBug(), build(), run(), runOscillationTest(), runTest(), testHuntingDoorBug() (+33 more)
+Cohesion: 0.10
+Nodes (30): EntityFactory, testCornerBug(), testDiagonalBug(), build(), run(), runOscillationTest(), testHuntingDoorBug(), testWindowOscillations() (+22 more)
 
 ### Community 146 - "Image Cropping Scripts"
 Cohesion: 0.50
 Nodes (3): cropImage(), Jimp, processImage()
 
 ### Community 149 - "TerrainTypes.js"
-Cohesion: 0.18
-Nodes (9): DEFAULT_TERRAIN_PROPS, getTerrainProps(), isTerrainDestructible(), TERRAIN_PROPS, terrainBlocksSight(), logger, Quadrant, Row (+1 more)
-
-### Community 150 - "migrateEvents.js"
-Cohesion: 0.26
-Nodes (3): LabMapGenerator, LAYOUT, testLabGen()
+Cohesion: 0.44
+Nodes (7): DEFAULT_TERRAIN_PROPS, getTerrainProps(), isTerrainDestructible(), isTerrainWalkable(), TERRAIN_PROPS, terrainBlocksSight(), EXPECTED
 
 ### Community 152 - "table.tsx"
 Cohesion: 0.22
@@ -656,6 +676,10 @@ Nodes (8): Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, Ta
 Cohesion: 0.25
 Nodes (7): NavigationMenu, NavigationMenuContent, NavigationMenuIndicator, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle, NavigationMenuViewport
 
+### Community 170 - "._interpolateStep"
+Cohesion: 0.25
+Nodes (7): Breadcrumb, BreadcrumbEllipsis(), BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator()
+
 ### Community 174 - "test_exhaustive_los.js"
 Cohesion: 0.22
 Nodes (8): canSeeBlocked, canSeeWindow, map, player, resultBlocked, resultWindow, windowEntity, zombie
@@ -664,37 +688,45 @@ Nodes (8): canSeeBlocked, canSeeWindow, map, player, resultBlocked, resultWindow
 Cohesion: 0.36
 Nodes (3): printHouse(), runTests(), TestMapBuilder
 
-### Community 183 - "verify_crop_rendering.js"
-Cohesion: 0.10
-Nodes (19): drawImprovedCursor(), lastRainUpdate, MapCanvas(), playerRenderScratch, rainParticles, NOTE: PLACE_ICON and ITEM are intentionally excluded., renderRain(), warnedMalformedEntityIds (+11 more)
+### Community 177 - "drawer.tsx"
+Cohesion: 0.25
+Nodes (6): DrawerContent, DrawerDescription, DrawerFooter(), DrawerHeader(), DrawerOverlay, DrawerTitle
+
+### Community 178 - "test_safe_fix.js"
+Cohesion: 0.25
+Nodes (7): gameMap, itemsOnTile, loadedGrid, loadedSafe, originalGrid, originalSafe, safeData
+
+### Community 181 - "accordion.tsx"
+Cohesion: 0.50
+Nodes (3): AccordionContent, AccordionItem, AccordionTrigger
 
 ### Community 186 - ".dropScent"
-Cohesion: 0.07
-Nodes (24): SimulationManager, tryFollowScent(), ScentTrail, gm, lead, player, trail, zs (+16 more)
+Cohesion: 0.05
+Nodes (29): SimulationManager, tryFollowScent(), ScentTrail, gm, lead, player, trail, zs (+21 more)
 
 ### Community 187 - "verify_rain_collector_size.mjs"
 Cohesion: 0.07
-Nodes (6): GameMap, log, map, player, tracker, zombie
+Nodes (3): GameMap, log, isIndoorFloor()
 
 ## Knowledge Gaps
 - **934 isolated node(s):** `inputContent`, `ActionSlotButtonProps`, `BarterWindowProps`, `BuildingTooltipProps`, `CharacterCreatorProps` (+929 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **45 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **52 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `Action Queue Processing` to `Game Engine Context`, `AI and Inventory Systems`, `chart.tsx`, `Inventory and Skill Windows`, `Entity Spawning and Scent`, `Character and Menu Windows`, `table.tsx`, `navigation-menu.tsx`, `Sidebar UI Components`, `EventRunner`, `ImageLoader`, `Rendering Optimization Tests`, `Menubar UI Components`, `Form UI Components`, `Toast Notification State`, `Command UI Components`, `MockCtx`, `OTP Input Components`, `table.tsx`?**
-  _High betweenness centrality (0.088) - this node is a cross-community bridge._
-- **Why does `dependencies` connect `External Dependencies` to `Project Package Metadata`, `Server and Vite Config`, `OTP Input Components`, `verify_crop_rendering.js`?**
-  _High betweenness centrality (0.060) - this node is a cross-community bridge._
-- **Why does `GameMap` connect `verify_rain_collector_size.mjs` to `traits.js`, `NPC AI Behavior`, `Action Intent System`, `Shop and Log UI`, `Tooltip Components`, `Entity Component System`, `Entity and Item Types`, `Rabbit AI State`, `.runTurn`, `World Progression and Spawning`, `Game Initialization Manager`, `Map Generation Config`, `Container Grid Logic`, `Loot and Layout Estimation`, `Road and Town Generation`, `test_exhaustive_los.js`, `Game Engine State`, `Turret AI Testing`, `pagination.tsx`, `Entity Serialization Tests`, `.dropScent`, `Ground Item Management`, `Toast UI Components`, `World Object Spawning`, `Map Tile Logic`, `Map Serialization Tests`, `Campfire Visibility Tests`, `context-menu.tsx`, `FurniturePlanner.js`, `Crop Growth Verification`, `Table UI Components`, `Inventory Item Management`, `Music and Playlist Manager`, `Zombie Line-of-Sight Testing`, `log`, `tmp_verify_zombie_loot.js`, `test_inventory_ecs.mjs`?**
-  _High betweenness centrality (0.056) - this node is a cross-community bridge._
+- **Why does `cn()` connect `Action Queue Processing` to `Game Engine Context`, `AI and Inventory Systems`, `chart.tsx`, `Inventory and Skill Windows`, `ZombieTypes.js`, `Entity Spawning and Scent`, `Character and Menu Windows`, `table.tsx`, `navigation-menu.tsx`, `Sidebar UI Components`, `EventRunner`, `Dialog and Button UI`, `Road and Town Generation`, `._interpolateStep`, `ImageLoader`, `DevConsole.tsx`, `drawer.tsx`, `accordion.tsx`, `Menubar UI Components`, `Crafting Recipe Verification`, `Toast Notification State`, `Toast UI Components`, `Command UI Components`, `Item Stacking Verification`, `Starting Road Generation`, `MockCtx`, `log`, `OTP Input Components`, `table.tsx`?**
+  _High betweenness centrality (0.089) - this node is a cross-community bridge._
+- **Why does `dependencies` connect `External Dependencies` to `Project Package Metadata`, `Server and Vite Config`, `chart.tsx`, `OTP Input Components`?**
+  _High betweenness centrality (0.070) - this node is a cross-community bridge._
+- **Why does `react` connect `chart.tsx` to `AI and Inventory Systems`, `Toast Notification State`, `World Object Spawning`, `External Dependencies`, `DevConsole.tsx`, `Sidebar UI Components`, `Command UI Components`, `table.tsx`?**
+  _High betweenness centrality (0.065) - this node is a cross-community bridge._
 - **What connects `inputContent`, `ActionSlotButtonProps`, `BarterWindowProps` to the rest of the system?**
   _949 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `traits.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.04354136429608128 - nodes in this community are weakly interconnected._
 - **Should `UI Components` be split into smaller, more focused modules?**
   _Cohesion score 0.05128205128205128 - nodes in this community are weakly interconnected._
 - **Should `Item Interaction Logic` be split into smaller, more focused modules?**
-  _Cohesion score 0.0528169014084507 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05507246376811594 - nodes in this community are weakly interconnected._
+- **Should `Game Engine Context` be split into smaller, more focused modules?**
+  _Cohesion score 0.06557377049180328 - nodes in this community are weakly interconnected._

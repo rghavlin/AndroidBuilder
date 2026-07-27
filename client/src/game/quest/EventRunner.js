@@ -2,6 +2,7 @@ import engine from '../GameEngine.js';
 import { resolveMapEvents } from './migrateEvents.js';
 import { applyItemGrants } from '../utils/applyItemGrants.js';
 import { evalAll } from './conditions.js';
+import { interpolateText } from './interpolate.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import { FactionRegistry } from '../ai/FactionRegistry.js';
 import Logger from '../utils/Logger.js';
@@ -190,16 +191,32 @@ class EventRunner {
     return event.steps[stepIndex] || null;
   }
 
+  /**
+   * Resolve [name] variable/flag tokens in an authored step's display copy
+   * against the live questState (see interpolate.js). Returns a shallow copy so
+   * the stored event definition is never mutated. Called at read time by the
+   * getters below, so the rendered line always reflects current values.
+   */
+  _interpolateStep(step) {
+    const qs = engine.questState;
+    if (!qs) return step;
+    return {
+      ...step,
+      text: interpolateText(step.text, qs),
+      speaker: interpolateText(step.speaker, qs),
+    };
+  }
+
   /** { speaker, text, video? } while the current step is a dialog line, else null. */
   getActiveDialogStep() {
     const step = this._currentStep();
-    return step && step.type === 'dialog' ? step : null;
+    return step && step.type === 'dialog' ? this._interpolateStep(step) : null;
   }
 
   /** { anchorX, anchorY, speaker?, text } while the current step is a speech line, else null. */
   getActiveSpeechStep() {
     const step = this._currentStep();
-    return step && step.type === 'speech' ? step : null;
+    return step && step.type === 'speech' ? this._interpolateStep(step) : null;
   }
 
   /** { index, total } among this event's speech-typed steps, for the bubble progress counter. */

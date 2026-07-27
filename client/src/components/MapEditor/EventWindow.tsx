@@ -373,6 +373,7 @@ function StepEditor({
             <input style={{ ...inputStyle, flex: 1 }} placeholder="line of dialog" value={step.text || ''} onChange={e => onChange({ ...step, text: e.target.value })} />
           </div>
           <input style={{ ...inputStyle, width: '100%' }} placeholder="video filename (optional, e.g. movement.webm)" value={step.video || ''} onChange={e => onChange({ ...step, video: e.target.value || undefined })} />
+          <span style={{ fontSize: 10, color: '#777' }}>Tip: reference a variable with [name], e.g. "How are you, [playerName]?"</span>
         </div>
       )}
 
@@ -389,6 +390,7 @@ function StepEditor({
             </span>
             <button onClick={onPickCoord} style={{ ...btnStyle('#333'), fontSize: 11 }}>Pick on map</button>
           </div>
+          <span style={{ fontSize: 10, color: '#777' }}>Tip: reference a variable with [name], e.g. "How are you, [playerName]?"</span>
         </div>
       )}
 

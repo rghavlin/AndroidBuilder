@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import engine from '@/game/GameEngine';
+import { interpolateText } from '@/game/quest/interpolate';
 import { BookOpen, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Circle, X } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export const JournalUI = ({ onClose }: { onClose: () => void }) => {
   const [expandedQuestId, setExpandedQuestId] = useState<string | null>(null);
   const [, setTick] = useState(0);
+
+  // Resolve [name] variable/flag tokens in authored quest copy (title,
+  // description, task text) against the live questState — same syntax as
+  // dialog/speech lines (see interpolate.js). The component already re-renders
+  // on 'questStateChanged', so this reflects the current values.
+  const fmt = (s?: string) => interpolateText(s, engine.questState);
 
   useEffect(() => {
     const forceUpdate = () => setTick(t => t + 1);
@@ -80,11 +87,11 @@ export const JournalUI = ({ onClose }: { onClose: () => void }) => {
                         className="p-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-card/60 transition-colors"
                       >
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-xs font-bold text-foreground truncate">{def.title}</h4>
+                          <h4 className="text-xs font-bold text-foreground truncate">{fmt(def.title)}</h4>
                           {!isExpanded && currentTask && (
                             <p className="text-[10px] text-primary/90 mt-0.5 flex items-center gap-1.5 font-medium">
                               <Circle className="w-2.5 h-2.5 text-primary shrink-0 animate-pulse" />
-                              <span className="truncate">{currentTask.text}</span>
+                              <span className="truncate">{fmt(currentTask.text)}</span>
                             </p>
                           )}
                         </div>
@@ -98,18 +105,18 @@ export const JournalUI = ({ onClose }: { onClose: () => void }) => {
                         <div className="p-3 pt-0 border-t border-border/20 bg-card/10 flex flex-col gap-2.5">
                           {def.description && (
                             <p className="text-xs text-muted-foreground italic leading-relaxed pt-2.5">
-                              {def.description}
+                              {fmt(def.description)}
                             </p>
                           )}
-                          
+
                           <div className={cn("flex flex-col gap-1.5", def.description && "pt-1")}>
                             <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/80">Tasks Checklist:</span>
-                            
+
                             {/* Completed tasks list */}
                             {completedTasks.map((t: any, idx: number) => (
                               <div key={t.id || idx} className="flex items-start gap-2 text-xs text-muted-foreground/70 line-through">
                                 <CheckCircle className="w-3.5 h-3.5 text-green-500/70 shrink-0 mt-0.5" />
-                                <span>{t.text}</span>
+                                <span>{fmt(t.text)}</span>
                               </div>
                             ))}
 
@@ -117,7 +124,7 @@ export const JournalUI = ({ onClose }: { onClose: () => void }) => {
                             {currentTask ? (
                               <div className="flex items-start gap-2 text-xs text-foreground font-semibold">
                                 <Circle className="w-3.5 h-3.5 text-primary animate-pulse shrink-0 mt-0.5" />
-                                <span className="text-primary">{currentTask.text}</span>
+                                <span className="text-primary">{fmt(currentTask.text)}</span>
                               </div>
                             ) : (
                               <div className="text-xs text-muted-foreground italic">No current tasks.</div>
@@ -127,7 +134,7 @@ export const JournalUI = ({ onClose }: { onClose: () => void }) => {
                             {(def.tasks || []).slice(active.currentTaskIndex + 1).map((t: any, idx: number) => (
                               <div key={t.id || idx + active.currentTaskIndex + 1} className="flex items-start gap-2 text-xs text-muted-foreground/40">
                                 <Circle className="w-3.5 h-3.5 text-muted-foreground/20 shrink-0 mt-0.5" />
-                                <span>{t.text}</span>
+                                <span>{fmt(t.text)}</span>
                               </div>
                             ))}
                           </div>
@@ -145,7 +152,7 @@ export const JournalUI = ({ onClose }: { onClose: () => void }) => {
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-green-500/80 px-1">Completed Quests</h3>
                 {completedQuestIds.map((questId: string) => {
                   const def = quests.find(q => q.id === questId);
-                  const title = def ? def.title : questId;
+                  const title = def ? fmt(def.title) : questId;
                   const isExpanded = expandedQuestId === questId;
 
                   return (
@@ -167,14 +174,14 @@ export const JournalUI = ({ onClose }: { onClose: () => void }) => {
                         <div className="p-3 pt-0 border-t border-border/20 bg-card/5">
                           {def.description && (
                             <p className="text-xs text-muted-foreground italic leading-relaxed pt-2.5 mb-2">
-                              {def.description}
+                              {fmt(def.description)}
                             </p>
                           )}
                           <div className="flex flex-col gap-1.5 pt-1">
                             {def.tasks?.map((t: any, idx: number) => (
                               <div key={t.id || idx} className="flex items-start gap-2 text-xs text-muted-foreground/60 line-through">
                                 <CheckCircle className="w-3.5 h-3.5 text-green-500/50 shrink-0 mt-0.5" />
-                                <span>{t.text}</span>
+                                <span>{fmt(t.text)}</span>
                               </div>
                             ))}
                           </div>
