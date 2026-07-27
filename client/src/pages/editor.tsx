@@ -182,6 +182,7 @@ interface EditorItem {
   gunAmmoCount?: number;
   gunMagDefId?: string;
   gunAttachments?: Record<string, string>;
+  vehicleAttachments?: Record<string, { defId: string; charges?: number }>;
   transitionTargetId?: string;
   transitionTargetX?: number;
   transitionTargetY?: number;
@@ -346,6 +347,19 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
                     if (slotId !== 'ammo' && att?.defId) nonAmmo[slotId] = att.defId;
                   }
                   if (Object.keys(nonAmmo).length > 0) entry.gunAttachments = nonAmmo;
+                }
+                if (itItemDef?.attachmentSlots && (itItemDef.categories?.includes(ItemCategory.VEHICLE) || itItemDef.traits?.includes(ItemTrait.VEHICLE) || entry.defId === 'vehicle.golf_cart')) {
+                  const vAtts: Record<string, { defId: string; charges?: number }> = {};
+                  for (const slot of itItemDef.attachmentSlots) {
+                    const att = it.attachments[slot.id];
+                    if (att && (att.defId || att.id)) {
+                      vAtts[slot.id] = {
+                        defId: att.defId || att.id,
+                        charges: att.ammoCount,
+                      };
+                    }
+                  }
+                  if (Object.keys(vAtts).length > 0) entry.vehicleAttachments = vAtts;
                 }
               }
               return entry;
@@ -567,6 +581,19 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
                 }
                 if (Object.keys(nonAmmo).length > 0) entry.gunAttachments = nonAmmo;
               }
+              if (itItemDef?.attachmentSlots && (itItemDef.categories?.includes(ItemCategory.VEHICLE) || itItemDef.traits?.includes(ItemTrait.VEHICLE) || entry.defId === 'vehicle.golf_cart')) {
+                const vAtts: Record<string, { defId: string; charges?: number }> = {};
+                for (const slot of itItemDef.attachmentSlots) {
+                  const att = it.attachments[slot.id];
+                  if (att && (att.defId || att.id)) {
+                    vAtts[slot.id] = {
+                      defId: att.defId || att.id,
+                      charges: att.ammoCount,
+                    };
+                  }
+                }
+                if (Object.keys(vAtts).length > 0) entry.vehicleAttachments = vAtts;
+              }
             }
             return entry;
           })
@@ -705,6 +732,25 @@ function getBatterySlotInfo(def: any): { slotId: string; batteryDefId: string; c
   return { slotId: slot.id, batteryDefId, capacity: batteryDef?.capacity ?? (isLarge ? 100 : 10) };
 }
 
+function getDefaultVehicleAttachments(defId: string): Record<string, { defId: string; charges?: number }> {
+  const def = (ItemDefs as any)[defId];
+  if (!def?.attachmentSlots || !def?.defaultAttachments) return {};
+  const res: Record<string, { defId: string; charges?: number }> = {};
+  for (const [slotId, attDefId] of Object.entries(def.defaultAttachments as Record<string, string>)) {
+    if (attDefId) {
+      const attDef = (ItemDefs as any)[attDefId];
+      const isBattery = attDef?.categories?.includes(ItemCategory.BATTERY) ||
+                        attDef?.categories?.includes(ItemCategory.LARGE_BATTERY) ||
+                        attDef?.traits?.includes(ItemTrait.BATTERY);
+      res[slotId] = {
+        defId: attDefId,
+        ...(isBattery ? { charges: attDef?.capacity ?? (attDefId === 'tool.high_capacity_battery' ? 400 : 100) } : {})
+      };
+    }
+  }
+  return res;
+}
+
 // ─── Item (de)serialization shared by tiles and NPC loadouts ─────────────
 
 // EditorItem -> full item JSON (the shape Item.fromJSON / setItemsOnTile want),
@@ -763,6 +809,29 @@ function buildFullItem(item: EditorItem): any {
     }
   }
 
+  if (item.vehicleAttachments) {
+    const itemDef = (ItemDefs as any)[item.defId];
+    if (itemDef?.attachmentSlots) {
+      if (!full.attachments) full.attachments = {};
+      for (const slot of itemDef.attachmentSlots) {
+        const attInfo = item.vehicleAttachments[slot.id];
+        if (attInfo && attInfo.defId) {
+          const att = createItemFromDef(attInfo.defId);
+          if (att) {
+            if (attInfo.charges !== undefined && (att.categories?.includes(ItemCategory.BATTERY) || att.categories?.includes(ItemCategory.LARGE_BATTERY) || att.traits?.includes(ItemTrait.BATTERY))) {
+              att.ammoCount = attInfo.charges;
+            }
+            full.attachments[slot.id] = att;
+          } else {
+            delete full.attachments[slot.id];
+          }
+        } else {
+          delete full.attachments[slot.id];
+        }
+      }
+    }
+  }
+
   // auto_turret: owning faction + starting power state.
   if (item.factionId !== undefined) full.factionId = item.factionId;
   if (item.isOn !== undefined) full.isOn = item.isOn;
@@ -806,6 +875,19 @@ function itemToEditorEntry(it: any): EditorItem {
         if (slotId !== 'ammo' && att?.defId) nonAmmo[slotId] = att.defId;
       }
       if (Object.keys(nonAmmo).length > 0) entry.gunAttachments = nonAmmo;
+    }
+    if (itemDef?.attachmentSlots && (itemDef.categories?.includes(ItemCategory.VEHICLE) || itemDef.traits?.includes(ItemTrait.VEHICLE) || entry.defId === 'vehicle.golf_cart')) {
+      const vAtts: Record<string, { defId: string; charges?: number }> = {};
+      for (const slot of itemDef.attachmentSlots) {
+        const att = it.attachments[slot.id];
+        if (att && (att.defId || att.id)) {
+          vAtts[slot.id] = {
+            defId: att.defId || att.id,
+            charges: att.ammoCount,
+          };
+        }
+      }
+      if (Object.keys(vAtts).length > 0) entry.vehicleAttachments = vAtts;
     }
   }
   return entry;
@@ -1048,6 +1130,7 @@ export default function MapEditor() {
   const [gunAmmoCount, setGunAmmoCount] = useState<number | ''>('');
   const [gunMagDefId, setGunMagDefId] = useState('');
   const [gunAttachments, setGunAttachments] = useState<Record<string, string>>({});
+  const [vehicleAttachments, setVehicleAttachments] = useState<Record<string, { defId: string; charges?: number }>>({});
   // ─── Speech bubble event storage (authored via the unified Event Window) ──
   const [bubbleEvents, setBubbleEvents] = useState<BubbleEvent[]>([]);
 
@@ -1879,6 +1962,7 @@ export default function MapEditor() {
             if (selectedItem === 'placeable.help' && helpEventId) itemEntry.eventId = helpEventId;
             if (gunMagDefId) itemEntry.gunMagDefId = gunMagDefId;
             if (Object.keys(gunAttachments).some(k => gunAttachments[k])) itemEntry.gunAttachments = { ...gunAttachments };
+            if (Object.keys(vehicleAttachments).some(k => vehicleAttachments[k]?.defId)) itemEntry.vehicleAttachments = { ...vehicleAttachments };
             if (selectedItem === TURRET_DEF_ID) {
               itemEntry.factionId = turretFactionId;
               itemEntry.isOn = turretIsOn;
@@ -1943,7 +2027,7 @@ export default function MapEditor() {
 
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieEarbucksValue, zombieDeaf, npcTypeId, npcName, npcFactionId, npcIconId, npcAiDisabled, npcLoadout, npcEquippedIndex, selectedItem, turretFactionId, turretIsOn, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieEarbucksValue, zombieDeaf, npcTypeId, npcName, npcFactionId, npcIconId, npcAiDisabled, npcLoadout, npcEquippedIndex, selectedItem, turretFactionId, turretIsOn, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, vehicleAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Furniture stamp tool ────────────────────────────────────────────
   // Validates and places a loose furniture stamp at (x, y). Lives outside
@@ -2623,6 +2707,19 @@ export default function MapEditor() {
         }
         if (Object.keys(nonAmmo).length > 0) entry.gunAttachments = nonAmmo;
       }
+      if (itItemDef?.attachmentSlots && (itItemDef.categories?.includes(ItemCategory.VEHICLE) || itItemDef.traits?.includes(ItemTrait.VEHICLE) || entry.defId === 'vehicle.golf_cart')) {
+        const vAtts: Record<string, { defId: string; charges?: number }> = {};
+        for (const slot of itItemDef.attachmentSlots) {
+          const att = it.attachments[slot.id];
+          if (att && (att.defId || att.id)) {
+            vAtts[slot.id] = {
+              defId: att.defId || att.id,
+              charges: att.ammoCount,
+            };
+          }
+        }
+        if (Object.keys(vAtts).length > 0) entry.vehicleAttachments = vAtts;
+      }
     }
     return entry;
   };
@@ -2845,6 +2942,7 @@ export default function MapEditor() {
     if (gunAmmoCount !== '') draft.gunAmmoCount = gunAmmoCount as number;
     if (gunMagDefId) draft.gunMagDefId = gunMagDefId;
     if (Object.keys(gunAttachments).some(k => gunAttachments[k])) draft.gunAttachments = { ...gunAttachments };
+    if (Object.keys(vehicleAttachments).some(k => vehicleAttachments[k]?.defId)) draft.vehicleAttachments = { ...vehicleAttachments };
     if (selectedItem === TURRET_DEF_ID) {
       draft.factionId = turretFactionId;
       draft.isOn = turretIsOn;
@@ -2944,7 +3042,7 @@ export default function MapEditor() {
               <label style={{ fontSize: 11, color: '#888' }}>Item</label>
               <select
                 value={selectedItem}
-                onChange={e => { setSelectedItem(e.target.value); setWaterFill(''); setConditionVal(''); setBatteryCharges(''); setGunAmmoCount(''); setGunMagDefId(''); setGunAttachments({}); }}
+                onChange={e => { setSelectedItem(e.target.value); setWaterFill(''); setConditionVal(''); setBatteryCharges(''); setGunAmmoCount(''); setGunMagDefId(''); setGunAttachments({}); setVehicleAttachments(getDefaultVehicleAttachments(e.target.value)); }}
                 style={{ ...inputStyle, width: '100%' }}
               >
                 <option value="">— Select item —</option>
@@ -3111,6 +3209,92 @@ export default function MapEditor() {
                         </div>
                       );
                     })()}
+                  </div>
+                );
+              })()}
+              {(() => {
+                const def = (ItemDefs as any)[selectedItem];
+                if (!def?.attachmentSlots) return null;
+                const isVehicle = def.categories?.includes(ItemCategory.VEHICLE) || def.traits?.includes(ItemTrait.VEHICLE) || selectedItem === 'vehicle.golf_cart';
+                if (!isVehicle) return null;
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
+                    <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Vehicle Components & Batteries</label>
+                    {def.attachmentSlots.map((slot: any) => {
+                      const isMotorSlot = slot.allowedItems?.includes('electric_motor') || slot.id.includes('motor');
+                      const isBatterySlot = slot.allowedCategories?.includes(ItemCategory.LARGE_BATTERY) || slot.id.includes('battery');
+                      const currentAtt = vehicleAttachments[slot.id] || { defId: '' };
+
+                      if (isMotorSlot) {
+                        return (
+                          <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <label style={{ fontSize: 11, color: '#888' }}>{slot.name}</label>
+                            <select
+                              value={currentAtt.defId || ''}
+                              onChange={e => {
+                                const val = e.target.value;
+                                setVehicleAttachments(prev => ({
+                                  ...prev,
+                                  [slot.id]: val ? { defId: val } : { defId: '' }
+                                }));
+                              }}
+                              style={{ ...inputStyle, width: '100%' }}
+                            >
+                              <option value="">— None —</option>
+                              <option value="electric_motor">Electric Motor</option>
+                            </select>
+                          </div>
+                        );
+                      }
+
+                      if (isBatterySlot) {
+                        const batteryDefId = currentAtt.defId || '';
+                        const batDef = (ItemDefs as any)[batteryDefId];
+                        const cap = batDef?.capacity ?? (batteryDefId === 'tool.high_capacity_battery' ? 400 : 100);
+                        return (
+                          <div key={slot.id} style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 4, borderLeft: '2px solid #555' }}>
+                            <label style={{ fontSize: 11, color: '#888' }}>{slot.name}</label>
+                            <select
+                              value={batteryDefId}
+                              onChange={e => {
+                                const val = e.target.value;
+                                const newCap = (ItemDefs as any)[val]?.capacity ?? (val === 'tool.high_capacity_battery' ? 400 : 100);
+                                setVehicleAttachments(prev => ({
+                                  ...prev,
+                                  [slot.id]: val ? { defId: val, charges: newCap } : { defId: '' }
+                                }));
+                              }}
+                              style={{ ...inputStyle, width: '100%' }}
+                            >
+                              <option value="">— No battery —</option>
+                              <option value="tool.large_battery">Power Cell (100 chg max)</option>
+                              <option value="tool.high_capacity_battery">High Capacity Power Cell (400 chg max)</option>
+                            </select>
+                            {batteryDefId && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                <label style={{ fontSize: 10, color: '#aaa' }}>Charges (0 - {cap})</label>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={cap}
+                                  value={currentAtt.charges ?? cap}
+                                  onChange={e => {
+                                    const charges = e.target.value === '' ? 0 : Math.min(Number(e.target.value), cap);
+                                    setVehicleAttachments(prev => ({
+                                      ...prev,
+                                      [slot.id]: { ...prev[slot.id], charges }
+                                    }));
+                                  }}
+                                  style={{ ...inputStyle, width: '100%' }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })}
                   </div>
                 );
               })()}
@@ -4984,6 +5168,18 @@ export default function MapEditor() {
                       if (item.gunAttachments) {
                         for (const attDefId of Object.values(item.gunAttachments)) {
                           if (attDefId) parts.push((ItemDefs as any)[attDefId]?.name || attDefId);
+                        }
+                      }
+                      if (item.vehicleAttachments) {
+                        for (const [slotId, att] of Object.entries(item.vehicleAttachments)) {
+                          if (att && att.defId) {
+                            const attName = (ItemDefs as any)[att.defId]?.name || att.defId;
+                            if (att.charges !== undefined) {
+                              parts.push(`${attName} (${att.charges} chg)`);
+                            } else {
+                              parts.push(attName);
+                            }
+                          }
                         }
                       }
                       return parts.length ? ` · ${parts.join(', ')}` : '';

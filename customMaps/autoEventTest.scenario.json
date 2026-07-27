@@ -1,7 +1,7 @@
 {
   "name": "autoEventTest",
   "width": 20,
-  "height": 98,
+  "height": 90,
   "noAutosave": true,
   "tiles": [
     [
@@ -1072,7 +1072,7 @@
       {
         "x": 8,
         "y": 4,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1084,7 +1084,7 @@
       {
         "x": 9,
         "y": 4,
-        "terrain": "garagefloor",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1096,7 +1096,7 @@
       {
         "x": 10,
         "y": 4,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1314,7 +1314,7 @@
       {
         "x": 8,
         "y": 5,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1326,7 +1326,7 @@
       {
         "x": 9,
         "y": 5,
-        "terrain": "garagefloor",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1338,7 +1338,7 @@
       {
         "x": 10,
         "y": 5,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1556,7 +1556,7 @@
       {
         "x": 8,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1568,7 +1568,7 @@
       {
         "x": 9,
         "y": 6,
-        "terrain": "garagefloor",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1580,7 +1580,7 @@
       {
         "x": 10,
         "y": 6,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1798,7 +1798,7 @@
       {
         "x": 8,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1810,7 +1810,7 @@
       {
         "x": 9,
         "y": 7,
-        "terrain": "garagefloor",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -1822,7 +1822,7 @@
       {
         "x": 10,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2040,7 +2040,7 @@
       {
         "x": 8,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2052,7 +2052,7 @@
       {
         "x": 9,
         "y": 8,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2064,7 +2064,7 @@
       {
         "x": 10,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2282,7 +2282,7 @@
       {
         "x": 8,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2294,7 +2294,7 @@
       {
         "x": 9,
         "y": 9,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2306,7 +2306,7 @@
       {
         "x": 10,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2524,7 +2524,7 @@
       {
         "x": 8,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2536,7 +2536,7 @@
       {
         "x": 9,
         "y": 10,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2548,7 +2548,7 @@
       {
         "x": 10,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2766,7 +2766,7 @@
       {
         "x": 8,
         "y": 11,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2778,7 +2778,7 @@
       {
         "x": 9,
         "y": 11,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2790,7 +2790,7 @@
       {
         "x": 10,
         "y": 11,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3008,7 +3008,7 @@
       {
         "x": 8,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3020,7 +3020,7 @@
       {
         "x": 9,
         "y": 12,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3032,7 +3032,7 @@
       {
         "x": 10,
         "y": 12,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3250,7 +3250,7 @@
       {
         "x": 8,
         "y": 13,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3262,7 +3262,7 @@
       {
         "x": 9,
         "y": 13,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3274,7 +3274,7 @@
       {
         "x": 10,
         "y": 13,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3492,7 +3492,7 @@
       {
         "x": 8,
         "y": 14,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3504,7 +3504,7 @@
       {
         "x": 9,
         "y": 14,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3516,7 +3516,7 @@
       {
         "x": 10,
         "y": 14,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3734,7 +3734,7 @@
       {
         "x": 8,
         "y": 15,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3746,7 +3746,7 @@
       {
         "x": 9,
         "y": 15,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3758,7 +3758,7 @@
       {
         "x": 10,
         "y": 15,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3976,7 +3976,7 @@
       {
         "x": 8,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3988,7 +3988,7 @@
       {
         "x": 9,
         "y": 16,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4000,7 +4000,7 @@
       {
         "x": 10,
         "y": 16,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4218,7 +4218,7 @@
       {
         "x": 8,
         "y": 17,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4230,7 +4230,7 @@
       {
         "x": 9,
         "y": 17,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4242,7 +4242,7 @@
       {
         "x": 10,
         "y": 17,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4460,7 +4460,7 @@
       {
         "x": 8,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4472,7 +4472,7 @@
       {
         "x": 9,
         "y": 18,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4484,7 +4484,7 @@
       {
         "x": 10,
         "y": 18,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4702,7 +4702,7 @@
       {
         "x": 8,
         "y": 19,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4714,7 +4714,7 @@
       {
         "x": 9,
         "y": 19,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4726,7 +4726,7 @@
       {
         "x": 10,
         "y": 19,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4944,7 +4944,7 @@
       {
         "x": 8,
         "y": 20,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4956,7 +4956,7 @@
       {
         "x": 9,
         "y": 20,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4968,7 +4968,7 @@
       {
         "x": 10,
         "y": 20,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5186,7 +5186,7 @@
       {
         "x": 8,
         "y": 21,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5198,7 +5198,7 @@
       {
         "x": 9,
         "y": 21,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5210,7 +5210,7 @@
       {
         "x": 10,
         "y": 21,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5428,7 +5428,7 @@
       {
         "x": 8,
         "y": 22,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5440,7 +5440,7 @@
       {
         "x": 9,
         "y": 22,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5452,7 +5452,7 @@
       {
         "x": 10,
         "y": 22,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5670,7 +5670,7 @@
       {
         "x": 8,
         "y": 23,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5682,7 +5682,7 @@
       {
         "x": 9,
         "y": 23,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5694,7 +5694,7 @@
       {
         "x": 10,
         "y": 23,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5912,7 +5912,7 @@
       {
         "x": 8,
         "y": 24,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5924,7 +5924,7 @@
       {
         "x": 9,
         "y": 24,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5936,7 +5936,7 @@
       {
         "x": 10,
         "y": 24,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6154,7 +6154,7 @@
       {
         "x": 8,
         "y": 25,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6166,7 +6166,7 @@
       {
         "x": 9,
         "y": 25,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6178,7 +6178,7 @@
       {
         "x": 10,
         "y": 25,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6396,7 +6396,7 @@
       {
         "x": 8,
         "y": 26,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6408,7 +6408,7 @@
       {
         "x": 9,
         "y": 26,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6420,7 +6420,7 @@
       {
         "x": 10,
         "y": 26,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6638,7 +6638,7 @@
       {
         "x": 8,
         "y": 27,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6650,7 +6650,7 @@
       {
         "x": 9,
         "y": 27,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6662,7 +6662,7 @@
       {
         "x": 10,
         "y": 27,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6880,7 +6880,7 @@
       {
         "x": 8,
         "y": 28,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6892,7 +6892,7 @@
       {
         "x": 9,
         "y": 28,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6904,7 +6904,7 @@
       {
         "x": 10,
         "y": 28,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7122,7 +7122,7 @@
       {
         "x": 8,
         "y": 29,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7134,7 +7134,7 @@
       {
         "x": 9,
         "y": 29,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7146,7 +7146,7 @@
       {
         "x": 10,
         "y": 29,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7364,7 +7364,7 @@
       {
         "x": 8,
         "y": 30,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7376,7 +7376,7 @@
       {
         "x": 9,
         "y": 30,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7388,7 +7388,7 @@
       {
         "x": 10,
         "y": 30,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7606,7 +7606,7 @@
       {
         "x": 8,
         "y": 31,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7618,7 +7618,7 @@
       {
         "x": 9,
         "y": 31,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7630,7 +7630,7 @@
       {
         "x": 10,
         "y": 31,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7848,7 +7848,7 @@
       {
         "x": 8,
         "y": 32,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7860,7 +7860,7 @@
       {
         "x": 9,
         "y": 32,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7872,7 +7872,7 @@
       {
         "x": 10,
         "y": 32,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8090,7 +8090,7 @@
       {
         "x": 8,
         "y": 33,
-        "terrain": "garagefloor",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8102,7 +8102,7 @@
       {
         "x": 9,
         "y": 33,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8114,7 +8114,7 @@
       {
         "x": 10,
         "y": 33,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8332,7 +8332,7 @@
       {
         "x": 8,
         "y": 34,
-        "terrain": "garagefloor",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8344,7 +8344,7 @@
       {
         "x": 9,
         "y": 34,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8356,7 +8356,7 @@
       {
         "x": 10,
         "y": 34,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8574,7 +8574,7 @@
       {
         "x": 8,
         "y": 35,
-        "terrain": "garagefloor",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8586,7 +8586,7 @@
       {
         "x": 9,
         "y": 35,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8598,7 +8598,7 @@
       {
         "x": 10,
         "y": 35,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8816,7 +8816,7 @@
       {
         "x": 8,
         "y": 36,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8828,7 +8828,7 @@
       {
         "x": 9,
         "y": 36,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8840,7 +8840,7 @@
       {
         "x": 10,
         "y": 36,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9058,7 +9058,7 @@
       {
         "x": 8,
         "y": 37,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9070,7 +9070,7 @@
       {
         "x": 9,
         "y": 37,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9082,7 +9082,7 @@
       {
         "x": 10,
         "y": 37,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9300,7 +9300,7 @@
       {
         "x": 8,
         "y": 38,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9312,7 +9312,7 @@
       {
         "x": 9,
         "y": 38,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9324,7 +9324,7 @@
       {
         "x": 10,
         "y": 38,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9542,7 +9542,7 @@
       {
         "x": 8,
         "y": 39,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9554,7 +9554,7 @@
       {
         "x": 9,
         "y": 39,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9566,7 +9566,7 @@
       {
         "x": 10,
         "y": 39,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9784,7 +9784,7 @@
       {
         "x": 8,
         "y": 40,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9796,7 +9796,7 @@
       {
         "x": 9,
         "y": 40,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9808,7 +9808,7 @@
       {
         "x": 10,
         "y": 40,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10026,7 +10026,7 @@
       {
         "x": 8,
         "y": 41,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10038,7 +10038,7 @@
       {
         "x": 9,
         "y": 41,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10050,7 +10050,7 @@
       {
         "x": 10,
         "y": 41,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10268,7 +10268,7 @@
       {
         "x": 8,
         "y": 42,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10280,7 +10280,7 @@
       {
         "x": 9,
         "y": 42,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10292,7 +10292,7 @@
       {
         "x": 10,
         "y": 42,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10510,7 +10510,7 @@
       {
         "x": 8,
         "y": 43,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10522,7 +10522,7 @@
       {
         "x": 9,
         "y": 43,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10534,7 +10534,7 @@
       {
         "x": 10,
         "y": 43,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10752,7 +10752,7 @@
       {
         "x": 8,
         "y": 44,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10764,7 +10764,7 @@
       {
         "x": 9,
         "y": 44,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10776,7 +10776,7 @@
       {
         "x": 10,
         "y": 44,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10994,7 +10994,7 @@
       {
         "x": 8,
         "y": 45,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11006,7 +11006,7 @@
       {
         "x": 9,
         "y": 45,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11018,7 +11018,7 @@
       {
         "x": 10,
         "y": 45,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11236,7 +11236,7 @@
       {
         "x": 8,
         "y": 46,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11248,7 +11248,7 @@
       {
         "x": 9,
         "y": 46,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11260,7 +11260,7 @@
       {
         "x": 10,
         "y": 46,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11478,7 +11478,7 @@
       {
         "x": 8,
         "y": 47,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11490,7 +11490,7 @@
       {
         "x": 9,
         "y": 47,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11502,7 +11502,7 @@
       {
         "x": 10,
         "y": 47,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11720,7 +11720,7 @@
       {
         "x": 8,
         "y": 48,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11732,7 +11732,7 @@
       {
         "x": 9,
         "y": 48,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11744,7 +11744,7 @@
       {
         "x": 10,
         "y": 48,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11962,7 +11962,7 @@
       {
         "x": 8,
         "y": 49,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11974,7 +11974,7 @@
       {
         "x": 9,
         "y": 49,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11986,7 +11986,7 @@
       {
         "x": 10,
         "y": 49,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12204,7 +12204,7 @@
       {
         "x": 8,
         "y": 50,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12216,7 +12216,7 @@
       {
         "x": 9,
         "y": 50,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12228,7 +12228,7 @@
       {
         "x": 10,
         "y": 50,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12446,7 +12446,7 @@
       {
         "x": 8,
         "y": 51,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12458,7 +12458,7 @@
       {
         "x": 9,
         "y": 51,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12470,7 +12470,7 @@
       {
         "x": 10,
         "y": 51,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12688,7 +12688,7 @@
       {
         "x": 8,
         "y": 52,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12700,7 +12700,7 @@
       {
         "x": 9,
         "y": 52,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12712,7 +12712,7 @@
       {
         "x": 10,
         "y": 52,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12930,7 +12930,7 @@
       {
         "x": 8,
         "y": 53,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12942,7 +12942,7 @@
       {
         "x": 9,
         "y": 53,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12954,7 +12954,7 @@
       {
         "x": 10,
         "y": 53,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13172,7 +13172,7 @@
       {
         "x": 8,
         "y": 54,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13184,7 +13184,7 @@
       {
         "x": 9,
         "y": 54,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13196,7 +13196,7 @@
       {
         "x": 10,
         "y": 54,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13414,7 +13414,7 @@
       {
         "x": 8,
         "y": 55,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13426,7 +13426,7 @@
       {
         "x": 9,
         "y": 55,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13438,7 +13438,7 @@
       {
         "x": 10,
         "y": 55,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13656,7 +13656,7 @@
       {
         "x": 8,
         "y": 56,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13668,7 +13668,7 @@
       {
         "x": 9,
         "y": 56,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13680,7 +13680,7 @@
       {
         "x": 10,
         "y": 56,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13898,7 +13898,7 @@
       {
         "x": 8,
         "y": 57,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13910,7 +13910,7 @@
       {
         "x": 9,
         "y": 57,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13922,7 +13922,7 @@
       {
         "x": 10,
         "y": 57,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14140,7 +14140,7 @@
       {
         "x": 8,
         "y": 58,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14152,7 +14152,7 @@
       {
         "x": 9,
         "y": 58,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14164,7 +14164,7 @@
       {
         "x": 10,
         "y": 58,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14382,7 +14382,7 @@
       {
         "x": 8,
         "y": 59,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14394,7 +14394,7 @@
       {
         "x": 9,
         "y": 59,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14406,7 +14406,7 @@
       {
         "x": 10,
         "y": 59,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14624,7 +14624,7 @@
       {
         "x": 8,
         "y": 60,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14636,7 +14636,7 @@
       {
         "x": 9,
         "y": 60,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14648,7 +14648,7 @@
       {
         "x": 10,
         "y": 60,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14866,7 +14866,7 @@
       {
         "x": 8,
         "y": 61,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14878,7 +14878,7 @@
       {
         "x": 9,
         "y": 61,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14890,7 +14890,7 @@
       {
         "x": 10,
         "y": 61,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14938,7 +14938,7 @@
       {
         "x": 14,
         "y": 61,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14950,7 +14950,7 @@
       {
         "x": 15,
         "y": 61,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14962,7 +14962,7 @@
       {
         "x": 16,
         "y": 61,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15108,7 +15108,7 @@
       {
         "x": 8,
         "y": 62,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15120,7 +15120,7 @@
       {
         "x": 9,
         "y": 62,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15132,7 +15132,7 @@
       {
         "x": 10,
         "y": 62,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15180,7 +15180,7 @@
       {
         "x": 14,
         "y": 62,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15192,7 +15192,7 @@
       {
         "x": 15,
         "y": 62,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15204,7 +15204,7 @@
       {
         "x": 16,
         "y": 62,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15350,7 +15350,7 @@
       {
         "x": 8,
         "y": 63,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15362,7 +15362,7 @@
       {
         "x": 9,
         "y": 63,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15374,7 +15374,7 @@
       {
         "x": 10,
         "y": 63,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15422,7 +15422,7 @@
       {
         "x": 14,
         "y": 63,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15434,7 +15434,7 @@
       {
         "x": 15,
         "y": 63,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15446,7 +15446,7 @@
       {
         "x": 16,
         "y": 63,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15580,7 +15580,7 @@
       {
         "x": 7,
         "y": 64,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15592,7 +15592,7 @@
       {
         "x": 8,
         "y": 64,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15604,7 +15604,7 @@
       {
         "x": 9,
         "y": 64,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15616,7 +15616,7 @@
       {
         "x": 10,
         "y": 64,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15628,7 +15628,7 @@
       {
         "x": 11,
         "y": 64,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15640,7 +15640,7 @@
       {
         "x": 12,
         "y": 64,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15652,7 +15652,7 @@
       {
         "x": 13,
         "y": 64,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15664,7 +15664,7 @@
       {
         "x": 14,
         "y": 64,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15676,7 +15676,7 @@
       {
         "x": 15,
         "y": 64,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15688,7 +15688,7 @@
       {
         "x": 16,
         "y": 64,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15822,7 +15822,7 @@
       {
         "x": 7,
         "y": 65,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15834,7 +15834,7 @@
       {
         "x": 8,
         "y": 65,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15846,7 +15846,7 @@
       {
         "x": 9,
         "y": 65,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15858,7 +15858,7 @@
       {
         "x": 10,
         "y": 65,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15870,7 +15870,7 @@
       {
         "x": 11,
         "y": 65,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15882,7 +15882,7 @@
       {
         "x": 12,
         "y": 65,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15894,7 +15894,7 @@
       {
         "x": 13,
         "y": 65,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15906,7 +15906,7 @@
       {
         "x": 14,
         "y": 65,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15918,7 +15918,7 @@
       {
         "x": 15,
         "y": 65,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15930,7 +15930,7 @@
       {
         "x": 16,
         "y": 65,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16064,7 +16064,7 @@
       {
         "x": 7,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16076,7 +16076,7 @@
       {
         "x": 8,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16088,7 +16088,7 @@
       {
         "x": 9,
         "y": 66,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16100,7 +16100,7 @@
       {
         "x": 10,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16112,7 +16112,7 @@
       {
         "x": 11,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16124,7 +16124,7 @@
       {
         "x": 12,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16136,7 +16136,7 @@
       {
         "x": 13,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16148,7 +16148,7 @@
       {
         "x": 14,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16160,7 +16160,7 @@
       {
         "x": 15,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16172,7 +16172,7 @@
       {
         "x": 16,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16318,7 +16318,7 @@
       {
         "x": 8,
         "y": 67,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16330,7 +16330,7 @@
       {
         "x": 9,
         "y": 67,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16342,7 +16342,7 @@
       {
         "x": 10,
         "y": 67,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16390,7 +16390,7 @@
       {
         "x": 14,
         "y": 67,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16402,7 +16402,7 @@
       {
         "x": 15,
         "y": 67,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16414,7 +16414,7 @@
       {
         "x": 16,
         "y": 67,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16560,7 +16560,7 @@
       {
         "x": 8,
         "y": 68,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16572,7 +16572,7 @@
       {
         "x": 9,
         "y": 68,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16584,7 +16584,7 @@
       {
         "x": 10,
         "y": 68,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16632,7 +16632,7 @@
       {
         "x": 14,
         "y": 68,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16644,7 +16644,7 @@
       {
         "x": 15,
         "y": 68,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16656,7 +16656,7 @@
       {
         "x": 16,
         "y": 68,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16802,7 +16802,7 @@
       {
         "x": 8,
         "y": 69,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16814,7 +16814,7 @@
       {
         "x": 9,
         "y": 69,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16826,7 +16826,7 @@
       {
         "x": 10,
         "y": 69,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16874,7 +16874,7 @@
       {
         "x": 14,
         "y": 69,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16886,7 +16886,7 @@
       {
         "x": 15,
         "y": 69,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16898,7 +16898,7 @@
       {
         "x": 16,
         "y": 69,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17044,7 +17044,7 @@
       {
         "x": 8,
         "y": 70,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17056,7 +17056,7 @@
       {
         "x": 9,
         "y": 70,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17068,7 +17068,7 @@
       {
         "x": 10,
         "y": 70,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17128,12 +17128,12 @@
       {
         "x": 15,
         "y": 70,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -17286,7 +17286,7 @@
       {
         "x": 8,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17298,7 +17298,7 @@
       {
         "x": 9,
         "y": 71,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17310,7 +17310,7 @@
       {
         "x": 10,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17370,12 +17370,12 @@
       {
         "x": 15,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -17528,7 +17528,7 @@
       {
         "x": 8,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17540,7 +17540,7 @@
       {
         "x": 9,
         "y": 72,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17552,7 +17552,7 @@
       {
         "x": 10,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17612,12 +17612,12 @@
       {
         "x": 15,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -17770,7 +17770,7 @@
       {
         "x": 8,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17782,7 +17782,7 @@
       {
         "x": 9,
         "y": 73,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17794,7 +17794,7 @@
       {
         "x": 10,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17854,12 +17854,12 @@
       {
         "x": 15,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -18012,19 +18012,19 @@
       {
         "x": 8,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 74,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -18036,10 +18036,10 @@
       {
         "x": 10,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -18047,18 +18047,6 @@
       },
       {
         "x": 11,
-        "y": 74,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
         "y": 74,
         "terrain": "grass",
         "edgeWalls": {
@@ -18070,6 +18058,18 @@
         "contents": []
       },
       {
+        "x": 12,
+        "y": 74,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
         "x": 13,
         "y": 74,
         "terrain": "grass",
@@ -18096,12 +18096,12 @@
       {
         "x": 15,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -18254,19 +18254,19 @@
       {
         "x": 8,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 75,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -18278,10 +18278,10 @@
       {
         "x": 10,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -18289,18 +18289,6 @@
       },
       {
         "x": 11,
-        "y": 75,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
         "y": 75,
         "terrain": "grass",
         "edgeWalls": {
@@ -18312,6 +18300,18 @@
         "contents": []
       },
       {
+        "x": 12,
+        "y": 75,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
         "x": 13,
         "y": 75,
         "terrain": "grass",
@@ -18338,12 +18338,12 @@
       {
         "x": 15,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -18496,19 +18496,19 @@
       {
         "x": 8,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 76,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -18520,10 +18520,10 @@
       {
         "x": 10,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -18531,18 +18531,6 @@
       },
       {
         "x": 11,
-        "y": 76,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
         "y": 76,
         "terrain": "grass",
         "edgeWalls": {
@@ -18554,6 +18542,18 @@
         "contents": []
       },
       {
+        "x": 12,
+        "y": 76,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
         "x": 13,
         "y": 76,
         "terrain": "grass",
@@ -18580,12 +18580,12 @@
       {
         "x": 15,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -18738,19 +18738,19 @@
       {
         "x": 8,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 77,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -18762,10 +18762,10 @@
       {
         "x": 10,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -18773,18 +18773,6 @@
       },
       {
         "x": 11,
-        "y": 77,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
         "y": 77,
         "terrain": "grass",
         "edgeWalls": {
@@ -18796,6 +18784,18 @@
         "contents": []
       },
       {
+        "x": 12,
+        "y": 77,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
         "x": 13,
         "y": 77,
         "terrain": "grass",
@@ -18810,7 +18810,19 @@
       {
         "x": 14,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": true,
+          "e": false,
+          "s": false,
+          "w": true
+        },
+        "contents": []
+      },
+      {
+        "x": 15,
+        "y": 77,
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -18820,7 +18832,43 @@
         "contents": []
       },
       {
-        "x": 15,
+        "x": 16,
+        "y": 77,
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": true,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 17,
+        "y": 77,
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": true,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 18,
+        "y": 77,
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": true,
+          "e": true,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
+        "x": 19,
         "y": 77,
         "terrain": "grass",
         "edgeWalls": {
@@ -18830,54 +18878,6 @@
           "w": false
         },
         "contents": []
-      },
-      {
-        "x": 16,
-        "y": 77,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 77,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 77,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 77,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
       }
     ],
     [
@@ -18980,19 +18980,19 @@
       {
         "x": 8,
         "y": 78,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 78,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19004,10 +19004,10 @@
       {
         "x": 10,
         "y": 78,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -19052,19 +19052,19 @@
       {
         "x": 14,
         "y": 78,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 15,
         "y": 78,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19076,7 +19076,7 @@
       {
         "x": 16,
         "y": 78,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19088,7 +19088,7 @@
       {
         "x": 17,
         "y": 78,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19100,10 +19100,10 @@
       {
         "x": 18,
         "y": 78,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -19198,23 +19198,23 @@
       {
         "x": 6,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 7,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -19222,7 +19222,7 @@
       {
         "x": 8,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19234,7 +19234,7 @@
       {
         "x": 9,
         "y": 79,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19246,7 +19246,7 @@
       {
         "x": 10,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19258,11 +19258,11 @@
       {
         "x": 11,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -19270,11 +19270,11 @@
       {
         "x": 12,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -19282,11 +19282,11 @@
       {
         "x": 13,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -19294,7 +19294,7 @@
       {
         "x": 14,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19306,7 +19306,7 @@
       {
         "x": 15,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19318,7 +19318,7 @@
       {
         "x": 16,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19330,7 +19330,7 @@
       {
         "x": 17,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19342,10 +19342,10 @@
       {
         "x": 18,
         "y": 79,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -19440,12 +19440,12 @@
       {
         "x": 6,
         "y": 80,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -19464,19 +19464,19 @@
       {
         "x": 8,
         "y": 80,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 80,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19488,10 +19488,10 @@
       {
         "x": 10,
         "y": 80,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -19536,19 +19536,19 @@
       {
         "x": 14,
         "y": 80,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 15,
         "y": 80,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19560,7 +19560,7 @@
       {
         "x": 16,
         "y": 80,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19572,7 +19572,7 @@
       {
         "x": 17,
         "y": 80,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19584,10 +19584,10 @@
       {
         "x": 18,
         "y": 80,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -19670,22 +19670,22 @@
       {
         "x": 5,
         "y": 81,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 81,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -19706,19 +19706,19 @@
       {
         "x": 8,
         "y": 81,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 81,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19730,10 +19730,10 @@
       {
         "x": 10,
         "y": 81,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -19778,23 +19778,23 @@
       {
         "x": 14,
         "y": 81,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
       {
         "x": 15,
         "y": 81,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -19802,11 +19802,11 @@
       {
         "x": 16,
         "y": 81,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -19814,11 +19814,11 @@
       {
         "x": 17,
         "y": 81,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -19826,11 +19826,11 @@
       {
         "x": 18,
         "y": 81,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -19912,23 +19912,23 @@
       {
         "x": 5,
         "y": 82,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
       {
         "x": 6,
         "y": 82,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -19948,19 +19948,19 @@
       {
         "x": 8,
         "y": 82,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 82,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19972,10 +19972,10 @@
       {
         "x": 10,
         "y": 82,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -20190,19 +20190,19 @@
       {
         "x": 8,
         "y": 83,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 83,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -20214,10 +20214,10 @@
       {
         "x": 10,
         "y": 83,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -20225,18 +20225,6 @@
       },
       {
         "x": 11,
-        "y": 83,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
         "y": 83,
         "terrain": "grass",
         "edgeWalls": {
@@ -20248,6 +20236,18 @@
         "contents": []
       },
       {
+        "x": 12,
+        "y": 83,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
         "x": 13,
         "y": 83,
         "terrain": "grass",
@@ -20432,19 +20432,19 @@
       {
         "x": 8,
         "y": 84,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 84,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -20456,10 +20456,10 @@
       {
         "x": 10,
         "y": 84,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -20467,18 +20467,6 @@
       },
       {
         "x": 11,
-        "y": 84,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
         "y": 84,
         "terrain": "grass",
         "edgeWalls": {
@@ -20490,6 +20478,18 @@
         "contents": []
       },
       {
+        "x": 12,
+        "y": 84,
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": false
+        },
+        "contents": []
+      },
+      {
         "x": 13,
         "y": 84,
         "terrain": "grass",
@@ -20674,19 +20674,19 @@
       {
         "x": 8,
         "y": 85,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 85,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -20698,10 +20698,10 @@
       {
         "x": 10,
         "y": 85,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -20916,19 +20916,19 @@
       {
         "x": 8,
         "y": 86,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 86,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -20940,10 +20940,10 @@
       {
         "x": 10,
         "y": 86,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -21158,19 +21158,19 @@
       {
         "x": 8,
         "y": 87,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 87,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -21182,10 +21182,10 @@
       {
         "x": 10,
         "y": 87,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -21400,19 +21400,19 @@
       {
         "x": 8,
         "y": 88,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 88,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -21424,10 +21424,10 @@
       {
         "x": 10,
         "y": 88,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -21642,2063 +21642,29 @@
       {
         "x": 8,
         "y": 89,
-        "terrain": "grass",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
       {
         "x": 9,
         "y": 89,
-        "terrain": "sidewalk",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 89,
-        "terrain": "sidewalk",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 89,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 89,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 89,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 89,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 89,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 89,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 89,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 89,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 89,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 90,
-        "terrain": "sidewalk",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 90,
-        "terrain": "sidewalk",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 90,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 91,
-        "terrain": "sidewalk",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 91,
-        "terrain": "sidewalk",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 91,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 92,
-        "terrain": "sidewalk",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 92,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 93,
-        "terrain": "sidewalk",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 93,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 94,
-        "terrain": "sidewalk",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 94,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 95,
-        "terrain": "sidewalk",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 10,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 95,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 96,
-        "terrain": "sidewalk",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.toy_wagon-1785122354576-lbmib",
-            "defId": "vehicle.toy_wagon",
-            "id": "vehicle.toy_wagon",
-            "name": "Toy Wagon",
-            "noLoot": true,
-            "rarity": "uncommon",
-            "imageId": "toywagon",
-            "width": 4,
-            "height": 6,
-            "traits": [
-              "draggable",
-              "groundOnly",
-              "container",
-              "vehicle",
-              "wagon"
-            ],
-            "categories": [
-              "furniture",
-              "vehicle"
-            ],
-            "dragApPenalty": 2,
-            "motorAssistBonus": 1,
-            "terrainModifiers": {
-              "road": -0.5,
-              "sidewalk": -0.5
-            },
-            "renderFullTile": true,
-            "description": "Used to move items",
-            "containerGrid": {
-              "width": 4,
-              "height": 5,
-              "isVehicle": true
-            },
-            "attachmentSlots": [
-              {
-                "id": "motor",
-                "name": "Electric Motor",
-                "allowedItems": [
-                  "electric_motor"
-                ]
-              },
-              {
-                "id": "battery",
-                "name": "Power Cell",
-                "allowedCategories": [
-                  "large_battery"
-                ],
-                "allowedItems": [
-                  "tool.large_battery",
-                  "tool.high_capacity_battery"
-                ]
-              }
-            ],
-            "disassembleData": {
-              "toolId": "weapon.wrench",
-              "apCost": 10,
-              "components": [
-                {
-                  "id": "crafting.wheel",
-                  "count": 4
-                },
-                {
-                  "id": "weapon.metal_rod",
-                  "count": 2
-                },
-                {
-                  "id": "crafting.metal_plate",
-                  "count": 1
-                }
-              ]
-            },
-            "attachments": {
-              "battery": {
-                "instanceId": "tool.large_battery-1785122354576-p0e78",
-                "defId": "tool.large_battery",
-                "id": "tool.large_battery",
-                "name": "Large battery",
-                "rarity": "uncommon",
-                "imageId": "largebattery",
-                "width": 2,
-                "height": 1,
-                "traits": [
-                  "stackable",
-                  "battery"
-                ],
-                "categories": [
-                  "large_battery",
-                  "tool"
-                ],
-                "stackMax": 5,
-                "capacity": 100,
-                "ammoCount": 100
-              }
-            }
-          }
-        ]
-      },
-      {
-        "x": 10,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 11,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 12,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 13,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 14,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 15,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 16,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 17,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 18,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 19,
-        "y": 96,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      }
-    ],
-    [
-      {
-        "x": 0,
-        "y": 97,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 1,
-        "y": 97,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 2,
-        "y": 97,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 3,
-        "y": 97,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 4,
-        "y": 97,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 5,
-        "y": 97,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 6,
-        "y": 97,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 7,
-        "y": 97,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 8,
-        "y": 97,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": []
-      },
-      {
-        "x": 9,
-        "y": 97,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "vehicle.golf_cart-1785122354576-vpiex",
+            "instanceId": "vehicle.golf_cart-1785133177880-5gxmf",
             "defId": "vehicle.golf_cart",
             "id": "vehicle.golf_cart",
             "name": "Golf Cart",
@@ -23799,8 +21765,59 @@
               ]
             },
             "attachments": {
+              "motor_front": {
+                "instanceId": "electric_motor-1785133177880-v2p78",
+                "defId": "electric_motor",
+                "id": "electric_motor",
+                "name": "Electric motor",
+                "noLoot": true,
+                "rarity": "rare",
+                "imageId": "electricmotor",
+                "width": 2,
+                "height": 2,
+                "traits": [],
+                "categories": [
+                  "crafting_material"
+                ]
+              },
               "battery_front": {
-                "instanceId": "tool.large_battery-1785122354576-lq7hx",
+                "instanceId": "tool.large_battery-1785133177880-51mnv",
+                "defId": "tool.large_battery",
+                "id": "tool.large_battery",
+                "name": "Large battery",
+                "rarity": "uncommon",
+                "imageId": "largebattery",
+                "width": 2,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
+                ],
+                "categories": [
+                  "large_battery",
+                  "tool"
+                ],
+                "stackMax": 5,
+                "capacity": 100,
+                "ammoCount": 100
+              },
+              "motor_rear": {
+                "instanceId": "electric_motor-1785133177880-i4tbx",
+                "defId": "electric_motor",
+                "id": "electric_motor",
+                "name": "Electric motor",
+                "noLoot": true,
+                "rarity": "rare",
+                "imageId": "electricmotor",
+                "width": 2,
+                "height": 2,
+                "traits": [],
+                "categories": [
+                  "crafting_material"
+                ]
+              },
+              "battery_rear": {
+                "instanceId": "tool.large_battery-1785133177880-37b1o",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -23823,73 +21840,207 @@
             }
           },
           {
-            "instanceId": "tool.large_battery-1785122354576-ni4os",
-            "defId": "tool.large_battery",
-            "id": "tool.large_battery",
-            "name": "Large battery",
-            "rarity": "uncommon",
-            "imageId": "largebattery",
+            "instanceId": "weapon.deserteagle-1785133177880-4rswh",
+            "defId": "weapon.deserteagle",
+            "id": "weapon.deserteagle",
+            "name": "Desert Eagle",
+            "noLoot": true,
+            "rarity": "extremely_rare",
+            "imageId": "deserteagle",
             "width": 2,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "container",
+              "openable-when-nested"
+            ],
+            "equippableSlot": "handgun",
+            "categories": [
+              "weapon",
+              "gun"
+            ],
+            "attachmentSlots": [
+              {
+                "id": "barrel",
+                "name": "Barrel",
+                "allowedCategories": [
+                  "suppressor"
+                ]
+              },
+              {
+                "id": "sight",
+                "name": "Optic",
+                "allowedCategories": [
+                  "laser_sight"
+                ]
+              },
+              {
+                "id": "ammo",
+                "name": "Magazine",
+                "hidden": true,
+                "allowedCategories": [
+                  "ammo"
+                ],
+                "allowedItems": [
+                  "attachment.de_magazine"
+                ]
+              }
+            ],
+            "rangedStats": {
+              "noiseRadius": 20,
+              "damage": {
+                "min": 7,
+                "max": 17
+              },
+              "accuracyFalloff": 0.1,
+              "minAccuracy": 0.01
+            }
+          },
+          {
+            "instanceId": "ammo.de-1785133177881-iiep1",
+            "defId": "ammo.de",
+            "id": "ammo.de",
+            "name": "Desert Eagle Ammo",
+            "rarity": "extremely_rare",
+            "imageId": "deAmmo",
+            "width": 1,
             "height": 1,
             "traits": [
-              "stackable",
-              "battery"
+              "stackable"
             ],
             "categories": [
-              "large_battery",
-              "tool"
+              "ammo"
             ],
-            "stackMax": 5,
-            "capacity": 100,
-            "ammoCount": 100
+            "stackMax": 20,
+            "spawnStackMin": 1,
+            "spawnStackMax": 2
           },
           {
-            "instanceId": "electric_motor-1785122354576-8f7k0",
-            "defId": "electric_motor",
-            "id": "electric_motor",
-            "name": "Electric motor",
-            "noLoot": true,
-            "rarity": "rare",
-            "imageId": "electricmotor",
-            "width": 2,
-            "height": 2,
-            "traits": [],
+            "instanceId": "ammo.de-1785133177881-e6x2s",
+            "defId": "ammo.de",
+            "id": "ammo.de",
+            "name": "Desert Eagle Ammo",
+            "rarity": "extremely_rare",
+            "imageId": "deAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
             "categories": [
-              "crafting_material"
-            ]
+              "ammo"
+            ],
+            "stackMax": 20,
+            "spawnStackMin": 1,
+            "spawnStackMax": 2
           },
           {
-            "instanceId": "electric_motor-1785122354576-5l2n9",
-            "defId": "electric_motor",
-            "id": "electric_motor",
-            "name": "Electric motor",
-            "noLoot": true,
+            "instanceId": "ammo.de-1785133177881-ajk7y",
+            "defId": "ammo.de",
+            "id": "ammo.de",
+            "name": "Desert Eagle Ammo",
+            "rarity": "extremely_rare",
+            "imageId": "deAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 20,
+            "spawnStackMin": 1,
+            "spawnStackMax": 2
+          },
+          {
+            "instanceId": "ammo.de-1785133177881-g46pq",
+            "defId": "ammo.de",
+            "id": "ammo.de",
+            "name": "Desert Eagle Ammo",
+            "rarity": "extremely_rare",
+            "imageId": "deAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 20,
+            "spawnStackMin": 1,
+            "spawnStackMax": 2
+          },
+          {
+            "instanceId": "ammo.de-1785133177881-ihge9",
+            "defId": "ammo.de",
+            "id": "ammo.de",
+            "name": "Desert Eagle Ammo",
+            "rarity": "extremely_rare",
+            "imageId": "deAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 20,
+            "spawnStackMin": 1,
+            "spawnStackMax": 2
+          },
+          {
+            "instanceId": "attachment.de_magazine-1785133177881-2a76j",
+            "defId": "attachment.de_magazine",
+            "id": "attachment.de_magazine",
+            "name": "Desert Eagle Mag",
             "rarity": "rare",
-            "imageId": "electricmotor",
+            "imageId": "deMagazine",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "magazine"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "capacity": 7,
+            "ammoCount": 0,
+            "ammoDefId": "ammo.de"
+          },
+          {
+            "instanceId": "attachment.suppressor-1785133177881-i0agf",
+            "defId": "attachment.suppressor",
+            "id": "attachment.suppressor",
+            "name": "Suppressor",
+            "rarity": "rare",
+            "imageId": "suppressor",
             "width": 2,
-            "height": 2,
+            "height": 1,
             "traits": [],
             "categories": [
-              "crafting_material"
+              "suppressor"
             ]
           }
         ]
       },
       {
         "x": 10,
-        "y": 97,
-        "terrain": "grass",
+        "y": 89,
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
       },
       {
         "x": 11,
-        "y": 97,
+        "y": 89,
         "terrain": "grass",
         "edgeWalls": {
           "n": false,
@@ -23901,7 +22052,7 @@
       },
       {
         "x": 12,
-        "y": 97,
+        "y": 89,
         "terrain": "grass",
         "edgeWalls": {
           "n": false,
@@ -23913,7 +22064,7 @@
       },
       {
         "x": 13,
-        "y": 97,
+        "y": 89,
         "terrain": "grass",
         "edgeWalls": {
           "n": false,
@@ -23925,7 +22076,7 @@
       },
       {
         "x": 14,
-        "y": 97,
+        "y": 89,
         "terrain": "grass",
         "edgeWalls": {
           "n": false,
@@ -23937,7 +22088,7 @@
       },
       {
         "x": 15,
-        "y": 97,
+        "y": 89,
         "terrain": "grass",
         "edgeWalls": {
           "n": false,
@@ -23949,7 +22100,7 @@
       },
       {
         "x": 16,
-        "y": 97,
+        "y": 89,
         "terrain": "grass",
         "edgeWalls": {
           "n": false,
@@ -23961,7 +22112,7 @@
       },
       {
         "x": 17,
-        "y": 97,
+        "y": 89,
         "terrain": "grass",
         "edgeWalls": {
           "n": false,
@@ -23973,7 +22124,7 @@
       },
       {
         "x": 18,
-        "y": 97,
+        "y": 89,
         "terrain": "grass",
         "edgeWalls": {
           "n": false,
@@ -23985,7 +22136,7 @@
       },
       {
         "x": 19,
-        "y": 97,
+        "y": 89,
         "terrain": "grass",
         "edgeWalls": {
           "n": false,
@@ -24037,142 +22188,29 @@
       "playerStart": [
         {
           "x": 9,
-          "y": 97
+          "y": 89
         }
       ]
     }
   },
   "entities": [
     {
+      "type": "zombie",
+      "x": 6,
+      "y": 81,
+      "subtype": "basic"
+    },
+    {
+      "type": "zombie",
+      "x": 9,
+      "y": 87,
+      "subtype": "basic"
+    },
+    {
       "type": "player",
       "x": 9,
-      "y": 97,
-      "subtype": null,
-      "inventory": [
-        {
-          "instanceId": "backpack.hiking-1785122354577-3wf7v",
-          "defId": "backpack.hiking",
-          "id": "backpack.hiking",
-          "name": "Hiking Backpack",
-          "rarity": "extremely_rare",
-          "imageId": "hikingBackpack",
-          "width": 5,
-          "height": 5,
-          "traits": [
-            "equippable",
-            "container"
-          ],
-          "categories": [
-            "container"
-          ],
-          "equippableSlot": "backpack",
-          "containerGrid": {
-            "width": 6,
-            "height": 10
-          },
-          "description": "When on the ground, right-click to open"
-        },
-        {
-          "instanceId": "electric_motor-1785122354577-2uyf4",
-          "defId": "electric_motor",
-          "id": "electric_motor",
-          "name": "Electric motor",
-          "noLoot": true,
-          "rarity": "rare",
-          "imageId": "electricmotor",
-          "width": 2,
-          "height": 2,
-          "traits": [],
-          "categories": [
-            "crafting_material"
-          ]
-        },
-        {
-          "instanceId": "electric_motor-1785122354577-egcpa",
-          "defId": "electric_motor",
-          "id": "electric_motor",
-          "name": "Electric motor",
-          "noLoot": true,
-          "rarity": "rare",
-          "imageId": "electricmotor",
-          "width": 2,
-          "height": 2,
-          "traits": [],
-          "categories": [
-            "crafting_material"
-          ]
-        },
-        {
-          "instanceId": "tool.high_capacity_battery-1785122354577-9c6nn",
-          "defId": "tool.high_capacity_battery",
-          "id": "tool.high_capacity_battery",
-          "name": "High-capacity battery",
-          "rarity": "extremely_rare",
-          "imageId": "largebattery",
-          "width": 2,
-          "height": 1,
-          "traits": [
-            "stackable",
-            "battery"
-          ],
-          "categories": [
-            "large_battery",
-            "tool"
-          ],
-          "stackMax": 5,
-          "capacity": 400,
-          "ammoCount": 400,
-          "backgroundColor": "#1E1B4B",
-          "borderColor": "#818CF8"
-        },
-        {
-          "instanceId": "tool.high_capacity_battery-1785122354577-wqg94",
-          "defId": "tool.high_capacity_battery",
-          "id": "tool.high_capacity_battery",
-          "name": "High-capacity battery",
-          "rarity": "extremely_rare",
-          "imageId": "largebattery",
-          "width": 2,
-          "height": 1,
-          "traits": [
-            "stackable",
-            "battery"
-          ],
-          "categories": [
-            "large_battery",
-            "tool"
-          ],
-          "stackMax": 5,
-          "capacity": 400,
-          "ammoCount": 400,
-          "backgroundColor": "#1E1B4B",
-          "borderColor": "#818CF8"
-        },
-        {
-          "instanceId": "tool.high_capacity_battery-1785122354577-22t7h",
-          "defId": "tool.high_capacity_battery",
-          "id": "tool.high_capacity_battery",
-          "name": "High-capacity battery",
-          "rarity": "extremely_rare",
-          "imageId": "largebattery",
-          "width": 2,
-          "height": 1,
-          "traits": [
-            "stackable",
-            "battery"
-          ],
-          "categories": [
-            "large_battery",
-            "tool"
-          ],
-          "stackMax": 5,
-          "capacity": 400,
-          "ammoCount": 400,
-          "backgroundColor": "#1E1B4B",
-          "borderColor": "#818CF8"
-        }
-      ],
-      "equippedIndex": 0
+      "y": 89,
+      "subtype": null
     }
   ],
   "eventTriggers": [
