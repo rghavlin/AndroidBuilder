@@ -11,6 +11,15 @@ describe('AP economy (Phase 3 follow-up: scavenging range)', () => {
     expect(out.cost).toBeCloseTo(6.5, 1);
   });
 
+  it('drops the sprint discount when a vehicle is active', () => {
+    const h = makeOpenArena({ seed: 1, size: 40 });
+    // Same 5-tile diagonal, but riding/hauling: you don't build up a run, so the
+    // path costs its honest 5 * 1.4 with no bulk refund.
+    const out = walkCost(h, 20, 20, 25, 25, { sprintBonus: false });
+    expect(out.tiles).toBe(5);
+    expect(out.cost).toBeCloseTo(7.0, 1);
+  });
+
   it('maxScavengeRadius grows with maxAp and shrinks when stops reserve AP', () => {
     const h = makeOpenArena({ seed: 2, size: 60 });
     const free = maxScavengeRadius(h, 22, { stops: 0 });

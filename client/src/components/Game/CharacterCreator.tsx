@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Dumbbell, Wind, Eye, Heart, Plus, Minus, Info, Swords } from "lucide-react";
 import { CombatResolver } from '../../game/systems/CombatResolver.js';
 import { previewDerivedStats } from '../../game/utils/SurvivalCascade.js';
+import { VehicleUtils } from '../../game/utils/VehicleUtils.js';
 
 interface CharacterCreatorProps {
     onConfirm: (stats: { strength: number; agility: number; perception: number; constitution: number; name: string }) => void;
@@ -41,7 +42,7 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
 
         // Attribute effects matching PlayerSkillsUI / CombatResolver formulas
         const meleeDamageBonus = Math.round(CombatResolver.strengthDamageBonus(stats.strength));
-        const wagonPullBonus = Math.floor(stats.strength / 20);
+        const wagonPullBonus = VehicleUtils.strengthDragBonus(stats.strength);
         const meleeAimBonus = Math.round(CombatResolver.meleeAimBonus(stats.strength, stats.agility) * 100);
         const rangedAimBonus = Math.round(CombatResolver.perceptionAimBonus(stats.agility, stats.perception) * 100);
         const defenseBonus = Math.round(CombatResolver.defenseBonus(stats.agility, stats.perception) * 100);
@@ -64,7 +65,7 @@ export default function CharacterCreator({ onConfirm, onCancel, confirmLabel }: 
             // the one attribute whose card it's shown under.
             strengthEffects: [
                 `Melee damage +${meleeDamageBonus}`,
-                `Wagon-pull AP bonus: +${wagonPullBonus} AP`
+                `Wagon-pull AP bonus: +${wagonPullBonus.toFixed(1)} AP`
             ],
             agilityEffects: [],
             perceptionEffects: [

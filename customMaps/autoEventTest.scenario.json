@@ -2052,7 +2052,7 @@
       {
         "x": 9,
         "y": 8,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2294,7 +2294,7 @@
       {
         "x": 9,
         "y": 9,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2536,7 +2536,7 @@
       {
         "x": 9,
         "y": 10,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2778,7 +2778,7 @@
       {
         "x": 9,
         "y": 11,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3020,7 +3020,7 @@
       {
         "x": 9,
         "y": 12,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3262,7 +3262,7 @@
       {
         "x": 9,
         "y": 13,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3504,7 +3504,7 @@
       {
         "x": 9,
         "y": 14,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3746,7 +3746,7 @@
       {
         "x": 9,
         "y": 15,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -3988,7 +3988,7 @@
       {
         "x": 9,
         "y": 16,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4230,7 +4230,7 @@
       {
         "x": 9,
         "y": 17,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4472,7 +4472,7 @@
       {
         "x": 9,
         "y": 18,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4714,7 +4714,7 @@
       {
         "x": 9,
         "y": 19,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -4956,7 +4956,7 @@
       {
         "x": 9,
         "y": 20,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5198,7 +5198,7 @@
       {
         "x": 9,
         "y": 21,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5440,7 +5440,7 @@
       {
         "x": 9,
         "y": 22,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5682,7 +5682,7 @@
       {
         "x": 9,
         "y": 23,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -5924,7 +5924,7 @@
       {
         "x": 9,
         "y": 24,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6166,7 +6166,7 @@
       {
         "x": 9,
         "y": 25,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6408,7 +6408,7 @@
       {
         "x": 9,
         "y": 26,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6650,7 +6650,7 @@
       {
         "x": 9,
         "y": 27,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -6892,7 +6892,7 @@
       {
         "x": 9,
         "y": 28,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7134,7 +7134,7 @@
       {
         "x": 9,
         "y": 29,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7376,7 +7376,7 @@
       {
         "x": 9,
         "y": 30,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7618,7 +7618,7 @@
       {
         "x": 9,
         "y": 31,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -7860,7 +7860,7 @@
       {
         "x": 9,
         "y": 32,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8102,7 +8102,7 @@
       {
         "x": 9,
         "y": 33,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8344,7 +8344,7 @@
       {
         "x": 9,
         "y": 34,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8586,7 +8586,7 @@
       {
         "x": 9,
         "y": 35,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -8828,7 +8828,7 @@
       {
         "x": 9,
         "y": 36,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9070,7 +9070,7 @@
       {
         "x": 9,
         "y": 37,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9312,7 +9312,7 @@
       {
         "x": 9,
         "y": 38,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9554,7 +9554,7 @@
       {
         "x": 9,
         "y": 39,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -9796,7 +9796,7 @@
       {
         "x": 9,
         "y": 40,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10038,7 +10038,7 @@
       {
         "x": 9,
         "y": 41,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10280,7 +10280,7 @@
       {
         "x": 9,
         "y": 42,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10522,7 +10522,7 @@
       {
         "x": 9,
         "y": 43,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -10764,7 +10764,7 @@
       {
         "x": 9,
         "y": 44,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11006,7 +11006,7 @@
       {
         "x": 9,
         "y": 45,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11248,7 +11248,7 @@
       {
         "x": 9,
         "y": 46,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11490,7 +11490,7 @@
       {
         "x": 9,
         "y": 47,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11732,7 +11732,7 @@
       {
         "x": 9,
         "y": 48,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -11974,7 +11974,7 @@
       {
         "x": 9,
         "y": 49,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12216,7 +12216,7 @@
       {
         "x": 9,
         "y": 50,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12458,7 +12458,7 @@
       {
         "x": 9,
         "y": 51,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12700,7 +12700,7 @@
       {
         "x": 9,
         "y": 52,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -12942,7 +12942,7 @@
       {
         "x": 9,
         "y": 53,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13184,7 +13184,7 @@
       {
         "x": 9,
         "y": 54,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13426,7 +13426,7 @@
       {
         "x": 9,
         "y": 55,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13668,7 +13668,7 @@
       {
         "x": 9,
         "y": 56,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -13910,7 +13910,7 @@
       {
         "x": 9,
         "y": 57,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14152,7 +14152,7 @@
       {
         "x": 9,
         "y": 58,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14394,7 +14394,7 @@
       {
         "x": 9,
         "y": 59,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14636,7 +14636,7 @@
       {
         "x": 9,
         "y": 60,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -14878,7 +14878,7 @@
       {
         "x": 9,
         "y": 61,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15120,7 +15120,7 @@
       {
         "x": 9,
         "y": 62,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15362,7 +15362,7 @@
       {
         "x": 9,
         "y": 63,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15604,7 +15604,7 @@
       {
         "x": 9,
         "y": 64,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -15846,7 +15846,7 @@
       {
         "x": 9,
         "y": 65,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16088,7 +16088,7 @@
       {
         "x": 9,
         "y": 66,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16330,7 +16330,7 @@
       {
         "x": 9,
         "y": 67,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16572,7 +16572,7 @@
       {
         "x": 9,
         "y": 68,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16814,7 +16814,7 @@
       {
         "x": 9,
         "y": 69,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17056,7 +17056,7 @@
       {
         "x": 9,
         "y": 70,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17298,7 +17298,7 @@
       {
         "x": 9,
         "y": 71,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17540,7 +17540,7 @@
       {
         "x": 9,
         "y": 72,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -17782,7 +17782,7 @@
       {
         "x": 9,
         "y": 73,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -18024,7 +18024,7 @@
       {
         "x": 9,
         "y": 74,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -18266,7 +18266,7 @@
       {
         "x": 9,
         "y": 75,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -18508,7 +18508,7 @@
       {
         "x": 9,
         "y": 76,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -18750,7 +18750,7 @@
       {
         "x": 9,
         "y": 77,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -18992,7 +18992,7 @@
       {
         "x": 9,
         "y": 78,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19234,7 +19234,7 @@
       {
         "x": 9,
         "y": 79,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19476,7 +19476,7 @@
       {
         "x": 9,
         "y": 80,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19718,7 +19718,7 @@
       {
         "x": 9,
         "y": 81,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -19960,7 +19960,7 @@
       {
         "x": 9,
         "y": 82,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -20202,7 +20202,7 @@
       {
         "x": 9,
         "y": 83,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -20444,7 +20444,7 @@
       {
         "x": 9,
         "y": 84,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -20686,7 +20686,7 @@
       {
         "x": 9,
         "y": 85,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -20928,7 +20928,7 @@
       {
         "x": 9,
         "y": 86,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -21170,7 +21170,7 @@
       {
         "x": 9,
         "y": 87,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -21412,7 +21412,7 @@
       {
         "x": 9,
         "y": 88,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -21654,7 +21654,7 @@
       {
         "x": 9,
         "y": 89,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -21666,7 +21666,7 @@
       {
         "x": 10,
         "y": 89,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -21896,7 +21896,7 @@
       {
         "x": 9,
         "y": 90,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -21908,7 +21908,7 @@
       {
         "x": 10,
         "y": 90,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -22138,7 +22138,7 @@
       {
         "x": 9,
         "y": 91,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -22150,7 +22150,7 @@
       {
         "x": 10,
         "y": 91,
-        "terrain": "grass",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -22380,7 +22380,7 @@
       {
         "x": 9,
         "y": 92,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -22622,7 +22622,7 @@
       {
         "x": 9,
         "y": 93,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -22864,7 +22864,7 @@
       {
         "x": 9,
         "y": 94,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -23106,7 +23106,7 @@
       {
         "x": 9,
         "y": 95,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -23348,14 +23348,112 @@
       {
         "x": 9,
         "y": 96,
-        "terrain": "garagefloor",
+        "terrain": "sidewalk",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "vehicle.toy_wagon-1785122354576-lbmib",
+            "defId": "vehicle.toy_wagon",
+            "id": "vehicle.toy_wagon",
+            "name": "Toy Wagon",
+            "noLoot": true,
+            "rarity": "uncommon",
+            "imageId": "toywagon",
+            "width": 4,
+            "height": 6,
+            "traits": [
+              "draggable",
+              "groundOnly",
+              "container",
+              "vehicle",
+              "wagon"
+            ],
+            "categories": [
+              "furniture",
+              "vehicle"
+            ],
+            "dragApPenalty": 2,
+            "motorAssistBonus": 1,
+            "terrainModifiers": {
+              "road": -0.5,
+              "sidewalk": -0.5
+            },
+            "renderFullTile": true,
+            "description": "Used to move items",
+            "containerGrid": {
+              "width": 4,
+              "height": 5,
+              "isVehicle": true
+            },
+            "attachmentSlots": [
+              {
+                "id": "motor",
+                "name": "Electric Motor",
+                "allowedItems": [
+                  "electric_motor"
+                ]
+              },
+              {
+                "id": "battery",
+                "name": "Power Cell",
+                "allowedCategories": [
+                  "large_battery"
+                ],
+                "allowedItems": [
+                  "tool.large_battery",
+                  "tool.high_capacity_battery"
+                ]
+              }
+            ],
+            "disassembleData": {
+              "toolId": "weapon.wrench",
+              "apCost": 10,
+              "components": [
+                {
+                  "id": "crafting.wheel",
+                  "count": 4
+                },
+                {
+                  "id": "weapon.metal_rod",
+                  "count": 2
+                },
+                {
+                  "id": "crafting.metal_plate",
+                  "count": 1
+                }
+              ]
+            },
+            "attachments": {
+              "battery": {
+                "instanceId": "tool.large_battery-1785122354576-p0e78",
+                "defId": "tool.large_battery",
+                "id": "tool.large_battery",
+                "name": "Large battery",
+                "rarity": "uncommon",
+                "imageId": "largebattery",
+                "width": 2,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
+                ],
+                "categories": [
+                  "large_battery",
+                  "tool"
+                ],
+                "stackMax": 5,
+                "capacity": 100,
+                "ammoCount": 100
+              }
+            }
+          }
+        ]
       },
       {
         "x": 10,
@@ -23600,7 +23698,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.golf_cart-1785115067811-6otc8",
+            "instanceId": "vehicle.golf_cart-1785122354576-vpiex",
             "defId": "vehicle.golf_cart",
             "id": "vehicle.golf_cart",
             "name": "Golf Cart",
@@ -23623,10 +23721,11 @@
               "vehicle"
             ],
             "dragApPenalty": 3,
-            "motorAssistBonus": 0.5,
+            "motorAssistBonus": 1,
             "rideApBonus": 0.5,
             "powerEfficiency": 0.5,
             "canTow": true,
+            "towApPerMotor": 3,
             "terrainModifiers": {
               "road": -0.5,
               "sidewalk": -0.5
@@ -23701,7 +23800,7 @@
             },
             "attachments": {
               "battery_front": {
-                "instanceId": "tool.large_battery-1785115067811-6zhtu",
+                "instanceId": "tool.large_battery-1785122354576-lq7hx",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -23724,7 +23823,7 @@
             }
           },
           {
-            "instanceId": "tool.large_battery-1785115067811-yxqju",
+            "instanceId": "tool.large_battery-1785122354576-ni4os",
             "defId": "tool.large_battery",
             "id": "tool.large_battery",
             "name": "Large battery",
@@ -23745,7 +23844,7 @@
             "ammoCount": 100
           },
           {
-            "instanceId": "electric_motor-1785115067811-cbkxb",
+            "instanceId": "electric_motor-1785122354576-8f7k0",
             "defId": "electric_motor",
             "id": "electric_motor",
             "name": "Electric motor",
@@ -23760,7 +23859,7 @@
             ]
           },
           {
-            "instanceId": "electric_motor-1785115067811-mxa4q",
+            "instanceId": "electric_motor-1785122354576-5l2n9",
             "defId": "electric_motor",
             "id": "electric_motor",
             "name": "Electric motor",
@@ -23948,7 +24047,132 @@
       "type": "player",
       "x": 9,
       "y": 97,
-      "subtype": null
+      "subtype": null,
+      "inventory": [
+        {
+          "instanceId": "backpack.hiking-1785122354577-3wf7v",
+          "defId": "backpack.hiking",
+          "id": "backpack.hiking",
+          "name": "Hiking Backpack",
+          "rarity": "extremely_rare",
+          "imageId": "hikingBackpack",
+          "width": 5,
+          "height": 5,
+          "traits": [
+            "equippable",
+            "container"
+          ],
+          "categories": [
+            "container"
+          ],
+          "equippableSlot": "backpack",
+          "containerGrid": {
+            "width": 6,
+            "height": 10
+          },
+          "description": "When on the ground, right-click to open"
+        },
+        {
+          "instanceId": "electric_motor-1785122354577-2uyf4",
+          "defId": "electric_motor",
+          "id": "electric_motor",
+          "name": "Electric motor",
+          "noLoot": true,
+          "rarity": "rare",
+          "imageId": "electricmotor",
+          "width": 2,
+          "height": 2,
+          "traits": [],
+          "categories": [
+            "crafting_material"
+          ]
+        },
+        {
+          "instanceId": "electric_motor-1785122354577-egcpa",
+          "defId": "electric_motor",
+          "id": "electric_motor",
+          "name": "Electric motor",
+          "noLoot": true,
+          "rarity": "rare",
+          "imageId": "electricmotor",
+          "width": 2,
+          "height": 2,
+          "traits": [],
+          "categories": [
+            "crafting_material"
+          ]
+        },
+        {
+          "instanceId": "tool.high_capacity_battery-1785122354577-9c6nn",
+          "defId": "tool.high_capacity_battery",
+          "id": "tool.high_capacity_battery",
+          "name": "High-capacity battery",
+          "rarity": "extremely_rare",
+          "imageId": "largebattery",
+          "width": 2,
+          "height": 1,
+          "traits": [
+            "stackable",
+            "battery"
+          ],
+          "categories": [
+            "large_battery",
+            "tool"
+          ],
+          "stackMax": 5,
+          "capacity": 400,
+          "ammoCount": 400,
+          "backgroundColor": "#1E1B4B",
+          "borderColor": "#818CF8"
+        },
+        {
+          "instanceId": "tool.high_capacity_battery-1785122354577-wqg94",
+          "defId": "tool.high_capacity_battery",
+          "id": "tool.high_capacity_battery",
+          "name": "High-capacity battery",
+          "rarity": "extremely_rare",
+          "imageId": "largebattery",
+          "width": 2,
+          "height": 1,
+          "traits": [
+            "stackable",
+            "battery"
+          ],
+          "categories": [
+            "large_battery",
+            "tool"
+          ],
+          "stackMax": 5,
+          "capacity": 400,
+          "ammoCount": 400,
+          "backgroundColor": "#1E1B4B",
+          "borderColor": "#818CF8"
+        },
+        {
+          "instanceId": "tool.high_capacity_battery-1785122354577-22t7h",
+          "defId": "tool.high_capacity_battery",
+          "id": "tool.high_capacity_battery",
+          "name": "High-capacity battery",
+          "rarity": "extremely_rare",
+          "imageId": "largebattery",
+          "width": 2,
+          "height": 1,
+          "traits": [
+            "stackable",
+            "battery"
+          ],
+          "categories": [
+            "large_battery",
+            "tool"
+          ],
+          "stackMax": 5,
+          "capacity": 400,
+          "ammoCount": 400,
+          "backgroundColor": "#1E1B4B",
+          "borderColor": "#818CF8"
+        }
+      ],
+      "equippedIndex": 0
     }
   ],
   "eventTriggers": [

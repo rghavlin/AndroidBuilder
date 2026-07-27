@@ -26,11 +26,17 @@ import { Pathfinding } from '../../client/src/game/utils/Pathfinding.js';
 /**
  * Real player movement cost (one-way) from (fromX,fromY) to (toX,toY), using the
  * actual pathfinder + cost function the game uses for click-to-walk.
+ *
+ * `sprintBonus: false` models moving while riding or hauling — GameMapContext
+ * suppresses the bulk discount whenever a vehicle is active.
  */
-export function walkCost(h, fromX, fromY, toX, toY) {
+export function walkCost(h, fromX, fromY, toX, toY, { sprintBonus = true } = {}) {
   const path = Pathfinding.findPath(h.gameMap, fromX, fromY, toX, toY, { allowDiagonal: true, entity: h.player });
   if (!path || path.length === 0) return null;
-  return { cost: Pathfinding.calculateMovementCost(h.gameMap, path, h.player), tiles: path.length - 1 };
+  return {
+    cost: Pathfinding.calculateMovementCost(h.gameMap, path, h.player, { sprintBonus }),
+    tiles: path.length - 1,
+  };
 }
 
 /**

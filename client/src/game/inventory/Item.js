@@ -261,7 +261,11 @@ export class Item extends SafeEventEmitter {
       if (def.containerGrid && !this._containerGridData) this._containerGridData = def.containerGrid;
       if (def.consumptionSound && !this.consumptionSound) this.consumptionSound = def.consumptionSound;
       if (def.renderFullTile && this.renderFullTile === null) this.renderFullTile = def.renderFullTile;
-      if (def.dragApPenalty !== undefined && this.dragApPenalty === undefined) this.dragApPenalty = def.dragApPenalty;
+      // Def wins unconditionally, like every other vehicle tuning value below
+      // (motorAssistBonus, rideApBonus, terrainModifiers, ...). dragApPenalty is
+      // balance data, not instance state, but it IS serialized — so guarding this
+      // on `undefined` meant a rebalance silently skipped every existing save.
+      if (def.dragApPenalty !== undefined) this.dragApPenalty = def.dragApPenalty;
       if (def.noDrag !== undefined) this.noDrag = def.noDrag;
       this.noPickup = def.noPickup;
       if (def.isLocked !== undefined && this.isLocked === undefined) this.isLocked = def.isLocked;
@@ -271,6 +275,7 @@ export class Item extends SafeEventEmitter {
       if (def.motorAssistBonus !== undefined) this.motorAssistBonus = def.motorAssistBonus;
       if (def.powerEfficiency !== undefined) this.powerEfficiency = def.powerEfficiency;
       if (def.canTow !== undefined) this.canTow = def.canTow;
+      if (def.towApPerMotor !== undefined) this.towApPerMotor = def.towApPerMotor;
 
       // Pre-equip attachments declared on the def (e.g. a golf cart spawning with its
       // motors and batteries already installed). Only applies when nothing was
@@ -442,7 +447,7 @@ export class Item extends SafeEventEmitter {
     if (!this.hasTrait(ItemTrait.WAGON) || !this.attachments) return 0;
     
     let totalBonus = 0;
-    const assistValue = this.motorAssistBonus || 0.5;
+    const assistValue = this.motorAssistBonus || 1;
 
     // Define potential slot pairs for motorized assistance
     const slotPairs = [
@@ -465,9 +470,10 @@ export class Item extends SafeEventEmitter {
 
   /**
    * AP of drag reduction this tow-cart contributes to a hitched wagon while towing.
-   * 1 AP per active (motor + charged battery) pair by default, so a golf cart with
-   * two powered motors reduces the towed wagon's drag penalty by 2 AP. Configurable
-   * per def via `towApPerMotor`.
+   * Configurable per def via `towApPerMotor` (the golf cart declares 3, so its two
+   * powered motors cancel 6 AP — enough to haul a fully-motorized Cargo Wagon).
+   * Tow assist replaces the player's Strength bonus rather than stacking with it;
+   * see VehicleUtils.getStepDragPenalty.
    */
   getTowBonus() {
     if (!this.canTow || !this.attachments) return 0;

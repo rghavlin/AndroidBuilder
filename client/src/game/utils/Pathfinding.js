@@ -230,8 +230,16 @@ export class Pathfinding {
     return [];
   }
 
-  static calculateMovementCost(gameMap, path, entity = null) {
+  /**
+   * @param {Object} [costOptions] - { sprintBonus = true }. The sprint discount
+   *   models building up a run, so callers suppress it whenever the player is
+   *   riding or pulling something: electric vehicles have no run-up and a loaded
+   *   wagon never sprints. Keeping it on foot is what makes unassisted movement
+   *   average slightly under the flat 1 AP/tile baseline on long treks.
+   */
+  static calculateMovementCost(gameMap, path, entity = null, costOptions = {}) {
     if (!path || path.length <= 1) return 0;
+    const sprintBonus = costOptions.sprintBonus !== false;
     let baseCost = 0;
     const options = {
       entity,
@@ -246,7 +254,7 @@ export class Pathfinding {
         baseCost += cost;
     }
     const numTiles = path.length - 1;
-    const bonus = Math.floor(numTiles / 5) * 0.5;
+    const bonus = sprintBonus ? Math.floor(numTiles / 5) * 0.5 : 0;
     return Math.max(0.1, baseCost - bonus);
   }
 

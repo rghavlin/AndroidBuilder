@@ -11,6 +11,7 @@ import { Wrench, Zap, Power, Battery } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipPortal } from "@/components/ui/tooltip";
 import { ItemTrait } from '../../game/inventory/traits.js';
 import { TURRET_DEF_ID } from '../../game/ai/TurretCombat.js';
+import { VehicleUtils } from '../../game/utils/VehicleUtils.js';
 
 interface FloatingContainerOverlayProps {
   item: any;
@@ -166,9 +167,15 @@ export default function FloatingContainerOverlay({
   const motorBonus = item.getMotorizedBonus?.() || 0;
   const isMotorized = motorBonus > 0;
 
-  // Calculate current AP penalty for tooltip
-  const basePenalty = item.dragApPenalty || 2;
-  const currentPenalty = Math.max(0, basePenalty - motorBonus);
+  // Current AP penalty for the tooltip. Routed through the same helper the real
+  // movement cost uses, so this can't drift from the number on the map cursor.
+  const playerStrength = engine?.player?.currentStrength ?? 20;
+  const strengthAssist = VehicleUtils.strengthDragBonus(playerStrength);
+  const currentPenalty = VehicleUtils.getStepDragPenalty(item, {
+    playerStrength,
+    riddenItemId: ridingItem?.instanceId ?? null,
+    itemArray: groundItems
+  });
 
   return (
     <div 
@@ -235,6 +242,11 @@ export default function FloatingContainerOverlay({
                       <div className="text-[8px] text-blue-400 font-bold uppercase mt-1 flex items-center gap-1">
                         <Zap className="h-2 w-2" />
                         Motorized Assist Active (-{motorBonus.toFixed(1)} AP)
+                      </div>
+                    )}
+                    {strengthAssist > 0 && (
+                      <div className="text-[8px] text-orange-400 font-bold uppercase mt-1">
+                        Strength Assist (-{strengthAssist.toFixed(1)} AP)
                       </div>
                     )}
                     {isHitchTarget && (

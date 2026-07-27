@@ -8,6 +8,7 @@ import { CombatResolver } from '@/game/systems/CombatResolver';
 import { AttributeProgressionManager } from '@/game/systems/AttributeProgressionManager';
 import { PlayerSkills } from '@/game/components/PlayerSkills';
 import { previewDerivedStats, TREATMENT_EFFECTS } from '@/game/utils/SurvivalCascade';
+import { VehicleUtils } from '@/game/utils/VehicleUtils';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 
 
@@ -272,7 +273,7 @@ export default function PlayerSkillsUI() {
 
         const meleeDamageBonus = Math.round(CombatResolver.strengthDamageBonus(currentStrength));
         const armorPenalty = CombatResolver.armorWeightPenalty(currentStrength, playerStats.armorWeightRequirement || 0);
-        const wagonPullBonus = Math.floor(currentStrength / 20);
+        const wagonPullBonus = VehicleUtils.strengthDragBonus(currentStrength);
         const defenseChance = Math.round(CombatResolver.totalDefenseChance({
             defenseLvl: playerStats.defenseLvl || 0,
             currentAgility,
@@ -399,7 +400,7 @@ export default function PlayerSkillsUI() {
                             base={attributes.strength.base}
                             effects={[
                                 `Melee damage +${attributes.strength.meleeDamageBonus}`,
-                                `Wagon-pull AP bonus: +${attributes.strength.wagonPullBonus} AP`,
+                                `Wagon-pull AP bonus: +${attributes.strength.wagonPullBonus.toFixed(1)} AP`,
                                 ...attributes.strength.infectionEffects
                             ]}
                             totalXP={attributes.strength.totalXP}

@@ -3,8 +3,8 @@
 //      Agility/Perception/Constitution down from their BASE values.
 //   2. deriveSecondaryStats — maxHp and maxAp are DERIVED from those current
 //      attributes (never hand-set). maxHp from Constitution, maxAp from Agility+
-//      Perception. Energy only affects maxAp indirectly, via its share of the
-//      cascade's blended deficit pulling Agility/Perception down.
+//      Perception, then capped directly by energy (see applyEnergyApCap) on top of
+//      the indirect hit energy already takes via the cascade's blended deficit.
 // recalcCharacter runs both in order. Shared by GameContext's per-turn processing,
 // SleepContext's per-hour sleep loop, and EntityFactory at player creation, so all
 // three use the exact same formulas.
@@ -23,6 +23,25 @@ const AP_BASE = 10;    // max AP before attribute bonus
 // bump HP_PER_CON for a beefier health pool, AP_ATTR_DIVISOR down for more actions.
 const HP_PER_CON = 0.4;     // max HP gained per point of current Constitution
 const AP_ATTR_DIVISOR = 5;  // (Agility + Perception) / this = flat max-AP bonus
+
+// Direct exhaustion brake on max AP. The survival cascade only pulls energy through a
+// blended three-need average, so a player at 0 energy could still act nearly at full
+// tilt. This is a hard ceiling on top of the attribute formula: max AP can never exceed
+// energy * AP_PER_ENERGY, never drops below AP_ENERGY_FLOOR. With typical attributes
+// (max AP ~18) the cap is slack down to about 5 energy, then bites hard.
+export const AP_PER_ENERGY = 4;
+export const AP_ENERGY_FLOOR = 3;
+
+/**
+ * Applies the energy ceiling to an attribute-derived max AP.
+ * @param {number} maxAp Attribute-derived max AP (AP_BASE + attribute bonus).
+ * @param {number} energy Current energy. Non-finite/absent energy leaves maxAp untouched.
+ */
+export function applyEnergyApCap(maxAp, energy) {
+  if (!Number.isFinite(energy)) return maxAp;
+  const cap = Math.max(AP_ENERGY_FLOOR, Math.floor(Math.max(0, energy) * AP_PER_ENERGY));
+  return Math.min(maxAp, cap);
+}
 
 // Single source of truth for the attribute → vitals formulas. deriveSecondaryStats
 // (live gameplay) and previewDerivedStats (char-creation UI) both route through these
@@ -277,7 +296,7 @@ export function deriveSecondaryStats(player) {
   const apAttrBonus = maxApBonusFromAttributes(player.currentAgility, player.currentPerception);
   // R37#2: no AP_FLOOR max() — apAttrBonus is always >= 0, so AP_BASE + bonus
   // can never fall below the old floor of 5; this now matches deriveSecondaryStats.
-  const newMaxAp = AP_BASE + apAttrBonus;
+  const newMaxAp = applyEnergyApCap(AP_BASE + apAttrBonus, player.energy);
   player.maxAp = newMaxAp;
   if (newMaxAp !== oldMaxAp) {
     player.ap = Math.max(0, Math.min(newMaxAp, player.ap + (newMaxAp - oldMaxAp)));
@@ -360,8 +379,10 @@ export function rollWoundInfectionCure(player, { asleep = false, logCallback = n
 /**
  * Shared helper to calculate derived max HP and max AP from base attributes (used for UI previews).
  */
-export function previewDerivedStats({ constitution, agility, perception }) {
+export function previewDerivedStats({ constitution, agility, perception, energy }) {
   const maxHp = maxHpFromAttributes(constitution);
-  const maxAp = AP_BASE + maxApBonusFromAttributes(agility, perception);
+  // energy is optional: character creation previews a rested character, so an absent
+  // energy means "no exhaustion cap". Callers previewing a live player should pass it.
+  const maxAp = applyEnergyApCap(AP_BASE + maxApBonusFromAttributes(agility, perception), energy);
   return { maxHp, maxAp };
 }

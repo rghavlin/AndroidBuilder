@@ -79,8 +79,8 @@ export const ItemDefs = {
     height: 6,
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE, ItemTrait.WAGON],
     categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
-    dragApPenalty: 2.5,
-    motorAssistBonus: 0.5,
+    dragApPenalty: 2,          // +2 AP/tile at any Strength; zeroed at Str 40, or Str 20 with its motor
+    motorAssistBonus: 1,
     terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
     description: 'Used to move items',
@@ -109,8 +109,8 @@ export const ItemDefs = {
     height: 8,
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE, ItemTrait.WAGON],
     categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
-    dragApPenalty: 5,
-    motorAssistBonus: 0.5,
+    dragApPenalty: 5,          // Zeroed at Str 100, or Str 60 with both motors
+    motorAssistBonus: 1,
     terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
     description: 'For moving items',
@@ -143,8 +143,8 @@ export const ItemDefs = {
     height: 10,
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE, ItemTrait.WAGON],
     categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
-    dragApPenalty: 10,
-    motorAssistBonus: 0.5,
+    dragApPenalty: 8,          // Exceeds the Str-100 cap of 5, so all three motors stay mandatory; zeroed only at Str 100 fully motorized
+    motorAssistBonus: 1,
     terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
     description: 'For moving items',
@@ -208,10 +208,11 @@ export const ItemDefs = {
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.VEHICLE, ItemTrait.WAGON, ItemTrait.SCOOTER],
     categories: [ItemCategory.FURNITURE, ItemCategory.VEHICLE],
     dragApPenalty: 3,          // Pull mode (no rider): base penalty before motor assist
-    motorAssistBonus: 0.5,     // Pull mode: AP assist per active motor/battery pair
+    motorAssistBonus: 1,       // Pull mode: AP assist per active motor/battery pair
     rideApBonus: 0.5,          // Ride mode: -0.5 AP per tile, same as Electric Scooter
     powerEfficiency: 0.5,      // Ride mode: half the battery drain per tile of a scooter
     canTow: true,              // Can hitch a wagon to trail behind it
+    towApPerMotor: 3,          // Tow assist per active motor pair: 2 motors = 6 AP, enough to haul a fully-motorized Cargo Wagon at ride speed
     terrainModifiers: { road: -0.5, sidewalk: -0.5 },
     renderFullTile: true,
     containerGrid: { width: 5, height: 3, isVehicle: true },

@@ -6,6 +6,7 @@ import { useGame } from '../../contexts/GameContext.jsx';
 import { useSleep } from '../../contexts/SleepContext.jsx';
 import { useAction } from '../../contexts/ActionContext.jsx';
 import engine from '../../game/GameEngine.js';
+import { VehicleUtils } from '../../game/utils/VehicleUtils.js';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -392,15 +393,24 @@ export function ItemContextMenu({
                                 // Only show Drag if it's on the ground
                                 // ItemContextMenu items usually have 'originContainerId' if provided by UniversalGrid
                                 // but we can check the engine's inventoryManager.groundContainer
-                                const onGround = engine.inventoryManager.groundContainer.getAllItems().some((it: any) => it.instanceId === item.instanceId);
+                                const groundItems = engine.inventoryManager.groundContainer.getAllItems();
+                                const onGround = groundItems.some((it: any) => it.instanceId === item.instanceId);
                                 if (!onGround) return null;
+
+                                // Effective penalty (after motors, Strength and tow assist), not the
+                                // raw def value — this has to match the map cursor and the wagon tooltip.
+                                const dragPenalty = VehicleUtils.getStepDragPenalty(item, {
+                                    playerStrength: engine.player?.currentStrength ?? 20,
+                                    riddenItemId: engine.riding?.item?.instanceId ?? null,
+                                    itemArray: groundItems
+                                });
 
                                 return (
                                     <ContextMenuItem
                                         onClick={() => startDrag(item)}
                                         className="hover:bg-accent focus:bg-accent focus:text-white"
                                     >
-                                        Drag ({item.dragApPenalty || 2} AP move penalty)
+                                        Drag ({dragPenalty.toFixed(1)} AP move penalty)
                                     </ContextMenuItem>
                                 );
                             }

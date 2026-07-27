@@ -417,22 +417,28 @@ export const PlayerProvider = ({ children }) => {
     
     // Attribute XP Hooks: Wagon Pulling and Sprint Bonus
     try {
-      const baseCostWithBonus = Pathfinding.calculateMovementCost(gameMap, path);
       const activeItems = [engine.dragging?.item, engine.riding?.item].filter(Boolean);
-      
-      // If we are dragging something, the extra AP spent is the difference between total cost and base cost
+      const sprinting = activeItems.length === 0;
+
+      // If we are dragging something, the extra AP spent is the difference between
+      // total cost and base cost. The baseline must be computed with the same
+      // sprint gate the real cost used, or the suppressed discount gets miscounted
+      // as drag effort and inflates Strength XP on every long haul.
       if (activeItems.length > 0) {
-        const dragPenalty = cost - baseCostWithBonus;
+        const baseCost = Pathfinding.calculateMovementCost(gameMap, path, null, { sprintBonus: false });
+        const dragPenalty = cost - baseCost;
         if (dragPenalty > 0) {
           AttributeProgressionManager.recordAction(engine.player, 'PULL_WAGON', { apSpent: dragPenalty });
         }
       }
 
-      // Calculate Sprint Bonus (fractional discount from Pathfinding.js)
-      const numTiles = path.length - 1;
-      const sprintBonus = Math.floor(numTiles / 5) * 0.5;
-      if (sprintBonus > 0) {
-        AttributeProgressionManager.recordAction(engine.player, 'SPRINT_BONUS', { apSaved: sprintBonus });
+      // Sprint Bonus (fractional discount from Pathfinding.js) — on foot only.
+      if (sprinting) {
+        const numTiles = path.length - 1;
+        const sprintBonus = Math.floor(numTiles / 5) * 0.5;
+        if (sprintBonus > 0) {
+          AttributeProgressionManager.recordAction(engine.player, 'SPRINT_BONUS', { apSaved: sprintBonus });
+        }
       }
     } catch (err) {
       console.error('[PlayerContext] Error calculating movement XP:', err);

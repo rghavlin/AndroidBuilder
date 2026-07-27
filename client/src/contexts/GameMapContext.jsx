@@ -106,10 +106,14 @@ export const GameMapProvider = ({ children }) => {
 
       if (path.length === 0) return;
 
-      let movementCost = Pathfinding.calculateMovementCost(engine.gameMap, path);
-      
       // Phase 25: Drag AP Penalty (Consolidated via VehicleUtils)
       const activeItems = [engine.dragging?.item, engine.riding?.item].filter(Boolean);
+
+      // No sprint discount while riding or hauling — see Pathfinding.calculateMovementCost.
+      let movementCost = Pathfinding.calculateMovementCost(engine.gameMap, path, null, {
+        sprintBonus: activeItems.length === 0
+      });
+
       if (activeItems.length > 0 && path.length > 1) {
         movementCost = VehicleUtils.calculateDragCost(activeItems, path, engine.gameMap, movementCost, {
           playerStrength: player?.currentStrength ?? 20,
@@ -165,10 +169,15 @@ export const GameMapProvider = ({ children }) => {
       const hasPath = path.length > 0 || (player.x === x && player.y === y);
       const isPossible = isWalkable && hasPath;
 
-      let apCost = path.length === 0 ? Math.abs(x - player.x) + Math.abs(y - player.y) : Pathfinding.calculateMovementCost(engine.gameMap, path);
-      
       // Phase 25: Drag AP Penalty Preview (Consolidated via VehicleUtils)
       const activeHoverItems = [engine.dragging?.item, engine.riding?.item].filter(Boolean);
+
+      let apCost = path.length === 0
+        ? Math.abs(x - player.x) + Math.abs(y - player.y)
+        : Pathfinding.calculateMovementCost(engine.gameMap, path, null, {
+            sprintBonus: activeHoverItems.length === 0
+          });
+
       if (activeHoverItems.length > 0 && path.length > 1) {
         apCost = VehicleUtils.calculateDragCost(activeHoverItems, path, engine.gameMap, apCost, {
           playerStrength: player?.currentStrength ?? 20,
