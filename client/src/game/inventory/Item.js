@@ -95,7 +95,9 @@ export class Item extends SafeEventEmitter {
       transitionTargetId = undefined,
       transitionTargetX = undefined,
       transitionTargetY = undefined,
-      eventId = undefined
+      eventId = undefined,
+      groundPriority = undefined,
+      isEventMarker = undefined
     } = config;
     super(); // Initialize EventEmitter
     // Core identity - MUST be unique per item instance
@@ -189,8 +191,17 @@ export class Item extends SafeEventEmitter {
     this.transitionTargetX = transitionTargetX;
     this.transitionTargetY = transitionTargetY;
     // Authored event id this item fires when clicked in the ground container
-    // (placeable.help "?" tutorial item — see UniversalGrid/GameContext.fireHelpEvent).
+    // (the placeable.help "?" item, and every event appearance — see
+    // UniversalGrid/GameContext.fireItemEvent).
     this.eventId = eventId;
+    // Interactive world markers (help "?", switches) must stay reachable and
+    // visible: they pin to the front of the ground container (Container/
+    // GroundManager) and win the one-icon-per-tile contest (EntityRenderer).
+    this.groundPriority = groundPriority;
+    // Spawned/removed by EventMarkers.syncEventMarkers rather than authored or
+    // looted. Reconciliation owns these outright, so it must be able to tell
+    // them apart from an author-placed item that happens to share a defId.
+    this.isEventMarker = isEventMarker;
 
     // Container properties (single container for backpacks, etc.)
     this._containerGridData = _containerGridData || containerGrid;
@@ -1669,7 +1680,8 @@ export class Item extends SafeEventEmitter {
     'backgroundColor', 'borderColor', 'isOn', 'providesElectricity', 'fireMode',
     'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit', 'isLocked',
     'zombieSubtype', 'earbucksValue', 'brainstemColors',
-    'transitionTargetId', 'transitionTargetX', 'transitionTargetY', 'eventId'
+    'transitionTargetId', 'transitionTargetX', 'transitionTargetY', 'eventId',
+    'groundPriority', 'isEventMarker'
   ];
 
   // Serialization

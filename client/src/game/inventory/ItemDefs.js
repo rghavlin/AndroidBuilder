@@ -2607,7 +2607,36 @@ export const ItemDefs = {
     height: 1,
     noDrag: true,
     traits: [ItemTrait.GROUND_ONLY],
-    noLoot: true
+    noLoot: true,
+    groundPriority: true
+  },
+  // Authored on/off switch. Placed by the map editor as an *event appearance*
+  // (GameEvent.appearance) rather than by hand: two events on one tile with
+  // opposite flag preconditions each name one of these, so exactly one exists at
+  // a time and clicking it runs that event. See EventMarkers.js.
+  'placeable.switch_off': {
+    id: 'placeable.switch_off',
+    name: 'Switch (Off)',
+    rarity: Rarity.COMMON,
+    imageId: 'switchoff',
+    width: 1,
+    height: 1,
+    noDrag: true,
+    traits: [ItemTrait.GROUND_ONLY],
+    noLoot: true,
+    groundPriority: true
+  },
+  'placeable.switch_on': {
+    id: 'placeable.switch_on',
+    name: 'Switch (On)',
+    rarity: Rarity.COMMON,
+    imageId: 'switchon',
+    width: 1,
+    height: 1,
+    noDrag: true,
+    traits: [ItemTrait.GROUND_ONLY],
+    noLoot: true,
+    groundPriority: true
   },
   'book.life_in_motion': {
     id: 'book.life_in_motion',

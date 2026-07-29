@@ -31,6 +31,19 @@ export interface Placement {
 export type TriggerType = 'onEnter' | 'onInteract' | 'auto' | 'parallel';
 export type RepeatMode = 'once' | 'everyTime' | 'whileConditions' | 'oncePerTurn';
 
+// What the event looks like on the map while it is active. This is our
+// equivalent of an RPG Maker event page's *graphic*: since we use flat
+// first-eligible-wins events rather than pages (QUEST_SYSTEM_PLAN §10 decision
+// 2), the sprite belongs to the event, and its presence is recomputed from the
+// event's own preconditions by EventMarkers.syncEventMarkers().
+//
+// Authoring an on/off switch is therefore two events on one tile with opposite
+// flag preconditions and opposite appearances — exactly one is ever eligible,
+// so exactly one sprite ever exists.
+export interface EventAppearance {
+  defId: string; // item def spawned at placement.{x,y} while the event is active
+}
+
 export type StepType =
   | 'dialog' | 'speech' | 'give' | 'setFlag' | 'setVar'
   | 'lockMovement' | 'unlockMovement' | 'lockActions' | 'unlockActions'
@@ -98,6 +111,8 @@ export interface GameEvent {
   endWhen?: Condition[];
   repeat: RepeatMode;
   steps: EventStep[];
+  // Only honoured for placement.kind === 'tile'.
+  appearance?: EventAppearance;
 }
 
 export function emptyEvent(id: string): GameEvent {

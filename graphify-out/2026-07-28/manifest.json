@@ -2745,8 +2745,8 @@
     "semantic_hash": ""
   },
   "client/src/components/MapEditor/EventWindow.tsx": {
-    "mtime": 1785282860.4772818,
-    "ast_hash": "7b3799a5105cba502ded3933be5c6e3d",
+    "mtime": 1785281857.985102,
+    "ast_hash": "7db3fba23288413daa2c86b4fc10702d",
     "semantic_hash": ""
   },
   "client/src/game/quest/eventTypes.ts": {
@@ -2755,8 +2755,8 @@
     "semantic_hash": ""
   },
   "client/src/game/quest/EventRunner.js": {
-    "mtime": 1785282854.4946961,
-    "ast_hash": "a229e8d431c5762d9824b0cbbe6323d5",
+    "mtime": 1785202595.953399,
+    "ast_hash": "80bea9124f3dc753e6c833e6f01c6e3a",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p3.mjs": {
@@ -3239,6 +3239,16 @@
     "ast_hash": "d1c74786bfadf411f2df9ac59f86fa4b",
     "semantic_hash": ""
   },
+  "customMaps/lightTest.editor.json": {
+    "mtime": 1785138057.660736,
+    "ast_hash": "9da854139b43b41713c07fb61f6e3812",
+    "semantic_hash": ""
+  },
+  "customMaps/lightTest.scenario.json": {
+    "mtime": 1785138058.6440575,
+    "ast_hash": "a39b686df1c30fb06a1af9e02e369b39",
+    "semantic_hash": ""
+  },
   "test/quest/activateEvent.test.js": {
     "mtime": 1785139186.795361,
     "ast_hash": "ff9412ef1261699a82b8cd5a12cb535f",
@@ -3272,21 +3282,6 @@
   "test/quest/eventMarkersIntegration.test.js": {
     "mtime": 1785281797.478998,
     "ast_hash": "a9375e92b3650925ae118b3c77ca9530",
-    "semantic_hash": ""
-  },
-  "customMaps/lightTest2.editor.json": {
-    "mtime": 1785282392.5147092,
-    "ast_hash": "07822cca1031e3e9b8599c0650899a5d",
-    "semantic_hash": ""
-  },
-  "customMaps/lightTest2.scenario.json": {
-    "mtime": 1785282393.414002,
-    "ast_hash": "0954b279f6baab212d5bfd43e068cc5e",
-    "semantic_hash": ""
-  },
-  "test/quest/markerInteraction.test.js": {
-    "mtime": 1785283379.3634436,
-    "ast_hash": "04b75d9577ff9b4b5d20f28139df7a8e",
     "semantic_hash": ""
   }
 }

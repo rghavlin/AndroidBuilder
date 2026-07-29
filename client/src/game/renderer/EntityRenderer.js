@@ -118,9 +118,14 @@ function getPoweredTurretForEntity(entity) {
 // Ground-pile icon priority. A tile may hold many items, but it renders as a
 // single icon — the "dominant" item. We pick by category tier first (lower
 // rank = shown on top), then by footprint area within a tier. Tiers below mirror
-// the design: vehicles > backpacks > food > guns > medical > containers >
-// lighters/matches > (everything else, by size).
+// the design: interactive markers > vehicles > backpacks > food > guns > medical
+// > containers > lighters/matches > (everything else, by size).
 const TILE_ICON_RANK = {
+  // Interactive world markers (help "?", authored event switches) outrank
+  // everything: they exist to be seen and clicked, and they're 1x1, so without
+  // a tier of their own any dropped can of food would win the tile and hide
+  // them. See Item.groundPriority / EventMarkers.js.
+  INTERACTIVE: -1,
   VEHICLE: 0,
   BACKPACK: 1,
   FOOD: 2,
@@ -141,17 +146,21 @@ function resolveItemMeta(item) {
   const traits = item.traits || def.traits || [];
   const categories = item.categories || def.categories || [];
   const equippableSlot = item.equippableSlot || def.equippableSlot;
-  return { defId, def, traits, categories, equippableSlot };
+  // Ground-pile entries are often plain data rather than Item instances, so fall
+  // back to the definition the same way traits/categories do.
+  const groundPriority = item.groundPriority ?? def.groundPriority;
+  return { defId, def, traits, categories, equippableSlot, groundPriority };
 }
 
 /**
  * Priority tier for a single item's ground-pile icon. Lower = higher priority.
  */
 function getTileIconRank(item) {
-  const { defId, traits, categories, equippableSlot } = resolveItemMeta(item);
+  const { defId, traits, categories, equippableSlot, groundPriority } = resolveItemMeta(item);
   const hasTrait = (t) => traits.includes(t);
   const hasCategory = (c) => categories.includes(c);
 
+  if (groundPriority) return TILE_ICON_RANK.INTERACTIVE;
   if (hasTrait(ItemTrait.VEHICLE) || hasTrait(ItemTrait.WAGON) ||
       hasTrait(ItemTrait.SCOOTER) || hasCategory(ItemCategory.VEHICLE)) {
     return TILE_ICON_RANK.VEHICLE;
@@ -171,10 +180,11 @@ function getTileIconRank(item) {
 
 /**
  * The dominant item among items sharing a ground tile, used to decide which item
- * a ground pile renders as. Selection is by category priority (vehicles >
- * backpacks > food > guns > medical > containers > lighters/matches), and within
- * a tier by footprint area (largest wins). Width/height fall back to the item
- * definition, then to 1. Returns null for an empty/missing list.
+ * a ground pile renders as. Selection is by category priority (interactive
+ * markers > vehicles > backpacks > food > guns > medical > containers >
+ * lighters/matches), and within a tier by footprint area (largest wins).
+ * Width/height fall back to the item definition, then to 1. Returns null for an
+ * empty/missing list.
  */
 export function getDominantItemInTile(tileItems) {
   if (!tileItems || tileItems.length === 0) return null;

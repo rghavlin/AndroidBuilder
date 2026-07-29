@@ -1,7 +1,8 @@
 import engine from '../GameEngine.js';
 import { resolveMapEvents } from './migrateEvents.js';
 import { applyItemGrants } from '../utils/applyItemGrants.js';
-import { evalAll } from './conditions.js';
+import { evalAll, isEventActive } from './conditions.js';
+import { syncEventMarkers, purgeOrphanMarkers } from './EventMarkers.js';
 import { interpolateText } from './interpolate.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import { FactionRegistry } from '../ai/FactionRegistry.js';
@@ -82,6 +83,7 @@ class EventRunner {
       this._subscribe();
       this.recheckLocks();
       this.checkAutoEvents();
+      this.syncMarkers();
     });
   }
 
@@ -128,6 +130,27 @@ class EventRunner {
     }
     this.recheckLocks();
     this.checkAutoEvents();
+    this.syncMarkers();
+  }
+
+  /**
+   * Bring authored event appearances (GameEvent.appearance) on the map in line
+   * with which events are currently active — this is what makes a switch flip
+   * its sprite. Runs on the same reactive pulse as auto events; see
+   * EventMarkers.js.
+   */
+  syncMarkers() {
+    syncEventMarkers(this);
+  }
+
+  /**
+   * Call once when a map becomes current, before the first syncMarkers(): drops
+   * markers left in a save by events that no longer exist. See
+   * EventMarkers.purgeOrphanMarkers.
+   */
+  onMapLoaded() {
+    purgeOrphanMarkers();
+    this.syncMarkers();
   }
 
   /** Call on new game / map load to forget prior "once" firings and any in-flight run. */
@@ -243,22 +266,32 @@ class EventRunner {
    */
   _isEligible(ev, ctx) {
     if (!ev || !ev.steps || ev.steps.length === 0) return false;
-    if (ev.repeat === 'once' && this.firedOnce.has(ev.id)) return false;
     if (ev.repeat === 'oncePerTurn' && this.lastFiredTurn.get(ev.id) === engine.turn) return false;
-    if (this.autoResolved.has(ev.id)) return false;
-    if (ev.endWhen && ev.endWhen.length > 0 && evalAll(ev.endWhen, ctx)) {
+    // Firing is the one path allowed to latch endWhen permanently; isEventActive
+    // only reads it. Latch first so the set stays authoritative for later checks.
+    if (!this.autoResolved.has(ev.id) &&
+        ev.endWhen && ev.endWhen.length > 0 && evalAll(ev.endWhen, ctx)) {
       this.autoResolved.add(ev.id);
       return false;
     }
-    return evalAll(ev.preconditions, ctx);
+    return isEventActive(ev, ctx, this);
   }
 
-  /** First eligible event of `trigger` whose placement matches (x, y), author order = priority. */
-  _findEventAt(x, y, trigger) {
+  /**
+   * First eligible event of `trigger` whose placement matches (x, y), author
+   * order = priority.
+   *
+   * @param {(ev: object) => boolean} [filter] - extra predicate applied *before*
+   *   the eligibility check, so a rejected event is skipped entirely rather than
+   *   having its endWhen latched by a check that was never going to fire it, and
+   *   so a later matching event on the same tile still gets its turn.
+   */
+  _findEventAt(x, y, trigger, filter = null) {
     const events = resolveMapEvents(engine.gameMap?.metadata);
     const ctx = this._ctx();
     for (const ev of events) {
       if (!ev || ev.trigger !== trigger) continue;
+      if (filter && !filter(ev)) continue;
       if (!this._isEligible(ev, ctx)) continue;
       const p = ev.placement;
       if (!p) continue;
@@ -336,10 +369,19 @@ class EventRunner {
    * the first eligible onInteract event placed there, if any — e.g. clicking an
    * NPC to replay its instructions. Returns true if the click was consumed
    * (an event fired), so the caller can skip its move-to-tile fallback.
+   *
+   * **Events with a map appearance are deliberately excluded.** Such an event
+   * puts a real item on the tile, and that item is its interaction surface: the
+   * player walks onto the tile and clicks it in the ground panel (UniversalGrid
+   * -> GameContext.fireItemEvent). Letting a tile click fire them too would make
+   * the switch unreachable — MapInterface consumes the click whenever the player
+   * is on *or adjacent to* the tile, so clicking a switch to walk the last step
+   * onto it would trigger the event instead of moving, and the player could
+   * never actually stand on it. Events without an appearance are unaffected.
    */
   checkAndFireOnInteract(x, y) {
     if (this.activeRun) return false;
-    const ev = this._findEventAt(x, y, 'onInteract');
+    const ev = this._findEventAt(x, y, 'onInteract', e => !e.appearance?.defId);
     if (!ev) return false;
     this.runEvent(ev);
     return true;
@@ -377,9 +419,22 @@ class EventRunner {
    * run in full every time, as authored.
    *
    * @param {object} event - a resolved GameEvent (not a step-filtered copy)
+   * @param {object} [opts]
+   * @param {boolean} [opts.dialogReplay=true] - allow the replay-dialog-only
+   *   fallback described above. True for the "?" help item, whose whole job is
+   *   re-showing a tutorial. False for event appearances (switches): a marker
+   *   only exists while its event is active, so if the event has already run
+   *   there is nothing to replay and clicking should simply do nothing rather
+   *   than pop a stale dialog.
+   * @param {boolean} [opts.requireActive=false] - re-check the event is still
+   *   live before running it, instead of trusting the sprite that was clicked.
    */
-  activateEvent(event) {
+  activateEvent(event, opts = {}) {
     if (!event || !event.steps || event.steps.length === 0) return;
+    const { dialogReplay = true, requireActive = false } = opts;
+
+    if (requireActive && !isEventActive(event, this._ctx(), this)) return;
+
     const alreadyRan =
       (event.repeat === 'once' && this.firedOnce.has(event.id)) ||
       (event.repeat === 'oncePerTurn' && this.lastFiredTurn.get(event.id) === engine.turn);
@@ -388,6 +443,7 @@ class EventRunner {
       this.runEvent(event);
       return;
     }
+    if (!dialogReplay) return;
 
     const dialogSteps = event.steps.filter(s => s.type === 'dialog');
     if (dialogSteps.length === 0) return;
@@ -420,6 +476,10 @@ class EventRunner {
     // instantly restart itself with no gap (see checkAutoEvents doc).
     this.recheckLocks();
     this.checkAutoEvents(finishedId);
+    // The run that just ended is the usual way a switch flips: its setFlag step
+    // makes the opposite event eligible, so the sprite must swap now rather than
+    // on the player's next move.
+    this.syncMarkers();
   }
 
   _processCurrentStep() {

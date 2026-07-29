@@ -673,12 +673,82 @@ quests, which the runtime reads every turn).
 
 ---
 
+## 13. Event map appearances (the page-graphic equivalent) — DONE
+
+In RPG Maker MZ an event *page* carries both its conditions and the **sprite
+drawn on the map**; the engine shows the topmost page whose conditions pass, and
+draws nothing when none qualify. That single mechanism is why an on/off switch
+needs no special-casing there.
+
+We rejected pages (§10 decision 2), so the sprite lives on the **event**:
+
+```ts
+interface GameEvent { /* … */ appearance?: { defId: string } }  // eventTypes.ts
+```
+
+While the event is active, an item of that def exists on its `placement` tile;
+when it stops being active, the item goes away. An on/off switch is therefore
+just two events on one tile:
+
+```
+"powerOn":  pre flag mainPower == false   appearance placeable.switch_off
+            onInteract / everyTime         steps [setFlag mainPower = true]
+"powerOff": pre flag mainPower == true    appearance placeable.switch_on
+            onInteract / everyTime         steps [setFlag mainPower = false]
+```
+
+Exactly one is ever eligible, so exactly one sprite ever exists, and author order
+breaks ties the same way `_findEventAt` does — the sprite always depicts the
+event a click would actually run.
+
+**Implementation** — `client/src/game/quest/EventMarkers.js`:
+- `syncEventMarkers(runner)` recomputes presence from `isEventActive` rather than
+  tracking it incrementally, so it is idempotent and self-healing. Driven off the
+  reactive pulse `EventRunner` already maintains (`_onExternalChange`, `_endRun`,
+  `engine.on('sync')`), plus `PLAYER_MOVE_ENDED` and map load/transition in
+  `GameContext`. It visits only tiles some event names, never the whole map.
+- `purgeOrphanMarkers()` is the one full-map pass, run per map load: markers are
+  ordinary tile items and therefore persist in saves, so one can outlive the
+  event that spawned it.
+- **`isEventActive` lives in `conditions.js`, not `EventRunner`** — partly to
+  avoid an import cycle, but mainly because it must be *side-effect free*:
+  `_isEligible` latches `autoResolved`, and merely drawing an event must never
+  retire it. It also deliberately ignores the `oncePerTurn` throttle, which
+  governs firing frequency, not existence (otherwise a switch's sprite would
+  blink out for the rest of the turn after use).
+- Markers are stamped `isEventMarker` (so reconciliation can tell them from an
+  author-placed item of the same def) and `eventId` (so a ground-panel click
+  knows what to fire — `UniversalGrid` → `GameContext.fireItemEvent`).
+- **The item is the interaction surface, not the tile.** An event with an
+  `appearance` is deliberately excluded from `checkAndFireOnInteract`, so the
+  player walks onto the tile and clicks the item in the ground panel. Tile clicks
+  are reserved for appearance-less events (clicking an NPC to replay its
+  instructions). This is not cosmetic: `MapInterface` consumes a tile click
+  whenever the player is on *or adjacent to* the tile, so while markers were
+  tile-clickable, clicking a switch to walk the last step onto it fired the event
+  instead of moving — the player could never stand on the switch, and the lights
+  came on just from trying to walk there.
+- New `groundPriority` def flag, replacing the hard-coded `placeable.help` checks
+  in `Container`/`GroundManager` and adding an `INTERACTIVE` top tier to
+  `EntityRenderer`'s `TILE_ICON_RANK`. Without that last part a 1x1 switch loses
+  the one-icon-per-tile contest to any dropped food can and disappears.
+
+Editor: an **Appearance** dropdown in the Event Window (tile placement only),
+offering item defs the player cannot pick up. Nothing new to persist —
+`appearance` rides inside `GameEvent`, which already round-trips through
+`allEditorEvents` → `scenario.events` → `metadata.events`.
+
+Tests: `test/quest/eventMarkers.test.js` (18), `test/inventory/groundPriority.test.js` (12).
+
+---
+
 ## 10. Decisions (locked)
 
 1. **Global flags/variables store — YES.** Built in Phase 0. Backbone of conditions +
    quests.
 2. **Flat preconditions, NOT RPG-Maker pages.** Multiple events per tile,
-   first-eligible-wins by author order. (§4.4)
+   first-eligible-wins by author order. (§4.4) An event's map *sprite* is the one
+   thing we took from the page model — see §13.
 3. **Conditions are AND-only for now.** `Condition[]` stays a flat array so OR-groups
    can be added later without breaking saved data.
 4. **Movement lock — RESOLVED.** Rides the existing `turnPhase` machine via the

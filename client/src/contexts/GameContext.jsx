@@ -406,6 +406,10 @@ const GameContextInner = ({ children }) => {
       // lockActions `until` conditions (e.g. an 'ap' check) now that it's changed.
       eventRunner.recheckLocks();
       eventRunner.checkAutoEvents();
+      // Cheap idempotent safety net for event appearances: it only visits tiles
+      // that name one, and catches the case where the map-load sync ran before
+      // the map was ready (see EventMarkers.js).
+      eventRunner.syncMarkers();
     }
 
     engine.turnPhase = nextPhase;
@@ -986,6 +990,9 @@ const GameContextInner = ({ children }) => {
         // turn (PAUSED_FOR_EVENT) — that's fine, it's the same path the
         // PLAYER_MOVE_ENDED handler uses.
         eventRunner.checkAutoEvents();
+        // Same safety net as in setTurnPhase — an event whose preconditions
+        // changed during turn playback must show its new sprite now.
+        eventRunner.syncMarkers();
 
         if (autosaveTimeoutRef.current) {
           clearTimeout(autosaveTimeoutRef.current);
@@ -1135,24 +1142,24 @@ const GameContextInner = ({ children }) => {
     eventRunner.activateEvent(event);
   }, []);
 
-  // Fire the event a placed help item ("?") explicitly references by id (see
-  // its editor "Help Item Event" picker → Item.eventId). Resolves the event by
-  // id rather than by the player's tile, so the item and the (typically
-  // chain-only, non-auto-firing) event needn't share a tile — which is what
-  // makes these items usable as hand-placed switches. Runs the event in full on
-  // first activation and replays only its dialog steps once a repeat:'once'
-  // event has already run; see EventRunner.activateEvent.
-  const fireHelpEvent = useCallback((eventId) => {
+  // Fire the event a ground item references by id (Item.eventId). Two kinds of
+  // item carry one: the authored help "?" (its editor "Help Item Event" picker)
+  // and every event appearance placed by EventMarkers — a switch's sprite is
+  // branded with the event that owns it. Resolving by id rather than by the
+  // player's tile is what lets the item and a chain-only, non-auto-firing event
+  // live apart. `opts` is forwarded to EventRunner.activateEvent, which decides
+  // between running in full, replaying dialog only, and refusing.
+  const fireItemEvent = useCallback((eventId, opts = {}) => {
     if (!eventId) return;
     const gameMap = engine.gameMap;
     if (!gameMap) return;
     const events = resolveMapEvents(gameMap.metadata);
     const event = events.find(e => e?.id === eventId);
     if (!event) {
-      console.warn(`[GameContext] Help item references unknown event id "${eventId}"`);
+      console.warn(`[GameContext] Item references unknown event id "${eventId}"`);
       return;
     }
-    eventRunner.activateEvent(event);
+    eventRunner.activateEvent(event, opts);
   }, []);
 
   const attachInventorySyncListener = useCallback((player, inventoryManager) => {
@@ -1335,6 +1342,11 @@ const GameContextInner = ({ children }) => {
       eventRunner.checkAndFireAt(player.x, player.y);
       eventRunner.recheckLocks();
       eventRunner.checkAutoEvents();
+      // After the ground-container sync for this move (which is what updates
+      // inventoryManager.lastSyncedX/Y), so a marker on the tile the player just
+      // stepped onto is written to the container rather than the now-shadowed
+      // map tile. See EventMarkers.reconcileTile.
+      eventRunner.syncMarkers();
     };
 
     GameEvents.on(GAME_EVENT.PLAYER_MOVE_ENDED, checkEventTrigger);
@@ -1350,6 +1362,9 @@ const GameContextInner = ({ children }) => {
     if (!isInitialized) return;
     applyMapRegistries(engine.questState, engine.gameMap);
     eventRunner.checkAutoEvents();
+    // Purge markers a save restored for events that no longer exist, then place
+    // the ones this map's events currently want (see EventMarkers.js).
+    eventRunner.onMapLoaded();
   }, [isInitialized]);
 
   useEffect(() => {
@@ -2017,6 +2032,8 @@ const GameContextInner = ({ children }) => {
       // just satisfied one's preconditions.
       applyMapRegistries(engine.questState, engine.gameMap);
       eventRunner.checkAutoEvents();
+      // New map, new set of authored appearances to place (see EventMarkers.js).
+      eventRunner.onMapLoaded();
 
       // Update PlayerContext data after successful transition (no timer)
       updatePlayerFieldOfView(engine.gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange(), isNightVisionActual);
@@ -2176,7 +2193,7 @@ const GameContextInner = ({ children }) => {
     activeDialog,
     handleDialogDismiss,
     fireDialogAtPlayerTile,
-    fireHelpEvent,
+    fireItemEvent,
     enableAutosave: () => { noAutosaveRef.current = false; },
   }), [
     isInitialized,
@@ -2237,7 +2254,7 @@ const GameContextInner = ({ children }) => {
     activeDialog,
     handleDialogDismiss,
     fireDialogAtPlayerTile,
-    fireHelpEvent
+    fireItemEvent
   ]);
 
   return (

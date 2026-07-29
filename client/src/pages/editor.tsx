@@ -147,6 +147,14 @@ function looseFurnitureFrom(flat: FurniturePiece[], buildings: any[]): Furniture
 type Edge = 'n' | 'e' | 's' | 'w';
 type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'furniture' | 'eraser' | 'map_transition' | 'place_icon' | 'event_editor';
 
+// Editor-only display names for items whose in-game name is too terse to find in
+// an alphabetical picker (e.g. the help item's name is literally "?", which sorts
+// above everything and reads as nothing). The underlying def name is unchanged —
+// this only relabels the picker entry.
+const EDITOR_ITEM_LABELS: Record<string, string> = {
+  'placeable.help': 'Help Trigger (?)',
+};
+
 // On-map, per-entity speech bubbles. A BubbleEvent is a sequence of lines, each
 // anchored to a specific tile/entity, played one at a time when its trigger
 // fires. Serialized to scenario top-level `bubbleEvents` (see SpeechBubbleContext).
@@ -1684,21 +1692,30 @@ export default function MapEditor() {
 
   // Build categorized item catalog from ItemDefs
   const allItems = useMemo(() => {
-    // Editor-only display names for items whose in-game name is too terse to
-    // find in the alphabetical palette (e.g. the help item's name is literally
-    // "?", which sorts above everything and reads as nothing). The underlying
-    // def name is unchanged — this only relabels the palette entry.
-    const EDITOR_LABELS: Record<string, string> = {
-      'placeable.help': 'Help Trigger (?)',
-    };
     return Object.entries(ItemDefs as Record<string, any>)
       .map(([id, def]) => ({
         id,
-        name: EDITOR_LABELS[id] || def.name || id,
+        name: EDITOR_ITEM_LABELS[id] || def.name || id,
         w: def.width || 1,
         h: def.height || 1,
         categories: (def.categories || []) as string[],
       }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, []);
+
+  // Item defs offerable as a GameEvent's map appearance (its sprite while the
+  // event is active — see EventMarkers.js). Restricted to things the player
+  // physically cannot take off the ground: a pickup-able appearance would let
+  // them pocket the marker, and reconciliation would just respawn it next tick.
+  // Anything flagged `groundPriority` (the help "?", the switches) always
+  // qualifies, since that flag exists to mark interactive world objects.
+  const appearanceOptions = useMemo(() => {
+    return Object.entries(ItemDefs as Record<string, any>)
+      .filter(([, def]) => {
+        const groundOnly = (def.traits || []).includes(ItemTrait.GROUND_ONLY);
+        return !!def.groundPriority || (groundOnly && (def.noDrag || def.noPickup));
+      })
+      .map(([id, def]) => ({ id, name: EDITOR_ITEM_LABELS[id] || def.name || id }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, []);
 
@@ -4111,6 +4128,7 @@ export default function MapEditor() {
           onPickPlacement={() => setEventEditorPick({ mode: 'placement' })}
           onPickStepCoord={(index) => setEventEditorPick({ mode: 'step', index })}
           itemOptions={allItems}
+          appearanceOptions={appearanceOptions}
           knownEventIds={knownEventIds}
           knownFlags={questRegistry.flags.map(f => f.name)}
           knownVars={questRegistry.vars.map(v => v.name)}

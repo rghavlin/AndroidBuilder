@@ -3,6 +3,26 @@ import { Item } from './Item.js';
 import { ItemTrait, CategoryPriority } from './traits.js';
 
 /**
+ * Interactive world markers (the help "?", authored event switches) pin to the
+ * front of a container so the player can always reach them. The flag rides on
+ * the Item instance, copied from its definition by the Item constructor — this
+ * file only ever holds real Item instances, so no ItemDefs lookup (and no
+ * import cycle with it) is needed here.
+ */
+function isGroundPriority(item) {
+  return !!(item && item.groundPriority);
+}
+
+/**
+ * Items that own their slot and must not be shoved aside to make room for a
+ * marker: other markers, and the 3x3 exit (which pins itself to (0,0)-(2,2)
+ * in its own branch below, and would be knocked off that pin if displaced).
+ */
+function isPinnedInPlace(item) {
+  return isGroundPriority(item) || item?.defId === 'placeable.exit';
+}
+
+/**
  * Container class for grid-based item storage
  * Manages items in a 2D grid with collision detection
  */
@@ -89,6 +109,31 @@ export class Container {
       }
     }
     return true;
+  }
+
+  /**
+   * The cell a 1x1 ground-priority marker should claim: the earliest in reading
+   * order that is empty, already held by this same item, or held by an ordinary
+   * displaceable item. Cells belonging to other markers (and to the pinned 3x3
+   * exit) are skipped rather than stolen, so multiple markers on one tile settle
+   * into stable adjacent slots instead of evicting each other.
+   *
+   * @param {string} selfId - instanceId of the marker being placed
+   * @returns {{x:number, y:number, occupantId:string|null}|null} null if every
+   *   cell is spoken for by something un-displaceable.
+   */
+  _findPriorityCell(selfId) {
+    for (let y = 0; y < this.grid.length; y++) {
+      const row = this.grid[y];
+      if (!row) continue;
+      for (let x = 0; x < row.length; x++) {
+        const occupantId = row[x];
+        if (!occupantId || occupantId === selfId) return { x, y, occupantId: null };
+        if (isPinnedInPlace(this.items.get(occupantId))) continue;
+        return { x, y, occupantId };
+      }
+    }
+    return null;
   }
 
   /**
@@ -392,34 +437,35 @@ export class Container {
       return false;
     }
 
-    // Special handling for the absolute sorting priority of "Help" item (1x1, forces to slot 0,0)
-    if (item.defId === 'placeable.help') {
-      // Evict anything currently at (0,0)
-      const occupant = this.grid[0]?.[0];
-      if (occupant && occupant !== itemId) {
-        const occ = this.items.get(occupant);
+    // Absolute sorting priority for 1x1 interactive world markers (the help "?"
+    // and authored event switches — anything with `groundPriority`). They pin to
+    // the front of the container so the player can always reach them.
+    //
+    // Takes the earliest cell in reading order that is free or holds a
+    // *non-priority* item, rather than always slot (0,0): several markers can
+    // legitimately share a tile (a "?" next to a switch), and hard-coding (0,0)
+    // made them evict each other in a loop.
+    if (isGroundPriority(item) && width === 1 && height === 1) {
+      const spot = this._findPriorityCell(itemId);
+      if (spot) {
+        const occ = spot.occupantId ? this.items.get(spot.occupantId) : null;
+        if (occ) this.removeItemFromGrid(occ);
+        if (this.items.has(itemId)) this.removeItemFromGrid(item);
+        item.x = spot.x;
+        item.y = spot.y;
+        item._container = this;
+        this.grid[spot.y][spot.x] = itemId;
+        this.items.set(itemId, item);
         if (occ) {
-          this.removeItemFromGrid(occ);
-          if (this.items.has(itemId)) this.removeItemFromGrid(item);
-          item.x = 0;
-          item.y = 0;
-          item._container = this;
-          this.grid[0][0] = itemId;
-          this.items.set(itemId, item);
           occ.x = undefined;
           occ.y = undefined;
           const pos = this.findAvailablePosition(occ);
           if (pos) this.placeItemAt(occ, pos.x, pos.y);
-          return true;
         }
+        return true;
       }
-      if (this.items.has(itemId)) this.removeItemFromGrid(item);
-      item.x = 0;
-      item.y = 0;
-      item._container = this;
-      this.grid[0][0] = itemId;
-      this.items.set(itemId, item);
-      return true;
+      // No usable cell (every cell held another priority item) — fall through to
+      // normal placement rather than dropping the item.
     }
 
     // Special handling for the absolute sorting priority of "Exit" item

@@ -161,8 +161,11 @@ export class GroundManager {
     const allItems = this.groundContainer.getAllItems();
     if (allItems.length === 0) return true;
 
-    // 1. Identify priority items (exit, help) and keep them in place
-    const isPriorityItem = (item) => item.defId === 'placeable.exit' || item.defId === 'placeable.help';
+    // 1. Identify priority items and keep them in place: the exit, plus every
+    // interactive world marker (the help "?", authored event switches — see
+    // Item.groundPriority). Sorting must never shuffle something the player
+    // clicks to trigger an event out from under them.
+    const isPriorityItem = (item) => item.defId === 'placeable.exit' || !!item.groundPriority;
     const exitItems = allItems.filter(isPriorityItem);
     const otherItems = allItems.filter(item => !isPriorityItem(item));
 

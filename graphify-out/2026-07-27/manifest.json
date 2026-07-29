@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1785137396.3735726,
-    "ast_hash": "16489b512ad6f9cc183bbbd266331045",
+    "mtime": 1785139159.1104343,
+    "ast_hash": "6d0b733ebba32703bd20a9be7e144ea0",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -2755,8 +2755,8 @@
     "semantic_hash": ""
   },
   "client/src/game/quest/EventRunner.js": {
-    "mtime": 1785137396.377283,
-    "ast_hash": "f261f4437d7133baf8e1476fcc4ca2e0",
+    "mtime": 1785139137.560152,
+    "ast_hash": "1728fadebc88d8cb689fea1368e9daba",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p3.mjs": {
@@ -3175,13 +3175,13 @@
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.editor.json": {
-    "mtime": 1785137396.384855,
-    "ast_hash": "d69e1ae4b13f60421ccd001e642a94bd",
+    "mtime": 1785138748.3701646,
+    "ast_hash": "a502b36e8b50cabe17b8f2e5ef53cd55",
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.scenario.json": {
-    "mtime": 1785137396.3873632,
-    "ast_hash": "ee5b3716582f7f86ad4e7f9e4bfcf0a8",
+    "mtime": 1785138749.5176742,
+    "ast_hash": "3659f6251eb317f70c2e03c7d3903405",
     "semantic_hash": ""
   },
   "customMaps/bunker1.editor.json": {
@@ -3237,6 +3237,21 @@
   "test/systems/lightMode.test.js": {
     "mtime": 1785137476.3853307,
     "ast_hash": "d1c74786bfadf411f2df9ac59f86fa4b",
+    "semantic_hash": ""
+  },
+  "customMaps/lightTest.editor.json": {
+    "mtime": 1785138057.660736,
+    "ast_hash": "9da854139b43b41713c07fb61f6e3812",
+    "semantic_hash": ""
+  },
+  "customMaps/lightTest.scenario.json": {
+    "mtime": 1785138058.6440575,
+    "ast_hash": "a39b686df1c30fb06a1af9e02e369b39",
+    "semantic_hash": ""
+  },
+  "test/quest/activateEvent.test.js": {
+    "mtime": 1785139186.795361,
+    "ast_hash": "ff9412ef1261699a82b8cd5a12cb535f",
     "semantic_hash": ""
   }
 }

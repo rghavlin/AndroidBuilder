@@ -117,7 +117,7 @@ export default function UniversalGrid({
   const { playSound } = useAudio();
   const { addLog } = useLog();
   const { setMapTransition } = useGameMap();
-  const { fireDialogAtPlayerTile, fireHelpEvent, isModalBlocking } = useGame();
+  const { fireDialogAtPlayerTile, fireItemEvent, isModalBlocking } = useGame();
   const [itemImages, setItemImages] = useState<Map<string, { src: string, imageId: string }>>(new Map());
   const itemImagesRef = useRef<Map<string, { src: string, imageId: string }>>(new Map());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -396,13 +396,23 @@ export default function UniversalGrid({
       }
     }
 
-    // Intercept clicks on the help item to run its tutorial dialog. A help item
-    // authored in the map editor carries an explicit eventId (the "Help Item
-    // Event" picker); fire that. Fall back to the legacy tile-position lookup
-    // for older help items placed without an explicit event reference.
+    // Intercept clicks on any item bound to an authored event. Two kinds carry
+    // one: the help "?" (its editor "Help Item Event" picker) and every event
+    // appearance spawned by EventMarkers — that's how clicking a switch runs the
+    // event that owns it.
+    //
+    // Only the help item gets the replay-dialog-only fallback for an event that
+    // already ran; a marker exists solely while its event is active, so an
+    // inactive one should do nothing rather than pop a stale dialog.
+    if (item?.eventId) {
+      const isHelp = item.defId === 'placeable.help';
+      fireItemEvent?.(item.eventId, { dialogReplay: isHelp, requireActive: !isHelp });
+      return;
+    }
+    // Legacy tile-position lookup for older help items placed without an
+    // explicit event reference.
     if (item && item.defId === 'placeable.help') {
-      if (item.eventId) fireHelpEvent?.(item.eventId);
-      else fireDialogAtPlayerTile?.();
+      fireDialogAtPlayerTile?.();
       return;
     }
 
@@ -809,7 +819,7 @@ export default function UniversalGrid({
 
     // Case 3: Clicking empty space with no selection
     onSlotClick?.(x, y);
-  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition, disassembleItem, targetingWeapon, cancelTargeting, pickSafeLock, fireDialogAtPlayerTile, fireHelpEvent, isModalBlocking]);
+  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition, disassembleItem, targetingWeapon, cancelTargeting, pickSafeLock, fireDialogAtPlayerTile, fireItemEvent, isModalBlocking]);
 
   const handleItemContextMenu = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
     if (isModalBlocking) return;

@@ -656,6 +656,8 @@ export interface EventWindowProps {
   onPickPlacement: () => void;
   onPickStepCoord: (stepIndex: number) => void;
   itemOptions: { id: string; name: string }[];
+  /** Item defs offerable as this event's map appearance (see the Appearance row). */
+  appearanceOptions?: { id: string; name: string }[];
   knownEventIds: string[];
   knownFlags: string[];
   knownVars: string[];
@@ -666,10 +668,23 @@ export interface EventWindowProps {
 }
 
 export default function EventWindow({
-  event, onChange, onSave, onCancel, onDelete, onPickPlacement, onPickStepCoord, itemOptions, knownEventIds, knownFlags, knownVars, varTypes = {}, knownEntities, knownQuests, knownFactions = [],
+  event, onChange, onSave, onCancel, onDelete, onPickPlacement, onPickStepCoord, itemOptions, appearanceOptions = [], knownEventIds, knownFlags, knownVars, varTypes = {}, knownEntities, knownQuests, knownFactions = [],
 }: EventWindowProps) {
   const setSteps = (steps: EventStep[]) => onChange({ ...event, steps });
   const showEndCondition = event.trigger === 'auto' || event.trigger === 'parallel';
+
+  // A marker gated on a flag that this event never sets can never change state —
+  // the classic half-built toggle, where both halves of a switch pair read the
+  // flag but neither writes it, so one sprite is stuck on forever. Only worth
+  // flagging for events that actually draw something.
+  const unsetGatingFlags = (!event.appearance?.defId || event.placement.kind !== 'tile')
+    ? []
+    : Array.from(new Set(
+        (event.preconditions || [])
+          .filter(c => c.kind === 'flag' && c.flag)
+          .map(c => c.flag as string)
+          .filter(flag => !(event.steps || []).some(s => s.type === 'setFlag' && s.flag === flag))
+      ));
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 150, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '5vh' }}
@@ -740,6 +755,47 @@ export default function EventWindow({
                     onChange={e => onChange({ ...event, placement: { ...event.placement, radius: Math.max(1, Number(e.target.value) || 1) } })} />
                 </>
               )}
+            </div>
+          )}
+
+          {/* Map appearance — the sprite shown on the placement tile while this
+              event is active, and removed when it isn't. Tile placement only:
+              a proximity radius has no single cell to draw on, and a chain-only
+              event has no location at all. Two events on one tile with opposite
+              preconditions and opposite appearances give you an on/off switch. */}
+          {event.placement.kind === 'tile' && (
+            <div style={rowStyle}>
+              <span style={{ fontSize: 11, color: '#888' }}>Appearance:</span>
+              <select
+                style={{ ...inputStyle, flex: 1 }}
+                value={event.appearance?.defId || ''}
+                onChange={e => {
+                  const defId = e.target.value;
+                  const next = { ...event };
+                  if (defId) next.appearance = { defId };
+                  else delete next.appearance;
+                  onChange(next);
+                }}
+              >
+                <option value="">(nothing on the map)</option>
+                {appearanceOptions.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+              </select>
+            </div>
+          )}
+          {event.placement.kind === 'tile' && event.appearance?.defId && (
+            <div style={{ fontSize: 10, color: '#888', marginTop: -10 }}>
+              Shown at this tile only while the preconditions above pass. With
+              <strong> On interact</strong>, the player walks onto the tile and clicks this item
+              in the ground panel to run the event — clicking the tile on the map just moves
+              them there, as usual.
+            </div>
+          )}
+          {unsetGatingFlags.length > 0 && (
+            <div style={{ fontSize: 10, color: '#d9a441', marginTop: -6 }}>
+              ⚠ This event is gated on <strong>{unsetGatingFlags.join(', ')}</strong> but never
+              sets {unsetGatingFlags.length > 1 ? 'those flags' : 'that flag'}. Its sprite can
+              never change state — add a <strong>Set flag</strong> step so activating it flips
+              the flag its precondition reads.
             </div>
           )}
 
