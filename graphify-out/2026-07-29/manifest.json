@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1785314103.229853,
-    "ast_hash": "a50740efbd645429defb0490739c336b",
+    "mtime": 1785136516.505615,
+    "ast_hash": "60c619b6af27281d4312c01c1cbc340c",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -2635,8 +2635,8 @@
     "semantic_hash": "d6762c697129b6e23ddf679aa219bb29"
   },
   ".claude/settings.json": {
-    "mtime": 1785313602.2948048,
-    "ast_hash": "8a80554c91d9fca8acb82f023de02f11",
+    "mtime": 1783506396.5709045,
+    "ast_hash": "8029eac4d955a4fdc316a9104bf6c2e4",
     "semantic_hash": ""
   },
   "scratch/diagnose_corridor.mjs": {
@@ -3175,13 +3175,13 @@
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.editor.json": {
-    "mtime": 1785288031.254528,
-    "ast_hash": "f5d4fccb0324220fcc6ee99b0be52658",
+    "mtime": 1785139450.544061,
+    "ast_hash": "b61fe91ff0ff4e5bdaad39502e307400",
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.scenario.json": {
-    "mtime": 1785288032.101159,
-    "ast_hash": "f49491cf9c1c0f34e86dbff91357cbde",
+    "mtime": 1785139451.4228878,
+    "ast_hash": "6886233495265e02a1bceb2493ebe22e",
     "semantic_hash": ""
   },
   "customMaps/bunker1.editor.json": {

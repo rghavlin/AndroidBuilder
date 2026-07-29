@@ -44075,7 +44075,12 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [],
+        "eventTrigger": {
+          "id": "lightOn",
+          "steps": [],
+          "oneShot": false
+        }
       },
       {
         "terrain": "floor",
@@ -47435,12 +47440,7 @@
           }
         },
         "entities": [],
-        "items": [
-          {
-            "defId": "placeable.help",
-            "eventId": "lightsOn"
-          }
-        ]
+        "items": []
       },
       {
         "terrain": "road",
@@ -48882,16 +48882,6 @@
       "id": "closeGarage",
       "steps": [],
       "oneShot": true
-    },
-    {
-      "id": "lightsOn",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "lights on"
-        }
-      ],
-      "oneShot": true
     }
   ],
   "events": [
@@ -48986,28 +48976,74 @@
       ]
     },
     {
-      "id": "lightsOn",
+      "id": "lightOff",
       "placement": {
-        "kind": "chainOnly"
+        "kind": "tile",
+        "x": 5,
+        "y": 81
       },
       "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "once",
+      "preconditions": [
+        {
+          "kind": "flag",
+          "flag": "lightOn",
+          "value": true
+        }
+      ],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "setLightMode",
+          "lightMode": "always_dark"
+        },
+        {
+          "type": "setFlag",
+          "flag": "lightOn",
+          "value": false
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.switch_on"
+      }
+    },
+    {
+      "id": "lightOn",
+      "placement": {
+        "kind": "tile",
+        "x": 5,
+        "y": 81
+      },
+      "trigger": "onInteract",
+      "preconditions": [
+        {
+          "kind": "flag",
+          "flag": "lightOn",
+          "value": false
+        }
+      ],
+      "repeat": "everyTime",
       "steps": [
         {
           "type": "setLightMode",
           "lightMode": "always_light"
         },
         {
-          "type": "dialog",
-          "speaker": "",
-          "text": "lights on"
+          "type": "setFlag",
+          "flag": "lightOn",
+          "value": true
         }
-      ]
+      ],
+      "appearance": {
+        "defId": "placeable.switch_off"
+      }
     }
   ],
   "questRegistry": {
-    "flags": [],
+    "flags": [
+      {
+        "name": "lightOn"
+      }
+    ],
     "vars": [
       {
         "name": "ev1"

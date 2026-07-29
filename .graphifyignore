@@ -6,3 +6,8 @@
 *.jpeg
 *.webp
 *.gif
+
+# Ad-hoc diagnostic/repro scripts (AGENTS.md §3). These were ~20% of graph
+# nodes and dominated query results, seeding traversals on throwaway
+# verify_*.mjs files instead of the engine code the question was about.
+scratch/

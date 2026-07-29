@@ -7,7 +7,10 @@ Before adding logic to a god-object file — `entities/Entity.js`, `map/GameMap.
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
 
 Rules:
-- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Pick the command by question type (requires graphify-out/graph.json):
+  - `graphify explain "<Symbol>"` — "how does X work", "what touches X", when you can name the module/class/function. Returns its file, line, and actual edges. Prefer this; it stays focused.
+  - `graphify query "<question>"` — "where does this area live", orienting in an unfamiliar subsystem. It seeds on matching nodes then BFS-fans to depth 2, so results are *not* relevance-ranked: the top entries skew toward god-objects (Entity.js, GameMap.js, Item.js) regardless of the question. Read the `Start:` seed list — that is the trustworthy part — and treat the rest as a candidate set, not an answer.
+  - `graphify path "<A>" "<B>"` — how two specific things connect.
+- These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output. They orient you; they do not replace reading the file you land on.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
