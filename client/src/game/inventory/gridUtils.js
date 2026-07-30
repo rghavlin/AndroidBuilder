@@ -13,3 +13,21 @@ export function gridItems(grid) {
   if (Array.isArray(grid.items)) return grid.items;
   return Object.values(grid.items || {});
 }
+
+/**
+ * True if an item is storing anything: its own container grid, any clothing
+ * pocket, or any container hanging off a belt attachment. Use this before
+ * destroying or transforming a container-ish item so its contents can't be
+ * silently deleted.
+ */
+export function hasItemsInside(item) {
+  if (!item) return false;
+
+  const grids = [
+    typeof item.getContainerGrid === 'function' ? item.getContainerGrid() : null,
+    ...(typeof item.getPocketContainers === 'function' ? item.getPocketContainers() || [] : []),
+    ...(typeof item.getBeltContainers === 'function' ? item.getBeltContainers() || [] : [])
+  ];
+
+  return grids.some(grid => gridItems(grid).length > 0);
+}

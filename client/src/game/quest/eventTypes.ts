@@ -126,6 +126,74 @@ export function emptyEvent(id: string): GameEvent {
   };
 }
 
+// ─── Legacy (down-converted) event shapes ─────────────────────────────────
+// What `downconvertEvents()` in migrateEvents.js emits, and what the runtime
+// still reads off `gameMap.metadata` / a scenario's top level. The unified
+// GameEvent above is the authoring model; these are its lossy projection onto
+// the two older arrays (see QUEST_SYSTEM_PLAN.md §4 and §11.2).
+//
+// They live here rather than being inferred at each call site because
+// down-convert builds each entry in one of several branches: TS would
+// otherwise infer a union of object literals and reject any field that is
+// absent from one arm (`chainOnly`, `x`, `y`), even where the code guards for
+// it. One interface with the branch-specific fields optional describes the
+// array accurately.
+
+// An event effect: spawn `count` of `defId` onto tile (x, y) when it fires.
+export interface LegacyItemGrant {
+  defId: string;
+  count?: number;
+  x: number;
+  y: number;
+}
+
+export interface LegacyDialogStep {
+  speaker: string;
+  text: string;
+  video?: string;
+}
+
+// One line of an on-map speech bubble, anchored to a specific tile/entity.
+export interface LegacyBubbleLine {
+  x: number;
+  y: number;
+  speaker?: string;
+  text: string;
+}
+
+// A modal-dialog event. Tile-placed events carry x/y; chain-only events carry
+// `chainOnly: true` and no coordinates, so both are optional here — narrow on
+// `chainOnly` or an explicit `x/y !== undefined` check before using them.
+export interface LegacyEventTrigger {
+  id: string;
+  steps: LegacyDialogStep[];
+  oneShot: boolean;
+  chainOnly?: boolean;
+  x?: number;
+  y?: number;
+  grants?: LegacyItemGrant[];
+  next?: string;
+  // Pre-`steps` authored form: a single line of text instead of a step list.
+  // Never emitted by down-convert; still read when loading older maps.
+  message?: string;
+}
+
+// A tile-placed or proximity speech-bubble event. trigger.x/y are always set
+// for both placement kinds the editor can author.
+export interface LegacyBubbleEvent {
+  id: string;
+  oneShot: boolean;
+  trigger: { type: 'tile' | 'proximity'; x: number; y: number; radius?: number };
+  lines: LegacyBubbleLine[];
+  grants?: LegacyItemGrant[];
+  next?: string; // id of an event to fire when this one completes
+}
+
+export interface DownconvertedEvents {
+  eventTriggers: LegacyEventTrigger[];
+  bubbleEvents: LegacyBubbleEvent[];
+}
+
 // ─── Map Entity Registry ───────────────────────────────────────────────────
 // Holds manual definitions of placed entities (doors, windows, zombies) that
 // the event system can reference. NPCs with names are auto-registered.

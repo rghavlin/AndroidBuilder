@@ -669,17 +669,16 @@ export class TemplateMapGenerator {
   }
 
   /**
-   * Generate a map and apply it to a fresh GameMap, regenerating until it passes
-   * the connectivity gate (spawn/exits/buildings reachable). If no attempt fully
-   * passes within maxAttempts, the least-bad map is returned with a warning so
-   * map generation never deadlocks.
+   * Build map data from an authored scenario (editor export / customMaps file).
+   * Returns the map data only — applying it to a GameMap is the caller's job
+   * (see applyToGameMap).
    *
-   * @param {string} templateName
-   * @param {Object} config - passed to generateFromTemplate (e.g. { mapNumber })
-   * @param {Function} GameMapClass - the GameMap constructor (passed in to avoid an import cycle)
-   * @param {Object} [opts]
-   * @param {number} [opts.maxAttempts=6]
-   * @returns {Promise<{ gameMap: Object, mapData: Object, validation: Object, attempts: number }>}
+   * Returns map data as produced by MapBuilder.getFinalMapData (width, height,
+   * tiles, template, config, metadata) — deliberately left un-annotated so the
+   * shape is inferred from that call rather than flattened to a bare `Object`,
+   * which would erase every field for TS consumers like pages/editor.tsx.
+   *
+   * @param {Object} scenarioData - authored scenario; must carry a `tiles` array
    */
   async generateFromScenario(scenarioData) {
     if (!scenarioData || !Array.isArray(scenarioData.tiles)) {
@@ -719,6 +718,19 @@ export class TemplateMapGenerator {
     return mapData;
   }
 
+  /**
+   * Generate a map and apply it to a fresh GameMap, regenerating until it passes
+   * the connectivity gate (spawn/exits/buildings reachable). If no attempt fully
+   * passes within maxAttempts, the least-bad map is returned with a warning so
+   * map generation never deadlocks.
+   *
+   * @param {string} templateName
+   * @param {Object} config - passed to generateFromTemplate (e.g. { mapNumber })
+   * @param {Function} GameMapClass - the GameMap constructor (passed in to avoid an import cycle)
+   * @param {Object} [opts]
+   * @param {number} [opts.maxAttempts=6]
+   * @returns {Promise<{ gameMap: Object, mapData: Object, validation: Object, attempts: number }>}
+   */
   async generateValidatedMap(templateName, config = {}, GameMapClass, { maxAttempts = 6 } = {}) {
     let best = null;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {

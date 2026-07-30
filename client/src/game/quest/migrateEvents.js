@@ -110,6 +110,13 @@ export function resolveMapEvents(metadata) {
  * steps) — is dropped with a console.warn. That's expected pre-Phase-3: the
  * Phase 2 editor won't let authors create those yet, and once Phase 3 lands,
  * down-conversion and the legacy arrays go away entirely.
+ *
+ * The return type is declared rather than inferred: the entries below are built
+ * in one of several branches, and without this TS infers a union of object
+ * literals that rejects `chainOnly`/`x`/`y` on whichever arm omits them.
+ *
+ * @param {Object[]} [events] - unified GameEvent objects
+ * @returns {import('./eventTypes').DownconvertedEvents}
  */
 export function downconvertEvents(events) {
   const eventTriggers = [];

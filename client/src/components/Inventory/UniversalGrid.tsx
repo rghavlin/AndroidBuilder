@@ -18,6 +18,7 @@ import { TURRET_DEF_ID } from "../../game/ai/TurretCombat.js";
 import { getScaleFactor } from "@/hooks/useWindowSize";
 import { Item, createItemFromDef } from "../../game/inventory/index.js";
 import { ItemDefs } from "../../game/inventory/ItemDefs.js";
+import { hasItemsInside } from "../../game/inventory/gridUtils.js";
 import { useLog } from "../../contexts/LogContext.jsx";
 import engine from "../../game/GameEngine.js";
 import { AttributeProgressionManager } from "../../game/systems/AttributeProgressionManager.js";
@@ -477,20 +478,15 @@ export default function UniversalGrid({
           return;
         }
 
-        // Check if clothing has items inside pockets/container grid
-        const pockets = item.getPocketContainers?.() || [];
-        const internalGrid = item.getContainerGrid?.();
-        let hasItemsInside = false;
-        if (internalGrid && internalGrid.items && internalGrid.items.size > 0) {
-          hasItemsInside = true;
-        }
-        for (const pocket of pockets) {
-          if (pocket.items && pocket.items.size > 0) {
-            hasItemsInside = true;
-          }
+        // Worn clothing can't be cut off the body
+        if (engine.inventoryManager?.getEquipmentSlot?.(item)) {
+          addLog(`Take off the ${item.name} before cutting it into rags.`, 'error');
+          playSound('Fail');
+          return;
         }
 
-        if (hasItemsInside) {
+        // Cutting destroys the clothing, so refuse while it's still storing anything
+        if (hasItemsInside(item)) {
           addLog('Empty the pockets of the clothing before cutting it.', 'error');
           playSound('Fail');
           return;

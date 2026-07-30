@@ -4,7 +4,7 @@ import { ItemDefs, createItemFromDef } from '@/game/inventory/ItemDefs';
 import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 import { migrateLegacyEvents, downconvertEvents, resolveMapEvents } from '@/game/quest/migrateEvents';
-import { emptyEvent, emptyQuestRegistry, emptyEntityRegistry, type GameEvent, type QuestRegistry, type EntityRegistry, type EntityRegistryEntry, type FactionDef, type Stance, type PlayerDisposition, type VarType } from '@/game/quest/eventTypes';
+import { emptyEvent, emptyQuestRegistry, emptyEntityRegistry, type GameEvent, type QuestRegistry, type EntityRegistry, type EntityRegistryEntry, type FactionDef, type Stance, type PlayerDisposition, type VarType, type LegacyBubbleLine, type LegacyItemGrant, type LegacyBubbleEvent, type LegacyDialogStep } from '@/game/quest/eventTypes';
 import { BUILTIN_FACTIONS, builtinStanceValue } from '@/game/ai/FactionRegistry';
 import { TURRET_DEF_ID } from '@/game/ai/TurretCombat';
 import EventWindow, { ConditionListEditor, QuestRewardEditor } from '@/components/MapEditor/EventWindow';
@@ -155,27 +155,20 @@ const EDITOR_ITEM_LABELS: Record<string, string> = {
   'placeable.help': 'Help Trigger (?)',
 };
 
-// On-map, per-entity speech bubbles. A BubbleEvent is a sequence of lines, each
-// anchored to a specific tile/entity, played one at a time when its trigger
-// fires. Serialized to scenario top-level `bubbleEvents` (see SpeechBubbleContext).
-interface BubbleLine { x: number; y: number; speaker?: string; text: string; }
-// An event effect: spawn `count` of `defId` onto tile (x, y) when the event fires.
-interface ItemGrant { defId: string; count?: number; x: number; y: number; }
-// A modal dialog event that lives by id only (no tile) — fired solely via chaining.
+// The legacy event shapes these screens read and write now live alongside the
+// unified GameEvent model in eventTypes.ts, so downconvertEvents() and the
+// editor agree on one definition. Aliased to the names used throughout this
+// file. A DialogEventDef is the chain-only projection of a LegacyEventTrigger:
+// it lives by id alone (no tile) and fires solely via chaining.
+type BubbleLine = LegacyBubbleLine;
+type ItemGrant = LegacyItemGrant;
+type BubbleEvent = LegacyBubbleEvent;
 interface DialogEventDef {
   id: string;
-  steps: { speaker: string; text: string; video?: string }[];
+  steps: LegacyDialogStep[];
   oneShot: boolean;
   grants?: ItemGrant[];
   next?: string;
-}
-interface BubbleEvent {
-  id: string;
-  oneShot: boolean;
-  trigger: { type: 'tile' | 'proximity'; x: number; y: number; radius?: number };
-  lines: BubbleLine[];
-  grants?: ItemGrant[];
-  next?: string; // id of an event to fire when this one completes
 }
 
 interface EdgeState { wall: boolean; door: boolean; window: boolean; locked?: boolean; isGarage?: boolean; keylocked?: boolean; }
@@ -1590,10 +1583,15 @@ export default function MapEditor() {
       if (evt.chainOnly) {
         setChainDialogEvents(prev => [...prev.filter(e => e.id !== id), { id: evt.id, steps: evt.steps, oneShot: evt.oneShot, ...(evt.grants ? { grants: evt.grants } : {}), ...(evt.next ? { next: evt.next } : {}) }]);
       } else if (evt.x !== undefined && evt.y !== undefined) {
+        // Bind the coordinates outside the updater: a narrowing on evt.x/evt.y
+        // does not carry into the closure, since evt could in principle be
+        // mutated before it runs.
+        const ex = evt.x;
+        const ey = evt.y;
         setTiles(prev => {
           const next = prev.map(row => row.map(t => ({ ...t })));
-          if (next[evt.y]?.[evt.x]) {
-            next[evt.y][evt.x].eventTrigger = { id: evt.id, steps: evt.steps, oneShot: evt.oneShot, ...(evt.grants ? { grants: evt.grants } : {}), ...(evt.next ? { next: evt.next } : {}) };
+          if (next[ey]?.[ex]) {
+            next[ey][ex].eventTrigger = { id: evt.id, steps: evt.steps, oneShot: evt.oneShot, ...(evt.grants ? { grants: evt.grants } : {}), ...(evt.next ? { next: evt.next } : {}) };
           }
           return next;
         });

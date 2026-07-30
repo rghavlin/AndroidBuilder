@@ -21659,14 +21659,14 @@
         "terrain": "road",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": true,
-          "w": false
+          "w": true
         },
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.golf_cart-1785288032090-2x4pm",
+            "instanceId": "vehicle.golf_cart-1785370376071-9o17r",
             "defId": "vehicle.golf_cart",
             "id": "vehicle.golf_cart",
             "name": "Golf Cart",
@@ -21768,7 +21768,7 @@
             },
             "attachments": {
               "motor_front": {
-                "instanceId": "electric_motor-1785288032090-x0bgt",
+                "instanceId": "electric_motor-1785370376071-3grr6",
                 "defId": "electric_motor",
                 "id": "electric_motor",
                 "name": "Electric motor",
@@ -21783,7 +21783,7 @@
                 ]
               },
               "battery_front": {
-                "instanceId": "tool.large_battery-1785288032090-fphjw",
+                "instanceId": "tool.large_battery-1785370376071-d54rz",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -21804,7 +21804,7 @@
                 "ammoCount": 100
               },
               "motor_rear": {
-                "instanceId": "electric_motor-1785288032090-t3ueq",
+                "instanceId": "electric_motor-1785370376071-1iese",
                 "defId": "electric_motor",
                 "id": "electric_motor",
                 "name": "Electric motor",
@@ -21819,7 +21819,7 @@
                 ]
               },
               "battery_rear": {
-                "instanceId": "tool.large_battery-1785288032090-whx5y",
+                "instanceId": "tool.large_battery-1785370376071-k1d30",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -21842,7 +21842,7 @@
             }
           },
           {
-            "instanceId": "weapon.deserteagle-1785288032090-620go",
+            "instanceId": "weapon.deserteagle-1785370376071-uxup7",
             "defId": "weapon.deserteagle",
             "id": "weapon.deserteagle",
             "name": "Desert Eagle",
@@ -21899,7 +21899,7 @@
             }
           },
           {
-            "instanceId": "ammo.de-1785288032090-iqqi4",
+            "instanceId": "ammo.de-1785370376071-rwc2z",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -21918,7 +21918,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785288032090-bc9hk",
+            "instanceId": "ammo.de-1785370376071-4ff0t",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -21937,7 +21937,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785288032090-389xb",
+            "instanceId": "ammo.de-1785370376071-xfgrs",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -21956,7 +21956,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785288032090-4vlzd",
+            "instanceId": "ammo.de-1785370376071-gzmuj",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -21975,7 +21975,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785288032090-y6hwt",
+            "instanceId": "ammo.de-1785370376071-6dgxd",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -21994,7 +21994,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "attachment.de_magazine-1785288032090-x5810",
+            "instanceId": "attachment.de_magazine-1785370376071-qu2ew",
             "defId": "attachment.de_magazine",
             "id": "attachment.de_magazine",
             "name": "Desert Eagle Mag",
@@ -22013,7 +22013,7 @@
             "ammoDefId": "ammo.de"
           },
           {
-            "instanceId": "attachment.suppressor-1785288032090-3d4a9",
+            "instanceId": "attachment.suppressor-1785370376071-b6l31",
             "defId": "attachment.suppressor",
             "id": "attachment.suppressor",
             "name": "Suppressor",

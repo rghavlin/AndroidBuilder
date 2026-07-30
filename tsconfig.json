@@ -7,6 +7,12 @@
     "noEmit": true,
     "module": "ESNext",
     "strict": true,
+    // The engine is plain ESM .js (see AGENTS.md §6). allowJs lets TS infer
+    // types across the UI<->engine import boundary instead of erroring with
+    // TS7016 on every crossing; checkJs stays off so engine internals are not
+    // type-checked as if they were TypeScript.
+    "allowJs": true,
+    "checkJs": false,
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "preserve",
     "esModuleInterop": true,

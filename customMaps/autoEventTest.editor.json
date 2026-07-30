@@ -48508,7 +48508,7 @@
             "window": false
           },
           "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -48518,7 +48518,7 @@
             "window": false
           },
           "w": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           }
