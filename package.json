@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:run": "vitest run",
     "test:watch": "vitest",
+    "budget:update": "node scripts/update-god-budget.mjs",
     "fuzz": "node test/fuzz/fuzz.mjs",
     "balance": "node test/balance/balance.mjs",
     "ap-economy": "node test/balance/apEconomy.mjs",

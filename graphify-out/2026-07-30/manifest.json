@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1785400664.36166,
-    "ast_hash": "546fbd6c374cd9161f263f45176314ea",
+    "mtime": 1785315298.1247387,
+    "ast_hash": "bd5a924055caee6c96185bc48ce4595d",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -1035,8 +1035,8 @@
     "semantic_hash": "5715d56998f6ea89742ca95e58ff8d0a"
   },
   "client/src/game/managers/SimulationManager.js": {
-    "mtime": 1785400703.108682,
-    "ast_hash": "af74893039ba307abbdb56ce26b43b3b",
+    "mtime": 1784701224.1468594,
+    "ast_hash": "7aa72b939df4686509b1dc3708d83dcd",
     "semantic_hash": ""
   },
   "client/src/game/managers/TurnManager.js": {
@@ -1405,8 +1405,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1785400761.4097593,
-    "ast_hash": "ac2db02fbc9340d545efb82e1ddb1b83",
+    "mtime": 1785371488.8285375,
+    "ast_hash": "bbef4e5a5301c11ed15863b0f7b9f081",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -1460,8 +1460,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1785400761.4109278,
-    "ast_hash": "fe42190f1a0b3ac2ab87ea2d61ec0abd",
+    "mtime": 1784860099.6508257,
+    "ast_hash": "4e7bce79e3e28f652e1e3a3537a30e94",
     "semantic_hash": ""
   },
   "postcss.config.js": {
@@ -3287,26 +3287,6 @@
   "test/quest/markerInteraction.test.js": {
     "mtime": 1785283379.3634436,
     "ast_hash": "04b75d9577ff9b4b5d20f28139df7a8e",
-    "semantic_hash": ""
-  },
-  "scripts/god-object-budget.json": {
-    "mtime": 1785400668.5674157,
-    "ast_hash": "5c00ec76d636a0316c7b70c7a46ceb9b",
-    "semantic_hash": ""
-  },
-  "scripts/godObjectBudget.mjs": {
-    "mtime": 1785400564.7402925,
-    "ast_hash": "fdcd16f3774a7d8163356bb61a12c69c",
-    "semantic_hash": ""
-  },
-  "scripts/update-god-budget.mjs": {
-    "mtime": 1785400578.8974035,
-    "ast_hash": "5267b6dc315e20a4fdc4026187502a07",
-    "semantic_hash": ""
-  },
-  "test/quality/godObjectBudget.test.js": {
-    "mtime": 1785400591.7361755,
-    "ast_hash": "f5abcfc57f0a3d0a6287e7928ba0b249",
     "semantic_hash": ""
   }
 }

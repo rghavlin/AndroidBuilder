@@ -1,3 +1,10 @@
+// ============================================================================
+// ⚠️  GOD-OBJECT UNDER MANAGED DECOMPOSITION — see AGENTS.md §6.
+// Do NOT add new responsibilities here. New editor UI belongs in a panel
+// component under components/MapEditor/, and new pure helpers belong in
+// game/editor/. Extract the nearest seam when you touch this file.
+// Extraction targets: CODE_QUALITY_ACTION_PLAN.md (Wave 4).
+// ============================================================================
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { ScenarioStorage } from '@/game/ScenarioStorage';
 import { ItemDefs, createItemFromDef } from '@/game/inventory/ItemDefs';

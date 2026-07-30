@@ -445,6 +445,19 @@ the cleanest seam, move on.**
   deletion (R11#13).
 - **`SimulationManager`** — extract the ~110 lines of inline turret orchestration into a
   `TurretSystem` (TurretAI/TurretCombat already exist as its home) (R29#5).
+- **`pages/editor.tsx` (5,406 lines)** — added 2026-07-30; not in the original review, which
+  only looked at engine code. It is the largest file in the repo by ~60% and one of the most
+  actively edited. It is also the *lowest-risk* split here: no engine state-of-truth
+  questions, just component and helper moves. Three seams, cleanest first:
+  1. **Lines 1–1080 are module-level pure functions** with no React state —
+     `scenarioToEditorState`, `saveGameMapToEditorState`, `buildFullItem`,
+     `itemToEditorEntry`, `exportScenario`, plus the furniture-stamp geometry helpers.
+     Move to `game/editor/editorSerialization.ts` + `editorExport.ts`. Nearly mechanical,
+     and it makes the round-trip logic unit-testable without mounting the editor.
+  2. **The UI block (lines ~2954–5385, ~2,430 lines of JSX)** — split into panel components
+     under `components/MapEditor/` alongside the existing `EventWindow.tsx`
+     (terrain/tool palette, entity registry, factions, save/load).
+  3. **Canvas render + minimap (lines ~2117–2415)** → a `useEditorCanvas` hook.
 - **Consistency layers worth centralizing:** a `TURN_PHASE` constants module for the 11
   raw-string phase assignments (R30#5); migrate zombie/NPC targeting onto
   `AITargeting.acquireTargets` so "who may I attack" lives in one place (R25#3).
