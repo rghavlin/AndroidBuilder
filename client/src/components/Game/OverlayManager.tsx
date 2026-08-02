@@ -65,11 +65,13 @@ export default function OverlayManager() {
   // equipment slots, weapons, or the crafting extension window. Opening one of
   // these modal overlays is an unrelated action, so a lingering selection would
   // be stale — clear it, mirroring the map-click deselect in MapInterface.
-  // (isExtensionOpen is intentionally excluded: it hosts the crafting UI, which
-  // is a valid drop target for a selected item.)
+  // (isExtensionOpen and isSkillsOpen are intentionally excluded: the crafting UI
+  // is a valid drop target for a selected item, and the skills window only covers
+  // the map half while the inventory stays live — matching the carve-out on
+  // isModalBlocking in GameContext.)
   const anyBlockingOverlay =
     showMainMenu || !!activeTradeNpc || isBartering || isShopOpen ||
-    !!tollGuard || logHistoryOpen || isSkillsOpen || isJournalOpen ||
+    !!tollGuard || logHistoryOpen || isJournalOpen ||
     !!activeNpcDemand || !!activeDialog || !!mapTransition;
 
   React.useEffect(() => {
