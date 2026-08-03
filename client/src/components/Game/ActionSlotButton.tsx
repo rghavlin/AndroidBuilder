@@ -11,9 +11,11 @@ import { useTheme } from '../../contexts/ThemeContext';
 interface ActionSlotButtonProps {
   slot: string;
   isFlashlightOnActual: boolean;
+  isDeviceActive?: boolean;
+  cycleRemoteDevice?: () => void;
 }
 
-export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButtonProps) => {
+export const ActionSlotButton = ({ slot, isFlashlightOnActual, isDeviceActive = false, cycleRemoteDevice }: ActionSlotButtonProps) => {
   const { inventoryRef, selectedItem, clearSelected } = useInventory();
   const { theme } = useTheme();
   const isLight = isLightTheme(theme);
@@ -35,6 +37,7 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
   const item = equippedItem || unarmedItem;
   const isTargeting = targetingWeapon?.item.instanceId === item?.instanceId;
   const isFlashlightActive = slot === 'flashlight' && isFlashlightOnActual;
+  const isPhoneActive = slot === 'phone' && isDeviceActive;
 
   // Determine correct image ID to load
   const imageId = item?.instanceId === 'unarmed'
@@ -44,7 +47,10 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
   const imageSrc = useItemImage(imageId);
 
   const handleClick = () => {
-    if (slot === 'flashlight') {
+    if (slot === 'phone') {
+      console.log(`[ActionSlot] Clicked phone: cycling remote device focus`);
+      cycleRemoteDevice?.();
+    } else if (slot === 'flashlight') {
       const isIgniter = selectedItem?.item?.defId === 'tool.lighter' || selectedItem?.item?.defId === 'tool.matchbook';
       if (isIgniter && item && item.hasTrait?.(ItemTrait.IGNITABLE) && !item.isLit) {
         console.log(`[ActionSlot] Igniting torch with selected igniter:`, selectedItem.item.name);
@@ -89,7 +95,14 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual }: ActionSlotButto
               ? "!border-2 !border-solid !border-[#639A88] shadow-[inset_0_0_10px_rgba(99,154,136,0.15),0_0_8px_rgba(99,154,136,0.5)]"
               : "!border-cyan-400 shadow-[inset_0_0_10px_rgba(34,211,238,0.3),0_0_10px_rgba(34,211,238,0.4)]"
           ),
-          isFlashlightActive && "action-flashlight-on"
+          isFlashlightActive && "action-flashlight-on",
+          // Phone controlling a remote device: same glow treatment as the flashlight
+          isPhoneActive && (
+            isLight
+              ? "!border-2 !border-solid !border-[#639A88] shadow-[inset_0_0_10px_rgba(99,154,136,0.15),0_0_8px_rgba(99,154,136,0.5)]"
+              : "!border-cyan-400 shadow-[inset_0_0_10px_rgba(34,211,238,0.3),0_0_10px_rgba(34,211,238,0.4)]"
+          ),
+          isPhoneActive && "action-flashlight-on"
         )}
       >
         {item && imageSrc && imageSrc !== 'failed' ? (

@@ -21,7 +21,8 @@ export const EquipmentSlot = {
   LONG_GUN: 'long_gun',
   FLASHLIGHT: 'flashlight',
   BELT: 'belt',
-  ARMOR: 'armor'
+  ARMOR: 'armor',
+  PHONE: 'phone'
 };
 
 // Item categories for container restrictions

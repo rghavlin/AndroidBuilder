@@ -9,6 +9,7 @@ import { QuestState } from './quest/QuestState.js';
 import { FactionRegistry } from './ai/FactionRegistry.js';
 import { getSightRangeForHour, getEffectiveHour, getLightMode, isNightHour, MAX_VISION_RANGE, FLASHLIGHT_RANGE } from './config/VisionConfig.js';
 import { getHourFromTurn } from './utils/TimeUtils.js';
+import * as DroneVision from './remote/DroneVision.js';
 
 
 import { gameRandom } from './utils/SeededRandom.js';
@@ -95,6 +96,14 @@ class GameEngine extends SafeEventEmitter {
     this.isAutosaving = false;
     this.turn = 1;
     this.isFlashlightOn = false;
+    // Remote-device camera/control focus (recon drone, later others). null =
+    // the player is in control; otherwise the id of the Drone entity the
+    // phone button last cycled to. See remote/RemoteDeviceRegistry.js.
+    this.activeDeviceId = null;
+    // Turn number the equipped phone last charged, so cycling devices or
+    // toggling the phone off/on within the same turn never costs a second
+    // charge (see remote/DronePower.consumePhoneChargeOncePerTurn).
+    this._phoneChargeTurn = null;
     this.playerFieldOfView = []; // Phase 13: Atomic FOV
     this.playerFovSet = new Set(); // Perf Phase 2: cached "x,y" visibility Set for the renderer
     this._fovOptions = { maxRange: MAX_VISION_RANGE, isNight: false, isFlashlightOn: false, flashlightRange: FLASHLIGHT_RANGE, isNightVision: false };
@@ -286,6 +295,12 @@ class GameEngine extends SafeEventEmitter {
         ? (gameObjects.interactionState.isPlayerTurn ? 'PLAYER_TURN' : 'SIMULATING')
         : 'PLAYER_TURN';
       this.isFlashlightOn = gameObjects.interactionState.isFlashlightOn ?? false;
+      // Only restore the camera/control focus if that drone entity actually
+      // survived map restoration — otherwise fall back to the player rather
+      // than pointing control at an id nothing on the map answers to.
+      const savedDeviceId = gameObjects.interactionState.activeDeviceId ?? null;
+      this.activeDeviceId = (savedDeviceId && this.gameMap?.getEntity?.(savedDeviceId)) ? savedDeviceId : null;
+      this._phoneChargeTurn = gameObjects.interactionState.phoneChargeTurn ?? null;
       this.isSleeping = gameObjects.interactionState.isSleeping ?? false;
       this.sleepProgress = gameObjects.interactionState.sleepProgress ?? 0;
       this.targetingItemInstanceId = gameObjects.interactionState.targetingItemInstanceId ?? null;
@@ -496,8 +511,11 @@ class GameEngine extends SafeEventEmitter {
        // (Perf Phase 3: removed the per-frame [recalculateFOV] console.log here —
        // it fired 60x/sec during movement, before the dedupe early-return below.)
 
-       // Compute FOV state hash to prevent redundant calculation on same tile / options
-       const optionsHash = `${roundX},${roundY},${range},${isNight},${isFlashlightOn},${isNightVision},${isAimingWithScope},${this.weather ? this.weather.type : 'clear'},${this.weather ? this.weather.intensity : 0},${this.turn}`;
+       // Compute FOV state hash to prevent redundant calculation on same tile / options.
+       // Includes each airborne device's id/position/range so the dedupe below
+       // can't swallow a repaint when only a drone moves and the player doesn't
+       // — that gap was the sharpest trap in wiring devices into FOV.
+       const optionsHash = `${roundX},${roundY},${range},${isNight},${isFlashlightOn},${isNightVision},${isAimingWithScope},${this.weather ? this.weather.type : 'clear'},${this.weather ? this.weather.intensity : 0},${this.turn},${DroneVision.deviceFovHashPart(this.gameMap)}`;
        if (optionsHash === this._lastFovOptionsHash) {
          return false; // Skip calculation
        }
@@ -599,6 +617,25 @@ class GameEngine extends SafeEventEmitter {
         }
         
         this.playerFieldOfView = finalVisibleTiles;
+      }
+
+      // Remote devices (recon drone) extend vision independently of the
+      // player's own position — conceptually the rifle scope's range
+      // extension, except the center is mobile. Tiles are only ever ADDED
+      // here; the explored-flag pass right below applies to them exactly
+      // like any player-seen tile, so no renderer changes are needed.
+      const deviceTiles = DroneVision.collectDeviceFov(this.gameMap, range);
+      if (deviceTiles.length > 0) {
+        const seenKeys = new Set(this.playerFieldOfView.map(t => `${Math.round(t.x)},${Math.round(t.y)}`));
+        const merged = [...this.playerFieldOfView];
+        for (const tile of deviceTiles) {
+          const key = `${Math.round(tile.x)},${Math.round(tile.y)}`;
+          if (!seenKeys.has(key)) {
+            merged.push(tile);
+            seenKeys.add(key);
+          }
+        }
+        this.playerFieldOfView = merged;
       }
 
       // Update explored flags (Silent mutation, will stay in sync with pulse)

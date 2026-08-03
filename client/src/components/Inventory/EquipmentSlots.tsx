@@ -33,6 +33,7 @@ export default function EquipmentSlots() {
     { id: 'handgun', name: 'Handgun', icon: '🔫' },
     { id: 'long_gun', name: 'Long Gun', icon: '🔫' },
     { id: 'flashlight', name: 'Flashlight', icon: '🔦' },
+    { id: 'phone', name: 'Phone', icon: '📱' },
     { id: 'armor', name: 'Armor', icon: '🛡️' },
   ];
 

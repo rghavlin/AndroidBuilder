@@ -17,100 +17,19 @@ import { MAX_SICKNESS_DURATION } from '../utils/SurvivalCascade.js';
 import { AttributeProgressionManager } from '../systems/AttributeProgressionManager.js';
 
 
-import { Position } from '../components/Position.js';
 import { Health } from '../components/Health.js';
-import { Renderable } from '../components/Renderable.js';
-import { Movable } from '../components/Movable.js';
-import { InventoryContainer } from '../components/InventoryContainer.js';
-import { AIBehavior } from '../components/AIBehavior.js';
-import { LightEmitter } from '../components/LightEmitter.js';
-import { MoveIntent } from '../components/MoveIntent.js';
-import { DamageIntent } from '../components/DamageIntent.js';
-import { DestroyIntent } from '../components/DestroyIntent.js';
-import { NoiseEvent } from '../components/NoiseEvent.js';
-import { Vision } from '../components/Vision.js';
-import { Inventory } from '../components/Inventory.js';
-import { Item } from '../components/Item.js';
-import { MeleeWeapon } from '../components/MeleeWeapon.js';
-import { Consumable } from '../components/Consumable.js';
 import { ActionPoints } from '../components/ActionPoints.js';
 import { SurvivalStats } from '../components/SurvivalStats.js';
-import { PlayerSkills } from '../components/PlayerSkills.js';
 import { PlayerWallet } from '../components/PlayerWallet.js';
 import { Container } from '../inventory/Container.js';
 import { AIState } from '../components/AIState.js';
 import { Burnable } from '../components/Burnable.js';
+import { PlayerSkills } from '../components/PlayerSkills.js';
 import { RpgStats } from '../components/RpgStats.js';
 import { EquippedArmor } from '../components/EquippedArmor.js';
+import { defineAccessors, COMPONENT_CLASSES, COMPONENT_NAME_BY_CTOR } from '../components/registry.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
-function defineAccessors(TargetClass, componentName, ComponentClass, props) {
-  for (const [prop, defaultVal] of Object.entries(props)) {
-    // T8/R13#3: never hand a mutable default out by reference. A caller pushing
-    // into the shared literal (e.g. `entity.noiseBlacklist` on an entity with no
-    // AIState component) would silently corrupt every other component-less
-    // entity reading the same default. Return a fresh copy per read instead.
-    const isMutableDefault = defaultVal !== null && typeof defaultVal === 'object';
-    Object.defineProperty(TargetClass.prototype, prop, {
-      get() {
-        const comp = this.getComponent(componentName);
-        if (comp) return comp[prop];
-        return isMutableDefault ? structuredClone(defaultVal) : defaultVal;
-      },
-      set(val) {
-        let comp = this.getComponent(componentName);
-        if (!comp) {
-          comp = new ComponentClass();
-          this.addComponent(comp);
-        }
-        comp[prop] = val;
-        this.notifyChange();
-      }
-    });
-  }
-}
-
-// COMPONENT_CLASSES: Registry of components that can be attached to entities.
-// Divided into Permanent Data Components and Intent/Action Tags.
-export const COMPONENT_CLASSES = {
-  // --- Permanent Data Components ---
-  Position,
-  Health,
-  Renderable,
-  Movable,
-  InventoryContainer,
-  AIBehavior,
-  LightEmitter,
-  Vision,
-  Inventory,
-  Item,
-  MeleeWeapon,
-  Consumable,
-  ActionPoints,
-  SurvivalStats,
-  PlayerSkills,
-  PlayerWallet,
-  AIState,
-  Burnable,
-  RpgStats,
-  EquippedArmor,
-
-  // --- Intent / Action Tags (Temporary States) ---
-  MoveIntent,
-  DamageIntent,
-  DestroyIntent,
-  NoiseEvent
-};
-
-// Reverse lookup: component constructor -> stable registry name. Built once so
-// addComponent can key components by constructor IDENTITY rather than
-// constructor.name. Production minification mangles class names (Health -> "e"),
-// which would store components under garbage keys and make getComponent('Health')
-// return undefined — the hp getter would then read 0 and kill the player the
-// instant a new game starts (a build-only bug invisible in unminified dev).
-const COMPONENT_NAME_BY_CTOR = new Map(
-  Object.entries(COMPONENT_CLASSES).map(([name, ctor]) => [ctor, name])
-);
 
 export const SERIALIZED_FIELDS = [
   'subtype', 'blocksMovement', 'name', '_hostileToPlayerOverride', 'equippedWeaponId', 'iconId',
@@ -147,7 +66,8 @@ export const EntityType = {
   NPC: 'npc',
   PLACE_ICON: 'place_icon',
   STRUCTURE: 'structure',
-  GARAGE_DOOR: 'garage_door'
+  GARAGE_DOOR: 'garage_door',
+  DRONE: 'drone'
 };
 
 // Condition values that the `condition` getter DERIVES from real flags

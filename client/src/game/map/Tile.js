@@ -109,6 +109,12 @@ export class Tile {
       if ((item.type === EntityType.DOOR || item.type === EntityType.GARAGE_DOOR) && item.isOpen) continue;
       if (item.type === EntityType.WINDOW && (item.isOpen || item.isBroken) && !item.isReinforced && !isPlayer) continue;
 
+      // Flying remote devices (recon drone) pass over every entity and
+      // ground-based obstacle — "high ceilings everywhere" (see
+      // remote/DroneMovement.js). Terrain above is NOT bypassed: a drone
+      // still can't fly through a wall/building tile.
+      if (options.flying) continue;
+
       // Powered-on turrets block movement for everyone except their own faction
       // (the player can always step onto their own turret to retrieve it). Inert
       // turrets are walkable by all. This is dynamic, independent of blocksMovement.
@@ -123,7 +129,7 @@ export class Tile {
 
          // EXCEPTION: Same-tile safety
          if (entity && entity.logicalX === this.x && entity.logicalY === this.y) continue;
-         
+
          // NEW: Check if this item is currently being dragged or ridden by the player
          if (options.draggedItemId && (item.instanceId === options.draggedItemId || item.id === options.draggedItemId)) {
              continue;
@@ -134,7 +140,7 @@ export class Tile {
 
          // NEW: Check if we should ignore zombies (logjam prevention)
          if (options.ignoreZombies && item.type === EntityType.ZOMBIE) continue;
-         
+
          return false;
       }
     }

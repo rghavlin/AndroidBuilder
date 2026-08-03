@@ -13,6 +13,7 @@ import { ScentTrail } from '../utils/ScentTrail.js';
 import { getHourFromTurn } from '../utils/TimeUtils.js';
 import { ZombieReplenishmentSystem } from '../systems/ZombieReplenishmentSystem.js';
 import { Entity, EntityType } from '../entities/Entity.js';
+import { ENTITY_RESTORERS, restoreEntity } from './GameMapRestore.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import { Item as ECSItem } from '../components/Item.js';
@@ -1382,14 +1383,6 @@ export class GameMap extends SafeEventEmitter {
   static async _restoreTilesAndEntities(gameMap, data, options = {}) {
     const { excludeEntityTypes = [], includeEntityTypes = null } = options;
 
-    // Entity classes not already imported at module scope.
-    const { TestEntity } = await import('../entities/TestEntity.js');
-    const { Door } = await import('../entities/Door.js');
-    const { Window } = await import('../entities/Window.js');
-    const { PlaceIcon } = await import('../entities/PlaceIcon.js');
-    const { Rabbit } = await import('../entities/Rabbit.js');
-    const { GarageDoor } = await import('../entities/GarageDoor.js');
-
     // Sync an entity's coordinate fields + Position component to a tile.
     const syncEntityPosition = (entity, x, y) => {
       let pos = entity.getComponent('Position');
@@ -1440,40 +1433,8 @@ export class GameMap extends SafeEventEmitter {
               continue;
             }
 
-            let entity;
-            switch (entityType) {
-              case 'player':
-              case 'zombie':
-              case 'npc':
-                entity = Entity.fromJSON(entityData);
-                break;
-              case 'test':
-                entity = TestEntity.fromJSON(entityData);
-                break;
-              case 'item':
-                entity = entityData.components
-                  ? Entity.fromJSON(entityData)
-                  : gameMap.convertLegacyItemToECS(entityData);
-                break;
-              case 'door':
-                entity = Door.fromJSON(entityData);
-                break;
-              case 'garage_door':
-                entity = GarageDoor.fromJSON(entityData);
-                break;
-              case 'window':
-                entity = Window.fromJSON(entityData);
-                break;
-              case 'place_icon':
-                entity = PlaceIcon.fromJSON(entityData);
-                break;
-              case 'rabbit':
-                entity = Rabbit.fromJSON(entityData);
-                break;
-              default:
-                console.warn(`[GameMap] Unknown entity type during restoration: ${entityType}`);
-                continue;
-            }
+            const entity = restoreEntity(entityType, entityData, gameMap);
+            if (!entity && !ENTITY_RESTORERS[entityType]) continue;
 
             if (entity) {
               syncEntityPosition(entity, x, y);

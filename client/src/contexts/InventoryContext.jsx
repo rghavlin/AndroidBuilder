@@ -12,6 +12,7 @@ import engine from '../game/GameEngine.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { TurnProcessingUtils } from '../game/utils/TurnProcessingUtils.js';
 import { TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
+import * as RemoteDeviceRegistry from '../game/remote/RemoteDeviceRegistry.js';
 import { gameRandom } from '../game/utils/SeededRandom.js';
 import { recalcCharacter } from '../game/utils/SurvivalCascade.js';
 
@@ -1442,6 +1443,48 @@ export const InventoryProvider = ({ children }) => {
     return { success: true };
   }, [addLog, playSound]);
 
+  const deployDrone = useCallback((item) => {
+    if (!checkPlayerTurn()) return { success: false };
+    const result = RemoteDeviceRegistry.deploy(item, engine);
+    if (!result.success) {
+      playSound('Fail');
+      addLog(result.reason || 'Cannot launch the drone.', 'error');
+      return result;
+    }
+    addLog('You launch the recon drone.', 'item');
+    playSound('Equip');
+    engine.notifyUpdate();
+    return result;
+  }, [addLog, playSound]);
+
+  const landDrone = useCallback((drone) => {
+    if (!checkPlayerTurn()) return { success: false };
+    const result = RemoteDeviceRegistry.land(drone, engine);
+    if (!result.success) {
+      playSound('Fail');
+      addLog(result.reason || 'Cannot land the drone.', 'error');
+      return result;
+    }
+    addLog('The drone touches down.', 'item');
+    playSound('Equip');
+    engine.notifyUpdate();
+    return result;
+  }, [addLog, playSound]);
+
+  const stowDrone = useCallback((item) => {
+    if (!checkPlayerTurn()) return { success: false };
+    const result = RemoteDeviceRegistry.stow(item, engine);
+    if (!result.success) {
+      playSound('Fail');
+      addLog(result.reason || 'Not enough AP to stow the drone.', 'error');
+      return result;
+    }
+    addLog('You fold up the recon drone.', 'item');
+    playSound('Equip');
+    engine.notifyUpdate();
+    return result;
+  }, [addLog, playSound]);
+
   const depositSelectedInto = useCallback((targetContainerItem) => {
     if (!checkPlayerTurn()) return { success: false };
     if (!selectedItem || !engine.inventoryManager || !targetContainerItem) return { success: false };
@@ -1949,6 +1992,9 @@ export const InventoryProvider = ({ children }) => {
     unloadMagazine,
     deploySnare,
     retrieveSnare,
+    deployDrone,
+    landDrone,
+    stowDrone,
     toggleGenerator,
     toggleFireMode,
     fuelCampfire,

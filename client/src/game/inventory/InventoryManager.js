@@ -78,7 +78,8 @@ export class InventoryManager extends SafeEventEmitter {
       long_gun: null,
       flashlight: null,
       belt: null,
-      armor: null
+      armor: null,
+      phone: null
     };
 
     // Ground container (special auto-expanding container)

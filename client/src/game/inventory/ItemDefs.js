@@ -1088,8 +1088,8 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE, ItemTrait.BATTERY],
     categories: [ItemCategory.BATTERY, ItemCategory.TOOL],
     stackMax: 10,
-    capacity: 10,
-    ammoCount: 10
+    capacity: 20,
+    ammoCount: 20
   },
   'tool.large_battery': {
     id: 'tool.large_battery',
@@ -1101,8 +1101,8 @@ export const ItemDefs = {
     traits: [ItemTrait.STACKABLE, ItemTrait.BATTERY],
     categories: [ItemCategory.LARGE_BATTERY, ItemCategory.TOOL],
     stackMax: 5,
-    capacity: 100,
-    ammoCount: 100
+    capacity: 150,
+    ammoCount: 150
   },
   'tool.high_capacity_battery': {
     id: 'tool.high_capacity_battery',
@@ -1174,6 +1174,63 @@ export const ItemDefs = {
     traits: [ItemTrait.DEGRADABLE, ItemTrait.GROUND_ONLY],
     categories: [ItemCategory.TOOL],
     condition: 100
+  },
+  // Recon drone: a three-state device (see RemoteDeviceRegistry). The stowed
+  // and landed forms are items, mirroring the rabbit-snare pair; the airborne
+  // state is a Drone entity (entities/Drone.js), not an item at all.
+  'tool.recon_drone_stowed': {
+    id: 'tool.recon_drone_stowed',
+    name: 'Recon drone (stowed)',
+    noLoot: true,
+    rarity: Rarity.RARE,
+    imageId: 'recondronestowed',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED],
+    categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
+    attachmentSlots: [
+      { id: 'battery', name: 'Battery', allowedCategories: [ItemCategory.BATTERY] }
+    ]
+  },
+  'tool.recon_drone': {
+    id: 'tool.recon_drone',
+    name: 'Recon drone',
+    noLoot: true,
+    renderFullTile: true,
+    rarity: Rarity.RARE,
+    imageId: 'recondrone',
+    width: 2,
+    height: 2,
+    traits: [ItemTrait.GROUND_ONLY, ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED],
+    categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
+    // Read by DroneSystem/RemoteDeviceRegistry when spawning the airborne
+    // Drone entity — per TurretAI convention, stats live on the def, not the
+    // instance.
+    droneStats: {
+      kind: 'recon',
+      sightBonus: 3,
+      apPerTile: 0.5,
+      chargePerTile: 0.5,
+      hp: 8,
+      altitude: 'high'
+    },
+    attachmentSlots: [
+      { id: 'battery', name: 'Battery', allowedCategories: [ItemCategory.BATTERY] }
+    ]
+  },
+  'tool.smartphone': {
+    id: 'tool.smartphone',
+    name: 'Smartphone',
+    rarity: Rarity.RARE,
+    imageId: 'smartphone',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED],
+    equippableSlot: EquipmentSlot.PHONE,
+    categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
+    attachmentSlots: [
+      { id: 'battery', name: 'Battery', allowedCategories: [ItemCategory.BATTERY] }
+    ]
   },
   'container.toolbox': {
     id: 'container.toolbox',

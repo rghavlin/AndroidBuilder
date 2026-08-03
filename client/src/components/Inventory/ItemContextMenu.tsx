@@ -39,7 +39,7 @@ export function ItemContextMenu({
     tooltipContent = null,
     isDisabled = false
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, toggleGenerator, toggleFireMode, consumeItem, bindWound, drinkWater, unrollBedroll, rollupBedroll, crankCharger, readBook, disassembleItem, startDrag, stopDrag, pickSafeLock } = useInventory();
+    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, deployDrone, stowDrone, toggleGenerator, toggleFireMode, consumeItem, bindWound, drinkWater, unrollBedroll, rollupBedroll, crankCharger, readBook, disassembleItem, startDrag, stopDrag, pickSafeLock } = useInventory();
     const { igniteTorch, inventoryManager } = useGame();
     const { triggerSleep } = useSleep();
     const { startTargetingItem, harvestPlant } = useAction();
@@ -372,6 +372,22 @@ export function ItemContextMenu({
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
                                 Retrieve snare
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'tool.recon_drone_stowed' && (
+                            <ContextMenuItem
+                                onClick={() => deployDrone(item)}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Launch drone
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'tool.recon_drone' && (
+                            <ContextMenuItem
+                                onClick={() => stowDrone(item)}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Stow drone
                             </ContextMenuItem>
                         )}
                         {(() => {

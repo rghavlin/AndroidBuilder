@@ -312,6 +312,8 @@ export class GameSaveSystem {
           sleepProgress: engine.sleepProgress,
           targetingItemInstanceId: engine.targetingItemInstanceId,
           isFlashlightOn: engine.isFlashlightOn,
+          activeDeviceId: engine.activeDeviceId,
+          phoneChargeTurn: engine._phoneChargeTurn,
           dragging: (engine.dragging && engine.dragging.item) ? {
             itemInstanceId: engine.dragging.item.instanceId,
             tileX: engine.dragging.tileX,

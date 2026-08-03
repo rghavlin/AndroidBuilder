@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/OverlayManager.tsx": {
-    "mtime": 1784765376.2513642,
-    "ast_hash": "8b32f20b0c239dc6385cf2769a6fa4bf",
+    "mtime": 1785652654.0492718,
+    "ast_hash": "ec4a8e5a512c816393e31a03ecd24c6f",
     "semantic_hash": ""
   },
   "client/src/components/Game/PlayerSkillsUI.tsx": {

@@ -9,6 +9,7 @@ import { findEdgeStructure } from '../game/utils/EdgeStructure.js';
 import { VehicleUtils } from '../game/utils/VehicleUtils.js';
 import { isTurretPassableBy, TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
 import { isTerrainWalkable } from '../game/map/TerrainTypes.js';
+import * as DroneMovement from '../game/remote/DroneMovement.js';
 
 const GameMapContext = createContext();
 
@@ -72,6 +73,14 @@ export const GameMapProvider = ({ children }) => {
     if (!engine.gameMap || !player) return;
 
     if (!isPlayerTurn || isAutosaving || isMoving || isAnimatingZombies || engine.movementLocked) return;
+
+    // While a remote device has camera/control focus, clicks fly it instead
+    // of the player — camera target IS control target (see GameContext's
+    // cycleRemoteDevice).
+    if (engine.activeDeviceId) {
+      await DroneMovement.moveActiveDevice(x, y, engine);
+      return;
+    }
 
     try {
       const targetTile = engine.gameMap.getTile(x, y);
@@ -144,6 +153,16 @@ export const GameMapProvider = ({ children }) => {
     if (!player || !engine.gameMap) return;
 
     const targetTile = engine.gameMap.getTile(x, y);
+
+    if (engine.activeDeviceId) {
+      if (!targetTile) { setHoveredTile(null); return; }
+      const preview = DroneMovement.previewMoveCost(x, y, engine);
+      setHoveredTile(preview?.possible
+        ? { x, y, apCost: preview.apCost, canAfford: preview.canAfford, isDroneTarget: true }
+        : null);
+      return;
+    }
+
     if (!targetTile || !targetTile.flags?.explored) {
       setHoveredTile(null);
       return;
@@ -284,6 +303,10 @@ export const GameMapProvider = ({ children }) => {
         // 4. Update Engine
         engine.gameMap = newMap;
         engine.zombieTracker?.clearAllTracking();
+        // Any deployed drone belongs to the map being left behind — return
+        // control to the player rather than leave activeDeviceId pointing at
+        // an entity that no longer exists on the new map.
+        engine.activeDeviceId = null;
 
         // 5. Centering and Syncing
         if (cameraOperations?.setWorldBounds) cameraOperations.setWorldBounds(newMap.width, newMap.height);

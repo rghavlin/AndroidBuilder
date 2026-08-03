@@ -70,6 +70,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     isNight,
     isFlashlightOn,
     setIsFlashlightOn,
+    activeDeviceId,
+    cycleRemoteDevice,
     checkZombieAwareness,
     isAnimatingZombies,
     isSkillsOpen,
@@ -519,11 +521,13 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
             </div>
             <div className="flex-1" />
             <div className="flex gap-2 mr-2 shrink-0">
-              {['melee', 'handgun', 'long_gun', 'flashlight'].map((slot) => (
+              {['melee', 'handgun', 'long_gun', 'flashlight', 'phone'].map((slot) => (
                 <ActionSlotButton
                   key={slot}
                   slot={slot}
                   isFlashlightOnActual={isFlashlightOnActual}
+                  isDeviceActive={!!activeDeviceId}
+                  cycleRemoteDevice={cycleRemoteDevice}
                 />
               ))}
             </div>
@@ -553,11 +557,13 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               />
               <div className="flex-1" /> {/* Spacer pushes buttons apart */}
               <div className="flex gap-2 mr-2 shrink-0">
-                {['melee', 'handgun', 'long_gun', 'flashlight'].map((slot) => (
+                {['melee', 'handgun', 'long_gun', 'flashlight', 'phone'].map((slot) => (
                   <ActionSlotButton
                     key={slot}
                     slot={slot}
                     isFlashlightOnActual={isFlashlightOnActual}
+                    isDeviceActive={!!activeDeviceId}
+                    cycleRemoteDevice={cycleRemoteDevice}
                   />
                 ))}
               </div>

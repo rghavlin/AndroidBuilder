@@ -37,6 +37,8 @@ import { ItemTrait, EquipmentSlot } from '../game/inventory/traits.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { getHourFromTurn } from '../game/utils/TimeUtils.js';
 import { TestEntity, Item as LegacyItem } from '../game/entities/TestEntity.js';
+import * as RemoteDeviceRegistry from '../game/remote/RemoteDeviceRegistry.js';
+import { consumePhoneChargeOncePerTurn } from '../game/remote/DronePower.js';
 
 const GameContext = createContext();
 
@@ -392,6 +394,44 @@ const GameContextInner = ({ children }) => {
     });
   }, [isNight, updatePlayerFieldOfView, inventoryManager, addLog, igniteTorch, playSound, getActiveFlashlightRange, isFlashlightOnActual]);
 
+  const activeDeviceId = engine.activeDeviceId;
+
+  // Phone action button: cycles the camera/control focus through the
+  // player's deployed remote devices (recon drone today), then back to the
+  // player once the list is exhausted. Camera target IS control target —
+  // GameMapContext's click-to-move reads engine.activeDeviceId directly.
+  const cycleRemoteDevice = useCallback(() => {
+    if (!engine.player || !engine.gameMap) return;
+
+    const devices = RemoteDeviceRegistry.listDevices(engine.gameMap, engine.player.id);
+    if (devices.length === 0) {
+      if (engine.activeDeviceId !== null) {
+        engine.activeDeviceId = null;
+        engine.camera?.centerOn(engine.player.x, engine.player.y);
+        engine.notifyUpdate();
+      } else {
+        addLog('No deployed devices to control.', 'info');
+      }
+      return;
+    }
+
+    if (!consumePhoneChargeOncePerTurn(engine)) {
+      addLog('The phone has no charge.', 'error');
+      playSound('Fail');
+      return;
+    }
+
+    const nextId = RemoteDeviceRegistry.cycleTarget(engine.activeDeviceId, devices);
+    engine.activeDeviceId = nextId;
+
+    const focus = nextId ? devices.find(d => d.id === nextId) : engine.player;
+    if (focus && engine.camera) {
+      engine.camera.centerOn(focus.x, focus.y);
+    }
+
+    engine.notifyUpdate();
+  }, [addLog, playSound]);
+
   const turnPhase = engine.turnPhase;
   const setTurnPhase = useCallback((val) => {
     const nextPhase = typeof val === 'function' ? val(engine.turnPhase) : val;
@@ -710,6 +750,19 @@ const GameContextInner = ({ children }) => {
         }
       } else {
         setIsFlashlightOn(false);
+      }
+    }
+
+    // Phone consumption — at most one charge per turn (consumePhoneChargeOncePerTurn's
+    // turn-stamp guard), and only while the player has at least one device
+    // deployed. If it dies, drones stay airborne on their own batteries but
+    // control/vision through them is lost until the phone is recharged.
+    if (RemoteDeviceRegistry.listDevices(engine.gameMap, player.id).length > 0) {
+      const phoneCharged = consumePhoneChargeOncePerTurn(engine);
+      if (!phoneCharged && engine.activeDeviceId) {
+        engine.activeDeviceId = null;
+        engine.camera?.centerOn(player.x, player.y);
+        addLog('The phone has died. You lose contact with your remote devices.', 'warning');
       }
     }
 
@@ -2119,6 +2172,8 @@ const GameContextInner = ({ children }) => {
     setIsFlashlightOn,
     toggleFlashlight,
     igniteTorch,
+    activeDeviceId,
+    cycleRemoteDevice,
     isPlayerTurn,
     setIsPlayerTurn,
     isAutosaving,
@@ -2209,6 +2264,8 @@ const GameContextInner = ({ children }) => {
     setIsFlashlightOn,
     toggleFlashlight,
     igniteTorch,
+    activeDeviceId,
+    cycleRemoteDevice,
     isPlayerTurn,
     setIsPlayerTurn,
     isAutosaving,

@@ -374,6 +374,8 @@ export const EntityRenderer = {
       EntityRenderer.drawGarageDoor(ctx, entity, screenX, screenY, tileSize);
     } else if (entity.type === EntityType.PLACE_ICON) {
       EntityRenderer.drawPlaceIcon(ctx, entity, screenX, screenY, tileSize, sprites);
+    } else if (entity.type === EntityType.DRONE) {
+      EntityRenderer.drawDrone(ctx, entity, screenX, screenY, tileSize, sprites, currentTime, engine);
     } else {
       // Standard Sprite Rendering
       // Standardize subtype: use 'basic' if null/undefined to hit base sprite entries
@@ -1153,6 +1155,83 @@ export const EntityRenderer = {
       ctx.arc(x + tileSize/2, y + tileSize/2, tileSize/4, 0, Math.PI * 2);
       ctx.fill();
     }
+  },
+
+  /**
+   * Airborne remote device (recon drone). A dedicated draw function rather
+   * than folding into the item-token branch above — that branch is deeply
+   * tied to entity.type === 'item' (food/medical background colors, ground
+   * piles); the drone needs only the circular token + pulsing ring part of
+   * it. Reuses the item image cache key convention ('item_<imageId>') so the
+   * airborne token shares a cache entry with the item's own art.
+   */
+  drawDrone: (ctx, entity, x, y, tileSize, sprites, currentTime, engine) => {
+    const imageId = entity.subtype || 'recondrone';
+    const spriteKey = `item_${imageId}`;
+    const sprite = sprites[spriteKey];
+    if (!sprite) {
+      imageLoader.getItemImage(imageId);
+    }
+
+    const drawSize = tileSize * (2 / 3);
+    const drawX = x + (tileSize - drawSize) / 2;
+    const drawY = y + (tileSize - drawSize) / 2;
+    const centerX = drawX + drawSize / 2;
+    const centerY = drawY + drawSize / 2;
+    const radius = drawSize / 2;
+    const isLight = isLightTheme();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.fillStyle = isLight ? '#ffffff' : '#0a0a0a';
+    ctx.fill();
+    if (isLight) {
+      ctx.strokeStyle = '#d4d4d8';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    if (sprite) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.clip();
+      const scale = 0.72;
+      const sSize = drawSize * scale;
+      const sX = drawX + (drawSize - sSize) / 2;
+      const sY = drawY + (drawSize - sSize) / 2;
+      const drawSprite = isLight ? (getInvertedImage(sprite) || sprite) : sprite;
+      ctx.drawImage(drawSprite, sX, sY, sSize, sSize);
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.lineWidth = Math.max(1.5, drawSize * 0.08);
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Same active-ring language as a powered auto turret: pulses silver <->
+    // electric blue while this is the camera's control focus, plain silver
+    // otherwise — cycling through devices reads as an immediate visual cue.
+    const isFocused = !!(engine && engine.activeDeviceId === entity.id);
+    if (isFocused) {
+      frameRenderFlags.hasPulser = true;
+      const t = 0.5 + 0.5 * Math.sin(currentTime / 250);
+      const lerp = (a, b) => Math.round(a + (b - a) * t);
+      ctx.strokeStyle = `rgb(${lerp(226, 15)}, ${lerp(232, 60)}, ${lerp(240, 180)})`;
+      ctx.lineWidth = Math.max(1.2, drawSize * 0.06);
+    } else {
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = Math.max(0.8, drawSize * 0.04);
+    }
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
   },
 
   /**
