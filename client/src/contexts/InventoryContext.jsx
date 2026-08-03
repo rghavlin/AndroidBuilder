@@ -1448,10 +1448,10 @@ export const InventoryProvider = ({ children }) => {
     const result = RemoteDeviceRegistry.deploy(item, engine);
     if (!result.success) {
       playSound('Fail');
-      addLog(result.reason || 'Cannot launch the drone.', 'error');
+      addLog(result.reason || 'Cannot deploy the drone.', 'error');
       return result;
     }
-    addLog('You launch the recon drone.', 'item');
+    addLog('You unfold the recon drone at your feet. Use the phone to take control.', 'item');
     playSound('Equip');
     engine.notifyUpdate();
     return result;

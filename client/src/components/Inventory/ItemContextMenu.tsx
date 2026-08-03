@@ -379,7 +379,7 @@ export function ItemContextMenu({
                                 onClick={() => deployDrone(item)}
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
-                                Launch drone
+                                Deploy drone
                             </ContextMenuItem>
                         )}
                         {item?.defId === 'tool.recon_drone' && (

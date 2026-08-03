@@ -154,11 +154,17 @@ export const GameMapProvider = ({ children }) => {
 
     const targetTile = engine.gameMap.getTile(x, y);
 
+    // A drone hovering over this tile, if any. Surfaced on hoveredTile so the
+    // tooltip layer knows to render (it pre-filters on these fields), while the
+    // tooltip itself re-reads live stats off the entity.
+    const hoveredDrone = engine.gameMap.getEntitiesByType(EntityType.DRONE)
+      .find(d => Math.round(d.x) === x && Math.round(d.y) === y) || null;
+
     if (engine.activeDeviceId) {
       if (!targetTile) { setHoveredTile(null); return; }
       const preview = DroneMovement.previewMoveCost(x, y, engine);
       setHoveredTile(preview?.possible
-        ? { x, y, apCost: preview.apCost, canAfford: preview.canAfford, isDroneTarget: true }
+        ? { x, y, apCost: preview.apCost, canAfford: preview.canAfford, isDroneTarget: true, drone: hoveredDrone }
         : null);
       return;
     }
@@ -219,7 +225,8 @@ export const GameMapProvider = ({ children }) => {
         specialBuilding: targetTile.contents.find(e => e.type === EntityType.PLACE_ICON)?.subtype || null,
         door: door,
         window: windowEntity,
-        npc: targetTile.contents.find(e => e.type === EntityType.NPC)
+        npc: targetTile.contents.find(e => e.type === EntityType.NPC),
+        drone: hoveredDrone
       });
     } catch (error) {
       setHoveredTile(null);

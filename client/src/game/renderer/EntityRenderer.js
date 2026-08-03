@@ -19,6 +19,10 @@ let tempCtx = null;
 // idle. Shared module-level object so no call-site signature change is needed.
 export const frameRenderFlags = { hasPulser: false };
 
+// Opacity multiplier for an airborne device hovering on the player's own tile.
+// It's drawn above the player, so it has to be see-through or it hides them.
+const OVER_PLAYER_ALPHA = 0.45;
+
 // Perf Phase 2: per-frame cached tile-item lookups. During a render pass
 // MapCanvas sets engine._frameItemCache / _frameDominantCache (cleared each
 // frame). renderEntity resolves getItemsOnTile / dominant-item up to ~5x per
@@ -1173,6 +1177,16 @@ export const EntityRenderer = {
       imageLoader.getItemImage(imageId);
     }
 
+    // Hovering on the player's own tile: fade so the player stays readable
+    // underneath (MapCanvas draws aerial devices AFTER the player). Multiplied
+    // into whatever alpha renderEntity set, so fog dimming still applies.
+    const player = engine?.player;
+    const overPlayer = !!player
+      && Math.round(player.x) === Math.round(entity.x)
+      && Math.round(player.y) === Math.round(entity.y);
+    const baseAlpha = ctx.globalAlpha;
+    if (overPlayer) ctx.globalAlpha = baseAlpha * OVER_PLAYER_ALPHA;
+
     const drawSize = tileSize * (2 / 3);
     const drawX = x + (tileSize - drawSize) / 2;
     const drawY = y + (tileSize - drawSize) / 2;
@@ -1232,6 +1246,8 @@ export const EntityRenderer = {
     ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
+
+    ctx.globalAlpha = baseAlpha;
   },
 
   /**

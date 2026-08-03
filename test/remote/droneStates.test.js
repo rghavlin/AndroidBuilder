@@ -28,6 +28,14 @@ function makeStowedDrone(charge = 20) {
   return stowed;
 }
 
+/** Full stowed -> deployed -> airborne run; returns the Drone entity. */
+function deployAndLaunch(harness, charge = 20) {
+  RemoteDeviceRegistry.deploy(makeStowedDrone(charge), engine);
+  const deployed = engine.inventoryManager.groundContainer.getAllItems()
+    .find(it => it.defId === 'tool.recon_drone');
+  return RemoteDeviceRegistry.launch(deployed, engine).drone;
+}
+
 describe('RemoteDeviceRegistry / drone state transitions', () => {
   let harness;
 
@@ -40,8 +48,7 @@ describe('RemoteDeviceRegistry / drone state transitions', () => {
     engine.inventoryManager.syncWithMap(p.x, p.y, p.x, p.y, harness.gameMap);
   });
 
-  it('deploys a stowed drone into an airborne entity, spending 1 AP and 1 charge', () => {
-    equipPhone(harness);
+  it('deploys a stowed drone into the ground container as the 2x2 form — no entity yet', () => {
     const stowed = makeStowedDrone(20);
     const apBefore = harness.player.ap;
 
@@ -49,30 +56,78 @@ describe('RemoteDeviceRegistry / drone state transitions', () => {
 
     expect(result.success).toBe(true);
     expect(harness.player.ap).toBeCloseTo(apBefore - 1, 5);
+    // Deploying only unfolds it — nothing on the map until the phone launches it.
+    expect(harness.gameMap.getEntitiesByType('drone').length).toBe(0);
+
+    const deployed = engine.inventoryManager.groundContainer.getAllItems()
+      .find(it => it.defId === 'tool.recon_drone');
+    expect(deployed).toBeDefined();
+    expect(deployed.width).toBe(2);
+    expect(deployed.height).toBe(2);
+    // Deploy costs no charge — that's paid on launch.
+    expect(deployed.getBattery().ammoCount).toBe(20);
+  });
+
+  it('launch() turns a deployed ground item into an airborne entity, spending 1 charge', () => {
+    equipPhone(harness);
+    const stowed = makeStowedDrone(20);
+    RemoteDeviceRegistry.deploy(stowed, engine);
+    const deployed = engine.inventoryManager.groundContainer.getAllItems()
+      .find(it => it.defId === 'tool.recon_drone');
+
+    const result = RemoteDeviceRegistry.launch(deployed, engine);
+
+    expect(result.success).toBe(true);
     expect(harness.gameMap.getEntity(result.drone.id)).toBe(result.drone);
     expect(result.drone.type).toBe('drone');
     expect(result.drone.sourceItem.getBattery().ammoCount).toBe(19);
+    // The item left the ground container — the airborne entity owns it now.
+    expect(engine.inventoryManager.groundContainer.getAllItems()
+      .some(it => it.defId === 'tool.recon_drone')).toBe(false);
   });
 
-  it('refuses to deploy without a charged phone equipped', () => {
+  it('refuses to launch without a charged phone equipped', () => {
     const stowed = makeStowedDrone(20);
-    const result = RemoteDeviceRegistry.deploy(stowed, engine);
+    RemoteDeviceRegistry.deploy(stowed, engine);
+    const deployed = engine.inventoryManager.groundContainer.getAllItems()
+      .find(it => it.defId === 'tool.recon_drone');
+
+    const result = RemoteDeviceRegistry.launch(deployed, engine);
     expect(result.success).toBe(false);
     expect(harness.gameMap.getEntitiesByType('drone').length).toBe(0);
   });
 
-  it('refuses to deploy with an empty drone battery', () => {
+  it('refuses to launch with an empty drone battery', () => {
     equipPhone(harness);
     const stowed = makeStowedDrone(0);
-    const result = RemoteDeviceRegistry.deploy(stowed, engine);
+    RemoteDeviceRegistry.deploy(stowed, engine);
+    const deployed = engine.inventoryManager.groundContainer.getAllItems()
+      .find(it => it.defId === 'tool.recon_drone');
+
+    const result = RemoteDeviceRegistry.launch(deployed, engine);
     expect(result.success).toBe(false);
     expect(harness.gameMap.getEntitiesByType('drone').length).toBe(0);
+  });
+
+  it('listControllables surfaces a deployed-but-grounded drone, then the airborne one', () => {
+    equipPhone(harness);
+    const stowed = makeStowedDrone(20);
+    RemoteDeviceRegistry.deploy(stowed, engine);
+
+    let controllables = RemoteDeviceRegistry.listControllables(engine);
+    expect(controllables).toHaveLength(1);
+    expect(controllables[0].airborne).toBe(false);
+
+    RemoteDeviceRegistry.launch(controllables[0].item, engine);
+
+    controllables = RemoteDeviceRegistry.listControllables(engine);
+    expect(controllables).toHaveLength(1);
+    expect(controllables[0].airborne).toBe(true);
   });
 
   it('land() converts the airborne drone back into a landed (2x2) ground item, preserving battery charge', () => {
     equipPhone(harness);
-    const stowed = makeStowedDrone(20);
-    const { drone } = RemoteDeviceRegistry.deploy(stowed, engine);
+    const drone = deployAndLaunch(harness, 20);
     const chargeAfterDeploy = drone.sourceItem.getBattery().ammoCount;
     const apBefore = harness.player.ap;
 
@@ -92,8 +147,7 @@ describe('RemoteDeviceRegistry / drone state transitions', () => {
 
   it('stow() folds a landed drone back into the 2x1 carry form, preserving battery charge', () => {
     equipPhone(harness);
-    const stowed = makeStowedDrone(20);
-    const { drone } = RemoteDeviceRegistry.deploy(stowed, engine);
+    const drone = deployAndLaunch(harness, 20);
     RemoteDeviceRegistry.land(drone, engine);
 
     const landed = engine.inventoryManager.groundContainer.getAllItems().find((it) => it.defId === 'tool.recon_drone');
@@ -110,10 +164,20 @@ describe('RemoteDeviceRegistry / drone state transitions', () => {
     expect(result.item.getBattery().ammoCount).toBe(chargeBeforeStow);
   });
 
+  it('cycleTarget walks player -> device -> back to player using stable keys', () => {
+    equipPhone(harness);
+    RemoteDeviceRegistry.deploy(makeStowedDrone(20), engine);
+    const devices = RemoteDeviceRegistry.listControllables(engine);
+
+    const first = RemoteDeviceRegistry.cycleTarget(null, devices);
+    expect(first).toBe(devices[0].key);
+    // Only one device, so the next press hands control back to the player.
+    expect(RemoteDeviceRegistry.cycleTarget(first, devices)).toBeNull();
+  });
+
   it('clears activeDeviceId and recenters the camera when the active drone lands', () => {
     equipPhone(harness);
-    const stowed = makeStowedDrone(20);
-    const { drone } = RemoteDeviceRegistry.deploy(stowed, engine);
+    const drone = deployAndLaunch(harness, 20);
     engine.activeDeviceId = drone.id;
 
     RemoteDeviceRegistry.land(drone, engine);

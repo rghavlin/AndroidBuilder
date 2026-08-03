@@ -396,14 +396,18 @@ const GameContextInner = ({ children }) => {
 
   const activeDeviceId = engine.activeDeviceId;
 
-  // Phone action button: cycles the camera/control focus through the
-  // player's deployed remote devices (recon drone today), then back to the
-  // player once the list is exhausted. Camera target IS control target —
-  // GameMapContext's click-to-move reads engine.activeDeviceId directly.
+  // Phone action button: cycles the camera/control focus through the player's
+  // remote devices, then back to the player once the list is exhausted. Camera
+  // target IS control target — GameMapContext's click-to-move reads
+  // engine.activeDeviceId directly.
+  //
+  // A device that is deployed but still grounded (sitting in the ground
+  // container) is launched at the moment it's selected — taking control is what
+  // puts it in the air, so its map icon appears on this click.
   const cycleRemoteDevice = useCallback(() => {
     if (!engine.player || !engine.gameMap) return;
 
-    const devices = RemoteDeviceRegistry.listDevices(engine.gameMap, engine.player.id);
+    const devices = RemoteDeviceRegistry.listControllables(engine);
     if (devices.length === 0) {
       if (engine.activeDeviceId !== null) {
         engine.activeDeviceId = null;
@@ -421,10 +425,31 @@ const GameContextInner = ({ children }) => {
       return;
     }
 
-    const nextId = RemoteDeviceRegistry.cycleTarget(engine.activeDeviceId, devices);
-    engine.activeDeviceId = nextId;
+    const nextKey = RemoteDeviceRegistry.cycleTarget(engine.activeDeviceId, devices);
 
-    const focus = nextId ? devices.find(d => d.id === nextId) : engine.player;
+    if (nextKey === null) {
+      engine.activeDeviceId = null;
+      engine.camera?.centerOn(engine.player.x, engine.player.y);
+      engine.notifyUpdate();
+      return;
+    }
+
+    const target = devices.find(d => d.key === nextKey);
+    let focus = target?.drone;
+
+    if (target && !target.airborne) {
+      const result = RemoteDeviceRegistry.launch(target.item, engine);
+      if (!result.success) {
+        addLog(result.reason || 'Cannot launch the drone.', 'error');
+        playSound('Fail');
+        return;
+      }
+      addLog('The recon drone lifts off.', 'item');
+      playSound('Equip');
+      focus = result.drone;
+    }
+
+    engine.activeDeviceId = focus ? focus.id : null;
     if (focus && engine.camera) {
       engine.camera.centerOn(focus.x, focus.y);
     }

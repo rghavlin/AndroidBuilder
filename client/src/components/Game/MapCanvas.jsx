@@ -543,6 +543,7 @@ export default function MapCanvas({
       const allEntities = gameMap.getAllEntities();
       const groundEntities = [];
       const livingEntities = [];
+      const aerialEntities = []; // airborne remote devices — drawn above the player
 
       allEntities.forEach(entity => {
         if (entity.type === EntityType.PLAYER) return;
@@ -577,6 +578,11 @@ export default function MapCanvas({
         // Categorize into layers: Persistent structures and ground items go to bottom
         if ([EntityType.ITEM, EntityType.PLACE_ICON, EntityType.DOOR, EntityType.WINDOW, EntityType.GARAGE_DOOR].includes(entity.type)) {
           groundEntities.push(entity);
+        } else if (entity.type === EntityType.DRONE) {
+          // Airborne devices fly OVER everything, so they draw in their own pass
+          // after the player — otherwise the player sprite (Layer 4) would paint
+          // over a drone hovering on the same tile.
+          aerialEntities.push(entity);
         } else {
           livingEntities.push(entity);
         }
@@ -660,6 +666,21 @@ export default function MapCanvas({
         playerRenderScratch.x = pX;
         playerRenderScratch.y = pY;
         EntityRenderer.renderEntity(ctx, playerRenderScratch, rTileSize, imageLoader.images, visibleTileSet, true, engine, currentTime);
+        ctx.restore();
+      }
+
+      // Layer 4.1: Aerial devices (recon drone). Drawn last of the world layers
+      // so a drone hovering on the player's tile reads as being ABOVE them —
+      // EntityRenderer fades it while it overlaps the player so they stay visible.
+      if (aerialEntities.length > 0) {
+        ctx.save();
+        ctx.translate(globalOffsetX, globalOffsetY);
+        aerialEntities.forEach(entity => {
+          const isExplored = gameMap.getTile(Math.round(entity.x), Math.round(entity.y))?.flags?.explored;
+          ctx.save(); // Isolate individual entity draws to prevent state leakage (e.g. globalAlpha)
+          EntityRenderer.renderEntity(ctx, entity, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
+          ctx.restore();
+        });
         ctx.restore();
       }
 

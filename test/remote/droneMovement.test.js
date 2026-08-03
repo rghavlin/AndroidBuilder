@@ -22,7 +22,10 @@ function deployDrone(harness, charge = 20) {
   equipPhone(harness);
   const stowed = new Item(createItemFromDef('tool.recon_drone_stowed'));
   stowed.attachItem('battery', freshBattery(charge));
-  const result = RemoteDeviceRegistry.deploy(stowed, engine);
+  RemoteDeviceRegistry.deploy(stowed, engine);
+  const deployed = engine.inventoryManager.groundContainer.getAllItems()
+    .find(it => it.defId === 'tool.recon_drone');
+  const result = RemoteDeviceRegistry.launch(deployed, engine);
   engine.activeDeviceId = result.drone.id;
   return result.drone;
 }
@@ -35,6 +38,11 @@ describe('remote/DroneMovement', () => {
 
   beforeEach(() => {
     harness = new GameHarness({ seed: 1, width: 20, height: 20, terrain: 'grass' }).bootstrap();
+    // GameHarness.bootstrap() skips the spawn-sync the real game always does on
+    // player placement; prime it so the ground container tracks the player's
+    // tile (deploy() drops the unfolded drone there).
+    const p = harness.player;
+    engine.inventoryManager.syncWithMap(p.x, p.y, p.x, p.y, harness.gameMap);
   });
 
   it('flying 6 tiles costs exactly 3.0 player AP', async () => {

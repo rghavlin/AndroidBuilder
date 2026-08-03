@@ -33,6 +33,7 @@ import { DoorTooltip } from './DoorTooltip';
 import { WindowTooltip } from './WindowTooltip';
 import { NPCTooltip } from './NPCTooltip';
 import { RabbitTooltip } from './RabbitTooltip';
+import { DroneTooltip } from './DroneTooltip';
 import { TradeDialog } from './TradeDialog';
 import BarterWindow from './BarterWindow';
 import { useLog } from '../../contexts/LogContext.jsx';
@@ -682,7 +683,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           }
 
           // Re-check visibility from the cached hoveredTile data (updated in MapCanvas)
-          if (!hoveredTile.zombie && !hoveredTile.cropInfo && !hoveredTile.lootItems?.length && !hoveredTile.specialBuilding && !hoveredTile.door && !hoveredTile.window && !hoveredTile.npc && !hoveredTile.rabbit) return null;
+          if (!hoveredTile.zombie && !hoveredTile.cropInfo && !hoveredTile.lootItems?.length && !hoveredTile.specialBuilding && !hoveredTile.door && !hoveredTile.window && !hoveredTile.npc && !hoveredTile.rabbit && !hoveredTile.drone) return null;
           
           // Only show if the tile is explored
           const isExplored = gameMapRef.current?.getTile(hoveredTile.x, hoveredTile.y)?.flags?.explored;
@@ -1535,6 +1536,7 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
   const zombie = allEntities.find((e: any) => e.type === 'zombie' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
   const npc = allEntities.find((e: any) => e.type === EntityType.NPC && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
   const rabbit = allEntities.find((e: any) => e.type === 'rabbit' && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
+  const droneEntity = allEntities.find((e: any) => e.type === EntityType.DRONE && Math.round(e.x) === hoveredTile.x && Math.round(e.y) === hoveredTile.y);
   // Find door/window on the hovered tile or its edge neighbors. Structures are
   // static (integer coords matching their tile), so the tile-based helper is
   // equivalent to the visual-position search used for moving entities above.
@@ -1568,8 +1570,18 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
   
   // Rabbit Visibility logic: must be in player's current FOV
   const isRabbitVisible = rabbit && playerFieldOfView && playerFieldOfView.some(pos => pos.x === Math.round(rabbit.x) && pos.y === Math.round(rabbit.y));
-  
-  if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible && !door && !window && !isNpcVisible && !isRabbitVisible) return null;
+
+  // The player's own drone is always readable — it's their device, and it
+  // supplies its own vision, so it's never "out of sight" to its operator.
+  const droneInfo = droneEntity ? {
+    hp: droneEntity.hp,
+    maxHp: droneEntity.maxHp,
+    charges: droneEntity.sourceItem?.getCharges?.() ?? 0,
+    maxCharges: droneEntity.sourceItem?.getBattery?.()?.capacity ?? 0,
+    isControlled: engine.activeDeviceId === droneEntity.id
+  } : null;
+
+  if (!isZombieVisible && !isCropVisible && !isLootVisible && !isBuildingVisible && !door && !window && !isNpcVisible && !isRabbitVisible && !droneInfo) return null;
 
   // Position in the map container's own (unscaled) coordinate space. The tooltip
   // is portaled into the map area itself (below) so it is clipped to the map
@@ -1596,7 +1608,8 @@ const TileTooltipOverlay = ({ hoveredTile, playerFieldOfView, containerRef }: {
       {window && <WindowTooltip windowEntity={window} />}
       {isNpcVisible && <NPCTooltip npc={npc} />}
       {isRabbitVisible && <RabbitTooltip rabbit={rabbit as any} />}
-      
+      {droneInfo && <DroneTooltip drone={droneInfo as any} />}
+
       {/* Downward arrow/pointer */}
       <div className="w-2.5 h-2.5 bg-popover border-r border-b border-border transform rotate-45 -mt-3.5 shadow-lg" />
     </div>,

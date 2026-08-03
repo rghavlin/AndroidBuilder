@@ -43096,16 +43096,20 @@
         },
         "entities": [
           {
-            "type": "player"
+            "type": "player",
+            "inventory": [
+              {
+                "defId": "tool.smartphone",
+                "batteryCharges": 20
+              }
+            ],
+            "equippedIndex": 0
           }
         ],
         "items": [
           {
             "defId": "tool.recon_drone_stowed",
             "batteryCharges": 20
-          },
-          {
-            "defId": "tool.smartphone"
           }
         ]
       },

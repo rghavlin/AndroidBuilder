@@ -19245,7 +19245,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.recon_drone_stowed-1785741323720-gphjp",
+            "instanceId": "tool.recon_drone_stowed-1785741994006-f36ys",
             "defId": "tool.recon_drone_stowed",
             "id": "tool.recon_drone_stowed",
             "name": "Recon drone (stowed)",
@@ -19273,7 +19273,7 @@
             ],
             "attachments": {
               "battery": {
-                "instanceId": "tool.battery-1785741323720-m4mhq",
+                "instanceId": "tool.battery-1785741994006-ta2ta",
                 "defId": "tool.battery",
                 "id": "tool.battery",
                 "name": "Battery",
@@ -19294,35 +19294,6 @@
                 "ammoCount": 20
               }
             }
-          },
-          {
-            "instanceId": "tool.smartphone-1785741323720-ztjer",
-            "defId": "tool.smartphone",
-            "id": "tool.smartphone",
-            "name": "Smartphone",
-            "rarity": "rare",
-            "imageId": "smartphone",
-            "width": 2,
-            "height": 1,
-            "traits": [
-              "equippable",
-              "battery-powered",
-              "openable-when-nested"
-            ],
-            "equippableSlot": "phone",
-            "categories": [
-              "tool",
-              "electric"
-            ],
-            "attachmentSlots": [
-              {
-                "id": "battery",
-                "name": "Battery",
-                "allowedCategories": [
-                  "battery"
-                ]
-              }
-            ]
           }
         ]
       },
@@ -19485,7 +19456,62 @@
       "type": "player",
       "x": 9,
       "y": 79,
-      "subtype": null
+      "subtype": null,
+      "inventory": [
+        {
+          "instanceId": "tool.smartphone-1785741994007-eyxnj",
+          "defId": "tool.smartphone",
+          "id": "tool.smartphone",
+          "name": "Smartphone",
+          "rarity": "rare",
+          "imageId": "smartphone",
+          "width": 2,
+          "height": 1,
+          "traits": [
+            "equippable",
+            "battery-powered",
+            "openable-when-nested"
+          ],
+          "equippableSlot": "phone",
+          "categories": [
+            "tool",
+            "electric"
+          ],
+          "attachmentSlots": [
+            {
+              "id": "battery",
+              "name": "Battery",
+              "allowedCategories": [
+                "battery"
+              ]
+            }
+          ],
+          "attachments": {
+            "battery": {
+              "instanceId": "tool.battery-1785741994007-rkmm9",
+              "defId": "tool.battery",
+              "id": "tool.battery",
+              "name": "Battery",
+              "rarity": "uncommon",
+              "imageId": "battery",
+              "width": 1,
+              "height": 1,
+              "traits": [
+                "stackable",
+                "battery"
+              ],
+              "categories": [
+                "battery",
+                "tool"
+              ],
+              "stackMax": 10,
+              "capacity": 20,
+              "ammoCount": 20
+            }
+          }
+        }
+      ],
+      "equippedIndex": 0
     }
   ],
   "eventTriggers": [],

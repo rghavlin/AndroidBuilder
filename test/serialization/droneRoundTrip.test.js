@@ -19,14 +19,33 @@ function equipPhone(harness, charge = 20) {
   return phone;
 }
 
+/**
+ * Bootstrap a harness with the ground container primed to the player's tile —
+ * GameHarness skips the spawn-sync the real game always does, and deploy()
+ * drops the unfolded drone into that container.
+ */
+function bootstrapHarness() {
+  const harness = new GameHarness({ seed: 1 }).bootstrap();
+  const p = harness.player;
+  engine.inventoryManager.syncWithMap(p.x, p.y, p.x, p.y, harness.gameMap);
+  return harness;
+}
+
+/** Full stowed -> deployed -> airborne run; returns the Drone entity. */
+function deployAndLaunch(charge = 20) {
+  const stowed = new Item(createItemFromDef('tool.recon_drone_stowed'));
+  stowed.attachItem('battery', freshBattery(charge));
+  RemoteDeviceRegistry.deploy(stowed, engine);
+  const deployed = engine.inventoryManager.groundContainer.getAllItems()
+    .find(it => it.defId === 'tool.recon_drone');
+  return RemoteDeviceRegistry.launch(deployed, engine).drone;
+}
+
 describe('Serialization / drone round trip', () => {
   it('preserves an airborne drone, its battery charge, and the banked fraction through GameMap toJSON -> fromJSON', async () => {
-    const harness = new GameHarness({ seed: 1 }).bootstrap();
+    const harness = bootstrapHarness();
     equipPhone(harness);
-    const stowed = new Item(createItemFromDef('tool.recon_drone_stowed'));
-    stowed.attachItem('battery', freshBattery(20));
-
-    const { drone } = RemoteDeviceRegistry.deploy(stowed, engine);
+    const drone = deployAndLaunch(20);
     // 1 tile at 0.5/tile banks a 0.5 fraction without touching the battery —
     // this is exactly the state that must NOT be lost on save/load.
     consumeFlightCharge(drone, 1);
@@ -50,11 +69,9 @@ describe('Serialization / drone round trip', () => {
   });
 
   it('restores engine.activeDeviceId only when the referenced drone survived map restoration', async () => {
-    const harness = new GameHarness({ seed: 1 }).bootstrap();
+    const harness = bootstrapHarness();
     equipPhone(harness);
-    const stowed = new Item(createItemFromDef('tool.recon_drone_stowed'));
-    stowed.attachItem('battery', freshBattery(20));
-    const { drone } = RemoteDeviceRegistry.deploy(stowed, engine);
+    const drone = deployAndLaunch(20);
     engine.activeDeviceId = drone.id;
 
     const mapJSON = harness.gameMap.toJSON();
@@ -69,7 +86,7 @@ describe('Serialization / drone round trip', () => {
   });
 
   it('falls back to null when the saved activeDeviceId no longer exists on the restored map', async () => {
-    const harness = new GameHarness({ seed: 1 }).bootstrap();
+    const harness = bootstrapHarness();
     const mapJSON = harness.gameMap.toJSON();
     const restoredMap = await GameMap.fromJSON(mapJSON);
 
