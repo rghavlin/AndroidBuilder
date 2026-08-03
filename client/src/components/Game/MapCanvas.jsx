@@ -601,7 +601,9 @@ export default function MapCanvas({
       ctx.restore();
 
       // Pass 2a-2: Hover Cursor Highlight (above items, below doors/windows/zombies)
-      if (hoveredTile && player) {
+      // Skipped while viewing a grounded remote drone — nothing can move, so a
+      // movement cursor + AP number would promise an action that can't happen.
+      if (hoveredTile && player && !hoveredTile.isRemoteView) {
         const tile = gameMap.getTile(hoveredTile.x, hoveredTile.y);
         if (tile && tile.flags?.explored) {
           ctx.save();

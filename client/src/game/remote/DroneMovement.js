@@ -2,6 +2,7 @@ import { Pathfinding } from '../utils/Pathfinding.js';
 import { isTerrainWalkable } from '../map/TerrainTypes.js';
 import { DroneConfig } from '../config/DroneConfig.js';
 import { canAffordFlight, consumeFlightCharge } from './DronePower.js';
+import { getActiveDevice } from './RemoteDeviceRegistry.js';
 
 /**
  * Click-to-fly for the active remote device. A player-turn action outside
@@ -15,12 +16,6 @@ import { canAffordFlight, consumeFlightCharge } from './DronePower.js';
  * entity-blocking at all.
  */
 const droneEntityFilter = (tile) => !!tile && isTerrainWalkable(tile.terrain);
-
-function getActiveDrone(engine) {
-  if (!engine?.activeDeviceId || !engine.gameMap) return null;
-  const entity = engine.gameMap.getEntity(engine.activeDeviceId);
-  return (entity && entity.type === 'drone') ? entity : null;
-}
 
 function findDronePath(drone, x, y, engine) {
   return Pathfinding.findPath(
@@ -36,7 +31,7 @@ function findDronePath(drone, x, y, engine) {
  * moveActiveDevice will charge, or the preview and the real cost drift.
  */
 export function previewMoveCost(x, y, engine) {
-  const drone = getActiveDrone(engine);
+  const drone = getActiveDevice(engine);
   if (!drone) return null;
 
   const path = findDronePath(drone, x, y, engine);
@@ -93,7 +88,7 @@ function finishFlight(drone, path, engine) {
  *    would defeat the dedupe and force a full shadowcast every frame.
  */
 export function moveActiveDevice(x, y, engine) {
-  const drone = getActiveDrone(engine);
+  const drone = getActiveDevice(engine);
   const player = engine?.player;
   if (!drone || !player || !engine.gameMap) {
     return Promise.resolve({ success: false, reason: 'No active device' });

@@ -122550,7 +122550,9 @@
           {
             "type": "zombie",
             "subtype": "basic",
-            "earbucksValue": 0
+            "noLoot": true,
+            "earbucksValue": 0,
+            "deaf": true
           }
         ],
         "items": []
@@ -123774,7 +123776,17 @@
           {
             "defId": "weapon.hammer"
           }
-        ]
+        ],
+        "eventTrigger": {
+          "id": "OutsideHome",
+          "steps": [
+            {
+              "speaker": "",
+              "text": "Click once on the hammer, then click once on the melee slot"
+            }
+          ],
+          "oneShot": false
+        }
       },
       {
         "terrain": "grass",
@@ -124993,7 +125005,17 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [],
+        "eventTrigger": {
+          "id": "FrontDoorHome",
+          "steps": [
+            {
+              "speaker": "",
+              "text": "Go outside. If you dare. (right-click on the door)"
+            }
+          ],
+          "oneShot": false
+        }
       },
       {
         "terrain": "floor",
@@ -144186,10 +144208,54 @@
     }
   ],
   "noAutosave": true,
+  "lightMode": "time_dependent",
   "lowSpots": [],
   "bubbleEvents": [],
   "chainDialogEvents": [],
-  "events": [],
+  "events": [
+    {
+      "id": "FrontDoorHome",
+      "placement": {
+        "kind": "tile",
+        "x": 23,
+        "y": 102
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Go outside. If you dare. (right-click on the door)"
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.help"
+      }
+    },
+    {
+      "id": "OutsideHome",
+      "placement": {
+        "kind": "tile",
+        "x": 23,
+        "y": 101
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Click once on the hammer, then click once on the melee slot"
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.help"
+      }
+    }
+  ],
   "questRegistry": {
     "flags": [],
     "vars": [],

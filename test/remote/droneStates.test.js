@@ -184,4 +184,121 @@ describe('RemoteDeviceRegistry / drone state transitions', () => {
 
     expect(engine.activeDeviceId).toBeNull();
   });
+
+  // getActiveDevice gates the phone's "Land drone" menu entry, so it has to be
+  // null in exactly the cases where that option must not appear.
+  it('getActiveDevice returns the flown drone only while the phone controls one', () => {
+    equipPhone(harness);
+    expect(RemoteDeviceRegistry.getActiveDevice(engine)).toBeNull();
+
+    const drone = deployAndLaunch(harness, 20);
+    // Airborne but not selected — the player is still in control.
+    expect(RemoteDeviceRegistry.getActiveDevice(engine)).toBeNull();
+
+    engine.activeDeviceId = drone.id;
+    expect(RemoteDeviceRegistry.getActiveDevice(engine)).toBe(drone);
+
+    // Landing clears control, so the option disappears again.
+    RemoteDeviceRegistry.land(drone, engine);
+    expect(RemoteDeviceRegistry.getActiveDevice(engine)).toBeNull();
+  });
+
+  // The phone is a radio: a drone deployed (or landed) on a far tile stays
+  // controllable, powered down, without the player walking to it.
+  describe('remote grounded drones', () => {
+    /** Put a deployed drone on the map far from the player. Returns its entity. */
+    function placeRemoteDrone(x, y, charge = 20) {
+      const item = new Item(createItemFromDef('tool.recon_drone'));
+      item.attachItem('battery', freshBattery(charge));
+      engine.inventoryManager.dropItemAtLocation(item, x, y, harness.gameMap);
+      return harness.gameMap.getEntitiesByType('item')
+        .find(e => e.defId === 'tool.recon_drone' && Math.round(e.logicalX) === x);
+    }
+
+    it('lists a deployed drone sitting on a distant tile', () => {
+      const remote = placeRemoteDrone(2, 2);
+      expect(remote).toBeDefined();
+
+      const controllables = RemoteDeviceRegistry.listControllables(engine);
+      expect(controllables).toHaveLength(1);
+      expect(controllables[0].airborne).toBe(false);
+      expect(controllables[0].key).toBe(remote.instanceId);
+    });
+
+    it('deduplicates a drone that is both on-map and in the ground container', () => {
+      placeRemoteDrone(2, 2);
+      RemoteDeviceRegistry.deploy(makeStowedDrone(20), engine); // at the player's feet
+      const grounded = RemoteDeviceRegistry.listGroundedDevices(engine);
+      const ids = grounded.map(g => g.instanceId || g.id);
+      expect(new Set(ids).size).toBe(ids.length);
+      expect(grounded).toHaveLength(2);
+    });
+
+    it('getActiveGroundedDevice resolves an on-map drone by activeDeviceId', () => {
+      const remote = placeRemoteDrone(2, 2);
+      engine.activeDeviceId = remote.instanceId;
+
+      expect(RemoteDeviceRegistry.getActiveGroundedDevice(engine)).toBe(remote);
+      // It is NOT airborne, so the flying-drone lookup must stay null — that's
+      // what keeps click-to-move and the "Land drone" menu entry disabled.
+      expect(RemoteDeviceRegistry.getActiveDevice(engine)).toBeNull();
+    });
+
+    it('launches a remote drone at ITS OWN tile, not the player\'s', () => {
+      equipPhone(harness);
+      const remote = placeRemoteDrone(2, 2, 20);
+      const playerPos = { x: Math.round(harness.player.x), y: Math.round(harness.player.y) };
+      expect(playerPos.x).not.toBe(2);
+
+      const result = RemoteDeviceRegistry.launch(remote, engine);
+
+      expect(result.success).toBe(true);
+      expect(Math.round(result.drone.logicalX)).toBe(2);
+      expect(Math.round(result.drone.logicalY)).toBe(2);
+      // The grounded item is gone from the map, replaced by the airborne entity.
+      expect(harness.gameMap.getEntitiesByType('item')
+        .some(e => e.defId === 'tool.recon_drone')).toBe(false);
+    });
+
+    it('rebuilds the battery as a real Item when launching an on-map drone', () => {
+      equipPhone(harness);
+      const remote = placeRemoteDrone(2, 2, 20);
+      // On-map item entities carry raw JSON attachments — no getBattery().
+      expect(typeof remote.getBattery).not.toBe('function');
+
+      const { drone } = RemoteDeviceRegistry.launch(remote, engine);
+
+      expect(typeof drone.sourceItem.getBattery).toBe('function');
+      expect(drone.sourceItem.getBattery().ammoCount).toBe(19); // 20 - launch charge
+    });
+
+    it('refuses to launch a remote drone with a dead battery, leaving it in place', () => {
+      equipPhone(harness);
+      const remote = placeRemoteDrone(2, 2, 0);
+
+      const result = RemoteDeviceRegistry.launch(remote, engine);
+
+      expect(result.success).toBe(false);
+      expect(harness.gameMap.getEntitiesByType('drone')).toHaveLength(0);
+      expect(harness.gameMap.getEntitiesByType('item')
+        .some(e => e.defId === 'tool.recon_drone')).toBe(true);
+    });
+  });
+
+  it('landing from the phone leaves an inert deployed drone on the tile', () => {
+    equipPhone(harness);
+    const drone = deployAndLaunch(harness, 20);
+    engine.activeDeviceId = drone.id;
+    const chargeAloft = drone.sourceItem.getBattery().ammoCount;
+
+    RemoteDeviceRegistry.land(drone, engine);
+
+    // No entity left flying...
+    expect(harness.gameMap.getEntitiesByType('drone')).toHaveLength(0);
+    // ...and the deployed item is sitting at the player's feet with its charge.
+    const landed = engine.inventoryManager.groundContainer.getAllItems()
+      .find(it => it.defId === 'tool.recon_drone');
+    expect(landed).toBeDefined();
+    expect(landed.getBattery().ammoCount).toBe(chargeAloft);
+  });
 });

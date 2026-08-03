@@ -16017,7 +16017,7 @@
       {
         "x": 3,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16029,7 +16029,7 @@
       {
         "x": 4,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16041,7 +16041,7 @@
       {
         "x": 5,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16137,7 +16137,7 @@
       {
         "x": 13,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16149,7 +16149,7 @@
       {
         "x": 14,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16161,7 +16161,7 @@
       {
         "x": 15,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16173,7 +16173,7 @@
       {
         "x": 16,
         "y": 66,
-        "terrain": "grass",
+        "terrain": "fence",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -16580,7 +16580,1016 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "ammo.556-1785754731310-oh6ms",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-hkrje",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-98vko",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-vi94j",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-b9nm5",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-yhfyb",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-633ul",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-kua7y",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-v02u2",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-m9pf8",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-afroo",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-x47fq",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-vdvz3",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-y35zx",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-8w9lx",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-77r7u",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-5a9ac",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-vmto8",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-9yg7u",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-29w4u",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-f816b",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-9boqq",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-h4jnh",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-z9lkr",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-n93bt",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-j1hfr",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-ozmsx",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-p2uyf",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-plr93",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-nd79x",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-k7eaz",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-964dm",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-qib78",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-pcx0w",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-3qpbp",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-dro3a",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-0bomr",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-36utz",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-wm2a5",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-axm1p",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-pt9iy",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-0rh6k",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-5zw3h",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-d683h",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-ed57j",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-vi94q",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-j9ivk",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-jd2zx",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-2m122",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-v1mtb",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-3h93u",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-ctunf",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-jse5a",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          }
+        ]
       },
       {
         "x": 10,
@@ -18274,7 +19283,101 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "placeable.auto_turret-1785754731310-4uuqz",
+            "defId": "placeable.auto_turret",
+            "id": "placeable.auto_turret",
+            "name": "Auto turret",
+            "noLoot": true,
+            "rarity": "extremely_rare",
+            "imageId": "turret",
+            "width": 4,
+            "height": 4,
+            "factionId": "player",
+            "hp": 40,
+            "maxHp": 40,
+            "traits": [
+              "battery-powered",
+              "openable-when-nested",
+              "groundOnly"
+            ],
+            "categories": [
+              "tool",
+              "electric"
+            ],
+            "isOn": true,
+            "turretStats": {
+              "maxRange": 15,
+              "apPerShot": 1,
+              "maxAp": 10,
+              "rangedLvl": 5,
+              "damage": {
+                "min": 5,
+                "max": 18
+              },
+              "accuracyFalloff": 0.05,
+              "minAccuracy": 0.05,
+              "noiseRadius": 18
+            },
+            "attachmentSlots": [
+              {
+                "id": "battery",
+                "name": "Power Cell",
+                "allowedCategories": [
+                  "large_battery"
+                ],
+                "allowedItems": [
+                  "tool.large_battery",
+                  "tool.high_capacity_battery"
+                ]
+              },
+              {
+                "id": "ammo",
+                "name": "Magazine (.556)",
+                "hidden": false,
+                "allowedCategories": [
+                  "ammo"
+                ],
+                "allowedItems": [
+                  "attachment.556_magazine"
+                ]
+              },
+              {
+                "id": "barrel",
+                "name": "Barrel Attachment",
+                "hidden": false,
+                "allowedCategories": [
+                  "suppressor"
+                ]
+              }
+            ],
+            "attachments": {
+              "battery": {
+                "instanceId": "tool.large_battery-1785754731310-iswsa",
+                "defId": "tool.large_battery",
+                "id": "tool.large_battery",
+                "name": "Large battery",
+                "rarity": "uncommon",
+                "imageId": "largebattery",
+                "width": 2,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
+                ],
+                "categories": [
+                  "large_battery",
+                  "tool"
+                ],
+                "stackMax": 5,
+                "capacity": 150,
+                "ammoCount": 150
+              }
+            }
+          }
+        ]
       },
       {
         "x": 10,
@@ -19245,7 +20348,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.recon_drone_stowed-1785741994006-f36ys",
+            "instanceId": "tool.recon_drone_stowed-1785754731310-cr3an",
             "defId": "tool.recon_drone_stowed",
             "id": "tool.recon_drone_stowed",
             "name": "Recon drone (stowed)",
@@ -19273,7 +20376,7 @@
             ],
             "attachments": {
               "battery": {
-                "instanceId": "tool.battery-1785741994006-ta2ta",
+                "instanceId": "tool.battery-1785754731310-w0ztt",
                 "defId": "tool.battery",
                 "id": "tool.battery",
                 "name": "Battery",
@@ -19294,6 +20397,2196 @@
                 "ammoCount": 20
               }
             }
+          },
+          {
+            "instanceId": "tool.smartphone-1785754731310-l51mv",
+            "defId": "tool.smartphone",
+            "id": "tool.smartphone",
+            "name": "Smartphone",
+            "rarity": "rare",
+            "imageId": "smartphone",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "battery-powered",
+              "openable-when-nested"
+            ],
+            "equippableSlot": "phone",
+            "categories": [
+              "tool",
+              "electric"
+            ],
+            "attachmentSlots": [
+              {
+                "id": "battery",
+                "name": "Battery",
+                "allowedCategories": [
+                  "battery"
+                ]
+              }
+            ],
+            "attachments": {
+              "battery": {
+                "instanceId": "tool.battery-1785754731310-40ge1",
+                "defId": "tool.battery",
+                "id": "tool.battery",
+                "name": "Battery",
+                "rarity": "uncommon",
+                "imageId": "battery",
+                "width": 1,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
+                ],
+                "categories": [
+                  "battery",
+                  "tool"
+                ],
+                "stackMax": 10,
+                "capacity": 20,
+                "ammoCount": 20
+              }
+            }
+          },
+          {
+            "instanceId": "weapon.battle_rifle-1785754731310-p7fdn",
+            "defId": "weapon.battle_rifle",
+            "id": "weapon.battle_rifle",
+            "name": "Battle rifle",
+            "rarity": "extremely_rare",
+            "imageId": "battlerifle",
+            "width": 5,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "container",
+              "openable-when-nested"
+            ],
+            "equippableSlot": "long_gun",
+            "categories": [
+              "weapon",
+              "gun"
+            ],
+            "attachmentSlots": [
+              {
+                "id": "barrel",
+                "name": "Barrel",
+                "allowedCategories": [
+                  "suppressor"
+                ]
+              },
+              {
+                "id": "sight",
+                "name": "Optic",
+                "allowedCategories": [
+                  "rifle_scope",
+                  "laser_sight"
+                ]
+              },
+              {
+                "id": "ammo",
+                "name": "Magazine",
+                "hidden": true,
+                "allowedCategories": [
+                  "ammo"
+                ],
+                "allowedItems": [
+                  "attachment.556_magazine"
+                ]
+              }
+            ],
+            "rangedStats": {
+              "noiseRadius": 18,
+              "damage": {
+                "min": 5,
+                "max": 18
+              },
+              "accuracyFalloff": 0.05,
+              "minAccuracy": 0.05
+            },
+            "fireMode": "single",
+            "availableFireModes": [
+              "single",
+              "burst"
+            ],
+            "attachments": {
+              "ammo": {
+                "instanceId": "attachment.556_magazine-1785754731310-05sw0",
+                "defId": "attachment.556_magazine",
+                "id": "attachment.556_magazine",
+                "name": "5.56 Mag",
+                "rarity": "rare",
+                "imageId": "556mag",
+                "width": 2,
+                "height": 1,
+                "traits": [
+                  "magazine"
+                ],
+                "categories": [
+                  "ammo"
+                ],
+                "capacity": 20,
+                "ammoDefId": "ammo.556",
+                "ammoCount": 20
+              },
+              "sight": {
+                "instanceId": "attachment.riflescope-1785754731310-pkoos",
+                "defId": "attachment.riflescope",
+                "id": "attachment.riflescope",
+                "name": "Rifle Scope",
+                "rarity": "rare",
+                "imageId": "rifle_scope",
+                "width": 2,
+                "height": 1,
+                "traits": [
+                  "equippable"
+                ],
+                "categories": [
+                  "rifle_scope"
+                ]
+              }
+            }
+          },
+          {
+            "instanceId": "attachment.556_magazine-1785754731310-8ko5h",
+            "defId": "attachment.556_magazine",
+            "id": "attachment.556_magazine",
+            "name": "5.56 Mag",
+            "rarity": "rare",
+            "imageId": "556mag",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "magazine"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "capacity": 20,
+            "ammoDefId": "ammo.556"
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-f4ihw",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-xbhcn",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-lv027",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-ci8c5",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-3fyf5",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-0et43",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-9m5ig",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-0p6nv",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-lutxw",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-v8jsm",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-ubrue",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-49n87",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-5i8a5",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-flfmj",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-19yvn",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-5ll88",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-zkglf",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-yzp9d",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-vz8iz",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-zzl8k",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-cllav",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-fltjd",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-kdvf1",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-yjs8o",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-l7lrd",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-bf4l7",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-qgkj3",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-chen9",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-ieomq",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-qi1ff",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-30pt5",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-2j1j8",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-mvjfx",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-1ljyv",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-ymj7d",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-9lkqo",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-3239n",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-vgcwb",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-c5otp",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-7n5vd",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-qhfwu",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-9hpgn",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-odvo3",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-1jm5h",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-pnlen",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-05kcv",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-jshiw",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-jswwv",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-x1bo1",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-m8v3n",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-oihv5",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-5awl2",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-3aqa9",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-vnrdd",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-7e78g",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-c6er4",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-6num9",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-1ve2z",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731310-ft45r",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-z0390",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-ls70w",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-38g0p",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-0ut7j",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-pq5ox",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-12766",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-m6xfg",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-pevlc",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-g9b71",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-aq8fa",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-wb1am",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-tdnb3",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-ek22h",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-am2hh",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-zzovw",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-f3d98",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-rcw1i",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-ae2gy",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-0twif",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-r5zmv",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-8vmz8",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-k2zsl",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-85okl",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-tabpe",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-ug2ps",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-ld537",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-gi0oj",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-ofrtu",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-7wk74",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-8t6ss",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-5xwtb",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-657y0",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-1g9rm",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-yzs2t",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-eefsq",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-jqzpa",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "ammo.556-1785754731311-97w82",
+            "defId": "ammo.556",
+            "id": "ammo.556",
+            "name": "5.56 Ammo",
+            "rarity": "uncommon",
+            "imageId": "556ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 2,
+            "spawnStackMax": 7
+          },
+          {
+            "instanceId": "attachment.556_magazine-1785754731311-5x8p2",
+            "defId": "attachment.556_magazine",
+            "id": "attachment.556_magazine",
+            "name": "5.56 Mag",
+            "rarity": "rare",
+            "imageId": "556mag",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "magazine"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "capacity": 20,
+            "ammoDefId": "ammo.556"
+          },
+          {
+            "instanceId": "attachment.556_magazine-1785754731311-rvqlb",
+            "defId": "attachment.556_magazine",
+            "id": "attachment.556_magazine",
+            "name": "5.56 Mag",
+            "rarity": "rare",
+            "imageId": "556mag",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "magazine"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "capacity": 20,
+            "ammoDefId": "ammo.556"
+          },
+          {
+            "instanceId": "placeable.auto_turret-1785754731311-theoc",
+            "defId": "placeable.auto_turret",
+            "id": "placeable.auto_turret",
+            "name": "Auto turret",
+            "noLoot": true,
+            "rarity": "extremely_rare",
+            "imageId": "turret",
+            "width": 4,
+            "height": 4,
+            "factionId": "player",
+            "hp": 40,
+            "maxHp": 40,
+            "traits": [
+              "battery-powered",
+              "openable-when-nested",
+              "groundOnly"
+            ],
+            "categories": [
+              "tool",
+              "electric"
+            ],
+            "isOn": true,
+            "turretStats": {
+              "maxRange": 15,
+              "apPerShot": 1,
+              "maxAp": 10,
+              "rangedLvl": 5,
+              "damage": {
+                "min": 5,
+                "max": 18
+              },
+              "accuracyFalloff": 0.05,
+              "minAccuracy": 0.05,
+              "noiseRadius": 18
+            },
+            "attachmentSlots": [
+              {
+                "id": "battery",
+                "name": "Power Cell",
+                "allowedCategories": [
+                  "large_battery"
+                ],
+                "allowedItems": [
+                  "tool.large_battery",
+                  "tool.high_capacity_battery"
+                ]
+              },
+              {
+                "id": "ammo",
+                "name": "Magazine (.556)",
+                "hidden": false,
+                "allowedCategories": [
+                  "ammo"
+                ],
+                "allowedItems": [
+                  "attachment.556_magazine"
+                ]
+              },
+              {
+                "id": "barrel",
+                "name": "Barrel Attachment",
+                "hidden": false,
+                "allowedCategories": [
+                  "suppressor"
+                ]
+              }
+            ],
+            "attachments": {
+              "battery": {
+                "instanceId": "tool.large_battery-1785754731311-r7t3z",
+                "defId": "tool.large_battery",
+                "id": "tool.large_battery",
+                "name": "Large battery",
+                "rarity": "uncommon",
+                "imageId": "largebattery",
+                "width": 2,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
+                ],
+                "categories": [
+                  "large_battery",
+                  "tool"
+                ],
+                "stackMax": 5,
+                "capacity": 150,
+                "ammoCount": 150
+              }
+            }
+          },
+          {
+            "instanceId": "tool.high_capacity_battery-1785754731311-849z2",
+            "defId": "tool.high_capacity_battery",
+            "id": "tool.high_capacity_battery",
+            "name": "High-capacity battery",
+            "rarity": "extremely_rare",
+            "imageId": "largebattery",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "battery"
+            ],
+            "categories": [
+              "large_battery",
+              "tool"
+            ],
+            "stackMax": 5,
+            "capacity": 400,
+            "ammoCount": 400,
+            "backgroundColor": "#1E1B4B",
+            "borderColor": "#818CF8"
+          },
+          {
+            "instanceId": "tool.high_capacity_battery-1785754731311-81s3j",
+            "defId": "tool.high_capacity_battery",
+            "id": "tool.high_capacity_battery",
+            "name": "High-capacity battery",
+            "rarity": "extremely_rare",
+            "imageId": "largebattery",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "battery"
+            ],
+            "categories": [
+              "large_battery",
+              "tool"
+            ],
+            "stackMax": 5,
+            "capacity": 400,
+            "ammoCount": 400,
+            "backgroundColor": "#1E1B4B",
+            "borderColor": "#818CF8"
+          },
+          {
+            "instanceId": "backpack.hiking-1785754731311-uj2hp",
+            "defId": "backpack.hiking",
+            "id": "backpack.hiking",
+            "name": "Hiking Backpack",
+            "rarity": "extremely_rare",
+            "imageId": "hikingBackpack",
+            "width": 5,
+            "height": 5,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "categories": [
+              "container"
+            ],
+            "equippableSlot": "backpack",
+            "containerGrid": {
+              "width": 6,
+              "height": 10
+            },
+            "description": "When on the ground, right-click to open"
           }
         ]
       },
@@ -19448,7 +22741,91 @@
   "entities": [
     {
       "type": "zombie",
+      "x": 9,
+      "y": 58,
+      "subtype": "basic"
+    },
+    {
+      "type": "zombie",
+      "x": 9,
+      "y": 59,
+      "subtype": "basic"
+    },
+    {
+      "type": "zombie",
+      "x": 9,
+      "y": 60,
+      "subtype": "basic"
+    },
+    {
+      "type": "zombie",
       "x": 6,
+      "y": 68,
+      "subtype": "spitter"
+    },
+    {
+      "type": "zombie",
+      "x": 12,
+      "y": 68,
+      "subtype": "spitter"
+    },
+    {
+      "type": "zombie",
+      "x": 6,
+      "y": 69,
+      "subtype": "spitter"
+    },
+    {
+      "type": "zombie",
+      "x": 12,
+      "y": 69,
+      "subtype": "spitter"
+    },
+    {
+      "type": "zombie",
+      "x": 6,
+      "y": 70,
+      "subtype": "spitter"
+    },
+    {
+      "type": "zombie",
+      "x": 7,
+      "y": 70,
+      "subtype": "spitter"
+    },
+    {
+      "type": "zombie",
+      "x": 11,
+      "y": 70,
+      "subtype": "spitter"
+    },
+    {
+      "type": "zombie",
+      "x": 12,
+      "y": 70,
+      "subtype": "spitter"
+    },
+    {
+      "type": "zombie",
+      "x": 6,
+      "y": 71,
+      "subtype": "basic"
+    },
+    {
+      "type": "zombie",
+      "x": 7,
+      "y": 71,
+      "subtype": "spitter"
+    },
+    {
+      "type": "zombie",
+      "x": 11,
+      "y": 71,
+      "subtype": "spitter"
+    },
+    {
+      "type": "zombie",
+      "x": 12,
       "y": 71,
       "subtype": "basic"
     },
@@ -19456,62 +22833,7 @@
       "type": "player",
       "x": 9,
       "y": 79,
-      "subtype": null,
-      "inventory": [
-        {
-          "instanceId": "tool.smartphone-1785741994007-eyxnj",
-          "defId": "tool.smartphone",
-          "id": "tool.smartphone",
-          "name": "Smartphone",
-          "rarity": "rare",
-          "imageId": "smartphone",
-          "width": 2,
-          "height": 1,
-          "traits": [
-            "equippable",
-            "battery-powered",
-            "openable-when-nested"
-          ],
-          "equippableSlot": "phone",
-          "categories": [
-            "tool",
-            "electric"
-          ],
-          "attachmentSlots": [
-            {
-              "id": "battery",
-              "name": "Battery",
-              "allowedCategories": [
-                "battery"
-              ]
-            }
-          ],
-          "attachments": {
-            "battery": {
-              "instanceId": "tool.battery-1785741994007-rkmm9",
-              "defId": "tool.battery",
-              "id": "tool.battery",
-              "name": "Battery",
-              "rarity": "uncommon",
-              "imageId": "battery",
-              "width": 1,
-              "height": 1,
-              "traits": [
-                "stackable",
-                "battery"
-              ],
-              "categories": [
-                "battery",
-                "tool"
-              ],
-              "stackMax": 10,
-              "capacity": 20,
-              "ammoCount": 20
-            }
-          }
-        }
-      ],
-      "equippedIndex": 0
+      "subtype": null
     }
   ],
   "eventTriggers": [],

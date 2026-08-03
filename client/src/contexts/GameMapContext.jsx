@@ -10,6 +10,7 @@ import { VehicleUtils } from '../game/utils/VehicleUtils.js';
 import { isTurretPassableBy, TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
 import { isTerrainWalkable } from '../game/map/TerrainTypes.js';
 import * as DroneMovement from '../game/remote/DroneMovement.js';
+import { getActiveDevice } from '../game/remote/RemoteDeviceRegistry.js';
 
 const GameMapContext = createContext();
 
@@ -74,11 +75,14 @@ export const GameMapProvider = ({ children }) => {
 
     if (!isPlayerTurn || isAutosaving || isMoving || isAnimatingZombies || engine.movementLocked) return;
 
-    // While a remote device has camera/control focus, clicks fly it instead
-    // of the player — camera target IS control target (see GameContext's
-    // cycleRemoteDevice).
+    // While a remote device has camera/control focus, clicks fly it instead of
+    // the player — camera target IS control target (see cycleRemoteDevice).
+    // Viewing a GROUNDED drone is look-only: the camera is somewhere else
+    // entirely, so a click must not walk the player toward it.
     if (engine.activeDeviceId) {
-      await DroneMovement.moveActiveDevice(x, y, engine);
+      if (getActiveDevice(engine)) {
+        await DroneMovement.moveActiveDevice(x, y, engine);
+      }
       return;
     }
 
@@ -160,7 +164,7 @@ export const GameMapProvider = ({ children }) => {
     const hoveredDrone = engine.gameMap.getEntitiesByType(EntityType.DRONE)
       .find(d => Math.round(d.x) === x && Math.round(d.y) === y) || null;
 
-    if (engine.activeDeviceId) {
+    if (engine.activeDeviceId && getActiveDevice(engine)) {
       if (!targetTile) { setHoveredTile(null); return; }
       const preview = DroneMovement.previewMoveCost(x, y, engine);
       setHoveredTile(preview?.possible
@@ -168,6 +172,11 @@ export const GameMapProvider = ({ children }) => {
         : null);
       return;
     }
+
+    // Viewing a grounded drone: read-only. Surface what's on the tile for the
+    // tooltip layer, but no movement cursor — neither the player nor the
+    // powered-down drone can go anywhere from here.
+    const isRemoteView = !!engine.activeDeviceId;
 
     if (!targetTile || !targetTile.flags?.explored) {
       setHoveredTile(null);
@@ -189,8 +198,11 @@ export const GameMapProvider = ({ children }) => {
         return !blockedByEntity && !blockedByTurret;
       };
 
-      const isWalkable = Pathfinding.isTileWalkable(targetTile, entityFilter);
-      const path = Pathfinding.findPath(engine.gameMap, player.x, player.y, x, y, { allowDiagonal: true, entityFilter });
+      // Remote view can't move anyone, so skip the pathfinding entirely.
+      const isWalkable = isRemoteView ? false : Pathfinding.isTileWalkable(targetTile, entityFilter);
+      const path = isRemoteView
+        ? []
+        : Pathfinding.findPath(engine.gameMap, player.x, player.y, x, y, { allowDiagonal: true, entityFilter });
       const hasPath = path.length > 0 || (player.x === x && player.y === y);
       const isPossible = isWalkable && hasPath;
 
@@ -215,9 +227,10 @@ export const GameMapProvider = ({ children }) => {
 
       const zombie = targetTile.contents.find(e => e.type === EntityType.ZOMBIE);
       const rabbit = targetTile.contents.find(e => e.type === EntityType.RABBIT);
-      setHoveredTile({ 
-        x, y, apCost, 
-        canAfford: isPossible && !engine.movementLocked && player.ap >= apCost, 
+      setHoveredTile({
+        x, y, apCost: isRemoteView ? 0 : apCost,
+        isRemoteView,
+        canAfford: !isRemoteView && isPossible && !engine.movementLocked && player.ap >= apCost,
         zombie: zombie ? { subtype: zombie.subtype, hp: zombie.hp, maxHp: zombie.maxHp, currentAP: zombie.currentAP, maxAP: zombie.maxAP } : (data?.zombie || null),
         rabbit: rabbit ? { id: rabbit.id, type: rabbit.type, hp: rabbit.hp, maxHp: rabbit.maxHp, currentAP: rabbit.currentAP, maxAP: rabbit.maxAP } : (data?.rabbit || null),
         cropInfo: targetTile.cropInfo || data?.cropInfo || null,

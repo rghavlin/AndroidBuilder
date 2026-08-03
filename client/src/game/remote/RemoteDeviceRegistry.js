@@ -41,13 +41,80 @@ export function listDevices(gameMap, operatorId) {
 }
 
 /**
- * Deployed-but-grounded drones within reach — i.e. sitting in the player's
- * ground container. A drone that landed on some other tile isn't controllable
- * until the player walks to it, which is the intended constraint.
+ * Coerce a deployed-drone candidate into a real Item. A deployed drone on a
+ * far tile is an on-map ECS *entity* whose attachments are raw JSON, not Item
+ * instances — so getBattery()/consumeCharge() don't exist on it. Item.fromJSON
+ * accepts either shape and rebuilds the battery as a proper Item.
+ */
+export function asDeployedItem(candidate) {
+  if (!candidate) return null;
+  if (typeof candidate.getBattery === 'function') return candidate;
+  return Item.fromJSON(candidate);
+}
+
+/** Where a deployed drone physically sits, on-map or at the player's feet. */
+function deployedPosition(candidate, engine) {
+  const x = candidate?.logicalX ?? candidate?.x;
+  const y = candidate?.logicalY ?? candidate?.y;
+  if (Number.isFinite(x) && Number.isFinite(y)) return { x: Math.round(x), y: Math.round(y) };
+  const player = engine?.player;
+  return { x: Math.round(player?.x ?? 0), y: Math.round(player?.y ?? 0) };
+}
+
+/**
+ * Every deployed-but-grounded drone the phone can reach — ANYWHERE on the map,
+ * powered down or not. The phone is a radio: it doesn't care where the drone
+ * is, only that it exists. Scans both locations a deployed drone can live in:
+ * on-map item entities, and the player's ground container (a tile's items are
+ * detached from entityMap while the player stands on it — the same dual-scan
+ * TurretSystem has to do).
  */
 export function listGroundedDevices(engine) {
-  const items = engine?.inventoryManager?.groundContainer?.getAllItems?.() || [];
-  return items.filter(it => it && it.defId === DEPLOYED_DEF_ID);
+  const gameMap = engine?.gameMap;
+  const found = new Map(); // instanceId -> raw candidate (dedupe across both scans)
+
+  if (gameMap && typeof gameMap.getEntitiesByType === 'function') {
+    for (const e of gameMap.getEntitiesByType('item')) {
+      if (e && e.defId === DEPLOYED_DEF_ID) found.set(e.instanceId || e.id, e);
+    }
+  }
+  for (const it of engine?.inventoryManager?.groundContainer?.getAllItems?.() || []) {
+    if (it && it.defId === DEPLOYED_DEF_ID) found.set(it.instanceId || it.id, it);
+  }
+
+  // Stable order so cycling doesn't reshuffle between presses.
+  return [...found.values()].sort((a, b) =>
+    String(a.instanceId || a.id).localeCompare(String(b.instanceId || b.id))
+  );
+}
+
+/**
+ * The grounded drone the phone is currently focused on, or null. Targeted
+ * lookup (not a scan) because this runs on every context-menu render: an
+ * on-map deployed drone is an entity keyed by the same id as its instanceId.
+ */
+export function getActiveGroundedDevice(engine) {
+  const key = engine?.activeDeviceId;
+  if (!key) return null;
+
+  const onMap = engine.gameMap?.getEntity?.(key);
+  if (onMap) return onMap.defId === DEPLOYED_DEF_ID ? onMap : null;
+
+  const inGround = (engine.inventoryManager?.groundContainer?.getAllItems?.() || [])
+    .find(it => it && it.instanceId === key);
+  return (inGround && inGround.defId === DEPLOYED_DEF_ID) ? inGround : null;
+}
+
+/**
+ * The airborne drone the phone currently has control of, or null when the
+ * player is in control (or the id points at nothing — e.g. it just landed).
+ * Single source for "is the phone flying something right now".
+ * @returns {Drone|null}
+ */
+export function getActiveDevice(engine) {
+  if (!engine?.activeDeviceId || !engine.gameMap) return null;
+  const entity = engine.gameMap.getEntity(engine.activeDeviceId);
+  return (entity && entity.type === EntityType.DRONE) ? entity : null;
 }
 
 /**
@@ -100,17 +167,18 @@ export function deploy(stowedItem, engine) {
 }
 
 /**
- * Take a deployed (grounded) drone into the air as a map entity. This is what
- * the phone's control-cycle triggers, and what spends the launch charge.
- * @param {Item} deployedItem - a tool.recon_drone instance in the ground container
+ * Take a deployed (grounded) drone into the air as a map entity, at ITS OWN
+ * tile — the phone is a radio, so this works at any range, not just underfoot.
+ * This is what spends the launch charge.
+ * @param {Item|Entity} candidate - a tool.recon_drone, on-map or in the ground container
  * @param {GameEngine} engine
  * @returns {{success: boolean, reason?: string, drone?: Drone}}
  */
-export function launch(deployedItem, engine) {
+export function launch(candidate, engine) {
   const player = engine?.player;
   const inv = engine?.inventoryManager;
   const gameMap = engine?.gameMap;
-  if (!player || !inv || !gameMap || !deployedItem) {
+  if (!player || !inv || !gameMap || !candidate) {
     return { success: false, reason: 'Engine not ready' };
   }
 
@@ -119,27 +187,35 @@ export function launch(deployedItem, engine) {
     return { success: false, reason: 'Equip a charged phone first' };
   }
 
-  const battery = deployedItem.getBattery ? deployedItem.getBattery() : null;
+  // Capture the tile BEFORE removing it from the map — it launches from where
+  // it sits, which for a remote drone is nowhere near the player.
+  const { x, y } = deployedPosition(candidate, engine);
+  const deployedItem = asDeployedItem(candidate);
+
+  const battery = deployedItem?.getBattery ? deployedItem.getBattery() : null;
   if (!battery || (battery.ammoCount || 0) < DroneConfig.DEPLOY_CHARGE) {
     return { success: false, reason: 'Drone battery is empty' };
   }
 
-  // Detach from the container BEFORE it becomes the entity's sourceItem — the
-  // airborne drone owns the item outright; it must not stay in the ground grid.
-  inv.destroyItem(deployedItem.instanceId);
-
   if (!consumeDeployCharge(deployedItem)) {
-    // Unreachable given the pre-check, but never strand the item nowhere.
-    inv.dropItemAtLocation(deployedItem, Math.round(player.x), Math.round(player.y), gameMap);
     return { success: false, reason: 'Drone battery is empty' };
   }
 
-  const drone = new Drone(makeDroneId(), Math.round(player.x), Math.round(player.y), 'recon');
+  // Remove the grounded form from whichever of its two homes it occupies: an
+  // on-map item entity, or the player's ground container.
+  const key = candidate.instanceId || candidate.id;
+  if (gameMap.getEntity?.(key)) {
+    gameMap.removeEntity(key);
+  } else {
+    inv.destroyItem(key);
+  }
+
+  const drone = new Drone(makeDroneId(), x, y, 'recon');
   drone.operatorId = player.id;
   drone.sourceItem = deployedItem;
   drone._deployOrder = deployCounter++;
 
-  gameMap.addEntity(drone, Math.round(player.x), Math.round(player.y));
+  gameMap.addEntity(drone, x, y);
 
   engine.invalidateFOV?.();
   engine.recalculateFOV?.();

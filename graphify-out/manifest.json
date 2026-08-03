@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1785742192.82831,
-    "ast_hash": "a1892fef0b7e9d3f12561f052e1a4551",
+    "mtime": 1785744119.6514347,
+    "ast_hash": "0b4307357eb348c14f90d75c147e2874",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1785741699.8174684,
-    "ast_hash": "4f51e8aacfe4db0dcf6ad6e90adba5d8",
+    "mtime": 1785744190.8822596,
+    "ast_hash": "e238b781a81eca4ca6eb6a54f1b0d971",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -345,8 +345,8 @@
     "semantic_hash": "18fa86d376fe5e2c825e585a7ede892d"
   },
   "client/src/components/Inventory/ItemContextMenu.tsx": {
-    "mtime": 1785741843.3892536,
-    "ast_hash": "cb8590db220a1985c08d6e0d8eb652c1",
+    "mtime": 1785744144.2162797,
+    "ast_hash": "3c2970faf464f50232a3a0ae1287c64b",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/ItemTooltip.tsx": {
@@ -640,13 +640,13 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1785741828.762239,
-    "ast_hash": "b131452f8d98dcee62173ee04faa07d0",
+    "mtime": 1785744123.7884402,
+    "ast_hash": "de83a705f2e0a4b7c56218205c8caa50",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
-    "mtime": 1785741925.3723576,
-    "ast_hash": "4928f05badb285df1868436dce9d4502",
+    "mtime": 1785744182.7030578,
+    "ast_hash": "237a676f22a831c29e37e32c63afcd99",
     "semantic_hash": ""
   },
   "client/src/contexts/GridSizeContext.tsx": {
@@ -2580,8 +2580,8 @@
     "semantic_hash": ""
   },
   "client/public/sounds/zombie1.ogg": {
-    "mtime": 1785738917.192058,
-    "ast_hash": "e7f380dd99423df442777b40f42dd00a",
+    "mtime": 1785742175.9484637,
+    "ast_hash": "b30ab3a399d0fee5d65104216683fbd0",
     "semantic_hash": ""
   },
   "client/public/video/help/craftinganddisassembly.webm": {
@@ -3330,8 +3330,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/DroneMovement.js": {
-    "mtime": 1785740938.2092922,
-    "ast_hash": "381e9b1bb402a21ed4620dd94a217fcf",
+    "mtime": 1785743014.8524444,
+    "ast_hash": "cee3d6f91d73207b9c77267105338965",
     "semantic_hash": ""
   },
   "client/src/game/remote/DronePower.js": {
@@ -3345,8 +3345,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteDeviceRegistry.js": {
-    "mtime": 1785741810.1542566,
-    "ast_hash": "6d79cd5944b560c4db284e4ec2bd63a4",
+    "mtime": 1785744021.2440352,
+    "ast_hash": "e53b801133aef16e7d0514bfde63aa43",
     "semantic_hash": ""
   },
   "client/src/game/systems/DroneSystem.js": {
@@ -3370,8 +3370,8 @@
     "semantic_hash": ""
   },
   "test/remote/droneStates.test.js": {
-    "mtime": 1785742224.0194178,
-    "ast_hash": "caf377f10d64bf90a2c657ecf55c4b18",
+    "mtime": 1785744210.0953615,
+    "ast_hash": "3f9d767d4f891cb81a3d67e37cf13619",
     "semantic_hash": ""
   },
   "test/remote/droneVision.test.js": {
@@ -3402,11 +3402,6 @@
   "customMaps/drone test.scenario.json": {
     "mtime": 1785741994.0186949,
     "ast_hash": "f7b1662d97e3f2876fd928548d6b18fe",
-    "semantic_hash": ""
-  },
-  "client/public/sounds/zombie.ogg": {
-    "mtime": 1785742175.9484637,
-    "ast_hash": "b30ab3a399d0fee5d65104216683fbd0",
     "semantic_hash": ""
   }
 }

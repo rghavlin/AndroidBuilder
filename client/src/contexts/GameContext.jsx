@@ -401,9 +401,9 @@ const GameContextInner = ({ children }) => {
   // target IS control target — GameMapContext's click-to-move reads
   // engine.activeDeviceId directly.
   //
-  // A device that is deployed but still grounded (sitting in the ground
-  // container) is launched at the moment it's selected — taking control is what
-  // puts it in the air, so its map icon appears on this click.
+  // Cycling only VIEWS a device. A grounded one is simply snapped to (it stays
+  // powered down and contributes no vision); putting it in the air is the
+  // separate, explicit "Launch drone" command on the phone's context menu.
   const cycleRemoteDevice = useCallback(() => {
     if (!engine.player || !engine.gameMap) return;
 
@@ -426,35 +426,42 @@ const GameContextInner = ({ children }) => {
     }
 
     const nextKey = RemoteDeviceRegistry.cycleTarget(engine.activeDeviceId, devices);
+    engine.activeDeviceId = nextKey;
 
-    if (nextKey === null) {
-      engine.activeDeviceId = null;
-      engine.camera?.centerOn(engine.player.x, engine.player.y);
-      engine.notifyUpdate();
-      return;
-    }
-
-    const target = devices.find(d => d.key === nextKey);
-    let focus = target?.drone;
-
-    if (target && !target.airborne) {
-      const result = RemoteDeviceRegistry.launch(target.item, engine);
-      if (!result.success) {
-        addLog(result.reason || 'Cannot launch the drone.', 'error');
-        playSound('Fail');
-        return;
-      }
-      addLog('The recon drone lifts off.', 'item');
-      playSound('Equip');
-      focus = result.drone;
-    }
-
-    engine.activeDeviceId = focus ? focus.id : null;
+    const target = nextKey ? devices.find(d => d.key === nextKey) : null;
+    const focus = target ? (target.drone || target.item) : engine.player;
     if (focus && engine.camera) {
-      engine.camera.centerOn(focus.x, focus.y);
+      engine.camera.centerOn(
+        focus.logicalX ?? focus.x,
+        focus.logicalY ?? focus.y
+      );
+    }
+    if (target && !target.airborne) {
+      addLog('Linked to a grounded drone. Right-click the phone to launch it.', 'info');
     }
 
     engine.notifyUpdate();
+  }, [addLog, playSound]);
+
+  // "Launch drone" on the phone's context menu: puts the currently-viewed
+  // grounded drone into the air at its own tile, however far away that is.
+  const launchActiveDevice = useCallback(() => {
+    const grounded = RemoteDeviceRegistry.getActiveGroundedDevice(engine);
+    if (!grounded) return { success: false };
+
+    const result = RemoteDeviceRegistry.launch(grounded, engine);
+    if (!result.success) {
+      addLog(result.reason || 'Cannot launch the drone.', 'error');
+      playSound('Fail');
+      return result;
+    }
+
+    engine.activeDeviceId = result.drone.id;
+    engine.camera?.centerOn(result.drone.x, result.drone.y);
+    addLog('The recon drone lifts off.', 'item');
+    playSound('Equip');
+    engine.notifyUpdate();
+    return result;
   }, [addLog, playSound]);
 
   const turnPhase = engine.turnPhase;
@@ -2199,6 +2206,7 @@ const GameContextInner = ({ children }) => {
     igniteTorch,
     activeDeviceId,
     cycleRemoteDevice,
+    launchActiveDevice,
     isPlayerTurn,
     setIsPlayerTurn,
     isAutosaving,
@@ -2291,6 +2299,7 @@ const GameContextInner = ({ children }) => {
     igniteTorch,
     activeDeviceId,
     cycleRemoteDevice,
+    launchActiveDevice,
     isPlayerTurn,
     setIsPlayerTurn,
     isAutosaving,

@@ -7,6 +7,7 @@ import { useSleep } from '../../contexts/SleepContext.jsx';
 import { useAction } from '../../contexts/ActionContext.jsx';
 import engine from '../../game/GameEngine.js';
 import { VehicleUtils } from '../../game/utils/VehicleUtils.js';
+import { getActiveDevice, getActiveGroundedDevice } from '../../game/remote/RemoteDeviceRegistry.js';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -39,8 +40,12 @@ export function ItemContextMenu({
     tooltipContent = null,
     isDisabled = false
 }: ItemContextMenuProps) {
-    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, deployDrone, stowDrone, toggleGenerator, toggleFireMode, consumeItem, bindWound, drinkWater, unrollBedroll, rollupBedroll, crankCharger, readBook, disassembleItem, startDrag, stopDrag, pickSafeLock } = useInventory();
-    const { igniteTorch, inventoryManager } = useGame();
+    const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, deployDrone, landDrone, stowDrone, toggleGenerator, toggleFireMode, consumeItem, bindWound, drinkWater, unrollBedroll, rollupBedroll, crankCharger, readBook, disassembleItem, startDrag, stopDrag, pickSafeLock } = useInventory();
+    // activeDeviceId is read off GameContext (not the engine directly) so this
+    // menu re-renders when control of a device changes.
+    const { igniteTorch, inventoryManager, activeDeviceId, launchActiveDevice } = useGame();
+    const activeDrone = activeDeviceId ? getActiveDevice(engine) : null;
+    const activeGroundedDrone = activeDeviceId && !activeDrone ? getActiveGroundedDevice(engine) : null;
     const { triggerSleep } = useSleep();
     const { startTargetingItem, harvestPlant } = useAction();
     const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
@@ -380,6 +385,26 @@ export function ItemContextMenu({
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
                                 Deploy drone
+                            </ContextMenuItem>
+                        )}
+                        {/* Launch/land are phone commands, not drone-item ones: the phone
+                            works at any range, and while a drone is airborne there IS no
+                            item to right-click. Which verb shows depends purely on whether
+                            the currently-viewed device is on the ground or in the air. */}
+                        {item?.defId === 'tool.smartphone' && activeGroundedDrone && (
+                            <ContextMenuItem
+                                onClick={() => launchActiveDevice()}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Launch drone
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'tool.smartphone' && activeDrone && (
+                            <ContextMenuItem
+                                onClick={() => landDrone(activeDrone)}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Land drone
                             </ContextMenuItem>
                         )}
                         {item?.defId === 'tool.recon_drone' && (
