@@ -12,8 +12,6 @@ http://www.reactorcoregames.com
 
 STANDARD TEXTURES: https://little-martian.itch.io/,  https://little-martian.itch.io/retro-textures-pack
 
-All c:\games\audio\se=Sidearm Studios
-
 CLEAR: Darkwood audio, Horror SFX Free, shapeform, Essentials_Series_NOX_SOUND
 
 

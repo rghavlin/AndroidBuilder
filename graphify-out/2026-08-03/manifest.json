@@ -50,8 +50,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/CreditsWindow.tsx": {
-    "mtime": 1785735049.9532897,
-    "ast_hash": "5304ff688aa8c3ddfcc80a8f0e20666e",
+    "mtime": 1783849058.3546124,
+    "ast_hash": "3c9a0ee1bf9a759752d368405dd6ce17",
     "semantic_hash": ""
   },
   "client/src/components/Game/CropTooltip.tsx": {
@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1785740949.957198,
-    "ast_hash": "c049138381346be7006d24caac5fe15e",
+    "mtime": 1785137396.3714864,
+    "ast_hash": "e9e364912b5ad9e33e4d418cdf774765",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -705,8 +705,8 @@
     "semantic_hash": ""
   },
   "client/src/game/GameEngine.js": {
-    "mtime": 1785740944.7880812,
-    "ast_hash": "ae5ea2ae590a3b97c99e0ac1f84a61a1",
+    "mtime": 1785728924.6128373,
+    "ast_hash": "8e082f60af658cf5e7a6d9fbf07af3f6",
     "semantic_hash": ""
   },
   "client/src/game/GameInitializationManager.js": {
@@ -2395,14 +2395,14 @@
     "semantic_hash": "d60e4b4afb1fd87185068aaac199d809"
   },
   "client/public/sounds/Explosion1.ogg": {
-    "mtime": 1785735496.6917808,
-    "ast_hash": "2ff1ed64199908c05b87bde22ee1c4ba",
-    "semantic_hash": ""
+    "mtime": 1482527289.4094045,
+    "ast_hash": "08b34a4be718b4597cc735d4509d8067",
+    "semantic_hash": "08b34a4be718b4597cc735d4509d8067"
   },
   "client/public/sounds/Footsteps.ogg": {
-    "mtime": 1785733694.1061306,
-    "ast_hash": "a6e2119b17f954aef5c3b5ffcbeba457",
-    "semantic_hash": ""
+    "mtime": 1774507505.0,
+    "ast_hash": "e408150df8dec6e01813ae93a34dd2e1",
+    "semantic_hash": "e408150df8dec6e01813ae93a34dd2e1"
   },
   "client/public/sounds/bandage.ogg": {
     "mtime": 1778830444.8556454,
@@ -2410,9 +2410,9 @@
     "semantic_hash": "f610c2b6d9a5ff2e0e54d3d53c50b39f"
   },
   "client/public/sounds/bang1.ogg": {
-    "mtime": 1785732398.7287061,
-    "ast_hash": "e103a63e3b1ee9a243153bce6a2869a5",
-    "semantic_hash": ""
+    "mtime": 1482527508.051709,
+    "ast_hash": "481d2e0e19d4ebd1085dd31983a96c55",
+    "semantic_hash": "481d2e0e19d4ebd1085dd31983a96c55"
   },
   "client/public/sounds/boil.ogg": {
     "mtime": 1778835437.4098363,
@@ -2430,9 +2430,9 @@
     "semantic_hash": "eae46e7c792ae04142940b0ae712cc37"
   },
   "client/public/sounds/closedoor.ogg": {
-    "mtime": 1785732678.8050523,
-    "ast_hash": "d3686312d02f0d9c17be2fc291c07e15",
-    "semantic_hash": ""
+    "mtime": 1482527286.7933886,
+    "ast_hash": "78d0a3fff1159f21a0a3340759db1f9d",
+    "semantic_hash": "78d0a3fff1159f21a0a3340759db1f9d"
   },
   "client/public/sounds/craft.ogg": {
     "mtime": 1778830444.6233172,
@@ -2450,19 +2450,19 @@
     "semantic_hash": "aca3cd1d96f582e6077b630442f6e868"
   },
   "client/public/sounds/eat.ogg": {
-    "mtime": 1785734451.2910616,
-    "ast_hash": "5cd9660b29bfb2e1df0fddd820aceaf7",
-    "semantic_hash": ""
+    "mtime": 1778830444.6443684,
+    "ast_hash": "bd21c7f57fd9de7b2db748998141115f",
+    "semantic_hash": "bd21c7f57fd9de7b2db748998141115f"
   },
   "client/public/sounds/equip.ogg": {
-    "mtime": 1778830444.1577542,
-    "ast_hash": "ba7877b6bf6c64b7b2cf2584d90ba3fb",
-    "semantic_hash": ""
+    "mtime": 1482527512.0296128,
+    "ast_hash": "ca47f39eb0742392029f63d48a8c2e39",
+    "semantic_hash": "ca47f39eb0742392029f63d48a8c2e39"
   },
   "client/public/sounds/fail.ogg": {
-    "mtime": 1785735703.1970415,
-    "ast_hash": "c99626748dd01374818350568b3022db",
-    "semantic_hash": ""
+    "mtime": 1655638288.0,
+    "ast_hash": "2f4d3b0e7bc2698569a8335f83a37e90",
+    "semantic_hash": "2f4d3b0e7bc2698569a8335f83a37e90"
   },
   "client/public/sounds/fillbottle.ogg": {
     "mtime": 1774507504.0,
@@ -2470,14 +2470,14 @@
     "semantic_hash": "52bbbe6c7fe9c56b88ece682f0e3e631"
   },
   "client/public/sounds/forceopen.ogg": {
-    "mtime": 1785737710.3977628,
-    "ast_hash": "d119519bd983020df89345d83e5e7d8a",
-    "semantic_hash": ""
+    "mtime": 1482527433.343737,
+    "ast_hash": "cf158481dae024d6764b17d0ac3c1d80",
+    "semantic_hash": "cf158481dae024d6764b17d0ac3c1d80"
   },
   "client/public/sounds/glassbreak.ogg": {
-    "mtime": 1785738051.6701849,
-    "ast_hash": "069d9a8ffc4b0c26ba184c6684086d30",
-    "semantic_hash": ""
+    "mtime": 1482527232.8783982,
+    "ast_hash": "0eec9215af36d6b271152898e7205b6b",
+    "semantic_hash": "0eec9215af36d6b271152898e7205b6b"
   },
   "client/public/sounds/ignite.ogg": {
     "mtime": 1778830444.5626545,
@@ -2510,14 +2510,14 @@
     "semantic_hash": "d7a5f513a644c655ebc090e8c620878d"
   },
   "client/public/sounds/opendoor.ogg": {
-    "mtime": 1785733592.3566277,
-    "ast_hash": "5f5e7dc495101f9c12b5d6719dfcb033",
-    "semantic_hash": ""
+    "mtime": 1482527466.4339614,
+    "ast_hash": "760099dc0c34b1d3ed396c0bf7241005",
+    "semantic_hash": "760099dc0c34b1d3ed396c0bf7241005"
   },
   "client/public/sounds/openwindow.ogg": {
-    "mtime": 1785738246.9170673,
-    "ast_hash": "46f7003fec2a8348b35fd46382a79586",
-    "semantic_hash": ""
+    "mtime": 1482527466.418337,
+    "ast_hash": "2eb2371c1b13800e3a363dce106c4d35",
+    "semantic_hash": "2eb2371c1b13800e3a363dce106c4d35"
   },
   "client/public/sounds/pills.ogg": {
     "mtime": 1778830444.8737044,
@@ -2575,14 +2575,14 @@
     "semantic_hash": "bea90e9fd38eeae6fd24a11c74f5b8a4"
   },
   "client/public/sounds/unlock.ogg": {
-    "mtime": 1785740457.500157,
-    "ast_hash": "afedf75f2550781504345683d9c28520",
-    "semantic_hash": ""
+    "mtime": 1482527215.3970778,
+    "ast_hash": "971998e6c256dd44fe1833a64c142685",
+    "semantic_hash": "971998e6c256dd44fe1833a64c142685"
   },
   "client/public/sounds/zombie1.ogg": {
-    "mtime": 1785738917.192058,
-    "ast_hash": "e7f380dd99423df442777b40f42dd00a",
-    "semantic_hash": ""
+    "mtime": 1482527429.502976,
+    "ast_hash": "8f564b224959dced8e1233ea8dfb8abb",
+    "semantic_hash": "8f564b224959dced8e1233ea8dfb8abb"
   },
   "client/public/video/help/craftinganddisassembly.webm": {
     "mtime": 1780216764.332383,
@@ -3320,8 +3320,8 @@
     "semantic_hash": ""
   },
   "client/src/game/entities/Drone.js": {
-    "mtime": 1785740994.656662,
-    "ast_hash": "272b981750c617c954acfe4d58ba51d6",
+    "mtime": 1785728885.030412,
+    "ast_hash": "0ca17f407d5e761d2c1accff98ed14b0",
     "semantic_hash": ""
   },
   "client/src/game/map/GameMapRestore.js": {
@@ -3330,8 +3330,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/DroneMovement.js": {
-    "mtime": 1785740938.2092922,
-    "ast_hash": "381e9b1bb402a21ed4620dd94a217fcf",
+    "mtime": 1785729920.9312735,
+    "ast_hash": "654d6aba74717df55387108d1b614128",
     "semantic_hash": ""
   },
   "client/src/game/remote/DronePower.js": {
@@ -3340,8 +3340,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/DroneVision.js": {
-    "mtime": 1785740978.1532187,
-    "ast_hash": "447040feb794788e60104ea8015974d0",
+    "mtime": 1785728956.2423477,
+    "ast_hash": "27cc27bcc6f6352adac80cfd16e91118",
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteDeviceRegistry.js": {
@@ -3360,8 +3360,8 @@
     "semantic_hash": ""
   },
   "test/remote/droneMovement.test.js": {
-    "mtime": 1785741037.393507,
-    "ast_hash": "dd6f8c0f2df81a5a2a48df0770bc8775",
+    "mtime": 1785729773.0394254,
+    "ast_hash": "ce2029cfc02f36f5b4647dfc17bfcb8c",
     "semantic_hash": ""
   },
   "test/remote/dronePower.test.js": {

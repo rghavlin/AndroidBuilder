@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { GameHarness } from '../harness/GameHarness.js';
 import { Item } from '../../client/src/game/inventory/Item.js';
 import { createItemFromDef } from '../../client/src/game/inventory/ItemDefs.js';
@@ -27,23 +27,14 @@ function deployDrone(harness, charge = 20) {
   return result.drone;
 }
 
+// Headless has no requestAnimationFrame, so moveActiveDevice skips its tween
+// and snaps straight to the target (see finishFlight) — these tests exercise
+// the cost/pathing/validation logic, not the animation.
 describe('remote/DroneMovement', () => {
   let harness;
-  let originalRegisterAction;
 
   beforeEach(() => {
     harness = new GameHarness({ seed: 1, width: 20, height: 20, terrain: 'grass' }).bootstrap();
-    // Headless test environment has no requestAnimationFrame heartbeat, so a
-    // SequencerAction's promise (Drone.playAction) never resolves on its own.
-    // Drive registered actions to completion synchronously for these tests.
-    originalRegisterAction = engine.registerAction;
-    engine.registerAction = (action) => {
-      if (action && typeof action.update === 'function') action.update(action.duration ?? 99999);
-    };
-  });
-
-  afterEach(() => {
-    engine.registerAction = originalRegisterAction;
   });
 
   it('flying 6 tiles costs exactly 3.0 player AP', async () => {
@@ -104,15 +95,21 @@ describe('remote/DroneMovement', () => {
     expect(Math.round(drone.logicalX)).toBe(startX);
   });
 
-  it('flies over a zombie\'s tile without being blocked', async () => {
+  it('paths straight through a zombie\'s tile instead of detouring around it', async () => {
     const drone = deployDrone(harness);
     const startX = Math.round(drone.logicalX);
     const startY = Math.round(drone.logicalY);
     harness.spawnZombie(startX + 2, startY);
 
+    // 4 tiles means it went straight through the occupied tile; a detour
+    // around a blocking entity would cost more steps.
+    const preview = DroneMovement.previewMoveCost(startX + 4, startY, engine);
+    expect(preview.tiles).toBe(4);
+
     const result = await DroneMovement.moveActiveDevice(startX + 4, startY, engine);
 
     expect(result.success).toBe(true);
+    expect(result.tiles).toBe(4);
     expect(Math.round(drone.logicalX)).toBe(startX + 4);
     expect(Math.round(drone.logicalY)).toBe(startY);
   });

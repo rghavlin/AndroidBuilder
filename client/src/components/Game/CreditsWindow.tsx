@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { X, Sparkles, Music, Paintbrush, Volume2, Cpu } from "lucide-react";
+import { X, Sparkles, Music, Paintbrush, Cpu } from "lucide-react";
 
 interface CreditsWindowProps {
     onClose: () => void;
@@ -54,17 +54,6 @@ export default function CreditsWindow({ onClose }: CreditsWindowProps) {
                                 </a>
                             </li>
                         </ul>
-                    </div>
-
-                    {/* Sound Effects Section */}
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider border-b border-border/30 pb-1.5">
-                            <Volume2 className="w-4 h-4 text-primary" />
-                            Sound Effects
-                        </div>
-                        <p className="pl-1 text-[13px] leading-relaxed">
-                            Sidearm Studios
-                        </p>
                     </div>
 
                     {/* Libraries & Frameworks Section */}

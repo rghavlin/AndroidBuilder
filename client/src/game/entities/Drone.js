@@ -67,10 +67,13 @@ export class Drone extends Entity {
   }
 
   /**
-   * Animate a click-to-move flight step. Invoked directly from
-   * remote/DroneMovement.js — this is a player-turn action outside the
-   * simulation loop, so it mirrors Rabbit.playAction rather than going
-   * through TurnManager.
+   * Single-step MOVE animation, for the TurnManager playback path (any entity
+   * receiving a MOVE action must implement this — see TurnManager's MOVE case).
+   * Autonomous mode will route drone movement through there.
+   *
+   * NOT used by direct player control: remote/DroneMovement.js runs one
+   * continuous tween across the whole path instead, because stepping tile by
+   * tile makes the camera jump a full tile at a time and reads as choppy.
    */
   async playAction(action, callbacks = {}) {
     const { type, data } = action;

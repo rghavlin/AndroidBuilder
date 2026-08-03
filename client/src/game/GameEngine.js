@@ -100,6 +100,10 @@ class GameEngine extends SafeEventEmitter {
     // the player is in control; otherwise the id of the Drone entity the
     // phone button last cycled to. See remote/RemoteDeviceRegistry.js.
     this.activeDeviceId = null;
+    // True while a remote device is mid-flight tween. MapCanvas's gated render
+    // loop has no React state for devices (unlike isAnimatingMovement for the
+    // player), so this is what keeps it painting continuously during a flight.
+    this.isDeviceAnimating = false;
     // Turn number the equipped phone last charged, so cycling devices or
     // toggling the phone off/on within the same turn never costs a second
     // charge (see remote/DronePower.consumePhoneChargeOncePerTurn).

@@ -1270,6 +1270,7 @@ export default function MapCanvas({
       const continuous =
         continuousRef.current ||
         (engine.activeActions && engine.activeActions.size > 0) ||
+        engine.isDeviceAnimating || // remote-device flight tween (no React state for it)
         (engine.weather && engine.weather.type === 'rain') ||
         zoomPendingRef.current; // Phase 5: keep painting until the zoom settle-rebuild fires
 

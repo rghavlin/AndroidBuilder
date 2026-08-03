@@ -20,6 +20,19 @@ function listAirborneDevices(gameMap) {
 }
 
 /**
+ * The tile a device sees from. Prefers the RENDER position so vision travels
+ * with the sprite during a flight tween (logicalX/Y only updates at the final
+ * snap, which would leave the drone's FOV stuck at its origin for the whole
+ * flight). Outside a tween the two are identical — moveTo keeps them in sync.
+ * Shared by both exports so the dedupe hash and the FOV can never disagree.
+ */
+function devicePos(drone) {
+  const rx = Number.isFinite(drone.renderX) ? drone.renderX : drone.logicalX;
+  const ry = Number.isFinite(drone.renderY) ? drone.renderY : drone.logicalY;
+  return { x: Math.round(rx), y: Math.round(ry) };
+}
+
+/**
  * Extra term folded into GameEngine's FOV dedupe hash so a moving drone
  * always forces a repaint even when the player hasn't moved (the hash was
  * keyed on the player's tile only — the single sharpest trap in this
@@ -30,7 +43,10 @@ export function deviceFovHashPart(gameMap) {
   const devices = listAirborneDevices(gameMap);
   if (devices.length === 0) return '';
   return devices
-    .map(d => `${d.id}:${Math.round(d.logicalX)},${Math.round(d.logicalY)},${d.sightBonus ?? 0}`)
+    .map(d => {
+      const { x, y } = devicePos(d);
+      return `${d.id}:${x},${y},${d.sightBonus ?? 0}`;
+    })
     .join('|');
 }
 
@@ -47,8 +63,7 @@ export function collectDeviceFov(gameMap, baseRange) {
   const tiles = [];
   for (const drone of devices) {
     const range = baseRange + (drone.sightBonus ?? 0);
-    const x = Math.round(drone.logicalX);
-    const y = Math.round(drone.logicalY);
+    const { x, y } = devicePos(drone);
     const fov = LineOfSight.calculateFieldOfView(gameMap, { x, y, id: drone.id }, { maxRange: range });
     tiles.push(...fov.visibleTiles);
   }
