@@ -129,7 +129,8 @@ export default function GameControls({
     isAnimatingZombies,
     isProcessingTurn,
     isSkillsOpen,
-    toggleSkills
+    toggleSkills,
+    isModalBlocking
   } = useGame();
   
   const { isSleeping, triggerSleep } = useSleep();
@@ -169,7 +170,7 @@ export default function GameControls({
   const currentTurn = isInitialized ? turn : demoState.turn;
   const onEndTurnAction = isInitialized ? endTurn : demoEndTurn;
 
-  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping || isAnimatingZombies || isProcessingTurn || (combatContext?.isProcessing);
+  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping || isAnimatingZombies || isProcessingTurn || (combatContext?.isProcessing) || isModalBlocking;
   const sleepDisabled = buttonsDisabled || currentStats.energy >= 25;
 
   return (
@@ -423,6 +424,16 @@ export default function GameControls({
               {String(getHourFromTurn(currentTurn)).padStart(2, '0')}:00
             </span>
           </div>
+          {import.meta.env.DEV && (
+            <Button
+              onClick={() => (window as any).toggleDevConsole?.(true)}
+              disabled={buttonsDisabled}
+              className="bg-zinc-800/60 hover:bg-zinc-700/80 text-zinc-400 h-3.5 px-1 text-[7px] font-mono border border-white/5 leading-none transition-all mt-0.5 w-fit shadow-sm self-end"
+              data-testid="button-dev-console"
+            >
+              DEV
+            </Button>
+          )}
         </div>
 
       </div>

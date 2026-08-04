@@ -75,8 +75,8 @@ export const SPECIAL_BUILDING_LOOT = {
         }
     },
     hardware_store: {
-        tools: ['weapon.hammer', 'weapon.crowbar', 'weapon.wrench', 'tool.smallflashlight', 'weapon.knife', 'tool.crank_charger'],
-        materials: ['crafting.nail', 'crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery', 'tool.high_capacity_battery', 'crafting.motion_sensor'],
+        tools: ['weapon.hammer', 'weapon.crowbar', 'weapon.wrench', 'tool.smallflashlight', 'weapon.knife', 'weapon.screwdriver', 'tool.crank_charger'],
+        materials: ['crafting.nail', 'crafting.wire', 'crafting.tape', 'tool.battery', 'tool.large_battery', 'tool.high_capacity_battery', 'crafting.motion_sensor', 'crafting.electronic_parts', 'crafting.cpu'],
         rules: {
             guaranteedTech: ['crafting.solar_panel', 'tool.battery_charger']
         }

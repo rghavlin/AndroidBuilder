@@ -139,16 +139,12 @@ export default function CraftingUI() {
         return Math.max(1, Math.min(playerStats.ap || 0, remaining));
     }, [isQueued, craftingQueue, selectedRecipeCost, playerStats.ap]);
 
-    // How much AP to invest on the next Craft/Continue click (crafting tab only; defaults to 1)
-    const [apToSpend, setApToSpend] = useState(1);
+    // How much AP to invest on the next Craft/Continue click (crafting tab only; defaults to max needed or player AP available)
+    const [apToSpend, setApToSpend] = useState(maxApThisClick);
 
     useEffect(() => {
-        setApToSpend(1);
-    }, [selectedRecipeId, activeTab]);
-
-    useEffect(() => {
-        setApToSpend(prev => Math.max(1, Math.min(prev, maxApThisClick)));
-    }, [maxApThisClick]);
+        setApToSpend(maxApThisClick);
+    }, [selectedRecipeId, activeTab, maxApThisClick]);
 
     // Scroll-to-adjust for the AP spinner. Wired as a native, non-passive listener
     // because React 18 attaches synthetic wheel handlers as passive, silently

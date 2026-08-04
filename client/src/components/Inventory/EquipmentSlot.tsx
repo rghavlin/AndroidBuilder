@@ -49,6 +49,7 @@ const SLOT_INFO: Record<string, { name: string; icon: string; imageId: string }>
   handgun: { name: 'Handgun', icon: '🔫', imageId: '9mm pistol' },
   long_gun: { name: 'Long Gun', icon: '🔫', imageId: 'huntingrifle' },
   flashlight: { name: 'Flashlight', icon: '🔦', imageId: 'flashlight' },
+  phone: { name: 'Phone', icon: '📱', imageId: 'smartphone' },
   armor: { name: 'Armor', icon: '🛡️', imageId: 'paddedarmor' },
 };
 
@@ -88,7 +89,7 @@ const EquipmentSlot = memo(({
         item={item}
         tooltipContent={item ? <ItemTooltip item={item} /> : <p className="font-medium text-xs">{tooltipText}</p>}
       >
-        <div className={cn("relative w-12 h-12", className)} data-testid={`equipment-slot-wrapper-${slotId}`}>
+        <div className={cn("relative w-full h-full", className)} data-testid={`equipment-slot-wrapper-${slotId}`}>
           <div
             className={cn(
               "w-full h-full",
@@ -116,7 +117,7 @@ const EquipmentSlot = memo(({
             data-testid={`equipment-slot-${slotId}`}
           >
             {imageSrc && imageSrc !== 'failed' ? (
-              <div className="w-full h-full p-1.5 flex items-center justify-center transition-opacity duration-300">
+              <div className="equipment-slot-image-wrapper transition-opacity duration-300">
                 <img
                   key={`${slotId}:${theme}`}
                   src={imageSrc}
@@ -137,8 +138,8 @@ const EquipmentSlot = memo(({
               </div>
             ) : (
               <>
-                <span className="text-xl mb-0.5 opacity-70">{displayIcon}</span>
-                <span className="text-[9px] uppercase font-bold tracking-tighter opacity-80">{displayLabel}</span>
+                <span className="fallback-icon mb-0.5 opacity-70">{displayIcon}</span>
+                <span className="fallback-label uppercase font-bold tracking-tighter opacity-80">{displayLabel}</span>
               </>
             )}
 

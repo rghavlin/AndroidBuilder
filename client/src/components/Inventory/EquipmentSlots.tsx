@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
 import EquipmentSlot from "./EquipmentSlot";
 import { useInventory } from "@/contexts/InventoryContext";
-import { Button } from "@/components/ui/button";
 import { useState } from 'react';
 import { useGame } from "@/contexts/GameContext.jsx";
 import { usePlayer } from "@/contexts/PlayerContext.jsx";
@@ -18,7 +17,6 @@ export default function EquipmentSlots() {
   const { isSleeping } = useSleep();
   const { addLog } = useLog();
 
-  const buttonsDisabled = !isPlayerTurn || isAutosaving || isAnimatingMovement || isSleeping || isModalBlocking;
 
   // Match exact slots from InventoryManager.js (canonical seven slots)
   // TEMPORARY: 'armor' is parked here so it's equippable at all before the
@@ -147,26 +145,9 @@ export default function EquipmentSlots() {
   };
 
   return (
-    <div className="flex items-center gap-2 w-full h-full px-1" data-testid="equipment-slots">
-      {/* Label and Tucked Dev Button - vertically centered, shifted left */}
-      <div className="flex flex-col justify-center min-w-[50px] shrink-0 pl-1">
-        {import.meta.env.DEV && (
-          <Button
-            onClick={() => (window as any).toggleDevConsole?.(true)}
-            disabled={buttonsDisabled}
-            className="bg-zinc-800/60 hover:bg-zinc-700/80 text-zinc-400 h-3.5 px-1 text-[7px] font-mono border border-white/5 leading-none transition-all mb-1 w-fit shadow-sm"
-            data-testid="button-dev-console"
-          >
-            DEV
-          </Button>
-        )}
-        <h2 className="text-[8px] font-black text-zinc-400 uppercase tracking-wider pl-0.5">
-          EQUIPMENT
-        </h2>
-      </div>
-
-      {/* Slots Row - Shifting left by using smaller gap and minimal padding */}
-      <div className="flex gap-1.5 items-center h-full flex-nowrap overflow-x-auto scrollbar-hide">
+    <div className="flex items-center w-full h-full px-1 equipment-slots-parent justify-start" data-testid="equipment-slots">
+      {/* Slots Row - Left-aligned to utilize all available space on the left */}
+      <div className="flex items-center h-full flex-nowrap overflow-x-auto scrollbar-hide equipment-slots-row justify-start w-full">
         {equipmentSlots.map((slot) => {
           // Read equipped item from inventory manager (reactive to inventoryVersion)
           const equippedItem = inventoryRef.current?.equipment[slot.id] || null;
@@ -178,7 +159,7 @@ export default function EquipmentSlots() {
           const isLight = document.documentElement.classList.contains('light');
           return (
             <div key={slot.id} className={cn(
-              "w-12 h-12 flex-shrink-0",
+              "equipment-slot-size flex-shrink-0",
               equippedItem ? "rounded-full" : "rounded-lg",
               !isLight && "shadow-md"
             )}>

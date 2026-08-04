@@ -340,6 +340,30 @@ export const ItemDefs = {
     categories: [ItemCategory.CRAFTING_MATERIAL, ItemCategory.ELECTRIC]
   },
 
+  'crafting.electronic_parts': {
+    id: 'crafting.electronic_parts',
+    name: 'Electronic parts',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'electronicparts',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL, ItemCategory.ELECTRIC],
+    stackMax: 20
+  },
+
+  'crafting.cpu': {
+    id: 'crafting.cpu',
+    name: 'CPU',
+    rarity: Rarity.RARE,
+    imageId: 'cpu',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.STACKABLE],
+    categories: [ItemCategory.CRAFTING_MATERIAL, ItemCategory.ELECTRIC],
+    stackMax: 10
+  },
+
   'crafting.soil': {
     id: 'crafting.soil',
     name: 'Soil',
@@ -576,6 +600,23 @@ export const ItemDefs = {
     combat: {
       hitChance: 0.65,
       damage: { min: 1, max: 4 }
+    }
+  },
+
+  'weapon.screwdriver': {
+    id: 'weapon.screwdriver',
+    name: 'Screwdriver',
+    rarity: Rarity.COMMON,
+    imageId: 'screwdriver',
+    width: 2,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
+    condition: 100,
+    combat: {
+      hitChance: 0.65,
+      damage: { min: 1, max: 5 }
     }
   },
 
