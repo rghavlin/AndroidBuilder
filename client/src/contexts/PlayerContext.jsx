@@ -87,6 +87,14 @@ export const PlayerProvider = ({ children }) => {
   }, []);
   const isMovingRef = useRef(false);
   const [movementPath, setMovementPath] = useState([]);
+  // Perf Phase 6: the walk tween's progress lives in a ref, NOT React state.
+  // It used to be `setMovementProgress(easeProgress)` once per animation frame,
+  // which changed this provider's context value ~60x/sec and re-rendered every
+  // consumer — including GameContextInner, i.e. the whole game tree — for the
+  // entire duration of every move. The canvas reads the interpolated position
+  // straight off `engine.playerRenderPosition` instead (see writeRenderPosition
+  // below), so nothing needs a render pass to see the tween advance.
+  const movementProgressRef = useRef(0);
   const [movementProgress, setMovementProgress] = useState(0);
   const [playerFieldOfView, setPlayerFieldOfView] = useState(null);
   const [playerCardinalPositions, setPlayerCardinalPositions] = useState([]);
@@ -279,6 +287,23 @@ export const PlayerProvider = ({ children }) => {
     }
   }, []);
 
+  // Perf Phase 6: publish the tween's current position on the engine, mutating
+  // the existing object rather than replacing it so the renderer can hold onto
+  // the reference. This is the ONLY channel by which the walk animation reaches
+  // the canvas — deliberately not React state (see movementProgressRef).
+  const writeRenderPosition = useCallback((x, y) => {
+    engine.playerRenderPosition.x = x;
+    engine.playerRenderPosition.y = y;
+  }, []);
+
+  // Snap the published render position back to the player's logical tile. Used
+  // whenever no tween is in flight, so a consumer reading the engine outside a
+  // move never sees a stale mid-path position.
+  const syncRenderPositionToPlayer = useCallback(() => {
+    if (!engine.player) return;
+    writeRenderPosition(engine.player.x, engine.player.y);
+  }, [writeRenderPosition]);
+
   // Smooth animation function
   const smoothAnimateMovement = useCallback((gameMap, camera, path, startTime, duration = 1500, isNight = false, isFlashlightOn = false, flashlightRange = 8, onComplete = null, isNightVision = false) => {
     if (!engine.player || !gameMap || !camera) {
@@ -305,18 +330,22 @@ export const PlayerProvider = ({ children }) => {
       const smoothX = curr.x + (next.x - curr.x) * segProg;
       const smoothY = curr.y + (next.y - curr.y) * segProg;
 
-      setMovementProgress(easeProgress);
+      movementProgressRef.current = easeProgress;
+      writeRenderPosition(smoothX, smoothY);
       camera.centerOn(smoothX, smoothY);
-      
+
       // Real-time FOV/LOS updates during movement (60fps Local State)
       // This ensures vision moves perfectly with the sprite without engine/react pulse lag
       // Phase 28 Fix: Always use the central engine to calculate FOV during movement.
-      const didRecalculate = engine.recalculateFOV({ x: smoothX, y: smoothY });
+      // Perf Phase 6: no setPlayerFieldOfView here. recalculateFOV dedupes per
+      // TILE, so this fires on the ~9 frames of a walk that cross a boundary —
+      // and a doorway crossing can flip the visible set from ~24 to ~300 tiles
+      // at once, making that array copy plus the resulting provider-wide render
+      // land on the single most expensive frame of the move. The renderer reads
+      // engine.playerFieldOfView / engine.playerFovSet directly, and the
+      // authoritative React write still happens once on completion below.
+      engine.recalculateFOV({ x: smoothX, y: smoothY });
       const visibleTiles = engine.playerFieldOfView || [];
-      
-      if (didRecalculate) {
-        setPlayerFieldOfView([...visibleTiles]);
-      }
 
       // NOTE: Zombie tracking is intentionally NOT done here per-frame. Frame
       // sampling rounds the interpolated position and can skip tiles when a frame
@@ -355,7 +384,11 @@ export const PlayerProvider = ({ children }) => {
         // Release lock before final snap so updatePlayerFieldOfView isn't blocked
         setIsMoving(false);
         isMovingRef.current = false;
+        movementProgressRef.current = 0;
+        syncRenderPositionToPlayer();
 
+        // The one authoritative FOV state write per move (the per-frame writes
+        // were removed above).
         updatePlayerFieldOfView(gameMap, isNight, isFlashlightOn, false, flashlightRange, isNightVision);
         updatePlayerCardinalPositions(gameMap);
         
@@ -384,7 +417,7 @@ export const PlayerProvider = ({ children }) => {
 
     animationFrameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+  }, [updatePlayerFieldOfView, updatePlayerCardinalPositions, writeRenderPosition, syncRenderPositionToPlayer]);
 
   const startAnimatedMovement = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8, isNightVision = false, onComplete = null) => {
     if (!engine.player || !gameMap || !camera) return;
@@ -453,7 +486,9 @@ export const PlayerProvider = ({ children }) => {
     setIsMoving(true);
     isMovingRef.current = true;
     setMovementPath(path);
+    movementProgressRef.current = 0;
     setMovementProgress(0);
+    writeRenderPosition(path[0].x, path[0].y);
     camera.centerOn(path[0].x, path[0].y);
     console.log(`[PlayerContext] 🏃 Starting movement: (${path[0].x}, ${path[0].y}) -> (${path[path.length-1].x}, ${path[path.length-1].y}). Path: ${path.length} tiles. Cost: ${cost} AP.`);
     GameEvents.emit(GAME_EVENT.PLAYER_MOVE, { start: true });
@@ -471,7 +506,7 @@ export const PlayerProvider = ({ children }) => {
       }, 
       isNightVision
     );
-  }, [smoothAnimateMovement]);
+  }, [smoothAnimateMovement, writeRenderPosition]);
 
   const startAnimatedMovementAsync = useCallback((gameMap, camera, path, cost, isNight = false, isFlashlightOn = false, flashlightRange = 8, isNightVision = false) => {
     return new Promise((resolve) => {
@@ -480,20 +515,15 @@ export const PlayerProvider = ({ children }) => {
     });
   }, [startAnimatedMovement]);
 
+  // Perf Phase 6: this is now the engine's own live object rather than a fresh
+  // {x,y} rebuilt from movementProgress each render. The tween mutates it in
+  // place, so a consumer reading .x/.y always sees the current frame — no
+  // re-render required for the position to advance. Identity is stable, which
+  // is what lets MapCanvas drop it from its render dependencies.
   const playerRenderPosition = useMemo(() => {
-    if (!isMoving || movementPath.length === 0 || !engine.player) {
-      return engine.player ? { x: engine.player.x, y: engine.player.y } : { x: 0, y: 0 };
-    }
-    const pathProgress = movementProgress * (movementPath.length - 1);
-    const segIdx = Math.floor(pathProgress);
-    const segProg = pathProgress - segIdx;
-    const curr = movementPath[segIdx];
-    const next = movementPath[Math.min(segIdx + 1, movementPath.length - 1)];
-    return {
-      x: curr.x + (next.x - curr.x) * segProg,
-      y: curr.y + (next.y - curr.y) * segProg
-    };
-  }, [isMoving, movementPath, movementProgress, enginePulse]);
+    if (!isMovingRef.current) syncRenderPositionToPlayer();
+    return engine.playerRenderPosition;
+  }, [isMoving, movementPath, enginePulse, syncRenderPositionToPlayer]);
 
   const cancelMovement = useCallback(() => {
     if (animationCleanupRef.current) {
@@ -503,14 +533,18 @@ export const PlayerProvider = ({ children }) => {
     setIsMoving(false);
     isMovingRef.current = false;
     setMovementPath([]);
+    movementProgressRef.current = 0;
     setMovementProgress(0);
+    syncRenderPositionToPlayer();
     GameEvents.emit(GAME_EVENT.PLAYER_MOVE_ENDED);
-  }, []);
+  }, [syncRenderPositionToPlayer]);
 
   useEffect(() => {
     const handleShutdown = () => {
       setIsMoving(false);
+      isMovingRef.current = false;
       setMovementPath([]);
+      movementProgressRef.current = 0;
       setMovementProgress(0);
       setPlayerFieldOfView(null);
       setPlayerCardinalPositions([]);

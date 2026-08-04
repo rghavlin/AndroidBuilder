@@ -110,6 +110,13 @@ class GameEngine extends SafeEventEmitter {
     this._phoneChargeTurn = null;
     this.playerFieldOfView = []; // Phase 13: Atomic FOV
     this.playerFovSet = new Set(); // Perf Phase 2: cached "x,y" visibility Set for the renderer
+    // Perf Phase 6: the player's interpolated position during a walk tween.
+    // MUTATED IN PLACE (never reassigned) by PlayerContext's animation loop and
+    // read straight off the engine by MapCanvas, so the tween drives the canvas
+    // without a React state write — and therefore without a provider-wide
+    // re-render — on every one of its ~90 frames. At rest it tracks the
+    // player's logical tile.
+    this.playerRenderPosition = { x: 0, y: 0 };
     this._fovOptions = { maxRange: MAX_VISION_RANGE, isNight: false, isFlashlightOn: false, flashlightRange: FLASHLIGHT_RANGE, isNightVision: false };
     this._lastFovOptionsHash = ''; // Cache hash to throttle redundant FOV updates
     this.renderDebugColors = false; 

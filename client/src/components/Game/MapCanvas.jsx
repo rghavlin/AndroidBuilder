@@ -121,7 +121,12 @@ export default function MapCanvas({
   // Phase 1: Engine data is read DIRECTLY from the engine singleton in the render loop
   // We use hooks only for initialization and non-realtime settings
   useGame(); 
-  const { player, playerRef, playerRenderPosition, isMoving: isAnimatingMovement, startAnimatedMovement, startAnimatedMovementAsync, playerFieldOfView } = usePlayer();
+  // Perf Phase 6: playerRenderPosition is deliberately NOT taken from the
+  // context here. The walk tween mutates engine.playerRenderPosition in place
+  // and this component's rAF loop already runs every frame while
+  // isAnimatingMovement is true, so reading the engine directly lets the
+  // animation advance without PlayerContext re-rendering the tree 60x/sec.
+  const { player, playerRef, isMoving: isAnimatingMovement, startAnimatedMovement, startAnimatedMovementAsync, playerFieldOfView } = usePlayer();
   const { gameMapRef, handleTileClick, handleTileHover, hoveredTile, setHoveredTile, mapVersion } = useGameMap();
   const { cameraRef } = useCamera();
   const { effects, addEffect } = useVisualEffects();
@@ -252,6 +257,7 @@ export default function MapCanvas({
       // 2. Engine Readiness
       if (!engine.isReady()) return;
 
+      const playerRenderPosition = engine.playerRenderPosition;
       if (isAnimatingMovement && playerRenderPosition) {
         engine.recalculateFOV(playerRenderPosition);
       }
@@ -733,7 +739,7 @@ export default function MapCanvas({
       console.error('[MapCanvas] Critical Rendering Error:', error);
     }
 
-  }, [getLayoutDimensions, calculateTileSize, isAnimatingMovement, playerRenderPosition, hoveredTile, isNight, isFlashlightOn, isNightVision, effects, activeBubble]);
+  }, [getLayoutDimensions, calculateTileSize, isAnimatingMovement, hoveredTile, isNight, isFlashlightOn, isNightVision, effects, activeBubble]);
 
 
   // Handle mouse down for dragging

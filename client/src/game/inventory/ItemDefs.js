@@ -549,8 +549,7 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE],
     equippableSlot: EquipmentSlot.ARMOR,
     categories: [ItemCategory.ARMOR],
-    armor: { maxAbsorption: 7, weightRequirement: 10 },
-    description: 'Feather padding and tape. Light, easy to move in.'
+    armor: { maxAbsorption: 7, weightRequirement: 10 }
   },
 
   'armor.leather': {
@@ -564,8 +563,7 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE],
     equippableSlot: EquipmentSlot.ARMOR,
     categories: [ItemCategory.ARMOR],
-    armor: { maxAbsorption: 13, weightRequirement: 25 },
-    description: 'Belts of leather lashed together with tape.'
+    armor: { maxAbsorption: 13, weightRequirement: 25 }
   },
 
   'armor.metal': {
@@ -579,8 +577,7 @@ export const ItemDefs = {
     traits: [ItemTrait.EQUIPPABLE],
     equippableSlot: EquipmentSlot.ARMOR,
     categories: [ItemCategory.ARMOR],
-    armor: { maxAbsorption: 20, weightRequirement: 50 },
-    description: 'Scrap plates taped together. Absorbs a beating, but its weight costs serious agility unless you\'re strong enough to carry it.'
+    armor: { maxAbsorption: 20, weightRequirement: 50 }
   },
 
 

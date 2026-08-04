@@ -50,7 +50,7 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
 
     return (
         <div className="fixed inset-0 z-[8888] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 pointer-events-auto shadow-2xl">
-            <Card className="relative w-full max-w-2xl bg-card border-primary/20 shadow-2xl overflow-hidden metal-panel max-h-[85vh] flex flex-col">
+            <Card className="relative w-full max-w-2xl bg-card border-primary/20 shadow-2xl overflow-hidden metal-panel max-h-[85vh] flex flex-col character-registry-window">
                 {/* Header */}
                 <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 pb-4 shrink-0">
                     <CardTitle className="text-2xl font-mono uppercase tracking-tighter text-foreground">
@@ -99,15 +99,15 @@ export default function CharacterRegistryWindow({ onClose, onSelect, mode }: Cha
                                         <div
                                             key={char.id}
                                             onClick={() => setSelectedCharId(char.id)}
-                                            className={`p-3.5 rounded-lg border transition-all duration-300 cursor-pointer flex flex-col justify-between ${
+                                            className={`p-3.5 rounded-lg border transition-all duration-300 cursor-pointer flex flex-col justify-between character-registry-card ${
                                                 isSelected 
-                                                    ? 'bg-primary/20 border-primary shadow-[0_0_15px_rgba(34,197,94,0.3)] translate-x-1.5' 
+                                                    ? 'bg-primary/20 border-primary shadow-[0_0_15px_rgba(34,197,94,0.3)] translate-x-1.5 is-selected' 
                                                     : 'bg-card/40 border-border/40 hover:border-primary/30 hover:bg-card/60 hover:translate-x-0.5'
                                             }`}
                                         >
                                             <div className="flex justify-between items-start mb-2">
                                                 <div className="flex flex-col gap-0.5">
-                                                    <span className={`font-mono text-base font-black tracking-wide ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                                                    <span className={`font-mono text-base font-black tracking-wide character-name ${isSelected ? 'text-primary' : 'text-foreground'}`}>
                                                         {char.name}
                                                     </span>
                                                      {char.isInfected && (

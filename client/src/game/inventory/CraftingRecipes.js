@@ -479,5 +479,44 @@ export const CraftingRecipes = [
             { id: 'electric_motor',             count: 1 },
             { id: 'crafting.wire',              count: 2 }
         ]
+    },
+    {
+        id: 'armor.padded',
+        name: 'Padded Armor',
+        resultItem: 'armor.padded',
+        description: 'Light makeshift armor made of feather padding and tape.',
+        apCost: 5,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'crafting.feather_padding', count: 1 },
+            { id: 'crafting.tape', count: 1 }
+        ]
+    },
+    {
+        id: 'armor.leather',
+        name: 'Leather Armor',
+        resultItem: 'armor.leather',
+        description: 'Sturdy armor crafted from leather belts secured with tape or wire.',
+        apCost: 7,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'crafting.leather_belt', count: 2 },
+            { either: ['crafting.tape', 'crafting.wire'], count: 1, label: 'Tape or Wire' }
+        ]
+    },
+    {
+        id: 'armor.metal',
+        name: 'Metal Armor',
+        resultItem: 'armor.metal',
+        description: 'Heavy makeshift armor made of metal plates lashed together with wire.',
+        apCost: 10,
+        tab: 'crafting',
+        tools: [],
+        ingredients: [
+            { id: 'crafting.metal_plate', count: 2 },
+            { id: 'crafting.wire', count: 2 }
+        ]
     }
 ];

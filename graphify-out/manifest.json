@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1785823930.9492538,
-    "ast_hash": "9842421c93e289854b9ebbd1c9255ce0",
+    "mtime": 1785827668.7422264,
+    "ast_hash": "de3002e381b0576ed30b7a0179212811",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -180,8 +180,8 @@
     "semantic_hash": "6cb0e10aaee5e3646f729c705db6a5f0"
   },
   "client/src/components/Game/OptionsWindow.tsx": {
-    "mtime": 1785821789.719977,
-    "ast_hash": "20c38b2c2e418530490a114f56910142",
+    "mtime": 1785825938.289878,
+    "ast_hash": "65614a82ee4f2186fba32a703a6659df",
     "semantic_hash": ""
   },
   "client/src/components/Game/OverlayManager.tsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Inventory/EquipmentSlots.tsx": {
-    "mtime": 1785821838.1779091,
-    "ast_hash": "af44386fa534d147cbf68e78a8130be5",
+    "mtime": 1785825818.3772147,
+    "ast_hash": "90b45b6af503a16f0ca758c5edeaaa01",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/FloatingContainer.tsx": {
@@ -670,8 +670,8 @@
     "semantic_hash": "7c9e70eba6986d95b15c1a27d75d74bc"
   },
   "client/src/contexts/PlayerContext.jsx": {
-    "mtime": 1785137396.3741055,
-    "ast_hash": "e0573426cf31b5b2b62040cc3ddcd8bd",
+    "mtime": 1785827668.7433271,
+    "ast_hash": "5a87ea2cc9a9f04d57f0eb959d90a65e",
     "semantic_hash": ""
   },
   "client/src/contexts/SleepContext.jsx": {
@@ -705,8 +705,8 @@
     "semantic_hash": ""
   },
   "client/src/game/GameEngine.js": {
-    "mtime": 1785740944.7880812,
-    "ast_hash": "ae5ea2ae590a3b97c99e0ac1f84a61a1",
+    "mtime": 1785827668.744509,
+    "ast_hash": "5dafca7b1dc09bb3c730a3518f215d65",
     "semantic_hash": ""
   },
   "client/src/game/GameInitializationManager.js": {
@@ -1175,8 +1175,8 @@
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1785823884.7312064,
-    "ast_hash": "55cf7336e991d1bda0c2842b0dc2c1ee",
+    "mtime": 1785825939.7350533,
+    "ast_hash": "ac77e06387ef395213809d28bfdd39ef",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -1260,8 +1260,8 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/ConfigManager.js": {
-    "mtime": 1784465012.401882,
-    "ast_hash": "ccec3388ea9647033b652f2f716dc55d",
+    "mtime": 1785825934.9916747,
+    "ast_hash": "5ec45d9aedb800db0383714d2509a49a",
     "semantic_hash": ""
   },
   "client/src/game/utils/EdgeStructure.js": {
@@ -1285,8 +1285,8 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/LineOfSight.js": {
-    "mtime": 1784682554.2232597,
-    "ast_hash": "7ed70afc44229eab6773d63c6eb8d85c",
+    "mtime": 1785827668.7450297,
+    "ast_hash": "75971370bcf0cb27e0de8d70509496d8",
     "semantic_hash": ""
   },
   "client/src/game/utils/Logger.js": {
