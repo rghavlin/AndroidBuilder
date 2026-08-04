@@ -260,7 +260,7 @@ export const SleepProvider = ({ children }) => {
           if (action.type === 'STRUCTURE_INTERACT') {
             const targetPos = action.data.to;
             if (GameMap.isSameBuildingShell(gameMap, { x: player.x, y: player.y }, targetPos)) {
-              if (action.data.targetType === 'door') {
+              if (action.data.targetType === 'door' || action.data.targetType === 'garage_door') {
                 addLog(action.data.broken ? 'Zombie breaks door!' : 'Zombie bangs door!', 'combat');
                 GameEvents.emit(action.data.broken ? GAME_EVENT.DOOR_BROKEN : GAME_EVENT.DOOR_BANG, action.data);
               } else {

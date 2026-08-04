@@ -231,7 +231,7 @@ class TurnManager {
                 GameEvents.emit(data.targetType === 'window' ? GAME_EVENT.WINDOW_SMASH : GAME_EVENT.DOOR_BROKEN, {
                   ...data,
                   windowPos: data.targetType === 'window' ? data.to : undefined,
-                  doorPos: data.targetType === 'door' ? data.to : undefined,
+                  doorPos: (data.targetType === 'door' || data.targetType === 'garage_door') ? data.to : undefined,
                   source: entity?.type || 'zombie'
                 });
               }

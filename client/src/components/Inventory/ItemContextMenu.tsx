@@ -330,6 +330,13 @@ export function ItemContextMenu({
                                     Crank 1 (1ap)
                                 </ContextMenuItem>
                                 <ContextMenuItem
+                                    onClick={() => crankCharger(item, 5)}
+                                    className="hover:bg-accent focus:bg-accent focus:text-white"
+                                    disabled={!engine.player || engine.player.ap < 5}
+                                >
+                                    Crank 5 (5ap)
+                                </ContextMenuItem>
+                                <ContextMenuItem
                                     onClick={() => crankCharger(item, 'max')}
                                     className="hover:bg-accent focus:bg-accent focus:text-white"
                                     disabled={!engine.player || engine.player.ap < 1}

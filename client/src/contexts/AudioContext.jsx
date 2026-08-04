@@ -92,7 +92,7 @@ export const AudioProvider = ({ children }) => {
   useEffect(() => {
     const handleZombieAttack = (data) => {
       // 1. Handle structure attacks (doors/windows)
-      if (data.targetType === 'door') {
+      if (data.targetType === 'door' || data.targetType === 'garage_door') {
         if (data.damage > 0) audioManager.playOneShot('Bang1');
         else audioManager.playOneShot('Miss'); // Still play miss if they somehow miss a door (50% rule)
         return;
@@ -127,7 +127,7 @@ export const AudioProvider = ({ children }) => {
     const handleStructureInteract = (data) => {
       const targetType = data.targetType;
       if (data.broken) return; // Handled by separate smash/break events to avoid duplicate sounds
-      if (targetType === 'door' || targetType === 'door_locked' || targetType === 'window') {
+      if (targetType === 'door' || targetType === 'door_locked' || targetType === 'window' || targetType === 'garage_door') {
         audioManager.playOneShot('Bang1');
       }
     };

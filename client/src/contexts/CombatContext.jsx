@@ -258,7 +258,7 @@ export const CombatProvider = ({ children }) => {
                 if (action.data.broken) {
                     GameEvents.emit(action.data.targetType === 'window' ? GAME_EVENT.WINDOW_SMASH : GAME_EVENT.DOOR_BROKEN, {
                         windowPos: action.data.targetType === 'window' ? action.data.to : undefined,
-                        doorPos: action.data.targetType === 'door' ? action.data.to : undefined,
+                        doorPos: (action.data.targetType === 'door' || action.data.targetType === 'garage_door') ? action.data.to : undefined,
                         source
                     });
                 }

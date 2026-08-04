@@ -120,7 +120,7 @@ export const LogProvider = ({ children }) => {
             if (data.source === 'player') return;
             const actorName = data.entity?.type === 'npc' ? 'Survivor' : 'Zombie';
             const targetType = data.targetType;
-            if (targetType === EntityType.DOOR) {
+            if (targetType === EntityType.DOOR || targetType === EntityType.GARAGE_DOOR) {
                 addLog(`${actorName} bangs on the door!`, 'world');
             } else if (targetType === EntityType.WINDOW) {
                 addLog(`${actorName} smashes against the window!`, 'world');

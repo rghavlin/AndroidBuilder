@@ -4,6 +4,8 @@ import { GarageDoor } from '../../client/src/game/entities/GarageDoor.js';
 import { GameMap } from '../../client/src/game/map/GameMap.js';
 import eventRunner from '../../client/src/game/quest/EventRunner.js';
 import engine from '../../client/src/game/GameEngine.js';
+import GameEvents, { GAME_EVENT } from '../../client/src/game/utils/GameEvents.js';
+import TurnManager from '../../client/src/game/managers/TurnManager.js';
 
 describe('Systems / Keylocked Doors', () => {
   it('prevents normal open and unlock on keylocked doors', () => {
@@ -119,5 +121,55 @@ describe('Systems / Keylocked Doors', () => {
     
     // Clean up
     engine.gameMap = null;
+  });
+
+  it('TurnManager sets doorPos for garage doors on STRUCTURE_INTERACT', async () => {
+    const map = new GameMap(5, 5);
+    const gd = new GarageDoor('gd-test', 1, 1, false, false, false, 'n', 'group-A', false);
+    map.addEntity(gd, 1, 1);
+
+    const action = {
+      type: 'STRUCTURE_INTERACT',
+      entityId: 'zombie-1',
+      data: {
+        success: true,
+        damage: 10,
+        broken: true,
+        targetId: 'gd-test',
+        targetType: 'garage_door',
+        to: { x: 1, y: 1 }
+      }
+    };
+
+    let doorBrokenEvent = null;
+    const handler = (data) => {
+      doorBrokenEvent = data;
+    };
+    GameEvents.on(GAME_EVENT.DOOR_BROKEN, handler);
+
+    const context = {
+      gameMap: map,
+      player: { id: 'player', x: 0, y: 0 }
+    };
+
+    const zombieMock = {
+      id: 'zombie-1',
+      type: 'zombie',
+      x: 1,
+      y: 2,
+      playAction: async (act, options) => {
+        if (options && options.onImpact) {
+          options.onImpact();
+        }
+      }
+    };
+    map.entityMap.set('zombie-1', zombieMock);
+
+    await TurnManager.executeAction(action, context);
+
+    expect(doorBrokenEvent).not.toBeNull();
+    expect(doorBrokenEvent.doorPos).toEqual({ x: 1, y: 1 });
+
+    GameEvents.off(GAME_EVENT.DOOR_BROKEN, handler);
   });
 });
