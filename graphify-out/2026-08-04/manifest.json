@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1785821805.9831984,
-    "ast_hash": "7ff6d677374cd363961bd84c647c6aa0",
+    "mtime": 1785823930.9492538,
+    "ast_hash": "9842421c93e289854b9ebbd1c9255ce0",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -335,8 +335,8 @@
     "semantic_hash": "b4303319ec9628ea7bb0c91883029d12"
   },
   "client/src/components/Inventory/GroundItemsGrid.tsx": {
-    "mtime": 1784769156.921054,
-    "ast_hash": "e1babc2607f76c1022a81329c79385bf",
+    "mtime": 1785824901.4302738,
+    "ast_hash": "8b700e198ae3c50d6cdb1ef7e68f02b6",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/InventoryPanel.tsx": {
@@ -1165,18 +1165,18 @@
     "semantic_hash": "8227401cf12e62741245570c60d4640d"
   },
   "client/src/game/renderer/EntityRenderer.js": {
-    "mtime": 1785821792.537328,
-    "ast_hash": "6426a25f80ef9ce2c72c5acd4dce41e4",
+    "mtime": 1785823764.6086526,
+    "ast_hash": "3bcd82b3a2b00584c3d82703721b4a8a",
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileChunkCache.js": {
-    "mtime": 1784436876.001937,
-    "ast_hash": "0604db17cb383122f8050b50cb037871",
+    "mtime": 1785823898.9588294,
+    "ast_hash": "d16e354ef8997a5ee421cc7ef33dd032",
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1785821798.412598,
-    "ast_hash": "845de92384a0636ab9ac74ff3168eb8b",
+    "mtime": 1785823884.7312064,
+    "ast_hash": "55cf7336e991d1bda0c2842b0dc2c1ee",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -1405,8 +1405,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1785400761.4097593,
-    "ast_hash": "ac2db02fbc9340d545efb82e1ddb1b83",
+    "mtime": 1785823955.6507685,
+    "ast_hash": "bbd8add8f33952fc4f6ca0a66c68e84c",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
