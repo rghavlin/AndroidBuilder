@@ -548,14 +548,8 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
               <EarbucksDisplay />
             </div>
 
-            {/* Action Buttons Group (Better spacing between log and slots) */}
+            {/* Action Buttons Group */}
             <div className="flex items-center flex-1 px-2 min-w-0">
-              <GameEventLog 
-                onClick={() => {
-                  setIsLogHistoryOpen(prev => !prev);
-                  setIsExtensionOpen(false); // Close other extension
-                }} 
-              />
               <div className="flex-1" /> {/* Spacer pushes buttons apart */}
               <div className="flex gap-2 mr-2 shrink-0">
                 {['melee', 'handgun', 'long_gun', 'flashlight', 'phone'].map((slot) => (
@@ -581,6 +575,14 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         onClick={handleMapAreaClick}
       >
         <InfectionHUD />
+        {!isStartMenuMode && (
+          <GameEventLog 
+            onMaximize={() => {
+              setIsLogHistoryOpen(prev => !prev);
+              setIsExtensionOpen(false); // Close other extension
+            }} 
+          />
+        )}
         <MapCanvas
           onCellClick={onCellClick}
           onCellRightClick={onCellRightClick}
