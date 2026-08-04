@@ -10,8 +10,8 @@
     "semantic_hash": "0d04a14ac427b3fa357d98ed8074a035"
   },
   ".claude/settings.local.json": {
-    "mtime": 1785743010.7839525,
-    "ast_hash": "b4ce6f744134316bafdf183717a2d263",
+    "mtime": 1785744119.6514347,
+    "ast_hash": "0b4307357eb348c14f90d75c147e2874",
     "semantic_hash": ""
   },
   ".vscode/settings.json": {
@@ -100,13 +100,13 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/GameControls.tsx": {
-    "mtime": 1784352100.9681194,
-    "ast_hash": "bcd1c93904e9e9fe3341600dbbf387c8",
+    "mtime": 1785806067.2547042,
+    "ast_hash": "a31c5906448330d15af6c4e3186c5f20",
     "semantic_hash": ""
   },
   "client/src/components/Game/GameEventLog.tsx": {
-    "mtime": 1784352100.9692059,
-    "ast_hash": "b9a4cd3a3f097f440292f084f83b5927",
+    "mtime": 1785811425.1592584,
+    "ast_hash": "5705c7f3b4df431016d62fb1bfc0adcc",
     "semantic_hash": ""
   },
   "client/src/components/Game/GameScreen.tsx": {
@@ -155,13 +155,13 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1785741699.8174684,
-    "ast_hash": "4f51e8aacfe4db0dcf6ad6e90adba5d8",
+    "mtime": 1785744190.8822596,
+    "ast_hash": "e238b781a81eca4ca6eb6a54f1b0d971",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
-    "mtime": 1785741905.4452927,
-    "ast_hash": "0d4a112ca8d7e4b49d1411b44b956b9a",
+    "mtime": 1785811226.380627,
+    "ast_hash": "30fd3c4e315293fa8dd59515dd828e81",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapTransitionDialog.tsx": {
@@ -190,8 +190,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/PlayerSkillsUI.tsx": {
-    "mtime": 1785121739.1185958,
-    "ast_hash": "d6f973dbff3f7f0713ee89f6a2507ec0",
+    "mtime": 1785812225.0311165,
+    "ast_hash": "c73278f9edafe7174c64742021f650db",
     "semantic_hash": ""
   },
   "client/src/components/Game/PlayerSkillsWindow.tsx": {
@@ -300,8 +300,8 @@
     "semantic_hash": "74f76e5217eef12d2c76c8a041d7b36c"
   },
   "client/src/components/Inventory/CraftingUI.tsx": {
-    "mtime": 1784364102.2143817,
-    "ast_hash": "ef5c7d5e879ec1c6c4fb1b5b9641674d",
+    "mtime": 1785805043.4664412,
+    "ast_hash": "9c2597887fb9d2ea8e5b75ddf4f951b0",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/DragPreviewLayer.tsx": {
@@ -310,13 +310,13 @@
     "semantic_hash": ""
   },
   "client/src/components/Inventory/EquipmentSlot.tsx": {
-    "mtime": 1784352100.9751234,
-    "ast_hash": "9931b6de09171ca13d7a21fb79503fd1",
+    "mtime": 1785805561.4461374,
+    "ast_hash": "a590c3ef7ac5baa9c2680e34455a9a52",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/EquipmentSlots.tsx": {
-    "mtime": 1785727958.7771237,
-    "ast_hash": "314b8649dc5ee238cec7e0ac86ab887e",
+    "mtime": 1785806243.625313,
+    "ast_hash": "dd0ac7347268b472f21e37f62d575b30",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/FloatingContainer.tsx": {
@@ -345,8 +345,8 @@
     "semantic_hash": "18fa86d376fe5e2c825e585a7ede892d"
   },
   "client/src/components/Inventory/ItemContextMenu.tsx": {
-    "mtime": 1785743043.4859874,
-    "ast_hash": "3c73ad946e7d4cfa7dac0e5effd511b4",
+    "mtime": 1785744144.2162797,
+    "ast_hash": "3c2970faf464f50232a3a0ae1287c64b",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/ItemTooltip.tsx": {
@@ -365,8 +365,8 @@
     "semantic_hash": "c1f74cbd597d80cca1bfc1b6c5f5cb3b"
   },
   "client/src/components/Inventory/UniversalGrid.tsx": {
-    "mtime": 1785368704.7981467,
-    "ast_hash": "e5f8ec6c1e3a32193e5b24be0bb89569",
+    "mtime": 1785815950.152394,
+    "ast_hash": "3b23de01b45f4669d78a62e7f2f5e404",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/WeaponModPanel.tsx": {
@@ -640,13 +640,13 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1785741828.762239,
-    "ast_hash": "b131452f8d98dcee62173ee04faa07d0",
+    "mtime": 1785815948.319969,
+    "ast_hash": "e7de4e35f3ecf2d5f10ee7ddf21333c1",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
-    "mtime": 1785741925.3723576,
-    "ast_hash": "4928f05badb285df1868436dce9d4502",
+    "mtime": 1785744182.7030578,
+    "ast_hash": "237a676f22a831c29e37e32c63afcd99",
     "semantic_hash": ""
   },
   "client/src/contexts/GridSizeContext.tsx": {
@@ -895,9 +895,9 @@
     "semantic_hash": "32f824405b3efa3280c8ce40c9a52b66"
   },
   "client/src/game/config/ShopConfig.js": {
-    "mtime": 1782720682.6258135,
-    "ast_hash": "918d9d59d193cd9d8ec6a41684795172",
-    "semantic_hash": "918d9d59d193cd9d8ec6a41684795172"
+    "mtime": 1785804909.89093,
+    "ast_hash": "6dc179d3c646f5eca0a5c2ebfba8e19b",
+    "semantic_hash": ""
   },
   "client/src/game/config/TemplateConfig.js": {
     "mtime": 1782716467.8001337,
@@ -970,8 +970,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/CraftingRecipes.js": {
-    "mtime": 1783819572.5581005,
-    "ast_hash": "e2224dc1b8d44a40f72d321a977fa78f",
+    "mtime": 1785814131.483724,
+    "ast_hash": "6ff2dcdccc12392059126a7c2a513b65",
     "semantic_hash": ""
   },
   "client/src/game/inventory/GroundManager.js": {
@@ -980,8 +980,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/InventoryManager.js": {
-    "mtime": 1785727897.057047,
-    "ast_hash": "40905967998070de05ae60ea121b6d80",
+    "mtime": 1785816172.8193483,
+    "ast_hash": "b5c651b390176f9697fd18ccda9787a6",
     "semantic_hash": ""
   },
   "client/src/game/inventory/Item.js": {
@@ -990,14 +990,14 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
-    "mtime": 1785727865.6881623,
-    "ast_hash": "708172d295d2894b14d2acd9ec23e98c",
+    "mtime": 1785811799.0598435,
+    "ast_hash": "04a1c3d07a13c5a98371d457430d336d",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemPricing.js": {
-    "mtime": 1782718069.5880902,
-    "ast_hash": "f3587848b96815857fd4ddd455063ca4",
-    "semantic_hash": "f3587848b96815857fd4ddd455063ca4"
+    "mtime": 1785804820.605304,
+    "ast_hash": "13227be2b78b5069369d5a3e657d28a4",
+    "semantic_hash": ""
   },
   "client/src/game/inventory/PocketLayouts.js": {
     "mtime": 1776484449.8664804,
@@ -1065,8 +1065,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/LootTables.js": {
-    "mtime": 1784700123.02148,
-    "ast_hash": "4f128d295dc589b506d61fcefef4457e",
+    "mtime": 1785804818.6633794,
+    "ast_hash": "6137d0e8b8af5b2fc4c0b645d04006e4",
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
@@ -1355,8 +1355,8 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/WeatherManager.js": {
-    "mtime": 1784692147.4365582,
-    "ast_hash": "03e0ed063e23b69f40b2513a728d7ac2",
+    "mtime": 1785813161.811402,
+    "ast_hash": "54d49e16525ed42578a4ca4ffb82d0ba",
     "semantic_hash": ""
   },
   "client/src/game/utils/ZombieSpawner.js": {
@@ -3120,13 +3120,13 @@
     "semantic_hash": ""
   },
   "customMaps/StartMenu.editor.json": {
-    "mtime": 1784865433.666217,
-    "ast_hash": "ac7a45538a8c09e4aeb38cd77381ece7",
+    "mtime": 1785752380.1354134,
+    "ast_hash": "c753eaa233b0987af74de79ff9b97e48",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.scenario.json": {
-    "mtime": 1784865434.8502102,
-    "ast_hash": "af591d810cca602111d22b5fbe31a282",
+    "mtime": 1785752131.0901146,
+    "ast_hash": "35f6b07c3cf331414e56d11abb14d116",
     "semantic_hash": ""
   },
   "test/ai/aiStateTransitions.test.js": {
@@ -3175,13 +3175,13 @@
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.editor.json": {
-    "mtime": 1785370368.0700438,
-    "ast_hash": "305e2d60220c5a7bb4a693f25cdd6237",
+    "mtime": 1785746378.0468068,
+    "ast_hash": "6e2bbdb182bd3e865cdc7cc7e2f19875",
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.scenario.json": {
-    "mtime": 1785370376.0842838,
-    "ast_hash": "1968c19b75885521d385a548b8aeaec5",
+    "mtime": 1785746379.211815,
+    "ast_hash": "f3a3ace9dca3f3c2e9f11149f490a348",
     "semantic_hash": ""
   },
   "customMaps/bunker1.editor.json": {
@@ -3290,8 +3290,8 @@
     "semantic_hash": ""
   },
   "scripts/god-object-budget.json": {
-    "mtime": 1785729268.680357,
-    "ast_hash": "48915fa05662eef6f3536e9da8544aa9",
+    "mtime": 1785816193.091241,
+    "ast_hash": "e42964481e2b8c281e4383b879e69a1c",
     "semantic_hash": ""
   },
   "scripts/godObjectBudget.mjs": {
@@ -3345,8 +3345,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteDeviceRegistry.js": {
-    "mtime": 1785742978.3860343,
-    "ast_hash": "0d101371fcfdc87aac5c9f0c3de70900",
+    "mtime": 1785744021.2440352,
+    "ast_hash": "e53b801133aef16e7d0514bfde63aa43",
     "semantic_hash": ""
   },
   "client/src/game/systems/DroneSystem.js": {
@@ -3370,8 +3370,8 @@
     "semantic_hash": ""
   },
   "test/remote/droneStates.test.js": {
-    "mtime": 1785743064.4223044,
-    "ast_hash": "12f695f0957e207fbf64cdca00f39846",
+    "mtime": 1785744210.0953615,
+    "ast_hash": "3f9d767d4f891cb81a3d67e37cf13619",
     "semantic_hash": ""
   },
   "test/remote/droneVision.test.js": {
@@ -3395,13 +3395,33 @@
     "semantic_hash": ""
   },
   "customMaps/drone test.editor.json": {
-    "mtime": 1785741990.488855,
-    "ast_hash": "0742f8fd7854d595c2843fc47f189ca3",
+    "mtime": 1785754730.34089,
+    "ast_hash": "7fecf5ea928a055228d6ca17935d8b5e",
     "semantic_hash": ""
   },
   "customMaps/drone test.scenario.json": {
-    "mtime": 1785741994.0186949,
-    "ast_hash": "f7b1662d97e3f2876fd928548d6b18fe",
+    "mtime": 1785754731.3218553,
+    "ast_hash": "95cb298623352e7cb19f7da2261674a5",
+    "semantic_hash": ""
+  },
+  "client/src/game/inventory/containerSearch.js": {
+    "mtime": 1785816054.5868337,
+    "ast_hash": "d2db314a690fcf4971a21b0c8104a59f",
+    "semantic_hash": ""
+  },
+  "test/inventory/beltSearch.test.js": {
+    "mtime": 1785816250.5379333,
+    "ast_hash": "c2cc2eff71c7304e2143889123c9c02a",
+    "semantic_hash": ""
+  },
+  "test/inventory/crafting.test.js": {
+    "mtime": 1785814136.5643315,
+    "ast_hash": "0310157aeaf9cbddd9b54ad14f762e2e",
+    "semantic_hash": ""
+  },
+  "test/systems/weatherLooseSoil.test.js": {
+    "mtime": 1785813168.3858066,
+    "ast_hash": "b80985b2bd5c50ae8058fe149605da39",
     "semantic_hash": ""
   }
 }

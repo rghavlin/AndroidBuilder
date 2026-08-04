@@ -598,14 +598,21 @@ export const ActionProvider = ({ children }) => {
     player.useAP(5);
     updatePlayerStats({ ap: player.ap });
 
-    // Replace the corpse on ground/container
+    // Remove the corpse the stem came out of
     const corpseX = corpseItem.x;
     const corpseY = corpseItem.y;
     container.removeItem(corpseItem.instanceId);
 
-    const placed = container.addItem(brainstemItem, corpseX, corpseY, false);
-    if (!placed) {
-      engine.inventoryManager?.addItem(brainstemItem);
+    // The stem goes into the player's hands, not onto the corpse's tile: it
+    // merges into a carried stack if there is one, else the first free carried
+    // slot. Only when the player has no room at all does it stay behind, and
+    // then we say so instead of leaving it silently on the ground.
+    const stowed = engine.inventoryManager?.addItemToPlayer(brainstemItem)?.success;
+    if (!stowed) {
+      const placed = container.addItem(brainstemItem, corpseX, corpseY, true);
+      if (!placed) {
+        engine.inventoryManager?.addItem(brainstemItem);
+      }
     }
 
     if (typeof window.inv?.clearSelected === 'function') {
@@ -614,6 +621,9 @@ export const ActionProvider = ({ children }) => {
 
     playSound('Loot');
     addLog('You extract a brainstem.', 'item');
+    if (!stowed) {
+      addLog('No room to carry it — the brainstem is left behind.', 'error');
+    }
 
     if (typeof window.inv?.refresh === 'function') {
       window.inv.refresh();
@@ -668,19 +678,24 @@ export const ActionProvider = ({ children }) => {
 
     const parentX = stemItem.x;
     const parentY = stemItem.y;
+    const wasWholeStack = !(stemItem.stackCount && stemItem.stackCount > 1);
 
-    if (stemItem.stackCount && stemItem.stackCount > 1) {
-      stemItem.stackCount -= 1;
-      // Slot remains occupied by the stack, so add pulp generally
-      const placed = container.addItem(brainPulpItem, null, null, true);
-      if (!placed) {
-        engine.inventoryManager?.addItem(brainPulpItem);
-      }
-    } else {
-      // Remove the single brainstem item completely
+    if (wasWholeStack) {
+      // Remove the single brainstem item completely; its slot frees up
       container.removeItem(stemItem.instanceId);
-      // Place the brain pulp in the exact same slot
-      const placed = container.addItem(brainPulpItem, parentX, parentY, false);
+    } else {
+      // Slot stays occupied by the remaining stack
+      stemItem.stackCount -= 1;
+    }
+
+    // Pulp is the infection cure — it belongs in the player's hands, merged
+    // into a carried stack or the first free carried slot. Only when there is
+    // no room at all does it stay where the stem was, and then we say so.
+    const stowed = engine.inventoryManager?.addItemToPlayer(brainPulpItem)?.success;
+    if (!stowed) {
+      const placed = wasWholeStack
+        ? container.addItem(brainPulpItem, parentX, parentY, true)
+        : container.addItem(brainPulpItem, null, null, true);
       if (!placed) {
         engine.inventoryManager?.addItem(brainPulpItem);
       }
@@ -692,6 +707,9 @@ export const ActionProvider = ({ children }) => {
 
     playSound('Click');
     addLog('You smash the brainstem into brain pulp.', 'item');
+    if (!stowed) {
+      addLog('No room to carry it — the brain pulp is left behind.', 'error');
+    }
 
     if (typeof window.inv?.refresh === 'function') {
       window.inv.refresh();

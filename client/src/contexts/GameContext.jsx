@@ -267,11 +267,8 @@ const GameContextInner = ({ children }) => {
       // Find all potential ignition sources (lighters/matches)
       const availableItems = [];
       
-      // Check backpack and pockets
-      const containers = [
-        inventoryManager.getBackpackContainer(),
-        ...inventoryManager.getPocketContainers()
-      ].filter(c => c !== null);
+      // Check backpack, pockets and belt pouches
+      const containers = inventoryManager.getCarriedContainers();
 
       for (const c of containers) {
         for (const item of c.items.values()) {

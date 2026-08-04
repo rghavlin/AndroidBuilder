@@ -503,8 +503,7 @@ export default function UniversalGrid({
         // Search for any existing stack of rags with space
         let merged = false;
         const potentialContainers = [
-          engine.inventoryManager.getBackpackContainer(),
-          ...engine.inventoryManager.getPocketContainers(),
+          ...engine.inventoryManager.getCarriedContainers(),
           engine.inventoryManager.groundContainer
         ].filter(Boolean);
 

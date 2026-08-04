@@ -9,10 +9,16 @@ import { Item } from './Item.js';
 import { ItemDefs, createItemFromDef } from './ItemDefs.js';
 import { GroundManager } from './GroundManager.js';
 import { EquipmentSlot, ItemTrait, ItemCategory, Rarity, FireMode, getFuelValue } from './traits.js';
-import { TurnProcessingUtils } from '../utils/TurnProcessingUtils.js';
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
-import { getHourFromTurn } from '../utils/TimeUtils.js';
+import { processInventoryTurn } from './itemTurnProcessor.js';
 import { CraftingManager } from './CraftingManager.js';
+import {
+  nestedGrids,
+  findItemRecursive,
+  countItemRecursive,
+  findStackRecursive,
+  consumeItemRecursive
+} from './containerSearch.js';
 import audioManager from '../utils/AudioManager.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
@@ -948,6 +954,39 @@ export class InventoryManager extends SafeEventEmitter {
   }
 
   /**
+   * Get the containers carried on the equipped belt: the grid of every pouch
+   * attached to a belt slot, plus the belt's own grid if it defines one.
+   * Belt storage is as reachable as a pocket, so anything that scans "where can
+   * the player take an item from / put an item into" must include these.
+   */
+  getBeltContainers() {
+    const belt = this.equipment.belt;
+    if (!belt) return [];
+
+    const containers = [];
+    const ownGrid = belt.getContainerGrid?.();
+    if (ownGrid) containers.push(ownGrid);
+
+    if (typeof belt.getBeltContainers === 'function') {
+      containers.push(...belt.getBeltContainers());
+    }
+
+    return containers;
+  }
+
+  /**
+   * Every container the player carries on their body, in auto-placement
+   * priority order: backpack, clothing pockets, then belt pouches.
+   */
+  getCarriedContainers() {
+    return [
+      this.getBackpackContainer(),
+      ...this.getPocketContainers(),
+      ...this.getBeltContainers()
+    ].filter(Boolean);
+  }
+
+  /**
    * Get all equipment items
    */
   getEquippedItems() {
@@ -1690,19 +1729,19 @@ export class InventoryManager extends SafeEventEmitter {
 
     const result = this.groundManager.collectItemsByCategory(category, backpack);
 
-    // Try pockets if backpack is full
+    // Try pockets and belt pouches if backpack is full
     if (result.failed > 0) {
-      const pockets = this.getPocketContainers();
-      for (const pocket of pockets) {
+      const fallbacks = [...this.getPocketContainers(), ...this.getBeltContainers()];
+      for (const target of fallbacks) {
         const remainingItems = this.groundContainer.getAllItems()
           .filter(item => item.getCategory() === category);
 
         if (remainingItems.length === 0) break;
 
-        const pocketResult = this.groundManager.collectItemsByCategory(category, pocket);
-        result.collected += pocketResult.collected;
-        result.failed = Math.max(0, result.failed - pocketResult.collected);
-        result.items.push(...pocketResult.items);
+        const targetResult = this.groundManager.collectItemsByCategory(category, target);
+        result.collected += targetResult.collected;
+        result.failed = Math.max(0, result.failed - targetResult.collected);
+        result.items.push(...targetResult.items);
       }
     }
 
@@ -1781,36 +1820,20 @@ export class InventoryManager extends SafeEventEmitter {
       }
       
       if (!strict) {
-        // B. Equipped Backpack (high priority for stacking)
-        const backpack = this.getBackpackContainer();
-        if (backpack && backpack.id !== preferredContainerId) potentialContainers.push(backpack);
-        
-        // C. Pockets
-        const pockets = this.getPocketContainers();
-        pockets.forEach(p => {
-          if (p.id !== preferredContainerId) potentialContainers.push(p);
+        // B. Carried storage: backpack, then pockets, then belt pouches
+        this.getCarriedContainers().forEach(c => {
+          if (c.id !== preferredContainerId) potentialContainers.push(c);
         });
-        
+
         // D. Ground (lowest priority for automatic stacking)
         if (this.groundContainer.id !== preferredContainerId) potentialContainers.push(this.groundContainer);
       }
 
       // Search and merge
-      for (const container of potentialContainers) {
-        const stackTarget = this._findStackRecursive(container, item);
-        if (stackTarget) {
-            const { existingItem, container: targetContainer } = stackTarget;
-            const spaceInStack = existingItem.stackMax - existingItem.stackCount;
-            const amountToTake = Math.min(item.stackCount, spaceInStack);
-
-            existingItem.stackCount += amountToTake;
-            item.stackCount -= amountToTake;
-
-            if (item.stackCount <= 0) {
-              this.emit('inventoryChanged');
-              return { success: true, container: targetContainer.id, merged: true };
-            }
-        }
+      const mergedInto = this._mergeIntoContainers(item, potentialContainers);
+      if (mergedInto) {
+        this.emit('inventoryChanged');
+        return { success: true, container: mergedInto.id, merged: true };
       }
     }
 
@@ -1840,19 +1863,11 @@ export class InventoryManager extends SafeEventEmitter {
       }
     }
 
-    // Try backpack
-    const backpack = this.getBackpackContainer();
-    if (backpack && backpack.addItem(item, null, null, allowStacking)) {
-      this.emit('inventoryChanged');
-      return { success: true, container: backpack.id };
-    }
-
-    // Try pockets
-    const pockets = this.getPocketContainers();
-    for (const pocket of pockets) {
-      if (pocket.addItem(item, null, null, allowStacking)) {
+    // Try carried storage: backpack, then pockets, then belt pouches
+    for (const container of this.getCarriedContainers()) {
+      if (container.addItem(item, null, null, allowStacking)) {
         this.emit('inventoryChanged');
-        return { success: true, container: pocket.id };
+        return { success: true, container: container.id };
       }
     }
 
@@ -1863,6 +1878,59 @@ export class InventoryManager extends SafeEventEmitter {
     }
 
     return { success: false, reason: 'No space available' };
+  }
+
+  /**
+   * Pour `item` into existing stacks across `containers` (in order).
+   * Mutates stackCounts; returns the container that absorbed the last unit, or
+   * null if anything is left over.
+   */
+  _mergeIntoContainers(item, containers) {
+    for (const container of containers) {
+      const stackTarget = findStackRecursive(container, item);
+      if (!stackTarget) continue;
+
+      const { existingItem, container: targetContainer } = stackTarget;
+      const spaceInStack = existingItem.stackMax - existingItem.stackCount;
+      const amountToTake = Math.min(item.stackCount, spaceInStack);
+
+      existingItem.stackCount += amountToTake;
+      item.stackCount -= amountToTake;
+
+      if (item.stackCount <= 0) return targetContainer;
+    }
+    return null;
+  }
+
+  /**
+   * Put an item into the player's carried storage only: merge into an existing
+   * stack first, otherwise the first free space in backpack -> pockets -> belt.
+   * Deliberately never falls back to the ground — this is for things the player
+   * just produced (harvested, crafted, looted by hand), where silently dropping
+   * the result at their feet is how it gets left behind. Callers decide what to
+   * do when there is no room.
+   */
+  addItemToPlayer(item, allowStacking = true) {
+    if (!item) return { success: false, reason: 'No item provided' };
+
+    const carried = this.getCarriedContainers();
+
+    if (allowStacking && item.isStackable && item.isStackable()) {
+      const mergedInto = this._mergeIntoContainers(item, carried);
+      if (mergedInto) {
+        this.emit('inventoryChanged');
+        return { success: true, container: mergedInto.id, merged: true };
+      }
+    }
+
+    for (const container of carried) {
+      if (container.addItem(item, null, null, allowStacking)) {
+        this.emit('inventoryChanged');
+        return { success: true, container: container.id };
+      }
+    }
+
+    return { success: false, reason: 'No room in carried containers' };
   }
 
   /**
@@ -2319,12 +2387,10 @@ export class InventoryManager extends SafeEventEmitter {
             results.push({ item, equipment: slot });
         }
         
-        // Internal grids (if not already found via this.containers)
-        const grid = item.getContainerGrid?.();
-        if (grid) searchRecursive(grid);
-
-        const pockets = item.getPocketContainers?.();
-        if (pockets) pockets.forEach(searchRecursive);
+        // Internal grids (if not already found via this.containers). Includes
+        // grids hanging off attachments (belt pouches), which only land in
+        // this.containers after updateDynamicContainers().
+        nestedGrids(item).forEach(searchRecursive);
     }
 
     return results;
@@ -2341,48 +2407,23 @@ export class InventoryManager extends SafeEventEmitter {
 
     // 2. Search EQUIPPED items and their attachments
     for (const [slot, item] of Object.entries(this.equipment)) {
-      if (item) {
-        if (item.instanceId === itemId) return { item, equipment: slot };
-        
-        // Search attachments and recurse into them (e.g. items inside a belt pouch)
-        if (item.hasAttachments && item.hasAttachments()) {
-          for (const [attachSlot, attachment] of Object.entries(item.attachments)) {
-            if (attachment.instanceId === itemId) {
-              return { item: attachment, parent: item, attachmentSlot: attachSlot };
-            }
-            
-            // Recurse into the attachment's own containers (e.g. Belt Pouch grid)
-            const attachmentGrid = attachment.getContainerGrid?.();
-            if (attachmentGrid) {
-              const found = this._findItemRecursive(attachmentGrid, itemId);
-              if (found) return found;
-            }
-            
-            // Also search attachment's pockets if any
-            const attachmentPockets = attachment.getPocketContainers?.();
-            if (attachmentPockets) {
-              for (const pocket of attachmentPockets) {
-                const found = this._findItemRecursive(pocket, itemId);
-                if (found) return found;
-              }
-            }
-          }
-        }
+      if (!item) continue;
+      if (item.instanceId === itemId) return { item, equipment: slot };
 
-        // RECURSIVE SEARCH: Search inside equipped containers (that might not be registered yet)
-        const backpackGrid = item.getContainerGrid?.();
-        if (backpackGrid) {
-          const found = this._findItemRecursive(backpackGrid, itemId);
-          if (found) return found;
-        }
-        
-        const pockets = item.getPocketContainers?.();
-        if (pockets) {
-          for (const pocket of pockets) {
-            const found = this._findItemRecursive(pocket, itemId);
-            if (found) return found;
+      if (item.hasAttachments && item.hasAttachments()) {
+        for (const [attachSlot, attachment] of Object.entries(item.attachments)) {
+          if (attachment && attachment.instanceId === itemId) {
+            return { item: attachment, parent: item, attachmentSlot: attachSlot };
           }
         }
+      }
+
+      // Search everything the equipped item stores — its own grid, its pockets,
+      // and the grid of anything attached to it (a pouch on the belt). These may
+      // not be registered in this.containers yet.
+      for (const grid of nestedGrids(item)) {
+        const found = findItemRecursive(grid, itemId);
+        if (found) return found;
       }
     }
 
@@ -2406,34 +2447,19 @@ export class InventoryManager extends SafeEventEmitter {
 
     // 1. Search equipment (mostly for items in containers)
     for (const item of Object.values(this.equipment)) {
-      if (item) {
-        if (item.defId === defId) foundCount += (item.stackCount || 1);
-        
-        const backpackGrid = item.getContainerGrid?.();
-        if (backpackGrid) foundCount += this._countItemRecursive(backpackGrid, defId);
-        
-        const pockets = item.getPocketContainers?.();
-        if (pockets) {
-          pockets.forEach(pocket => {
-            foundCount += this._countItemRecursive(pocket, defId);
-          });
-        }
+      if (!item) continue;
 
-        if (item.attachments) {
-          for (const att of Object.values(item.attachments)) {
-            if (att) {
-              if (att.defId === defId) foundCount += (att.stackCount || 1);
-              const attGrid = att.getContainerGrid?.();
-              if (attGrid) foundCount += this._countItemRecursive(attGrid, defId);
-              const attPockets = att.getPocketContainers?.();
-              if (attPockets) {
-                attPockets.forEach(pocket => {
-                  foundCount += this._countItemRecursive(pocket, defId);
-                });
-              }
-            }
-          }
+      if (item.defId === defId) foundCount += (item.stackCount || 1);
+
+      if (item.attachments) {
+        for (const att of Object.values(item.attachments)) {
+          if (att && att.defId === defId) foundCount += (att.stackCount || 1);
         }
+      }
+
+      // Grid, pockets, and any attachment's grid (belt pouches)
+      for (const grid of nestedGrids(item)) {
+        foundCount += countItemRecursive(grid, defId);
       }
     }
 
@@ -2451,124 +2477,21 @@ export class InventoryManager extends SafeEventEmitter {
    * Returns { item, container } or null
    */
   _findItemRecursive(container, itemId) {
-    if (!container || !container.items) return null;
-
-    // 1. Search direct items in this container
-    for (const item of container.items.values()) {
-      if (item.instanceId === itemId) {
-        return { item, container };
-      }
-      
-      // Fallback for legacy support or explicit defId searches if needed
-      // (But we should avoid this for state-mutating operations)
-      if (item.id === itemId) {
-        console.warn(`[InventoryManager] _findItemRecursive matched by defId (legacy): ${itemId} in container ${container.id}`);
-        return { item, container };
-      }
-      
-      // 2. Recurse into nested grids
-      const grid = item.getContainerGrid?.();
-      if (grid) {
-        const found = this._findItemRecursive(grid, itemId);
-        if (found) return found;
-      }
-
-      // 2b. Recurse into attachments
-      if (item.hasAttachments && item.hasAttachments()) {
-        for (const [attachSlot, attachment] of Object.entries(item.attachments)) {
-          if (attachment && (attachment.instanceId === itemId || attachment.id === itemId)) {
-            if (attachment.id === itemId && attachment.instanceId !== itemId) {
-               console.warn(`[InventoryManager] _findItemRecursive matched attachment by defId (legacy): ${itemId}`);
-            }
-            return { item: attachment, parent: item, attachmentSlot: attachSlot };
-          }
-        }
-      }
-      
-      // 3. Recurse into pocket containers
-      const pockets = item.getPocketContainers?.();
-      if (pockets) {
-        for (const pocket of pockets) {
-          const found = this._findItemRecursive(pocket, itemId);
-          if (found) return found;
-        }
-      }
-    }
-
-    return null;
+    return findItemRecursive(container, itemId);
   }
 
   /**
    * Internal recursive counter for items by defId
    */
   _countItemRecursive(container, defId) {
-    let count = 0;
-    if (!container || !container.items) return 0;
-
-    for (const item of container.items.values()) {
-      if (item.defId === defId) {
-        count += (item.stackCount || 1);
-      }
-      
-      const grid = item.getContainerGrid?.();
-      if (grid) count += this._countItemRecursive(grid, defId);
-      
-      const pockets = item.getPocketContainers?.();
-      if (pockets) {
-        pockets.forEach(p => {
-          count += this._countItemRecursive(p, defId);
-        });
-      }
-
-      if (item.attachments) {
-        for (const att of Object.values(item.attachments)) {
-          if (att) {
-            if (att.defId === defId) count += (att.stackCount || 1);
-            const attGrid = att.getContainerGrid?.();
-            if (attGrid) count += this._countItemRecursive(attGrid, defId);
-            const attPockets = att.getPocketContainers?.();
-            if (attPockets) {
-              attPockets.forEach(p => {
-                count += this._countItemRecursive(p, defId);
-              });
-            }
-          }
-        }
-      }
-    }
-    return count;
+    return countItemRecursive(container, defId);
   }
 
   /**
    * Internal recursive search for a stack target
    */
   _findStackRecursive(container, item) {
-    if (!container || !container.items) return null;
-    for (const existingItem of container.items.values()) {
-      // Never merge an item into itself. If `item` is still present in the
-      // container being searched (a caller forgot to remove it first, or a
-      // stale backref made the removal a no-op), matching it against itself
-      // would fold its own count away and leave a zombie in the grid.
-      if (existingItem.instanceId === item.instanceId) continue;
-      if (existingItem.canStackWith(item) && existingItem.stackCount < existingItem.stackMax) {
-        return { existingItem, container };
-      }
-      
-      const grid = existingItem.getContainerGrid?.();
-      if (grid) {
-        const found = this._findStackRecursive(grid, item);
-        if (found) return found;
-      }
-      
-      const pockets = existingItem.getPocketContainers?.();
-      if (pockets) {
-        for (const p of pockets) {
-          const found = this._findStackRecursive(p, item);
-          if (found) return found;
-        }
-      }
-    }
-    return null;
+    return findStackRecursive(container, item);
   }
 
   /**
@@ -2603,47 +2526,28 @@ export class InventoryManager extends SafeEventEmitter {
         
         if (remaining <= 0) break;
 
-        const backpackGrid = item.getContainerGrid?.();
-        if (backpackGrid) remaining = this._consumeItemRecursive(backpackGrid, defId, remaining);
-        if (remaining <= 0) break;
-
-        const pockets = item.getPocketContainers?.();
-        if (pockets) {
-            for (const pocket of pockets) {
-                remaining = this._consumeItemRecursive(pocket, defId, remaining);
-                if (remaining <= 0) break;
-            }
-        }
-        if (remaining <= 0) break;
-
+        // Attached items (ammo in a weapon slot, a pouch on a belt) can match too
         if (item.attachments) {
             for (const attSlot of Object.keys(item.attachments)) {
                 const att = item.attachments[attSlot];
-                if (att) {
-                    if (att.defId === defId) {
-                        const consume = Math.min(att.stackCount || 1, remaining);
-                        if (att.stackCount) att.stackCount -= consume;
-                        remaining -= consume;
-                        if (att.stackCount <= 0 || !att.stackCount) {
-                            delete item.attachments[attSlot];
-                        }
-                    }
-                    if (remaining <= 0) break;
-
-                    const attGrid = att.getContainerGrid?.();
-                    if (attGrid) remaining = this._consumeItemRecursive(attGrid, defId, remaining);
-                    if (remaining <= 0) break;
-
-                    const attPockets = att.getPocketContainers?.();
-                    if (attPockets) {
-                        for (const pocket of attPockets) {
-                            remaining = this._consumeItemRecursive(pocket, defId, remaining);
-                            if (remaining <= 0) break;
-                        }
+                if (att && att.defId === defId) {
+                    const consume = Math.min(att.stackCount || 1, remaining);
+                    if (att.stackCount) att.stackCount -= consume;
+                    remaining -= consume;
+                    if (att.stackCount <= 0 || !att.stackCount) {
+                        delete item.attachments[attSlot];
                     }
                     if (remaining <= 0) break;
                 }
             }
+        }
+        if (remaining <= 0) break;
+
+        // Everything the equipped item stores: its grid, its pockets, and the
+        // grids of anything attached to it (belt pouches)
+        for (const grid of nestedGrids(item)) {
+            remaining = consumeItemRecursive(grid, defId, remaining);
+            if (remaining <= 0) break;
         }
         if (remaining <= 0) break;
     }
@@ -2660,165 +2564,57 @@ export class InventoryManager extends SafeEventEmitter {
    * Internal recursive consumer
    */
   _consumeItemRecursive(container, defId, remaining) {
-    if (!container || !container.items || remaining <= 0) return remaining;
-
-    const items = Array.from(container.items.values());
-    for (const item of items) {
-        if (item.defId === defId) {
-            const stackMode = item.stackCount !== undefined && item.stackCount !== null;
-            const available = stackMode ? item.stackCount : 1;
-            const consume = Math.min(available, remaining);
-            
-            if (stackMode) {
-                item.stackCount -= consume;
-                if (item.stackCount <= 0) {
-                    container.removeItem(item.instanceId);
-                }
-            } else {
-                container.removeItem(item.instanceId);
-            }
-            
-            remaining -= consume;
-            if (remaining <= 0) return 0;
-        }
-
-        // Recurse into nested
-        const grid = item.getContainerGrid?.();
-        if (grid) remaining = this._consumeItemRecursive(grid, defId, remaining);
-        if (remaining <= 0) return 0;
-
-        const pockets = item.getPocketContainers?.();
-        if (pockets) {
-            for (const pocket of pockets) {
-                remaining = this._consumeItemRecursive(pocket, defId, remaining);
-                if (remaining <= 0) return 0;
-            }
-        }
-
-        if (item.attachments) {
-            for (const attSlot of Object.keys(item.attachments)) {
-                const att = item.attachments[attSlot];
-                if (att) {
-                    if (att.defId === defId) {
-                        const stackMode = att.stackCount !== undefined && att.stackCount !== null;
-                        const available = stackMode ? att.stackCount : 1;
-                        const consume = Math.min(available, remaining);
-                        
-                        if (stackMode) {
-                            att.stackCount -= consume;
-                            if (att.stackCount <= 0) {
-                                delete item.attachments[attSlot];
-                            }
-                        } else {
-                            delete item.attachments[attSlot];
-                        }
-                        
-                        remaining -= consume;
-                        if (remaining <= 0) return 0;
-                    }
-                    
-                    const attGrid = att.getContainerGrid?.();
-                    if (attGrid) remaining = this._consumeItemRecursive(attGrid, defId, remaining);
-                    if (remaining <= 0) return 0;
-
-                    const attPockets = att.getPocketContainers?.();
-                    if (attPockets) {
-                        for (const pocket of attPockets) {
-                            remaining = this._consumeItemRecursive(pocket, defId, remaining);
-                            if (remaining <= 0) return 0;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return remaining;
+    return consumeItemRecursive(container, defId, remaining);
   }
 
   /**
    * Check if player has the specified item in their inventory (excluding ground)
    */
   hasItemInPlayerInventory(defId) {
-    const visited = new Set();
-    let found = false;
+    return this._collectPlayerItems(defId).length > 0;
+  }
 
-    const searchRecursive = (container) => {
+  /**
+   * Every item matching `defId` that the player is carrying, excluding the
+   * ground and the crafting workspaces. Walks the equipment slots first (the
+   * equipped item itself, its attachments, then everything it stores — grid,
+   * pockets, and any attachment's grid, i.e. belt pouches), then the remaining
+   * registered containers.
+   */
+  _collectPlayerItems(defId) {
+    const candidates = [];
+    const visited = new Set();
+
+    const collectFromItem = (item) => {
+      if (item.defId === defId) candidates.push(item);
+      if (item.attachments) {
+        for (const att of Object.values(item.attachments)) {
+          if (att && att.defId === defId) candidates.push(att);
+        }
+      }
+      nestedGrids(item).forEach(collectFromContainer);
+    };
+
+    const collectFromContainer = (container) => {
       if (!container || !container.id || visited.has(container.id)) return;
       if (container.id === 'ground' || container.type === 'ground') return;
       visited.add(container.id);
 
       for (const item of container.items.values()) {
-        if (item.defId === defId) {
-          found = true;
-          return;
-        }
-        const grid = item.getContainerGrid?.();
-        if (grid) searchRecursive(grid);
-        if (found) return;
-        
-        const pockets = item.getPocketContainers?.();
-        if (pockets) {
-          for (const pocket of pockets) {
-            searchRecursive(pocket);
-            if (found) return;
-          }
-        }
-        
-        if (item.attachments) {
-          for (const att of Object.values(item.attachments)) {
-            if (att) {
-              if (att.defId === defId) {
-                found = true;
-                return;
-              }
-              const attGrid = att.getContainerGrid?.();
-              if (attGrid) searchRecursive(attGrid);
-              if (found) return;
-            }
-          }
-        }
+        collectFromItem(item);
       }
     };
 
-    // 1. Search player's equipped slots directly
-    for (const [slot, item] of Object.entries(this.equipment)) {
-      if (!item) continue;
-      if (item.defId === defId) {
-        return true;
-      }
-      const grid = item.getContainerGrid?.();
-      if (grid) searchRecursive(grid);
-      if (found) return true;
-      
-      const pockets = item.getPocketContainers?.();
-      if (pockets) {
-        for (const pocket of pockets) {
-          searchRecursive(pocket);
-          if (found) return true;
-        }
-      }
-      
-      if (item.attachments) {
-        for (const att of Object.values(item.attachments)) {
-          if (att) {
-            if (att.defId === defId) return true;
-            const attGrid = att.getContainerGrid?.();
-            if (attGrid) searchRecursive(attGrid);
-            if (found) return true;
-          }
-        }
-      }
+    for (const item of Object.values(this.equipment)) {
+      if (item) collectFromItem(item);
     }
 
-    // 2. Search other containers except 'ground', 'workspace', and craft tools/ingredients
     for (const container of this.containers.values()) {
-      if (container.id === 'ground' || container.type === 'ground') continue;
       if (container.id.includes('workspace') || container.id.includes('-tools') || container.id.includes('-ingredients')) continue;
-      searchRecursive(container);
-      if (found) return true;
+      collectFromContainer(container);
     }
 
-    return found;
+    return candidates;
   }
 
   /**
@@ -2826,77 +2622,9 @@ export class InventoryManager extends SafeEventEmitter {
    */
   consumeItemFromPlayerInventory(defId, count = 1) {
     let remaining = count;
-    const candidates = [];
-    const visited = new Set();
+    const candidates = this._collectPlayerItems(defId);
 
-    const collectRecursive = (container) => {
-      if (!container || !container.id || visited.has(container.id)) return;
-      if (container.id === 'ground' || container.type === 'ground') return;
-      visited.add(container.id);
-
-      for (const item of container.items.values()) {
-        if (item.defId === defId) {
-          candidates.push(item);
-        }
-        const grid = item.getContainerGrid?.();
-        if (grid) collectRecursive(grid);
-        
-        const pockets = item.getPocketContainers?.();
-        if (pockets) {
-          for (const pocket of pockets) {
-            collectRecursive(pocket);
-          }
-        }
-        
-        if (item.attachments) {
-          for (const att of Object.values(item.attachments)) {
-            if (att) {
-              if (att.defId === defId) {
-                candidates.push(att);
-              }
-              const attGrid = att.getContainerGrid?.();
-              if (attGrid) collectRecursive(attGrid);
-            }
-          }
-        }
-      }
-    };
-
-    // 1. Collect from equipment slots
-    for (const [slot, item] of Object.entries(this.equipment)) {
-      if (!item) continue;
-      if (item.defId === defId) {
-        candidates.push(item);
-      }
-      const grid = item.getContainerGrid?.();
-      if (grid) collectRecursive(grid);
-      
-      const pockets = item.getPocketContainers?.();
-      if (pockets) {
-        for (const pocket of pockets) {
-          collectRecursive(pocket);
-        }
-      }
-      
-      if (item.attachments) {
-        for (const att of Object.values(item.attachments)) {
-          if (att) {
-            if (att.defId === defId) candidates.push(att);
-            const attGrid = att.getContainerGrid?.();
-            if (attGrid) collectRecursive(attGrid);
-          }
-        }
-      }
-    }
-
-    // 2. Collect from other registered containers
-    for (const container of this.containers.values()) {
-      if (container.id === 'ground' || container.type === 'ground') continue;
-      if (container.id.includes('workspace') || container.id.includes('-tools') || container.id.includes('-ingredients')) continue;
-      collectRecursive(container);
-    }
-
-    // 3. Consume from the candidates list
+    // Consume from the candidates list
     for (const item of candidates) {
       if (remaining <= 0) break;
       const consume = Math.min(item.stackCount || 1, remaining);
@@ -3166,102 +2894,8 @@ export class InventoryManager extends SafeEventEmitter {
    */
   processTurn(turn = 1, isOutdoors = false) {
     console.log('[InventoryManager] Processing turn for all items...');
-    
-    const currentHour = getHourFromTurn(turn);
-    const isDaylight = currentHour >= 6 && currentHour < 20;
-
-    const processedItemIds = new Set();
-
-    // 1. Process equipment slots (this handles backpacks, pockets, and nested items)
-    Object.values(this.equipment).forEach(item => {
-      if (item) this._processItemTurnRecursive(item, isOutdoors, isDaylight, true, processedItemIds);
-    });
-
-    // 2. Process all managed containers (Ground, Workspaces, etc.)
-    this.containers.forEach(container => {
-      container.getAllItems().forEach(item => {
-        this._processItemTurnRecursive(item, isOutdoors, isDaylight, false, processedItemIds);
-      });
-    });
-    
+    processInventoryTurn(this, turn, isOutdoors);
     this.emit('inventoryChanged');
-  }
-
-  /**
-   * Recursive helper to apply turn effects to an item and its contents
-   * @private
-   */
-  _processItemTurnRecursive(item, isOutdoors = false, isDaylight = true, isInPlayerInventory = false, processedItemIds = new Set()) {
-    if (!item) return;
-    if (processedItemIds.has(item.instanceId)) return;
-    processedItemIds.add(item.instanceId);
-
-    // --- EXPIRATION / TRANSFORMATION LOGIC ---
-    // Decelerate shelfLife and lifetimeTurns
-    const oldShelfLife = item.shelfLife;
-    const oldLifetime = item.lifetimeTurns;
-    
-    item.processTurn(); // Standard item-level tick
-
-    if (item.shelfLife !== oldShelfLife || item.lifetimeTurns !== oldLifetime) {
-      // Check for expiration
-      const isExpired = (item.shelfLife !== null && item.shelfLife <= 0) || 
-                       (item.lifetimeTurns !== null && item.lifetimeTurns <= 0);
-      
-      if (isExpired) {
-        if (item.transformInto) {
-          const nextDefId = item.transformInto;
-          const nextDef = ItemDefs[nextDefId];
-          if (nextDef) {
-            console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) transforming into ${nextDefId}`);
-            // Use updateFromDef to ensure defId and all definition-controlled properties (lifetime, transformInto, etc.) are synced
-            item.updateFromDef(nextDefId);
-          }
-        } else {
-          // No transformation: destroy the item
-          console.log(`[InventoryManager] Item ${item.name} (${item.instanceId}) expired and vanished.`);
-          this.destroyItem(item.instanceId);
-        }
-      }
-    }
-
-    // --- POWER GENERATION (source / wired charger / solar) ---
-    // Shared with GameMap's map-side engine via TurnProcessingUtils. Powered-ness
-    // for a wired charger is resolved here via the owner-chain walk; the solar and
-    // power-source gates are location flags the unified helper applies.
-    const chargerGrid = item.getContainerGrid?.();
-    const chargerPowered = (item.defId === 'tool.battery_charger' && chargerGrid)
-      ? this.isContainerPowered(chargerGrid.id)
-      : false;
-    TurnProcessingUtils.applyPowerGeneration(item, {
-      isPowered: chargerPowered,
-      isOutdoors,
-      isDaylight,
-      isInPlayerInventory,
-    });
-
-    // --- RECURSION ---
-    
-    // Recurse into attachments
-    if (item.attachments) {
-      Object.values(item.attachments).forEach(att => {
-        if (att) this._processItemTurnRecursive(att, isOutdoors, isDaylight, isInPlayerInventory, processedItemIds);
-      });
-    }
-
-    // Recurse into primary container grid (if any)
-    const grid = item.getContainerGrid?.();
-    if (grid) {
-      grid.getAllItems().forEach(nested => this._processItemTurnRecursive(nested, isOutdoors, isDaylight, isInPlayerInventory, processedItemIds));
-    }
-
-    // Recurse into pockets (if any)
-    const pockets = item.getPocketContainers?.();
-    if (pockets && Array.isArray(pockets)) {
-      pockets.forEach(pocket => {
-        pocket.getAllItems().forEach(nested => this._processItemTurnRecursive(nested, isOutdoors, isDaylight, isInPlayerInventory, processedItemIds));
-      });
-    }
   }
 
   /**
