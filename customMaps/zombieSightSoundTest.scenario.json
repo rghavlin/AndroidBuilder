@@ -1,10 +1,9 @@
 {
-  "name": "eventItemTest",
+  "name": "zombieSightSoundTest",
   "width": 20,
   "height": 20,
   "noAutosave": true,
-  "alwaysDark": true,
-  "lightMode": "always_dark",
+  "lightMode": "time_dependent",
   "tiles": [
     [
       {
@@ -1776,21 +1775,21 @@
       {
         "x": 6,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 7,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1800,9 +1799,9 @@
       {
         "x": 8,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1812,9 +1811,9 @@
       {
         "x": 9,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1824,9 +1823,9 @@
       {
         "x": 10,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1836,9 +1835,9 @@
       {
         "x": 11,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -1848,10 +1847,10 @@
       {
         "x": 12,
         "y": 7,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
-          "e": false,
+          "n": true,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2018,19 +2017,19 @@
       {
         "x": 6,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 7,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2042,7 +2041,7 @@
       {
         "x": 8,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2054,7 +2053,7 @@
       {
         "x": 9,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2066,7 +2065,7 @@
       {
         "x": 10,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2078,7 +2077,7 @@
       {
         "x": 11,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2090,10 +2089,10 @@
       {
         "x": 12,
         "y": 8,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2260,19 +2259,19 @@
       {
         "x": 6,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 7,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2284,7 +2283,7 @@
       {
         "x": 8,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2296,7 +2295,7 @@
       {
         "x": 9,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2308,7 +2307,7 @@
       {
         "x": 10,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2320,7 +2319,7 @@
       {
         "x": 11,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -2332,10 +2331,10 @@
       {
         "x": 12,
         "y": 9,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -2502,23 +2501,23 @@
       {
         "x": 6,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
       {
         "x": 7,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2526,11 +2525,11 @@
       {
         "x": 8,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2538,11 +2537,11 @@
       {
         "x": 9,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2550,11 +2549,11 @@
       {
         "x": 10,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2562,11 +2561,11 @@
       {
         "x": 11,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -2574,11 +2573,11 @@
       {
         "x": 12,
         "y": 10,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -4848,12 +4847,28 @@
     ]
   ],
   "metadata": {
-    "alwaysDark": true,
-    "lightMode": "always_dark",
-    "buildings": [],
+    "lightMode": "time_dependent",
+    "buildings": [
+      {
+        "type": "residential",
+        "x": 6,
+        "y": 7,
+        "width": 7,
+        "height": 4
+      }
+    ],
     "furniture": [],
     "specialBuildings": [],
-    "doors": [],
+    "doors": [
+      {
+        "x": 9,
+        "y": 10,
+        "isLocked": false,
+        "isKeylocked": false,
+        "isOpen": false,
+        "edge": "s"
+      }
+    ],
     "garageDoors": [],
     "windows": [],
     "placeIcons": [],
@@ -4861,92 +4876,25 @@
       "playerStart": [
         {
           "x": 9,
-          "y": 10
+          "y": 12
         }
       ]
     }
   },
   "entities": [
     {
+      "type": "zombie",
+      "x": 9,
+      "y": 9,
+      "subtype": "basic"
+    },
+    {
       "type": "player",
       "x": 9,
-      "y": 10,
+      "y": 12,
       "subtype": null
     }
   ],
-  "eventTriggers": [
-    {
-      "x": 9,
-      "y": 9,
-      "id": "lightOff",
-      "steps": [],
-      "oneShot": false
-    }
-  ],
-  "mapTransitions": [],
-  "events": [
-    {
-      "id": "lightOn",
-      "placement": {
-        "kind": "tile",
-        "x": 9,
-        "y": 9
-      },
-      "trigger": "onInteract",
-      "preconditions": [
-        {
-          "kind": "flag",
-          "flag": "lightOn",
-          "value": false
-        }
-      ],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "setLightMode",
-          "lightMode": "always_light"
-        }
-      ],
-      "appearance": {
-        "defId": "placeable.switch_off"
-      }
-    },
-    {
-      "id": "lightOff",
-      "placement": {
-        "kind": "tile",
-        "x": 9,
-        "y": 9
-      },
-      "trigger": "onInteract",
-      "preconditions": [
-        {
-          "kind": "flag",
-          "flag": "lightOn",
-          "value": true
-        }
-      ],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "setLightMode",
-          "lightMode": "always_dark"
-        }
-      ],
-      "appearance": {
-        "defId": "placeable.switch_off"
-      }
-    }
-  ],
-  "questRegistry": {
-    "flags": [
-      {
-        "name": "lightOn"
-      }
-    ],
-    "vars": [],
-    "quests": [],
-    "factions": [],
-    "factionStances": {}
-  }
+  "eventTriggers": [],
+  "mapTransitions": []
 }

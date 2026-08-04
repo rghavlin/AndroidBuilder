@@ -15,6 +15,12 @@ import { getMeleeReach } from './AIHelpers.js';
  * the player around corners and through doors where LOS is blocked, and A*
  * already routes around walls (returning no path -> the zombie falls to wander).
  *
+ * Acquiring a scent produces no intent of its own, so every caller must follow a
+ * `true` return by acting on the new target in the SAME cycle (see investigate).
+ * Returning without an intent ends the zombie's turn outright — SimulationManager
+ * breaks its AI loop as soon as a cycle yields zero intents — which is why the
+ * zombie used to stand motionless for one full turn before charging the door.
+ *
  * @param {Entity} entity - The zombie
  * @param {Position} zombiePos - The zombie's position component
  * @param {GameMap} gameMap - The game map
@@ -24,7 +30,7 @@ import { getMeleeReach } from './AIHelpers.js';
 function tryFollowScent(entity, zombiePos, gameMap, aiBehavior) {
   if (entity.deaf) return false;
   const freshestScent = ScentTrail.findFreshestScent(
-    gameMap, zombiePos.x, zombiePos.y, SCENT_FOLLOW_RADIUS, entity.lastScentSequence || 0
+    gameMap, zombiePos.x, zombiePos.y, SCENT_FOLLOW_RADIUS, entity.lastScentSequence || 0, entity
   );
   if (!freshestScent) return false;
 
@@ -457,8 +463,14 @@ function huntPlayer(ctx) {
  * Priority 2: the player is not visible but the zombie remembers a last-known
  * position (from sight/scent) or a heard noise. Walk toward it; on arrival, pick
  * up a scent trail if one exists, otherwise wander.
+ *
+ * `allowScentChain` guards the one re-entry: when the zombie reaches its target
+ * and immediately picks up a fresher breadcrumb, we recurse once to move on the
+ * new target within this cycle rather than idling. tryFollowScent advances
+ * entity.lastScentSequence on every hit, so a chain is finite anyway, but the
+ * flag bounds it at a single hop instead of one hop per scent tile on the map.
  */
-function investigate(ctx) {
+function investigate(ctx, allowScentChain = true) {
   const { entity, zombiePos, gameMap, aiBehavior, currentAP, moveCost } = ctx;
 
   aiBehavior.alertnessState = 'INVESTIGATING';
@@ -475,7 +487,10 @@ function investigate(ctx) {
     entity.clearNoiseHeard();
     aiBehavior.currentPath = [];
 
-    if (tryFollowScent(entity, zombiePos, gameMap, aiBehavior)) return;
+    if (allowScentChain && tryFollowScent(entity, zombiePos, gameMap, aiBehavior)) {
+      investigate(ctx, false);
+      return;
+    }
     wander(ctx);
     return;
   }
@@ -504,7 +519,10 @@ function investigate(ctx) {
     entity.clearLastSeen();
     entity.clearNoiseHeard();
     aiBehavior.currentPath = [];
-    if (tryFollowScent(entity, zombiePos, gameMap, aiBehavior)) return;
+    if (allowScentChain && tryFollowScent(entity, zombiePos, gameMap, aiBehavior)) {
+      investigate(ctx, false);
+      return;
+    }
     wander(ctx);
     return;
   }
@@ -661,8 +679,10 @@ export class AISystem {
         huntPlayer(ctx);                                                   // Priority 1: hunt
       } else if (aiBehavior.lastSeenPlayerCoords || aiBehavior.heardNoiseCoords) {
         investigate(ctx);                                                  // Priority 2: investigate
-      } else if (!tryFollowScent(entity, zombiePos, gameMap, aiBehavior)) {
-        wander(ctx);                                                       // Priority 3 scent, else 4 wander
+      } else if (tryFollowScent(entity, zombiePos, gameMap, aiBehavior)) {
+        investigate(ctx, false);                                           // Priority 3: act on the new scent NOW
+      } else {
+        wander(ctx);                                                       // Priority 4: wander
       }
     }
 
