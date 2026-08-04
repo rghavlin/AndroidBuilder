@@ -29,7 +29,6 @@ import { rainbowBackground } from "@/lib/utils";
 const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
   if (!bgColor) {
     if (theme === 'light2') return 'rgba(255, 255, 255, 0.15)';
-    if (theme === 'steampunk') return 'var(--sp-slab)';
     if (theme === 'metallic') return 'var(--metallic-slab)';
     return 'var(--card)';
   }
@@ -40,17 +39,6 @@ const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
     if (lower === '#0a2e5c') return '#6B9BC3';
     if (lower === '#5c653a') return '#8B956C';
     if (lower === '#1e1b4b') return '#A5B4FC';
-  } else if (theme === 'light') {
-    if (lower === '#006b18') return '#639A88';
-    if (lower === '#8a0303') return '#C15C5C';
-    if (lower === '#0a2e5c') return '#5C8AB3';
-    if (lower === '#1e1b4b') return '#C7D2FE';
-  } else if (theme === 'steampunk') {
-    if (lower === '#006b18') return '#2e9e4f';
-    if (lower === '#8a0303') return '#c0392b';
-    if (lower === '#0a2e5c') return '#3a6ea5';
-    if (lower === '#5c653a') return '#7a8450';
-    if (lower === '#1e1b4b') return '#5c5a8a';
   }
   return bgColor;
 };
@@ -1165,7 +1153,7 @@ export default function UniversalGrid({
                     objectFit: 'cover',
                     transform: transformStyle,
                     transformOrigin: 'top left',
-                    filter: themeRef.current === 'steampunk' ? 'var(--sp-icon-filter)' : themeRef.current === 'metallic' ? 'var(--metallic-icon-filter)' : themeRef.current === 'light2' ? 'invert(0.75)' : themeRef.current === 'light' ? 'invert(1)' : undefined,
+                    filter: themeRef.current === 'metallic' ? 'var(--metallic-icon-filter)' : themeRef.current === 'light2' ? 'invert(0.75)' : undefined,
                   }}
                   alt={item.name}
                 />

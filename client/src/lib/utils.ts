@@ -17,7 +17,7 @@ export function rainbowBackground(colors?: string[] | null): string | undefined 
 
 export function isLightTheme(theme: string | undefined | null): boolean {
   if (!theme) return false;
-  return theme === 'light' || theme === 'light2';
+  return theme === 'light2';
 }
 
 export function getCategoryClass(item: any): string {

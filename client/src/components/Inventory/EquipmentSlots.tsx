@@ -156,7 +156,7 @@ export default function EquipmentSlots() {
           const isSelected = selectedItem?.isEquipment &&
             selectedItem?.item?.instanceId === equippedItem?.instanceId;
 
-          const isLight = document.documentElement.classList.contains('light');
+          const isLight = document.documentElement.classList.contains('light2');
           return (
             <div key={slot.id} className={cn(
               "equipment-slot-size flex-shrink-0",

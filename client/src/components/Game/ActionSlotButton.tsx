@@ -116,7 +116,7 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual, isDeviceActive = 
                 isLight ? "mix-blend-multiply" : "mix-blend-screen"
               )}
               style={{
-                filter: theme === 'steampunk' ? "var(--sp-icon-filter)" : isLight ? "invert(1)" : "brightness(2) contrast(300%)"
+                filter: isLight ? "invert(1)" : "brightness(2) contrast(300%)"
               }}
             />
           </div>

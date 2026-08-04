@@ -48,7 +48,7 @@ export default function EarbucksDisplay() {
         className="w-6 h-6 object-contain shrink-0"
         style={{
           imageRendering: 'pixelated',
-          filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : isLightTheme(theme) ? 'invert(1)' : 'none'
+          filter: isLightTheme(theme) ? 'invert(1)' : 'none'
         }}
       />
       <span

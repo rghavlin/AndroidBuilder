@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 // @ts-ignore
 import { configManager } from '../game/utils/ConfigManager';
-export type Theme = 'light' | 'dark' | 'light2' | 'dark2' | 'steampunk' | 'metallic';
+export type Theme = 'dark' | 'dark2' | 'light2' | 'metallic';
 
 interface ThemeContextType {
   theme: Theme;
@@ -25,7 +25,11 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    return (configManager.get('theme') as Theme) || 'dark';
+    const saved = configManager.get('theme') as string;
+    if (saved === 'dark' || saved === 'dark2' || saved === 'light2' || saved === 'metallic') {
+      return saved as Theme;
+    }
+    return 'metallic';
   });
 
   const setTheme = (newTheme: Theme) => {
@@ -36,12 +40,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   const toggleTheme = () => {
     setTheme(
-      theme === 'light' ? 'light2'
-      : theme === 'light2' ? 'dark'
+      theme === 'metallic' ? 'dark'
       : theme === 'dark' ? 'dark2'
-      : theme === 'dark2' ? 'steampunk'
-      : theme === 'steampunk' ? 'metallic'
-      : 'light'
+      : theme === 'dark2' ? 'light2'
+      : 'metallic'
     );
   };
 

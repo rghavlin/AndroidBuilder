@@ -223,11 +223,10 @@ export const TileRenderer = {
 
     // 1. Draw Terrain (If explored)
     if (isExplored) {
-        const isLight = document.documentElement.classList.contains('light');
-        const isSteampunk = document.documentElement.classList.contains('steampunk');
-        const theme = isSteampunk ? 'steampunk' : (isLight ? 'light' : 'dark');
+        const isLight = document.documentElement.classList.contains('light2');
+        const theme = isLight ? 'light' : 'dark';
         // Use structural mapping for important types to guarantee visibility
-        const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS));
+        const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS);
         const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
         const colorKey = renderTerrainKey(tile.terrain);
         ctx.fillStyle = (isStructural ? colors[colorKey] : (tile.color || colors[colorKey])) || '#222';
@@ -530,10 +529,9 @@ export const TileRenderer = {
     const screenY = localY * tileSize;
 
     // Base colour (always drawn — unexplored tiles are masked by MapCanvas)
-    const isLight = document.documentElement.classList.contains('light');
-    const isSteampunk = document.documentElement.classList.contains('steampunk');
-    const theme = isSteampunk ? 'steampunk' : (isLight ? 'light' : 'dark');
-    const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isSteampunk ? STEAMPUNK_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS));
+    const isLight = document.documentElement.classList.contains('light2');
+    const theme = isLight ? 'light' : 'dark';
+    const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS);
     const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
     const colorKey = renderTerrainKey(tile.terrain);
     ctx.fillStyle = (isStructural ? colors[colorKey] : (tile.color || colors[colorKey])) || '#222';
@@ -760,9 +758,8 @@ export const TileRenderer = {
     // `theme` is usually provided by the caller (MapCanvas) so we don't query the
     // DOM for every single piece; fall back to DOM only for standalone callers.
     if (!theme) {
-      const isLight = document.documentElement.classList.contains('light');
-      const isSteampunk = document.documentElement.classList.contains('steampunk');
-      theme = isSteampunk ? 'steampunk' : (isLight ? 'light' : 'dark');
+      const isLight = document.documentElement.classList.contains('light2');
+      theme = isLight ? 'light' : 'dark';
     }
 
     if (theme === 'light') {

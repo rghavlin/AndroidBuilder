@@ -132,20 +132,16 @@ export default function StartMenuButtons({ className = '', isTransparentGround =
 
   const getItemSlabBg = (themeName: string) => {
     if (themeName === 'light2') return 'rgba(255, 255, 255, 0.15)';
-    if (themeName === 'steampunk') return 'var(--sp-slab)';
     if (themeName === 'metallic') return 'var(--metallic-slab)';
-    if (themeName === 'light') return '#e4e4e7';
     return 'var(--card)'; // dark & dark2 item background
   };
 
   const iconFilter =
-    theme === 'steampunk' ? 'var(--sp-icon-filter)'
-    : theme === 'metallic' ? 'var(--metallic-icon-filter)'
+    theme === 'metallic' ? 'var(--metallic-icon-filter)'
     : theme === 'light2' ? 'invert(0.75)'
-    : theme === 'light' ? 'invert(1)'
     : undefined;
   const iconBlend =
-    (!theme.startsWith('dark') && theme !== 'metallic') ? 'mix-blend-multiply' : 'mix-blend-screen';
+    (theme === 'light2') ? 'mix-blend-multiply' : 'mix-blend-screen';
 
   const buttons: MenuButtonDef[] = [
     {

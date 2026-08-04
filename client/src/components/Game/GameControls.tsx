@@ -199,7 +199,7 @@ export default function GameControls({
                     src={endTurnImage} 
                     alt="End Turn" 
                     className="w-full h-full object-contain" 
-                    style={{ filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : isLight ? 'invert(1)' : 'none' }}
+                    style={{ filter: isLight ? 'invert(1)' : 'none' }}
                   />
                 ) : (
                   <span className="text-xs font-black leading-tight text-white uppercase italic">END<br/>TURN</span>
@@ -233,7 +233,7 @@ export default function GameControls({
                     src={sleepImage} 
                     alt="Sleep" 
                     className="w-full h-full object-contain" 
-                    style={{ filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : isLight ? 'invert(1)' : 'none' }}
+                    style={{ filter: isLight ? 'invert(1)' : 'none' }}
                   />
                 ) : (
                   <span className="text-xs font-black leading-tight text-white uppercase italic">SLEEP</span>
@@ -273,10 +273,9 @@ export default function GameControls({
                     alt="Crafting"
                     className={cn(
                       "w-full h-full object-contain p-1 grayscale",
-                      !isLight && theme !== 'steampunk' && "invert",
+                      !isLight && "invert",
                       isExtensionOpen ? "opacity-100" : "opacity-40"
                     )}
-                    style={{ filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : undefined }}
                   />
                 ) : (
                   <span className="text-[10px] font-black leading-tight text-white/60">CRAFT</span>
@@ -316,10 +315,9 @@ export default function GameControls({
                     alt="Skills"
                     className={cn(
                       "w-full h-full object-contain p-1 grayscale",
-                      !isLight && theme !== 'steampunk' && "invert",
+                      !isLight && "invert",
                       isSkillsOpen ? "opacity-100" : "opacity-40"
                     )}
-                    style={{ filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : undefined }}
                   />
                 ) : (
                   <span className="text-[10px] font-black leading-tight text-white/60">CHR</span>

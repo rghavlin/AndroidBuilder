@@ -105,7 +105,7 @@ const AttachmentSlot = memo(({
                                             selectedItem?.item?.instanceId === attachedItem.instanceId && "opacity-40 grayscale-[50%]"
                                         )}
                                         style={{
-                                             filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : theme === 'light2' ? 'invert(0.75)' : theme === 'light' ? 'invert(1)' : undefined
+                                             filter: theme === 'light2' ? 'invert(0.75)' : undefined
                                          }}
                                     />
                                 ) : (

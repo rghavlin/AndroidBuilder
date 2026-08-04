@@ -107,7 +107,7 @@ export default function DragPreviewLayer() {
           className={`w-full h-full object-contain opacity-80 max-w-none ${!item?.backgroundColor ? (isLight ? 'mix-blend-multiply' : 'mix-blend-screen') : ''}`}
           style={{
             transform: `rotate(${rotation}deg)`,
-            filter: theme === 'steampunk' ? 'var(--sp-icon-filter)' : theme === 'metallic' ? 'var(--metallic-icon-filter)' : theme === 'light2' ? 'invert(0.75)' : theme === 'light' ? 'invert(1)' : undefined
+            filter: theme === 'metallic' ? 'var(--metallic-icon-filter)' : theme === 'light2' ? 'invert(0.75)' : undefined
           }}
         />
       ) : (

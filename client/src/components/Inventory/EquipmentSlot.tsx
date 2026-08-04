@@ -15,17 +15,6 @@ const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
     if (lower === '#0a2e5c') return '#6B9BC3';
     if (lower === '#5c653a') return '#8B956C';
     if (lower === '#1e1b4b') return '#A5B4FC';
-  } else if (theme === 'light') {
-    if (lower === '#006b18') return '#639A88';
-    if (lower === '#8a0303') return '#C15C5C';
-    if (lower === '#0a2e5c') return '#5C8AB3';
-    if (lower === '#1e1b4b') return '#C7D2FE';
-  } else if (theme === 'steampunk') {
-    if (lower === '#006b18') return '#2e9e4f';
-    if (lower === '#8a0303') return '#c0392b';
-    if (lower === '#0a2e5c') return '#3a6ea5';
-    if (lower === '#5c653a') return '#7a8450';
-    if (lower === '#1e1b4b') return '#5c5a8a';
   }
   return bgColor;
 };
@@ -131,8 +120,8 @@ const EquipmentSlot = memo(({
                   )}
                   style={{
                     filter: !hasItem 
-                      ? (theme === 'steampunk' ? "var(--sp-icon-filter-empty)" : theme === 'light2' ? "invert(0.6)" : theme === 'light' ? "invert(1)" : "none")
-                      : (theme === 'steampunk' ? "var(--sp-icon-filter)" : theme === 'light2' ? "invert(0.75)" : theme === 'light' ? "invert(1) contrast(300%)" : (!item?.backgroundColor ? "brightness(2) contrast(300%)" : undefined))
+                      ? (theme === 'light2' ? "invert(0.6)" : "none")
+                      : (theme === 'light2' ? "invert(0.75)" : (!item?.backgroundColor ? "brightness(2) contrast(300%)" : undefined))
                   }}
                 />
               </div>
