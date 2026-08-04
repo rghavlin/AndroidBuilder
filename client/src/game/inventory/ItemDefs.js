@@ -1207,7 +1207,7 @@ export const ItemDefs = {
     id: 'tool.snare_deployed',
     name: 'Deployed snare',
     noLoot: true,
-    renderFullTile: true,
+    renderFullTile: false,
     rarity: Rarity.UNCOMMON,
     imageId: 'deployedsnare',
     width: 2,
@@ -2162,7 +2162,8 @@ export const ItemDefs = {
     id: 'food.rabbit_carcass',
     name: 'Rabbit carcass',
     rarity: Rarity.COMMON,
-    renderFullTile: true,
+    renderFullTile: false,
+    backgroundColor: '#006B18',
     imageId: 'rabbitcarcass',
     width: 2,
     height: 2,
@@ -2657,7 +2658,8 @@ export const ItemDefs = {
     waterQuality: 'dirty',
     categories: [ItemCategory.ENVIRONMENT],
     noLoot: true,
-    renderFullTile: true,
+    renderFullTile: false,
+    backgroundColor: '#0a2e5c',
     description: 'Use empty bottle or jug to collect dirty water'
   },
   'placeable.exit': {

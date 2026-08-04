@@ -136,7 +136,7 @@ const AttributeCard = ({ name, current, base, effects, totalXP, spentXP, require
                             <div className="w-full h-1 bg-[var(--track)] rounded-full overflow-hidden border border-[var(--hairline)]">
                                 <div
                                     className={cn("h-full transition-all duration-500 ease-out", 
-                                        isRollReady ? "bg-emerald-500 shadow-[0_0_8px_rgba(34,197,94,0.4)] animate-pulse" : "bg-primary"
+                                        isRollReady ? "bg-emerald-500 shadow-[0_0_8px_rgba(34,197,94,0.4)] animate-pulse" : "bg-emerald-600/80"
                                     )}
                                     style={{ width: `${progress}%` }}
                                 />
