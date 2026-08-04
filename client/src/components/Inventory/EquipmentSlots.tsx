@@ -75,7 +75,7 @@ export default function EquipmentSlots() {
       }
 
       // Special Interaction: Igniting an ignitable equipped item (like a torch) with selected matches/lighter
-      const isIgniterSelected = selectedItem.item.defId === 'tool.lighter' || selectedItem.item.defId === 'tool.matchbook';
+      const isIgniterSelected = selectedItem.item.defId === 'tool.lighter' || selectedItem.item.defId === 'tool.matchbook' || selectedItem.item.defId === 'tool.bowdrill';
       const isIgnitableEquipped = equippedItem.hasTrait?.(ItemTrait.IGNITABLE);
       if (isIgniterSelected && isIgnitableEquipped) {
         if (!equippedItem.isLit) {

@@ -932,7 +932,7 @@ export const CombatProvider = ({ children }) => {
         // Check containers
         for (const container of inventoryManager.containers.values()) {
             for (const it of container.items.values()) {
-                if (it.defId === 'tool.lighter' || it.defId === 'tool.matchbook') {
+                if (it.defId === 'tool.lighter' || it.defId === 'tool.matchbook' || it.defId === 'tool.bowdrill') {
                     if ((it.ammoCount || 0) > 0) {
                         availableIgniters.push({ item: it, container });
                     }
@@ -943,7 +943,7 @@ export const CombatProvider = ({ children }) => {
         // Check equipment
         for (const slot in inventoryManager.equipment) {
             const it = inventoryManager.equipment[slot];
-            if (it && (it.defId === 'tool.lighter' || it.defId === 'tool.matchbook')) {
+            if (it && (it.defId === 'tool.lighter' || it.defId === 'tool.matchbook' || it.defId === 'tool.bowdrill')) {
                 if ((it.ammoCount || 0) > 0) {
                     availableIgniters.push({ item: it, container: null });
                 }
@@ -977,7 +977,7 @@ export const CombatProvider = ({ children }) => {
         const igniterContainer = availableIgniters[0].container;
 
         selectedIgniter.consumeCharge(1);
-        if ((selectedIgniter.ammoCount || 0) <= 0 && (selectedIgniter.defId === 'tool.matchbook' || selectedIgniter.defId === 'tool.lighter')) {
+        if ((selectedIgniter.ammoCount || 0) <= 0 && (selectedIgniter.defId === 'tool.matchbook' || selectedIgniter.defId === 'tool.lighter' || selectedIgniter.defId === 'tool.bowdrill')) {
             if (igniterContainer) {
                 igniterContainer.removeItem(selectedIgniter.instanceId);
             } else {

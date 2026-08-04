@@ -819,7 +819,7 @@ export class Item extends SafeEventEmitter {
     if (this.hasTrait(ItemTrait.BATTERY) || this.hasTrait(ItemTrait.CHARGE_BASED)) {
       if ((this.ammoCount || 0) >= amount) {
         this.ammoCount -= amount;
-        if (this.ammoCount <= 0 && (this.defId === 'tool.lighter' || this.defId === 'tool.matchbook')) {
+        if (this.ammoCount <= 0 && (this.defId === 'tool.lighter' || this.defId === 'tool.matchbook' || this.defId === 'tool.bowdrill')) {
           // T5/R32#1: globalThis, not window — bare `window` throws ReferenceError
           // under Node (headless tests). Fall back to the local container when no
           // engine bridge exists OR when the engine's manager doesn't actually

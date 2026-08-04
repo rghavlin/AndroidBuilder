@@ -140,7 +140,7 @@ const TILE_ICON_RANK = {
   OTHER: 7,
 };
 
-const FIRESTARTER_DEF_IDS = new Set(['tool.lighter', 'tool.matchbook']);
+const FIRESTARTER_DEF_IDS = new Set(['tool.lighter', 'tool.matchbook', 'tool.bowdrill']);
 
 // Resolve traits/categories/slot from the item instance, falling back to its
 // definition (ground-pile entries are often plain data, not Item instances).

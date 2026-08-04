@@ -30,6 +30,18 @@ describe('T5 Item self-destruct without window.gameEngine (R32#1)', () => {
     expect(container.getAllItems()).not.toContain(lighter);
   });
 
+  it('consumeCharge destroys a spent bowdrill via the local container, no throw', () => {
+    const bowdrill = new Item(createItemFromDef('tool.bowdrill'));
+    bowdrill.ammoCount = 1;
+    const container = groundContainer();
+    expect(container.addItem(bowdrill)).toBe(true);
+
+    expect(() => bowdrill.consumeCharge(1)).not.toThrow();
+    expect(bowdrill.ammoCount).toBe(0);
+    expect(bowdrill.stackCount).toBe(0);
+    expect(container.getAllItems()).not.toContain(bowdrill);
+  });
+
   it('degrade destroys a broken item via the local container, no throw', () => {
     const knife = new Item(createItemFromDef('weapon.knife'));
     const container = groundContainer();

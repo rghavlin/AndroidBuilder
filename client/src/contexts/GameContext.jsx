@@ -272,7 +272,7 @@ const GameContextInner = ({ children }) => {
 
       for (const c of containers) {
         for (const item of c.items.values()) {
-          if (item.defId === 'tool.lighter' || item.defId === 'tool.matchbook') {
+          if (item.defId === 'tool.lighter' || item.defId === 'tool.matchbook' || item.defId === 'tool.bowdrill') {
             if ((item.ammoCount || 0) > 0) {
               availableItems.push({ item, container: c });
             }
@@ -330,7 +330,7 @@ const GameContextInner = ({ children }) => {
     }
     
     // If source empty and is matchbook or lighter, discard it
-    if ((source.ammoCount || 0) <= 0 && (source.defId === 'tool.matchbook' || source.defId === 'tool.lighter')) {
+    if ((source.ammoCount || 0) <= 0 && (source.defId === 'tool.matchbook' || source.defId === 'tool.lighter' || source.defId === 'tool.bowdrill')) {
       if (container) {
         container.removeItem(source.instanceId);
       } else {

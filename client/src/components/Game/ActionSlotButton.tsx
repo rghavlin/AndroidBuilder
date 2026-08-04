@@ -51,7 +51,7 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual, isDeviceActive = 
       console.log(`[ActionSlot] Clicked phone: cycling remote device focus`);
       cycleRemoteDevice?.();
     } else if (slot === 'flashlight') {
-      const isIgniter = selectedItem?.item?.defId === 'tool.lighter' || selectedItem?.item?.defId === 'tool.matchbook';
+      const isIgniter = selectedItem?.item?.defId === 'tool.lighter' || selectedItem?.item?.defId === 'tool.matchbook' || selectedItem?.item?.defId === 'tool.bowdrill';
       if (isIgniter && item && item.hasTrait?.(ItemTrait.IGNITABLE) && !item.isLit) {
         console.log(`[ActionSlot] Igniting torch with selected igniter:`, selectedItem.item.name);
         igniteTorch(selectedItem.item);
