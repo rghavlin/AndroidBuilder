@@ -176,6 +176,19 @@ export default function StartMenuButtons({ className = '', isTransparentGround =
     },
   ];
 
+  // Cells sitting under a button. Marked `occupied-slot` so the recessed slot
+  // styling is hidden — the themes' item slabs are semi-transparent, so without
+  // this the grid mesh shows through the buttons (UniversalGrid does the same
+  // for cells covered by an item).
+  const coveredCells = new Set<string>();
+  for (const def of buttons) {
+    for (let dx = 0; dx < def.w; dx++) {
+      for (let dy = 0; dy < def.h; dy++) {
+        coveredCells.add(`${def.col - 1 + dx},${def.row - 1 + dy}`);
+      }
+    }
+  }
+
   const renderButton = (def: MenuButtonDef) => {
     const leftPos = (def.col - 1) * (slot + GAP_SIZE);
     const topPos = (def.row - 1) * (slot + GAP_SIZE);
@@ -271,7 +284,8 @@ export default function StartMenuButtons({ className = '', isTransparentGround =
                 key={`menu-bg-slot-${x}-${y}`}
                 className={cn(
                   "flex-shrink-0 relative rounded-[3px]",
-                  isTransparentGround ? "transparent-ground-slot" : "inset-slot"
+                  isTransparentGround ? "transparent-ground-slot" : "inset-slot",
+                  coveredCells.has(`${x},${y}`) && "occupied-slot"
                 )}
                 style={{ width: `${slot}px`, height: `${slot}px` }}
               />

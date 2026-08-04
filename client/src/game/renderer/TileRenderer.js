@@ -37,39 +37,9 @@ const TERRAIN_COLORS = {
   'dirt': '#3d2b1f'
 };
 
-const LIGHT_TERRAIN_COLORS = {
-  'grass': '#e2e8f0',
-  'road': '#cbd5e1',
-  'transition': '#cbd5e1',
-  'sidewalk': '#94a3b8',
-  'wall': '#475569',
-  'building': '#94a3b8',
-  'fence': '#64748b',
-  'tree': '#334155',
-  'tent_wall': '#cbd5e1',
-  'tent_floor': '#e2e8f0',
-  'floor': '#f1f5f9',
-  'water': '#e2e8f0',
-  'dirt': '#e2e8f0'
-};
-
-// Steampunk: warm sepia/bronze palette
-const STEAMPUNK_TERRAIN_COLORS = {
-  'grass': '#8a7d5a',
-  'road': '#6b5f4a',
-  'transition': '#6b5f4a',
-  'sidewalk': '#9c8f74',
-  'wall': '#5c4a32',
-  'building': '#7a6a50',
-  'fence': '#4a3a26',
-  'tree': '#4d5c3a',
-  'tent_wall': '#8a7a5c',
-  'tent_floor': '#a89a7c',
-  'floor': '#b0a288',
-  'water': '#4a5c6a',
-  'dirt': '#7a6a50'
-};
-
+// NOTE: the map is deliberately theme-independent — the UI theme never changes
+// how the world renders. Only the tile-set setting (`imageLoader.tileSet`)
+// selects a palette here.
 const BW_TERRAIN_COLORS = {
   'grass': '#4a4c4f',       // Lighter outdoor grass, clearly distinct from indoor floors
   'road': '#363638',        // Mid-dark gray road, slightly darker than floor for contrast
@@ -117,9 +87,9 @@ function drawNoTextureGrass(ctx, screenX, screenY, tileSize, x, y) {
 /**
  * Draw a simple no-texture fence pattern: a diagonal cross-hatch to look like chainlink.
  */
-function drawNoTextureFence(ctx, screenX, screenY, tileSize, theme) {
+function drawNoTextureFence(ctx, screenX, screenY, tileSize) {
   ctx.save();
-  ctx.strokeStyle = theme === 'light' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.15)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
   ctx.lineWidth = Math.max(1, Math.floor(tileSize * 0.05));
   ctx.beginPath();
   // Draw an X
@@ -138,24 +108,23 @@ function drawNoTextureFence(ctx, screenX, screenY, tileSize, theme) {
  * Uses deterministic pseudo-random values from tile coordinates so the detail
  * is stable across chunk rebuilds and zooms.
  */
-function drawFloorTilePattern(ctx, screenX, screenY, tileSize, x, y, theme) {
+function drawFloorTilePattern(ctx, screenX, screenY, tileSize, x, y) {
   const hash = Math.abs((x * 31) ^ (y * 17));
-  const baseAlpha = theme === 'light' ? 0.05 : 0.07;
-  const lineAlpha = baseAlpha + (hash % 5) / 400;
+  const lineAlpha = 0.07 + (hash % 5) / 400;
 
   ctx.save();
   ctx.lineCap = 'butt';
   ctx.lineJoin = 'miter';
 
   // Very subtle panel / grout lines so large rooms read as tiled concrete.
-  ctx.strokeStyle = theme === 'light' ? `rgba(0,0,0,${lineAlpha})` : `rgba(255,255,255,${lineAlpha})`;
+  ctx.strokeStyle = `rgba(255,255,255,${lineAlpha})`;
   ctx.lineWidth = Math.max(1, Math.floor(tileSize * 0.03));
   const pad = tileSize * 0.12;
   ctx.strokeRect(screenX + pad, screenY + pad, tileSize - pad * 2, tileSize - pad * 2);
 
   // A few tiny scuff marks / stains.
   const scuffs = 2 + (hash % 3);
-  ctx.fillStyle = theme === 'light' ? `rgba(0,0,0,${lineAlpha * 0.6})` : `rgba(255,255,255,${lineAlpha * 0.6})`;
+  ctx.fillStyle = `rgba(255,255,255,${lineAlpha * 0.6})`;
   for (let i = 0; i < scuffs; i++) {
     const sx = screenX + ((hash + i * 47) % 100) / 100 * tileSize;
     const sy = screenY + ((hash + i * 73) % 100) / 100 * tileSize;
@@ -171,12 +140,11 @@ function drawFloorTilePattern(ctx, screenX, screenY, tileSize, x, y, theme) {
  * Draw drop shadows beneath wall edges to give walls visual weight and separate
  * them from the floor.
  */
-function drawWallShadow(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme) {
+function drawWallShadow(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW) {
   const shadowSize = Math.max(2, Math.floor(tileSize * 0.12));
-  const shadowAlpha = theme === 'light' ? 0.14 : 0.32;
 
   ctx.save();
-  ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
 
   if (hasN) ctx.fillRect(screenX, screenY, tileSize, shadowSize);
   if (hasS) ctx.fillRect(screenX, screenY + tileSize - shadowSize, tileSize, shadowSize);
@@ -190,12 +158,11 @@ function drawWallShadow(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW,
  * Darken the inner corners where walls meet to create ambient occlusion and
  * make corners read as solid architectural joins.
  */
-function drawWallAmbientOcclusion(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme) {
+function drawWallAmbientOcclusion(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW) {
   const cornerSize = Math.max(4, Math.floor(tileSize * 0.22));
-  const aoAlpha = theme === 'light' ? 0.1 : 0.28;
 
   ctx.save();
-  ctx.fillStyle = `rgba(0, 0, 0, ${aoAlpha})`;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
 
   const corners = [
     [hasN && hasW, screenX, screenY],
@@ -223,10 +190,8 @@ export const TileRenderer = {
 
     // 1. Draw Terrain (If explored)
     if (isExplored) {
-        const isLight = document.documentElement.classList.contains('light2');
-        const theme = isLight ? 'light' : 'dark';
         // Use structural mapping for important types to guarantee visibility
-        const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS);
+        const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : TERRAIN_COLORS;
         const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
         const colorKey = renderTerrainKey(tile.terrain);
         ctx.fillStyle = (isStructural ? colors[colorKey] : (tile.color || colors[colorKey])) || '#222';
@@ -241,7 +206,7 @@ export const TileRenderer = {
             ctx.fillRect(screenX, screenY, tileSize, tileSize);
 
             // Tactical tile pattern: faint grout lines and scuff marks.
-            drawFloorTilePattern(ctx, screenX, screenY, tileSize, x, y, theme);
+            drawFloorTilePattern(ctx, screenX, screenY, tileSize, x, y);
         }
 
         // Simple grass blade pattern when no tile sprites are loaded.
@@ -251,7 +216,7 @@ export const TileRenderer = {
 
         // Simple chainlink fence pattern when no tile sprites are loaded.
         if (tile.terrain === 'fence' && imageLoader.tileSet === 'none' && !engine.renderDebugColors) {
-            drawNoTextureFence(ctx, screenX, screenY, tileSize, theme);
+            drawNoTextureFence(ctx, screenX, screenY, tileSize);
         }
 
         // Step B: Draw Texture Layer (On top of base color) - Skipped in Debug Mode
@@ -299,13 +264,11 @@ export const TileRenderer = {
                             const sy = mapping.row * cellSize + inset;
                             const sDim = cellSize - (inset * 2);
 
-                            if (isLight) ctx.globalAlpha = 0.25;
                             ctx.drawImage(
                                 sheet,
                                 sx, sy, sDim, sDim,
                                 screenX, screenY, tileSize, tileSize
                             );
-                            if (isLight) ctx.globalAlpha = 1.0;
                         }
                     } else {
                         // Reactive lazy-loading for missing master sprite sheet
@@ -316,9 +279,7 @@ export const TileRenderer = {
                     const spriteKey = `tile_${terrainKey}`;
                     const sprite = sprites[spriteKey];
                     if (sprite) {
-                        if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 0.25;
                         ctx.drawImage(sprite, screenX, screenY, tileSize, tileSize);
-                        if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 1.0;
                     } else {
                         // Reactive lazy-loading for missing tiles
                         imageLoader.getTileImage(terrainKey);
@@ -362,8 +323,8 @@ export const TileRenderer = {
 
         if (hasN || hasE || hasS || hasW) {
             // Drop-shadow and corner occlusion give walls weight before the wall lines are drawn.
-            drawWallShadow(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme);
-            drawWallAmbientOcclusion(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme);
+            drawWallShadow(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW);
+            drawWallAmbientOcclusion(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW);
 
             const sheet = (imageLoader.tileSet === 'spritesheet') ? sprites?.['tile_spritesheet'] : null;
             if (sheet) {
@@ -529,9 +490,7 @@ export const TileRenderer = {
     const screenY = localY * tileSize;
 
     // Base colour (always drawn — unexplored tiles are masked by MapCanvas)
-    const isLight = document.documentElement.classList.contains('light2');
-    const theme = isLight ? 'light' : 'dark';
-    const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : (isLight ? LIGHT_TERRAIN_COLORS : TERRAIN_COLORS);
+    const colors = imageLoader.tileSet === 'none' ? BW_TERRAIN_COLORS : TERRAIN_COLORS;
     const isStructural = ['wall', 'building', 'fence', 'tent_wall', 'water'].includes(tile.terrain);
     const colorKey = renderTerrainKey(tile.terrain);
     ctx.fillStyle = (isStructural ? colors[colorKey] : (tile.color || colors[colorKey])) || '#222';
@@ -545,7 +504,7 @@ export const TileRenderer = {
       ctx.fillRect(screenX, screenY, tileSize, tileSize);
 
       // Tactical tile pattern: faint grout lines and scuff marks.
-      drawFloorTilePattern(ctx, screenX, screenY, tileSize, worldX, worldY, theme);
+      drawFloorTilePattern(ctx, screenX, screenY, tileSize, worldX, worldY);
     }
 
     // Simple grass blade pattern when no tile sprites are loaded.
@@ -580,14 +539,12 @@ export const TileRenderer = {
             if (mapping) {
               const cellSize = 128;
               const inset = 3;
-              if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 0.25;
               ctx.drawImage(
                 sheet,
                 mapping.col * cellSize + inset, mapping.row * cellSize + inset,
                 cellSize - inset * 2, cellSize - inset * 2,
                 screenX, screenY, tileSize, tileSize
               );
-              if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 1.0;
             }
           } else {
             imageLoader.getTileImage(tile.terrain);
@@ -596,9 +553,7 @@ export const TileRenderer = {
           const terrainKey = tile.terrain === 'transition' ? 'road' : renderTerrainKey(tile.terrain);
           const sprite = sprites[`tile_${terrainKey}`];
           if (sprite) {
-            if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 0.25;
             ctx.drawImage(sprite, screenX, screenY, tileSize, tileSize);
-            if (isLight && imageLoader.tileSet !== 'b&w') ctx.globalAlpha = 1.0;
           } else {
             imageLoader.getTileImage(terrainKey);
           }
@@ -634,8 +589,8 @@ export const TileRenderer = {
 
     if (hasN || hasE || hasS || hasW) {
       // Drop-shadow and corner occlusion give walls weight before the wall lines are drawn.
-      drawWallShadow(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme);
-      drawWallAmbientOcclusion(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW, theme);
+      drawWallShadow(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW);
+      drawWallAmbientOcclusion(ctx, screenX, screenY, tileSize, hasN, hasE, hasS, hasW);
 
       const sheet = (imageLoader.tileSet === 'spritesheet') ? sprites?.['tile_spritesheet'] : null;
       if (sheet) {
@@ -713,12 +668,8 @@ export const TileRenderer = {
    * Draw one floorplan furniture piece (from gameMap.furniture) in world-pixel
    * space. piece = {type, x, y, w, h, rot}: x/y anchor tile of the ROTATED
    * footprint, w/h rotated footprint in tiles, rot = quarter-turns clockwise.
-   *
-   * `theme` is one of 'light' | 'steampunk' | 'dark'. Passing it avoids a
-   * DOM classList query for every piece, which matters when hundreds of pieces
-   * are drawn per frame.
    */
-  drawFurniture: (ctx, piece, tileSize, theme) => {
+  drawFurniture: (ctx, piece, tileSize) => {
     const px = piece.x * tileSize;
     const py = piece.y * tileSize;
     const wpx = piece.w * tileSize;
@@ -741,7 +692,7 @@ export const TileRenderer = {
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = tileSize * 0.12;
     ctx.shadowOffsetY = tileSize * 0.12;
-    TileRenderer.drawCADDecoration(ctx, -bw / 2, -bh / 2, tileSize, piece.type, theme);
+    TileRenderer.drawCADDecoration(ctx, -bw / 2, -bh / 2, tileSize, piece.type);
     ctx.restore();
   },
 
@@ -750,30 +701,14 @@ export const TileRenderer = {
    * (x, y) in base orientation ("head" at top). Sizes derive from tileSize
    * (bed/table 2x3 tiles, couch 2x2, desk 2x1, bathtub 1x2, toilet 1x1).
    */
-  drawCADDecoration: (ctx, x, y, tileSize, type, theme) => {
+  drawCADDecoration: (ctx, x, y, tileSize, type) => {
     ctx.save();
 
-    // Architect blueprint style: high-contrast strokes so furniture reads clearly
-    // against both dark and light floors. Fills stay subtle so only the lines pop.
-    // `theme` is usually provided by the caller (MapCanvas) so we don't query the
-    // DOM for every single piece; fall back to DOM only for standalone callers.
-    if (!theme) {
-      const isLight = document.documentElement.classList.contains('light2');
-      theme = isLight ? 'light' : 'dark';
-    }
-
-    if (theme === 'light') {
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-    } else if (theme === 'steampunk') {
-        ctx.strokeStyle = 'rgba(60, 40, 20, 0.95)';
-        ctx.fillStyle = 'rgba(60, 40, 20, 0.12)';
-    } else {
-        // Dark / grayscale mode - crisp blueprint lines that read against dark floors.
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-        // Cool blueprint fill, stronger than before so furniture reads as a solid surface.
-        ctx.fillStyle = 'rgba(120, 160, 220, 0.16)';
-    }
+    // Architect blueprint style: crisp blueprint lines that read against the
+    // map's dark floors. Fills stay subtle so only the lines pop.
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+    // Cool blueprint fill, stronger than before so furniture reads as a solid surface.
+    ctx.fillStyle = 'rgba(120, 160, 220, 0.16)';
 
     ctx.lineWidth = Math.max(2.5, Math.floor(tileSize * 0.09));
     ctx.lineJoin = 'round';

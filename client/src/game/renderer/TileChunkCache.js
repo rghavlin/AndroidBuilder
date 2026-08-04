@@ -81,7 +81,7 @@ export class TileChunkCache {
    * furniture pieces overlapping that chunk. When provided, pieces are baked
    * into the chunk so they don't have to be redrawn every frame.
    */
-  getChunk(cx, cy, rTileSize, gameMap, engine, sprites, furnitureIndex, theme) {
+  getChunk(cx, cy, rTileSize, gameMap, engine, sprites, furnitureIndex) {
     const key = `${cx},${cy}`;
     const existing = this._chunks.get(key);
 
@@ -128,7 +128,7 @@ export class TileChunkCache {
       ctx.save();
       ctx.translate(-startWorldX * rTileSize, -startWorldY * rTileSize);
       for (const piece of chunkFurniture) {
-        TileRenderer.drawFurniture(ctx, piece, rTileSize, theme);
+        TileRenderer.drawFurniture(ctx, piece, rTileSize);
       }
       ctx.restore();
     }

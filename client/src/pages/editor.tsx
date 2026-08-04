@@ -2166,9 +2166,9 @@ export default function MapEditor() {
     // Furniture outlines (template-generated buildings + loose stamps; matches in-game CAD style)
     if (showFurniture) {
       buildings.forEach(b => {
-        b.furniturePlan?.forEach(piece => TileRenderer.drawFurniture(ctx, piece, CELL, 'dark'));
+        b.furniturePlan?.forEach(piece => TileRenderer.drawFurniture(ctx, piece, CELL));
       });
-      furniture.forEach(piece => TileRenderer.drawFurniture(ctx, piece, CELL, 'dark'));
+      furniture.forEach(piece => TileRenderer.drawFurniture(ctx, piece, CELL));
     }
 
     // Pass 2: edges, entities, items, events (drawn on top of building outlines)
@@ -2296,7 +2296,7 @@ export default function MapEditor() {
         ghost.x < 0 || ghost.y < 0 || ghost.x + w > width || ghost.y + h > height ||
         furniture.some(p => rectsOverlap(p, ghost)) ||
         buildings.some(b => (b.furniturePlan || []).some(p => rectsOverlap(p, ghost)));
-      TileRenderer.drawFurniture(ctx, ghost, CELL, 'dark');
+      TileRenderer.drawFurniture(ctx, ghost, CELL);
       ctx.strokeStyle = blocked ? '#f44336' : '#4caf50';
       ctx.lineWidth = 2;
       ctx.setLineDash([4, 4]);

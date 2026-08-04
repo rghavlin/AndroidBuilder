@@ -64,7 +64,6 @@ export default function MapCanvas({
   const prevRTileSizeRef = useRef(0);
   const lastZoomChangeAtRef = useRef(0);
   const zoomPendingRef = useRef(false);
-  const lastThemeRef = useRef(null);
   const lastFurnitureOpacityRef = useRef(null);
   // Offscreen canvases for the smooth fog/lighting overlay (sized to viewport).
   // lightingCanvas holds the final fog layer; lightMaskCanvas holds the sharp
@@ -162,23 +161,9 @@ export default function MapCanvas({
   const nextEffectTimeRef = useRef(0);
 
 
-  // Define terrain colors (Grayscale Retro Palette for fallback)
-  const isLightMode = document.documentElement.classList.contains('light2');
-  const terrainColors = isLightMode ? {
-    'grass': '#e2e8f0',
-    'floor': '#f1f5f9',
-    'wall': '#475569',
-    'road': '#cbd5e1',
-    'sidewalk': '#94a3b8',
-    'fence': '#cbd5e1',
-    'building': '#94a3b8',
-    'tent_wall': '#cbd5e1',
-    'window': '#e2e8f0',
-    'water': '#38bdf8',
-    'sand': '#e2e8f0',
-    'tree': '#15803d',
-    'default': '#cbd5e1'
-  } : {
+  // Define terrain colors (Grayscale Retro Palette for fallback).
+  // The map never changes with the UI theme — see TileRenderer.
+  const terrainColors = {
     'grass': '#2a2a2a',
     'floor': '#555555',
     'wall': '#000000',
@@ -291,20 +276,13 @@ export default function MapCanvas({
 
       camera.updateViewportSize(logicalWidth, logicalHeight, baseTileSize);
 
-      const isLight = document.documentElement.classList.contains('light2');
-      const currentTheme = isLight ? 'light' : 'dark';
-      if (currentTheme !== lastThemeRef.current) {
-        chunkCacheRef.current.invalidateAll();
-        lastThemeRef.current = currentTheme;
-      }
-
       const currentFurnitureOpacity = configManager.get('furnitureOpacity') ?? 0.85;
       if (currentFurnitureOpacity !== lastFurnitureOpacityRef.current) {
         chunkCacheRef.current.invalidateAll();
         lastFurnitureOpacityRef.current = currentFurnitureOpacity;
       }
 
-      ctx.fillStyle = isLight ? '#f5f5f7' : '#111';
+      ctx.fillStyle = '#111';
       ctx.fillRect(0, 0, physicalWidth, physicalHeight);
 
       // 4. Rendering Layers
@@ -406,7 +384,7 @@ export default function MapCanvas({
             }
             // Not cached yet (e.g. just scrolled into view) — build at current size.
           }
-          const chunkCanvas = chunkCache.getChunk(cx, cy, rTileSize, gameMap, engine, imageLoader.images, furnitureIndexRef.current, currentTheme);
+          const chunkCanvas = chunkCache.getChunk(cx, cy, rTileSize, gameMap, engine, imageLoader.images, furnitureIndexRef.current);
           ctx.drawImage(chunkCanvas, dx, dy);
         }
       }

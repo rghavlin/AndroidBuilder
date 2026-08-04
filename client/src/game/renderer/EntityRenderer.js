@@ -53,42 +53,6 @@ function getDominantItemCached(engine, x, y) {
   return dominant;
 }
 
-let lastQueryTime = 0;
-let cachedIsLight = false;
-
-function isLightTheme() {
-  const now = performance.now();
-  if (now - lastQueryTime > 16) {
-    cachedIsLight = typeof document !== 'undefined' &&
-      document.documentElement.classList.contains('light2');
-    lastQueryTime = now;
-  }
-  return cachedIsLight;
-}
-
-const invertedImageCache = new Map();
-
-function getInvertedImage(sprite) {
-  if (!sprite) return null;
-  const width = sprite.naturalWidth || sprite.width;
-  const height = sprite.naturalHeight || sprite.height;
-  if (!width || !height) return null;
-  
-  if (invertedImageCache.has(sprite)) {
-    return invertedImageCache.get(sprite);
-  }
-  
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  ctx.filter = 'invert(1)';
-  ctx.drawImage(sprite, 0, 0);
-  
-  invertedImageCache.set(sprite, canvas);
-  return canvas;
-}
-
 function getTempCanvas(size) {
   const roundedSize = Math.ceil(size);
   if (!tempCanvas) {
@@ -544,15 +508,6 @@ export const EntityRenderer = {
             itemBgColor = '#0a0a0a';
           }
 
-          const isLight = isLightTheme();
-          if (isLight) {
-            const lower = itemBgColor.toLowerCase();
-            if (lower === '#006b18') itemBgColor = '#639A88';
-            else if (lower === '#8a0303') itemBgColor = '#C15C5C';
-            else if (lower === '#0a2e5c') itemBgColor = '#5C8AB3';
-            else itemBgColor = '#ffffff';
-          }
-
           const centerX = drawX + drawSize / 2;
           const centerY = drawY + drawSize / 2;
           const radius = drawSize / 2;
@@ -563,11 +518,6 @@ export const EntityRenderer = {
           ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
           ctx.fillStyle = itemBgColor;
           ctx.fill();
-          if (isLight) {
-            ctx.strokeStyle = '#d4d4d8';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
           ctx.restore();
 
           // 2. Draw sprite (clipped and scaled down so it fits perfectly inside the circle)
@@ -581,11 +531,7 @@ export const EntityRenderer = {
           const sSize = drawSize * scale;
           const sX = drawX + (drawSize - sSize) / 2;
           const sY = drawY + (drawSize - sSize) / 2;
-          let drawSprite = sprite;
-          if (isLight && itemBgColor === '#ffffff') {
-            drawSprite = getInvertedImage(sprite) || sprite;
-          }
-          ctx.drawImage(drawSprite, sX, sY, sSize, sSize);
+          ctx.drawImage(sprite, sX, sY, sSize, sSize);
           ctx.restore();
           
           // 3. Draw outer and inner borders on top of the clipped sprite
@@ -796,8 +742,7 @@ export const EntityRenderer = {
 
   drawGarageDoor: (ctx, entity, x, y, tileSize) => {
     const isBW = imageLoader.tileSet === 'b&w';
-    const isLight = isLightTheme();
-    const closedColor = isBW ? '#555555' : (isLight ? '#71717a' : '#3f3f46');
+    const closedColor = isBW ? '#555555' : '#3f3f46';
     const strokeColor = isBW ? '#111111' : '#18181b';
 
     ctx.save();
@@ -1192,18 +1137,12 @@ export const EntityRenderer = {
     const centerX = drawX + drawSize / 2;
     const centerY = drawY + drawSize / 2;
     const radius = drawSize / 2;
-    const isLight = isLightTheme();
 
     ctx.save();
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-    ctx.fillStyle = isLight ? '#ffffff' : '#0a0a0a';
+    ctx.fillStyle = '#0a0a0a';
     ctx.fill();
-    if (isLight) {
-      ctx.strokeStyle = '#d4d4d8';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
     ctx.restore();
 
     if (sprite) {
@@ -1215,8 +1154,7 @@ export const EntityRenderer = {
       const sSize = drawSize * scale;
       const sX = drawX + (drawSize - sSize) / 2;
       const sY = drawY + (drawSize - sSize) / 2;
-      const drawSprite = isLight ? (getInvertedImage(sprite) || sprite) : sprite;
-      ctx.drawImage(drawSprite, sX, sY, sSize, sSize);
+      ctx.drawImage(sprite, sX, sY, sSize, sSize);
       ctx.restore();
     }
 
