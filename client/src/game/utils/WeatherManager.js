@@ -52,6 +52,8 @@ export class WeatherManager {
         this.startRain(currentTurn);
         // Initial splash of water when rain starts
         this.updatePuddles();
+        // Delete all loose soil when rain starts
+        this.clearLooseSoil();
       } else if (currentTurn % 10 === 0) {
           // Log every 10 turns for debugging
           if (WeatherManager.DEBUG) {
@@ -71,6 +73,8 @@ export class WeatherManager {
         this.updatePuddles();
         // Accumulate water in rain collectors
         this.updateRainCollectors();
+        // Delete all loose soil during rain
+        this.clearLooseSoil();
       }
     }
 
@@ -338,6 +342,65 @@ export class WeatherManager {
       if (this.engine.weather.type !== weatherType || this.engine.weather.intensity !== this.intensity) {
         this.engine.setWeather(weatherType, this.intensity);
       }
+    }
+  }
+
+  /**
+   * Delete all loose soil from the map (ground containers and map tiles) when it rains
+   */
+  clearLooseSoil() {
+    if (!this.engine.gameMap) return;
+    const map = this.engine.gameMap;
+    const inv = this.engine.inventoryManager;
+
+    let changed = false;
+
+    // 1. Clear from the player's live ground container if they are on a tile with it
+    if (inv && inv.groundContainer) {
+      const items = inv.groundContainer.getAllItems();
+      const looseSoils = items.filter(item => item.defId === 'crafting.loose_soil' || item.id === 'crafting.loose_soil');
+      if (looseSoils.length > 0) {
+        looseSoils.forEach(item => {
+          inv.groundContainer.removeItem(item.instanceId || item.id);
+        });
+        changed = true;
+        if (WeatherManager.DEBUG) {
+          console.log(`[WeatherManager] Cleared ${looseSoils.length} loose soil items from player's ground container.`);
+        }
+      }
+    }
+
+    // 2. Clear from all map tiles
+    for (let y = 0; y < map.height; y++) {
+      for (let x = 0; x < map.width; x++) {
+        // Skip player's currently synced tile if we already cleared it above
+        if (inv && inv.lastSyncedX === x && inv.lastSyncedY === y) {
+          continue;
+        }
+
+        const items = map.getItemsOnTile(x, y);
+        if (items && items.length > 0) {
+          const hasLooseSoil = items.some(item => {
+            const defId = item.defId || (item.toJSON && item.toJSON().defId) || item.id;
+            return defId === 'crafting.loose_soil';
+          });
+
+          if (hasLooseSoil) {
+            const remaining = items.filter(item => {
+              const defId = item.defId || (item.toJSON && item.toJSON().defId) || item.id;
+              return defId !== 'crafting.loose_soil';
+            });
+            map.setItemsOnTile(x, y, remaining);
+            if (WeatherManager.DEBUG) {
+              console.log(`[WeatherManager] Cleared loose soil from tile (${x}, ${y}).`);
+            }
+          }
+        }
+      }
+    }
+
+    if (changed && inv) {
+      inv.emit('inventoryChanged');
     }
   }
 

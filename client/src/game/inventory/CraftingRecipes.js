@@ -233,7 +233,7 @@ export const CraftingRecipes = [
         tab: 'crafting',
         tools: [],
         ingredients: [
-            { id: 'weapon.stick', count: 1 },
+            { either: ['weapon.stick', 'weapon.plank'], count: 1, label: 'Stick or Plank' },
             { id: 'crafting.rag', count: 1 }
         ]
     },
