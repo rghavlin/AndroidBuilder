@@ -145,7 +145,7 @@ export default function EquipmentSlots() {
   };
 
   return (
-    <div className="flex items-center w-full h-full px-1 equipment-slots-parent justify-start" data-testid="equipment-slots">
+    <div className="flex items-center w-full h-full pl-3 pr-1 equipment-slots-parent justify-start" data-testid="equipment-slots">
       {/* Slots Row - Left-aligned to utilize all available space on the left */}
       <div className="flex items-center h-full flex-nowrap overflow-x-auto scrollbar-hide equipment-slots-row justify-start w-full">
         {equipmentSlots.map((slot) => {

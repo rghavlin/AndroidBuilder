@@ -276,7 +276,7 @@ export default function MapCanvas({
 
       camera.updateViewportSize(logicalWidth, logicalHeight, baseTileSize);
 
-      const currentFurnitureOpacity = configManager.get('furnitureOpacity') ?? 0.85;
+      const currentFurnitureOpacity = configManager.get('furnitureOpacity') ?? 0.5;
       if (currentFurnitureOpacity !== lastFurnitureOpacityRef.current) {
         chunkCacheRef.current.invalidateAll();
         lastFurnitureOpacityRef.current = currentFurnitureOpacity;

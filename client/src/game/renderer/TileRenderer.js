@@ -684,7 +684,7 @@ export const TileRenderer = {
     ctx.rotate(rot * Math.PI / 2);
 
     // Apply transparent styling for CAD-style furniture outlines
-    const furnitureOpacity = configManager.get('furnitureOpacity') ?? 0.85;
+    const furnitureOpacity = configManager.get('furnitureOpacity') ?? 0.5;
     ctx.globalAlpha = furnitureOpacity;
 
     // Small drop shadow to ground the furniture against dark floors.

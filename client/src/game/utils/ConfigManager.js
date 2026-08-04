@@ -34,7 +34,7 @@ class ConfigManager {
             sfxVolume: 1.0,
             showTutorials: true,
             highQuality: true,
-            furnitureOpacity: 0.85
+            furnitureOpacity: 0.5
         };
     }
 

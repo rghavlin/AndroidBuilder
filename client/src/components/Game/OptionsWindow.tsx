@@ -169,7 +169,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
         audioManager.playOneShot('Click', { volume: 0.5 });
     };
 
-    const [furnitureOpacity, setFurnitureOpacity] = useState(configManager.get('furnitureOpacity') ?? 0.85);
+    const [furnitureOpacity, setFurnitureOpacity] = useState(configManager.get('furnitureOpacity') ?? 0.5);
 
     const handleFurnitureOpacityChange = (vals: number[]) => {
         const val = vals[0];
