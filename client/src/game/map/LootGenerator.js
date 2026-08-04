@@ -318,8 +318,8 @@ export class LootGenerator {
         });
 
         const numWagons = isBranching
-            ? (2 + gameRandom.nextInt(0, 2))
-            : (gameRandom.next() < 0.35 ? 1 : 0);
+            ? (2 + gameRandom.nextInt(0, 2)) * 2
+            : (gameRandom.next() < 0.35 ? 2 : 0);
 
         if (numWagons > 0 && wagonTiles.length > 0) {
             const shuffledWagons = gameRandom.shuffle([...wagonTiles]);
@@ -344,7 +344,7 @@ export class LootGenerator {
         });
 
         const numMowers = isBranching
-            ? (5 + gameRandom.nextInt(0, 4))
+            ? (10 + gameRandom.nextInt(0, 5))
             : 1;
 
         if (mowerTiles.length > 0) {
@@ -384,7 +384,7 @@ export class LootGenerator {
 
         if (cartTiles.length > 0) {
             const shuffledCarts = gameRandom.shuffle([...cartTiles]);
-            const actualCarts = Math.min(2, shuffledCarts.length);
+            const actualCarts = Math.min(gameMap.template === 'branching_road' ? 4 : 2, shuffledCarts.length);
             for (let i = 0; i < actualCarts; i++) {
                 const pos = shuffledCarts[i];
                 const cartData = createItemFromDef('vehicle.golf_cart');
@@ -417,7 +417,7 @@ export class LootGenerator {
         });
 
         const numScooters = gameMap.template === 'branching_road'
-            ? (4 + gameRandom.nextInt(0, 3))
+            ? (7 + gameRandom.nextInt(0, 3))
             : 1;
 
         if (scooterTiles.length > 0) {
@@ -556,31 +556,23 @@ export class LootGenerator {
         }
 
         // Option: MREs (1-2)
-        if (gameRandom.next() < 0.8) {
-            options.push(() => {
-                const mre = createItemFromDef('food.mre');
-                if (mre) {
-                    const item = Item.fromJSON(mre);
-                    item.stackCount = gameRandom.next() < 0.5 ? 1 : 2;
-                    return item;
-                }
-                return null;
-            });
-        }
+        if (gameRandom.next() < 0.8) options.push(() => {
+            const mre = createItemFromDef('food.mre');
+            if (!mre) return null;
+            const item = Item.fromJSON(mre);
+            item.stackCount = gameRandom.next() < 0.5 ? 1 : 2;
+            return item;
+        });
 
         // Option: Full water bottles (1-2)
-        if (gameRandom.next() < 0.8) {
-            options.push(() => {
-                const bottle = createItemFromDef('food.waterbottle');
-                if (bottle) {
-                    const item = Item.fromJSON(bottle);
-                    item.ammoCount = 20; // Full
-                    item.waterQuality = 'clean';
-                    return item;
-                }
-                return null;
-            });
-        }
+        if (gameRandom.next() < 0.8) options.push(() => {
+            const bottle = createItemFromDef('food.waterbottle');
+            if (!bottle) return null;
+            const item = Item.fromJSON(bottle);
+            item.ammoCount = 20; // Full
+            item.waterQuality = 'clean';
+            return item;
+        });
 
         // Option: Any ammo (15-20 rounds)
         if (gameRandom.next() < 0.8) {
@@ -613,34 +605,34 @@ export class LootGenerator {
         }
 
         // Option: batteries (2-4)
-        if (gameRandom.next() < 0.7) {
-            options.push(() => {
-                const bat = createItemFromDef('tool.battery');
-                if (bat) {
-                    const count = 2 + gameRandom.nextInt(0, 2); // 2-4
-                    const item = Item.fromJSON(bat);
-                    item.stackCount = count;
-                    return item;
-                }
-                return null;
-            });
-        }
+        if (gameRandom.next() < 0.7) options.push(() => {
+            const bat = createItemFromDef('tool.battery');
+            if (!bat) return null;
+            const item = Item.fromJSON(bat);
+            item.stackCount = 2 + gameRandom.nextInt(0, 2); // 2-4
+            return item;
+        });
+
+        // Option: high capacity batteries (1-2)
+        if (gameRandom.next() < 0.45) options.push(() => {
+            const highBat = createItemFromDef('tool.high_capacity_battery');
+            if (!highBat) return null;
+            const item = Item.fromJSON(highBat);
+            item.stackCount = gameRandom.next() < 0.5 ? 1 : 2; // 1-2
+            return item;
+        });
 
         // Option: hand cranked battery charger
-        if (gameRandom.next() < 0.5) {
-            options.push(() => {
-                const charger = createItemFromDef('tool.crank_charger');
-                return charger ? Item.fromJSON(charger) : null;
-            });
-        }
+        if (gameRandom.next() < 0.5) options.push(() => {
+            const charger = createItemFromDef('tool.crank_charger');
+            return charger ? Item.fromJSON(charger) : null;
+        });
 
         // Option: first aid kit
-        if (gameRandom.next() < 0.6) {
-            options.push(() => {
-                const kit = createItemFromDef('medical.first_aid_kit');
-                return kit ? Item.fromJSON(kit) : null;
-            });
-        }
+        if (gameRandom.next() < 0.6) options.push(() => {
+            const kit = createItemFromDef('medical.first_aid_kit');
+            return kit ? Item.fromJSON(kit) : null;
+        });
 
         // Shuffle the option generators
         const shuffled = gameRandom.shuffle(options);
