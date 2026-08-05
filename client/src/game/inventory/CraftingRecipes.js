@@ -481,6 +481,24 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'tool.rc_receiver',
+        name: 'RC Receiver',
+        resultItem: 'tool.rc_receiver',
+        description: 'Bolts into a wagon and lets you drive it from your smartphone. The wagon still needs a motor and a charged power cell to actually move.',
+        apCost: 28,
+        tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_9',
+        tools: [
+            { id: 'tool.pliers', label: 'Pliers' }
+        ],
+        ingredients: [
+            { id: 'crafting.motion_sensor', count: 1 },
+            { id: 'crafting.metal_plate',   count: 1 },
+            { id: 'weapon.metal_rod',       count: 1 },
+            { id: 'crafting.wire',          count: 2 }
+        ]
+    },
+    {
         id: 'armor.padded',
         name: 'Padded Armor',
         resultItem: 'armor.padded',

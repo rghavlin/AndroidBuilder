@@ -2958,25 +2958,24 @@ export class InventoryManager extends SafeEventEmitter {
   /**
    * Drops an item at a specific coordinate on the map.
    * Emits an itemDroppedToGround event.
+   *
+   * Placement itself lives in GroundManager.placeItemAtTile, which knows that
+   * the player's own tile is owned by the ground container rather than the map.
    */
   dropItemAtLocation(item, x, y, gameMap) {
     if (!gameMap) return false;
-    
-    // Convert Item instance to data if necessary
-    const itemData = typeof item.toJSON === 'function' ? item.toJSON() : item;
-    
-    const existingItems = gameMap.getItemsOnTile(x, y) || [];
-    gameMap.setItemsOnTile(x, y, [...existingItems, itemData]);
-    
-    console.log(`[InventoryManager] 📦 Item ${item.name || itemData.name} dropped at (${x}, ${y})`);
-    
+
+    const itemData = this.groundManager.placeItemAtTile(item, x, y, gameMap);
+    if (!itemData) return false;
+
     this.emit('itemDroppedToGround', { item: itemData, x, y });
-    
-    // If it was dropped on the player's tile, refresh the ground container
+
+    // Landing at the player's feet changes the ground view, not the map.
     if (this.lastSyncedX === x && this.lastSyncedY === y) {
-      this.refreshGroundItems(x, y, gameMap);
+      this.groundManager.updateCategoryAreas();
+      this.emit('inventoryChanged');
     }
-    
+
     return true;
   }
 }

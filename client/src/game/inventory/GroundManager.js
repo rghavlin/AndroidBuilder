@@ -52,6 +52,39 @@ export class GroundManager {
   }
 
   /**
+   * Put an item on a specific map tile — the one correct entry point for "an
+   * item arrives at (x, y)" when (x, y) might be the player's own tile.
+   *
+   * Writing straight to the tile is only right while the ground view is
+   * somewhere else. syncWithMap EMPTIES the player's tile when they arrive and
+   * hands ownership of its contents to the ground container, so writing there
+   * and then reloading the container from the tile (what refreshGroundItems
+   * does) discards everything else at their feet. Anything landing under the
+   * player therefore goes into the container directly.
+   *
+   * @param {Item|Object} item - an Item instance or its serialized form
+   * @param {GameMap} [gameMap] - defaults to the injected context's map
+   * @returns {Object|null} the item data as placed, or null if there was no map
+   */
+  placeItemAtTile(item, x, y, gameMap = null) {
+    const ctx = this._context();
+    const map = gameMap || ctx.gameMap;
+    if (!map || !item) return null;
+
+    if (x === ctx.lastSyncedX && y === ctx.lastSyncedY) {
+      const asItem = typeof item.toJSON === 'function' ? item : Item.fromJSON(item);
+      this.addItemSmart(asItem);
+      this.sortGroundItems();
+      return asItem.toJSON();
+    }
+
+    const itemData = typeof item.toJSON === 'function' ? item.toJSON() : item;
+    const existing = map.getItemsOnTile(x, y) || [];
+    map.setItemsOnTile(x, y, [...existing, itemData]);
+    return itemData;
+  }
+
+  /**
    * Add item to ground with intelligent placement
    */
   addItemSmart(item, preferredX = null, preferredY = null, allowStacking = false) {

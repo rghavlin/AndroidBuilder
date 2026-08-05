@@ -197,8 +197,11 @@ export const EntityRenderer = {
 
     if (!explored) return;
 
-    // Skip rendering non-dominant items on the same tile to avoid overlapping tokens
-    if (entity.type === 'item' && engine && engine.gameMap) {
+    // Skip rendering non-dominant items on the same tile to avoid overlapping
+    // tokens. Exempt an item mid-tween (a remotely-driven wagon): its rounded
+    // render position is a tile it isn't registered on, so any item pile it
+    // passes over would win the dominance check and blink it out of existence.
+    if (entity.type === 'item' && !entity.isAnimating && engine && engine.gameMap) {
       const dominantItem = getDominantItemCached(engine, Math.round(entity.x), Math.round(entity.y));
       if (dominantItem && dominantItem.id !== entity.id) {
         return;
@@ -354,6 +357,12 @@ export const EntityRenderer = {
       // turret icon priority, forced token rendering, and the pulsing ring.
       const renderTurret = entity.type === 'item' ? getPoweredTurretForEntity(entity) : null;
 
+      // The item the phone currently has a radio link to (an RC wagon). Rings
+      // in the same cyan the phone's action slot lights up in, so "which one am
+      // I driving" is answerable at a glance on a map full of wagons.
+      const isLinkedDevice = entity.type === 'item' && !!engine
+        && !!entity.instanceId && engine.activeDeviceId === entity.instanceId;
+
       // Phase 27: Priority for Image Mapping
       // 1. If it's an Item with an explicit imageId, use it (canonical)
       // 2. If it's an item subtype with a definition, use that definition's imageId
@@ -449,7 +458,8 @@ export const EntityRenderer = {
 
         // A powered-on turret (standalone or wagon-carried) always renders as a
         // circular token so its framing ring can pulse to signal it's active.
-        if (renderTurret) isFullTileItem = false;
+        // Same for the linked RC wagon — the ring is the whole point.
+        if (renderTurret || isLinkedDevice) isFullTileItem = false;
 
         // Override: render crops, furniture, and vehicles in a circular token frame (not full tile)
         if (isCrop || hasFurnitureOrVehicle) {
@@ -552,6 +562,13 @@ export const EntityRenderer = {
             const lerp = (a, b) => Math.round(a + (b - a) * t);
             // silver (226,232,240) <-> dark electric blue (15,60,180)
             ctx.strokeStyle = `rgb(${lerp(226, 15)}, ${lerp(232, 60)}, ${lerp(240, 180)})`;
+            ctx.lineWidth = Math.max(1.2, drawSize * 0.06);
+          } else if (isLinkedDevice) {
+            frameRenderFlags.hasPulser = true; // pulsing radio-link ring
+            const t = 0.5 + 0.5 * Math.sin(currentTime / 250);
+            const lerp = (a, b) => Math.round(a + (b - a) * t);
+            // silver (226,232,240) <-> cyan (34,211,238), matching the phone slot
+            ctx.strokeStyle = `rgb(${lerp(226, 34)}, ${lerp(232, 211)}, ${lerp(240, 238)})`;
             ctx.lineWidth = Math.max(1.2, drawSize * 0.06);
           } else if (matchingDef && matchingDef.borderColor) {
             ctx.strokeStyle = matchingDef.borderColor;

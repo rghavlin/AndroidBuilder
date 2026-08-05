@@ -125,6 +125,46 @@ describe('RemoteDeviceRegistry / drone state transitions', () => {
     expect(controllables[0].airborne).toBe(true);
   });
 
+  // Regression: deploying and landing both place an item on the player's own
+  // tile, which the ground container owns rather than the map. Routing that
+  // through the map and reloading the container from it used to wipe out
+  // everything else lying at the player's feet.
+  describe('placing a device at the player\'s feet leaves the rest of the ground alone', () => {
+    /** Two decoys lying where the player stands. */
+    function litterGround() {
+      const p = harness.player;
+      const decoys = [
+        new Item(createItemFromDef('weapon.plank')),
+        new Item(createItemFromDef('crafting.wire'))
+      ];
+      for (const d of decoys) {
+        engine.inventoryManager.dropItemAtLocation(d, Math.round(p.x), Math.round(p.y), harness.gameMap);
+      }
+      return decoys;
+    }
+
+    const stillOnGround = (item) => engine.inventoryManager.groundContainer.getAllItems()
+      .some(it => it.instanceId === item.instanceId);
+
+    it('survives deploy()', () => {
+      const decoys = litterGround();
+      RemoteDeviceRegistry.deploy(makeStowedDrone(20), engine);
+      for (const d of decoys) expect(stillOnGround(d), d.name).toBe(true);
+    });
+
+    it('survives land()', () => {
+      equipPhone(harness);
+      const drone = deployAndLaunch(harness, 20);
+      const decoys = litterGround();
+
+      RemoteDeviceRegistry.land(drone, engine);
+
+      for (const d of decoys) expect(stillOnGround(d), d.name).toBe(true);
+      expect(engine.inventoryManager.groundContainer.getAllItems()
+        .some(it => it.defId === 'tool.recon_drone')).toBe(true);
+    });
+  });
+
   it('land() converts the airborne drone back into a landed (2x2) ground item, preserving battery charge', () => {
     equipPhone(harness);
     const drone = deployAndLaunch(harness, 20);

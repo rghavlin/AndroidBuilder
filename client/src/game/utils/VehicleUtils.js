@@ -1,5 +1,8 @@
 
 import { ItemTrait } from '../inventory/traits.js';
+import { RcVehicleConfig } from '../config/RcVehicleConfig.js';
+
+const { REMOTE_AP_SURCHARGE, MIN_AP_PER_TILE: MIN_REMOTE_AP_PER_TILE } = RcVehicleConfig;
 
 /**
  * Largest drag reduction Strength alone can provide (reached at Strength 100).
@@ -18,6 +21,9 @@ export const MAX_STRENGTH_DRAG_BONUS = 5;
  *                         zero, so a wagon can only ever cost AP, never grant
  *                         speed. The one exception is a powered tow-cart, whose
  *                         ride bonus still applies to the hitched pair.
+ *   - Driving one by RC:  max(0, base - motors) + 1, Strength-free. Always the
+ *                         most expensive way to move a wagon a tile — you're
+ *                         buying the round trip you didn't walk.
  */
 export const VehicleUtils = {
   /**
@@ -76,6 +82,60 @@ export const VehicleUtils = {
     const assist = Math.max(this.strengthDragBonus(playerStrength), towAssist);
 
     return Math.max(0, basePenalty - motorAssist - assist);
+  },
+
+  /**
+   * AP one REMOTE-driven step costs, before terrain — the RC-receiver path.
+   *
+   * Deliberately Strength-free: nobody is pulling this, the motors are, so the
+   * muscle discount and the 1.0 walk baseline both drop out. The +1 surcharge
+   * is what's left of the player's own contribution when they aren't there,
+   * and it keeps remote driving strictly worse than walking the wagon over
+   * yourself. Fully motorized: Toy 2, Wagon 4, Cargo 6 AP/tile.
+   *
+   * @param {Item} item
+   * @returns {number} >= REMOTE_AP_SURCHARGE
+   */
+  getRemoteStepPenalty(item) {
+    if (!item) return 0;
+
+    const basePenalty = item.dragApPenalty ?? 2;
+
+    let motorAssist = 0;
+    if (item.hasTrait?.(ItemTrait.WAGON) && typeof item.getMotorizedBonus === 'function') {
+      motorAssist = item.getMotorizedBonus();
+    }
+
+    return Math.max(0, basePenalty - motorAssist) + REMOTE_AP_SURCHARGE;
+  },
+
+  /**
+   * Total AP for a whole remote drive. Single source of truth for both the
+   * hover preview and the actual charge — the drone's two costs drifted apart
+   * exactly once, and a lockstep test is why they no longer can.
+   *
+   * The 0.5 floor is applied PER STEP rather than to the whole path (which is
+   * what calculateDragCost does): the two differ over mixed terrain, and
+   * per-step is what "never cheaper than 0.5 a tile" means for a vehicle that
+   * crosses road and grass in one drive.
+   *
+   * @param {Item} item
+   * @param {Array<{x:number,y:number}>} path - includes the start tile
+   * @param {GameMap} gameMap
+   * @returns {number} AP, rounded to one decimal
+   */
+  calculateRemoteDriveCost(item, path, gameMap) {
+    if (!item || !path || path.length <= 1) return 0;
+
+    const perStep = this.getRemoteStepPenalty(item);
+
+    let total = 0;
+    for (let i = 1; i < path.length; i++) {
+      const tile = gameMap ? gameMap.getTile(path[i].x, path[i].y) : null;
+      total += Math.max(MIN_REMOTE_AP_PER_TILE, perStep + this.getTerrainDiscount([item], tile));
+    }
+
+    return Math.round(total * 10) / 10;
   },
 
   /**

@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { GameHarness } from '../harness/GameHarness.js';
 import { Drone } from '../../client/src/game/entities/Drone.js';
+import { Item } from '../../client/src/game/inventory/Item.js';
+import { createItemFromDef } from '../../client/src/game/inventory/ItemDefs.js';
 import { collectDeviceFov, deviceFovHashPart } from '../../client/src/game/remote/DroneVision.js';
 import engine from '../../client/src/game/GameEngine.js';
 
@@ -94,5 +96,81 @@ describe('GameEngine.recalculateFOV — device union', () => {
 
     // Directly behind the wall from the drone's own position.
     expect(engine.playerFovSet.has(`${DRONE_POS.x + 2},${DRONE_POS.y}`)).toBe(false);
+  });
+});
+
+describe('remote/DroneVision — RC wagon camera', () => {
+  // The wagon is parked where the drone sits in the tests above: 25 tiles from
+  // the player, far outside their own sight at any plausible range.
+  const WAGON_POS = DRONE_POS;
+  const NEAR_WAGON = { x: WAGON_POS.x + 2, y: WAGON_POS.y };
+  const FAR_FROM_WAGON = { x: WAGON_POS.x + 6, y: WAGON_POS.y }; // beyond SIGHT_RANGE 3
+
+  function addWagon(harness, { receiver = true, pos = WAGON_POS } = {}) {
+    const wagon = new Item(createItemFromDef('vehicle.toy_wagon'));
+    wagon.attachments = {};
+    if (receiver) wagon.attachments.rc_receiver = new Item(createItemFromDef('tool.rc_receiver'));
+    engine.inventoryManager.dropItemAtLocation(wagon, pos.x, pos.y, harness.gameMap);
+    return wagon;
+  }
+
+  const key = (t) => `${Math.round(t.x)},${Math.round(t.y)}`;
+  const keysOf = (tiles) => new Set(tiles.map(key));
+
+  it('sees only while the phone is actually linked to it', () => {
+    const harness = buildHarness();
+    const wagon = addWagon(harness);
+
+    engine.activeDeviceId = null;
+    expect(collectDeviceFov(harness.gameMap, 15, engine)).toEqual([]);
+    expect(deviceFovHashPart(harness.gameMap, engine)).toBe('');
+
+    engine.activeDeviceId = wagon.instanceId;
+    const tiles = collectDeviceFov(harness.gameMap, 15, engine);
+    expect(keysOf(tiles).has(key(NEAR_WAGON))).toBe(true);
+  });
+
+  it('contributes nothing without a receiver fitted', () => {
+    const harness = buildHarness();
+    const wagon = addWagon(harness, { receiver: false });
+    engine.activeDeviceId = wagon.instanceId;
+    expect(collectDeviceFov(harness.gameMap, 15, engine)).toEqual([]);
+  });
+
+  it('sees at its OWN fixed range, not the player\'s — a flashlight does not help a cart', () => {
+    const harness = buildHarness();
+    const wagon = addWagon(harness);
+    engine.activeDeviceId = wagon.instanceId;
+
+    const atShortRange = collectDeviceFov(harness.gameMap, 15, engine);
+    const atLongRange = collectDeviceFov(harness.gameMap, 25, engine);
+    expect(atLongRange.length).toBe(atShortRange.length);
+
+    // And that fixed range is genuinely short.
+    expect(keysOf(atShortRange).has(key(FAR_FROM_WAGON))).toBe(false);
+  });
+
+  it('changes hash when it moves, and is stable when it does not', () => {
+    const harness = buildHarness();
+    const wagon = addWagon(harness);
+    engine.activeDeviceId = wagon.instanceId;
+
+    const hash1 = deviceFovHashPart(harness.gameMap, engine);
+    expect(deviceFovHashPart(harness.gameMap, engine)).toBe(hash1);
+
+    harness.gameMap.moveEntity(wagon.instanceId, WAGON_POS.x + 1, WAGON_POS.y);
+    expect(deviceFovHashPart(harness.gameMap, engine)).not.toBe(hash1);
+  });
+
+  it('lights its surroundings in the engine\'s real FOV union', () => {
+    const harness = buildHarness();
+    const wagon = addWagon(harness);
+    engine.activeDeviceId = wagon.instanceId;
+
+    engine._lastFovOptionsHash = '';
+    engine.recalculateFOV();
+
+    expect(engine.playerFovSet.has(key(NEAR_WAGON))).toBe(true);
+    expect(harness.gameMap.getTile(NEAR_WAGON.x, NEAR_WAGON.y).flags.explored).toBe(true);
   });
 });

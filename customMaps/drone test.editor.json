@@ -42752,7 +42752,30 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "vehicle.wagon",
+            "vehicleAttachments": {
+              "motor_front": {
+                "defId": "electric_motor"
+              },
+              "battery_front": {
+                "defId": "tool.large_battery",
+                "charges": 150
+              },
+              "motor_rear": {
+                "defId": "electric_motor"
+              },
+              "battery_rear": {
+                "defId": "tool.large_battery",
+                "charges": 150
+              }
+            }
+          },
+          {
+            "defId": "tool.rc_receiver"
+          }
+        ]
       },
       {
         "terrain": "grass",

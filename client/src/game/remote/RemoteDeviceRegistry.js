@@ -4,6 +4,8 @@ import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { EntityType } from '../entities/Entity.js';
 import { DroneConfig } from '../config/DroneConfig.js';
 import { consumeDeployCharge, droneChargesRemaining } from './DronePower.js';
+import { asItemInstance } from './RemoteItem.js';
+import { listRcVehicles } from './RcVehicle.js';
 
 /**
  * Umbrella layer for player-operated remote devices (recon drone today,
@@ -41,24 +43,25 @@ export function listDevices(gameMap, operatorId) {
 }
 
 /**
- * Coerce a deployed-drone candidate into a real Item. A deployed drone on a
- * far tile is an on-map ECS *entity* whose attachments are raw JSON, not Item
- * instances — so getBattery()/consumeCharge() don't exist on it. Item.fromJSON
- * accepts either shape and rebuilds the battery as a proper Item.
+ * Where a deployed drone physically sits, on-map or at the player's feet.
+ *
+ * Only logicalX/logicalY are consulted: those are map coordinates, and only an
+ * on-map entity has them. An Item's own x/y are GRID coordinates inside
+ * whatever container holds it, so reading those would launch a drone from the
+ * ground container at map tile (0, 0). Anything without map coordinates is, by
+ * definition, in the ground container — i.e. under the player.
  */
-export function asDeployedItem(candidate) {
-  if (!candidate) return null;
-  if (typeof candidate.getBattery === 'function') return candidate;
-  return Item.fromJSON(candidate);
-}
-
-/** Where a deployed drone physically sits, on-map or at the player's feet. */
 function deployedPosition(candidate, engine) {
-  const x = candidate?.logicalX ?? candidate?.x;
-  const y = candidate?.logicalY ?? candidate?.y;
+  const x = candidate?.logicalX;
+  const y = candidate?.logicalY;
   if (Number.isFinite(x) && Number.isFinite(y)) return { x: Math.round(x), y: Math.round(y) };
+
+  const inv = engine?.inventoryManager;
   const player = engine?.player;
-  return { x: Math.round(player?.x ?? 0), y: Math.round(player?.y ?? 0) };
+  return {
+    x: Math.round(inv?.lastSyncedX ?? player?.x ?? 0),
+    y: Math.round(inv?.lastSyncedY ?? player?.y ?? 0)
+  };
 }
 
 /**
@@ -121,15 +124,20 @@ export function getActiveDevice(engine) {
  * Every device the phone can currently cycle to, airborne first then grounded.
  * Returns descriptors rather than raw objects so callers get one stable `key`
  * regardless of whether the device is an entity (id) or an item (instanceId).
- * @returns {Array<{key: string, airborne: boolean, drone?: Drone, item?: Item}>}
+ *
+ * `kind` is the discriminator to branch on; `airborne`/`drone`/`item` are kept
+ * so cycleTarget and the phone-cycling UI need no changes as device families
+ * are added.
+ * @returns {Array<{key: string, kind: string, airborne: boolean, drone?: Drone, item?: Item}>}
  */
 export function listControllables(engine) {
   const gameMap = engine?.gameMap;
   const player = engine?.player;
   if (!gameMap || !player) return [];
   return [
-    ...listDevices(gameMap, player.id).map(d => ({ key: d.id, airborne: true, drone: d })),
-    ...listGroundedDevices(engine).map(it => ({ key: it.instanceId, airborne: false, item: it }))
+    ...listDevices(gameMap, player.id).map(d => ({ key: d.id, kind: 'drone-air', airborne: true, drone: d })),
+    ...listGroundedDevices(engine).map(it => ({ key: it.instanceId, kind: 'drone-ground', airborne: false, item: it })),
+    ...listRcVehicles(engine).map(it => ({ key: it.instanceId, kind: 'rc-vehicle', airborne: false, item: it }))
   ];
 }
 
@@ -190,7 +198,7 @@ export function launch(candidate, engine) {
   // Capture the tile BEFORE removing it from the map — it launches from where
   // it sits, which for a remote drone is nowhere near the player.
   const { x, y } = deployedPosition(candidate, engine);
-  const deployedItem = asDeployedItem(candidate);
+  const deployedItem = asItemInstance(candidate);
 
   const battery = deployedItem?.getBattery ? deployedItem.getBattery() : null;
   if (!battery || (battery.ammoCount || 0) < DroneConfig.DEPLOY_CHARGE) {

@@ -975,13 +975,13 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/GroundManager.js": {
-    "mtime": 1785910643.0594432,
-    "ast_hash": "a7c4280ed62e435001341544494eab73",
+    "mtime": 1785202332.537284,
+    "ast_hash": "4e5f01f43f3fd0a0bda8ea9f502c763a",
     "semantic_hash": ""
   },
   "client/src/game/inventory/InventoryManager.js": {
-    "mtime": 1785910643.0604923,
-    "ast_hash": "4bc4543239455ea910d0ac13a37d90b3",
+    "mtime": 1785816971.0889447,
+    "ast_hash": "baa62f9e36dfb8ab1d198e84e58ccfcf",
     "semantic_hash": ""
   },
   "client/src/game/inventory/Item.js": {
@@ -3250,8 +3250,8 @@
     "semantic_hash": ""
   },
   "scripts/god-object-budget.json": {
-    "mtime": 1785910727.5743463,
-    "ast_hash": "f30d29128a9127fc1f0eec6a759651c7",
+    "mtime": 1785817021.5072634,
+    "ast_hash": "d64e8ecfd0a437a4913af9a814a59069",
     "semantic_hash": ""
   },
   "scripts/godObjectBudget.mjs": {
@@ -3305,8 +3305,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteDeviceRegistry.js": {
-    "mtime": 1785910663.629508,
-    "ast_hash": "3aa04c10c69e27dc091895eb0e892502",
+    "mtime": 1785909480.827669,
+    "ast_hash": "fd21a12388031d14a1b3650b53a56810",
     "semantic_hash": ""
   },
   "client/src/game/systems/DroneSystem.js": {
@@ -3330,8 +3330,8 @@
     "semantic_hash": ""
   },
   "test/remote/droneStates.test.js": {
-    "mtime": 1785910516.4265974,
-    "ast_hash": "c33f493a6fbe95b6b23ec13face9b050",
+    "mtime": 1785744210.0953615,
+    "ast_hash": "3f9d767d4f891cb81a3d67e37cf13619",
     "semantic_hash": ""
   },
   "test/remote/droneVision.test.js": {
@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RcVehicleMovement.js": {
-    "mtime": 1785910503.2128837,
-    "ast_hash": "44e3fa6e1e3769cdcfa7d911b544c1ac",
+    "mtime": 1785909708.9291537,
+    "ast_hash": "bb540e380e6307b32cd3d44c9c010651",
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteItem.js": {

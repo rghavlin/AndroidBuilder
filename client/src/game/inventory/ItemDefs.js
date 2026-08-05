@@ -87,7 +87,8 @@ export const ItemDefs = {
     containerGrid: { width: 4, height: 5, isVehicle: true },
     attachmentSlots: [
       { id: 'motor', name: 'Electric Motor', allowedItems: ['electric_motor'] },
-      { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] }
+      { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
+      { id: 'rc_receiver', name: 'RC Receiver', allowedItems: ['tool.rc_receiver'] }
     ],
     disassembleData: {
       toolId: 'weapon.wrench',
@@ -119,7 +120,8 @@ export const ItemDefs = {
       { id: 'motor_front', name: 'Front Motor', allowedItems: ['electric_motor'] },
       { id: 'battery_front', name: 'Front Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
       { id: 'motor_rear', name: 'Rear Motor', allowedItems: ['electric_motor'] },
-      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] }
+      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
+      { id: 'rc_receiver', name: 'RC Receiver', allowedItems: ['tool.rc_receiver'] }
     ],
     disassembleData: {
       toolId: 'weapon.wrench',
@@ -155,7 +157,8 @@ export const ItemDefs = {
       { id: 'motor_middle', name: 'Middle Motor', allowedItems: ['electric_motor'] },
       { id: 'battery_middle', name: 'Middle Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
       { id: 'motor_rear', name: 'Rear Motor', allowedItems: ['electric_motor'] },
-      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] }
+      { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
+      { id: 'rc_receiver', name: 'RC Receiver', allowedItems: ['tool.rc_receiver'] }
     ],
     disassembleData: {
       toolId: 'weapon.wrench',
@@ -1285,6 +1288,22 @@ export const ItemDefs = {
     attachmentSlots: [
       { id: 'battery', name: 'Battery', allowedCategories: [ItemCategory.BATTERY] }
     ]
+  },
+  // Bolts into a wagon's rc_receiver slot and puts it on the phone's device
+  // list. It has no battery of its own — it draws from whichever power cell is
+  // already feeding the wagon's motors, which is also what limits the range of
+  // any given drive.
+  'tool.rc_receiver': {
+    id: 'tool.rc_receiver',
+    name: 'RC Receiver',
+    noLoot: true,
+    rarity: Rarity.RARE,
+    imageId: 'rcreceiver',
+    width: 2,
+    height: 2,
+    traits: [],
+    categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
+    description: 'Fit to a motorized wagon to drive it from a smartphone'
   },
   'container.toolbox': {
     id: 'container.toolbox',
@@ -2858,6 +2877,18 @@ export const ItemDefs = {
     categories: [ItemCategory.BOOK, ItemCategory.FUEL],
     totalPages: 50,
     description: 'Learn how to build an Auto turret'
+  },
+  'book.nomad_survivor_9': {
+    id: 'book.nomad_survivor_9',
+    name: 'Nomad Survivor Vol 9',
+    rarity: Rarity.COMMON,
+    imageId: 'nomadsurvivor',
+    width: 1,
+    height: 1,
+    traits: [ItemTrait.READABLE],
+    categories: [ItemCategory.BOOK, ItemCategory.FUEL],
+    totalPages: 50,
+    description: 'Learn how to build an RC Receiver'
   },
   'tool.battery_charger': {
     id: 'tool.battery_charger',

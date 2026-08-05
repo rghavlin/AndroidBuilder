@@ -306,11 +306,18 @@ class GameEngine extends SafeEventEmitter {
         ? (gameObjects.interactionState.isPlayerTurn ? 'PLAYER_TURN' : 'SIMULATING')
         : 'PLAYER_TURN';
       this.isFlashlightOn = gameObjects.interactionState.isFlashlightOn ?? false;
-      // Only restore the camera/control focus if that drone entity actually
-      // survived map restoration — otherwise fall back to the player rather
-      // than pointing control at an id nothing on the map answers to.
+      // Only restore the camera/control focus if the device actually survived
+      // map restoration — otherwise fall back to the player rather than
+      // pointing control at an id nothing answers to. Both of a device's homes
+      // count: an RC wagon under the player's feet lives in the ground
+      // container, not on the map. (inventoryManager is assigned above.)
       const savedDeviceId = gameObjects.interactionState.activeDeviceId ?? null;
-      this.activeDeviceId = (savedDeviceId && this.gameMap?.getEntity?.(savedDeviceId)) ? savedDeviceId : null;
+      const deviceExists = !!savedDeviceId && (
+        !!this.gameMap?.getEntity?.(savedDeviceId) ||
+        (this.inventoryManager?.groundContainer?.getAllItems?.() || [])
+          .some(it => it?.instanceId === savedDeviceId)
+      );
+      this.activeDeviceId = deviceExists ? savedDeviceId : null;
       this._phoneChargeTurn = gameObjects.interactionState.phoneChargeTurn ?? null;
       this.isSleeping = gameObjects.interactionState.isSleeping ?? false;
       this.sleepProgress = gameObjects.interactionState.sleepProgress ?? 0;
@@ -526,7 +533,7 @@ class GameEngine extends SafeEventEmitter {
        // Includes each airborne device's id/position/range so the dedupe below
        // can't swallow a repaint when only a drone moves and the player doesn't
        // — that gap was the sharpest trap in wiring devices into FOV.
-       const optionsHash = `${roundX},${roundY},${range},${isNight},${isFlashlightOn},${isNightVision},${isAimingWithScope},${this.weather ? this.weather.type : 'clear'},${this.weather ? this.weather.intensity : 0},${this.turn},${DroneVision.deviceFovHashPart(this.gameMap)}`;
+       const optionsHash = `${roundX},${roundY},${range},${isNight},${isFlashlightOn},${isNightVision},${isAimingWithScope},${this.weather ? this.weather.type : 'clear'},${this.weather ? this.weather.intensity : 0},${this.turn},${DroneVision.deviceFovHashPart(this.gameMap, this)}`;
        if (optionsHash === this._lastFovOptionsHash) {
          return false; // Skip calculation
        }
@@ -630,12 +637,12 @@ class GameEngine extends SafeEventEmitter {
         this.playerFieldOfView = finalVisibleTiles;
       }
 
-      // Remote devices (recon drone) extend vision independently of the
-      // player's own position — conceptually the rifle scope's range
-      // extension, except the center is mobile. Tiles are only ever ADDED
-      // here; the explored-flag pass right below applies to them exactly
-      // like any player-seen tile, so no renderer changes are needed.
-      const deviceTiles = DroneVision.collectDeviceFov(this.gameMap, range);
+      // Remote devices (recon drone, linked RC wagon) extend vision
+      // independently of the player's own position — conceptually the rifle
+      // scope's range extension, except the center is mobile. Tiles are only
+      // ever ADDED here; the explored-flag pass right below applies to them
+      // exactly like any player-seen tile, so no renderer changes are needed.
+      const deviceTiles = DroneVision.collectDeviceFov(this.gameMap, range, this);
       if (deviceTiles.length > 0) {
         const seenKeys = new Set(this.playerFieldOfView.map(t => `${Math.round(t.x)},${Math.round(t.y)}`));
         const merged = [...this.playerFieldOfView];

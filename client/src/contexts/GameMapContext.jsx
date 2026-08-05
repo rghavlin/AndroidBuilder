@@ -11,6 +11,8 @@ import { isTurretPassableBy, TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
 import { isTerrainWalkable } from '../game/map/TerrainTypes.js';
 import * as DroneMovement from '../game/remote/DroneMovement.js';
 import { getActiveDevice } from '../game/remote/RemoteDeviceRegistry.js';
+import * as RcVehicleMovement from '../game/remote/RcVehicleMovement.js';
+import { getActiveRcVehicle } from '../game/remote/RcVehicle.js';
 
 const GameMapContext = createContext();
 
@@ -75,13 +77,16 @@ export const GameMapProvider = ({ children }) => {
 
     if (!isPlayerTurn || isAutosaving || isMoving || isAnimatingZombies || engine.movementLocked) return;
 
-    // While a remote device has camera/control focus, clicks fly it instead of
+    // While a remote device has camera/control focus, clicks drive it instead of
     // the player — camera target IS control target (see cycleRemoteDevice).
-    // Viewing a GROUNDED drone is look-only: the camera is somewhere else
+    // Viewing a GROUNDED drone stays look-only: the camera is somewhere else
     // entirely, so a click must not walk the player toward it.
     if (engine.activeDeviceId) {
       if (getActiveDevice(engine)) {
         await DroneMovement.moveActiveDevice(x, y, engine);
+      } else if (getActiveRcVehicle(engine)) {
+        const result = await RcVehicleMovement.driveActiveVehicle(x, y, engine);
+        if (!result.success && result.reason) addLog(result.reason, 'error');
       }
       return;
     }
@@ -150,7 +155,7 @@ export const GameMapProvider = ({ children }) => {
     } catch (error) {
       console.error('[GameMapContext] Error handling tile click:', error);
     }
-  }, []);
+  }, [addLog]);
 
   // Handle tile hover for path preview
   const handleTileHover = useCallback(async (x, y, player, isNight = false, isFlashlightOn = false, data = null) => {
@@ -170,6 +175,20 @@ export const GameMapProvider = ({ children }) => {
       setHoveredTile(preview?.possible
         ? { x, y, apCost: preview.apCost, canAfford: preview.canAfford, isDroneTarget: true, drone: hoveredDrone }
         : null);
+      return;
+    }
+
+    // A linked RC wagon is drivable, so it gets a real cost cursor — note the
+    // deliberate absence of isRemoteView, which MapCanvas uses to suppress it.
+    if (engine.activeDeviceId && getActiveRcVehicle(engine)) {
+      if (!targetTile) { setHoveredTile(null); return; }
+      const preview = RcVehicleMovement.previewDriveCost(x, y, engine);
+      if (!preview) { setHoveredTile(null); return; }
+      setHoveredTile(preview.possible
+        ? { x, y, apCost: preview.apCost, canAfford: preview.canAfford, isRcTarget: true }
+        // Still show the tile when the drive is refused, so the player sees the
+        // cursor react rather than nothing at all.
+        : { x, y, apCost: 0, canAfford: false, isRcTarget: true, reason: preview.reason });
       return;
     }
 

@@ -433,7 +433,9 @@ const GameContextInner = ({ children }) => {
         focus.logicalY ?? focus.y
       );
     }
-    if (target && !target.airborne) {
+    if (target?.kind === 'rc-vehicle') {
+      addLog(`Linked to the ${target.item.name}. Click a tile to drive it.`, 'info');
+    } else if (target?.kind === 'drone-ground') {
       addLog('Linked to a grounded drone. Right-click the phone to launch it.', 'info');
     }
 
@@ -783,10 +785,11 @@ const GameContextInner = ({ children }) => {
     }
 
     // Phone consumption — at most one charge per turn (consumePhoneChargeOncePerTurn's
-    // turn-stamp guard), and only while the player has at least one device
-    // deployed. If it dies, drones stay airborne on their own batteries but
-    // control/vision through them is lost until the phone is recharged.
-    if (RemoteDeviceRegistry.listDevices(engine.gameMap, player.id).length > 0) {
+    // turn-stamp guard), and only while the player has a device airborne or is
+    // actively linked to one. If it dies, drones stay airborne on their own
+    // batteries and an RC wagon stays where it is, but control/vision through
+    // either is lost until the phone is recharged.
+    if (RemoteDeviceRegistry.listDevices(engine.gameMap, player.id).length > 0 || engine.activeDeviceId) {
       const phoneCharged = consumePhoneChargeOncePerTurn(engine);
       if (!phoneCharged && engine.activeDeviceId) {
         engine.activeDeviceId = null;

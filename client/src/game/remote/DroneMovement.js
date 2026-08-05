@@ -3,6 +3,7 @@ import { isTerrainWalkable } from '../map/TerrainTypes.js';
 import { DroneConfig } from '../config/DroneConfig.js';
 import { canAffordFlight, consumeFlightCharge } from './DronePower.js';
 import { getActiveDevice } from './RemoteDeviceRegistry.js';
+import { tweenAlongPath } from './RemoteTween.js';
 
 /**
  * Click-to-fly for the active remote device. A player-turn action outside
@@ -48,21 +49,11 @@ export function previewMoveCost(x, y, engine) {
   return { possible: true, tiles, apCost, canAfford: canAffordAp && canAffordCharge };
 }
 
-// Flight tween pacing. One continuous tween across the WHOLE path (like the
-// player's smoothAnimateMovement) rather than a per-tile animation — stepping
-// tile-by-tile reads as choppy because the camera jumps a full tile at a time
-// and the render loop can go idle between steps.
+// Flight tween pacing; the tween itself lives in RemoteTween, shared with the
+// RC wagon so the two never drift into different motion languages.
 const MS_PER_TILE = 110;
-const MIN_FLIGHT_MS = 300;
-const MAX_FLIGHT_MS = 1200;
 
-// Same ease-in/ease-out curve the player's movement uses, so a drone flight
-// reads as the same "thing moving" motion language.
-function ease(t) {
-  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
-/** Snap the drone to the end of the path with no tween (headless / no rAF). */
+/** Snap the drone to the end of the path — the authoritative placement. */
 function finishFlight(drone, path, engine) {
   const final = path[path.length - 1];
   engine.gameMap.moveEntity(drone.id, final.x, final.y, { flying: true, skipEdgeCheck: true });
@@ -77,15 +68,9 @@ function finishFlight(drone, path, engine) {
  * Fly the active device to (x, y): spend player AP + drone battery charge,
  * then tween it along the path.
  *
- * Mirrors PlayerContext.smoothAnimateMovement: one rAF loop interpolating the
- * whole path, driving the drone's render position and the camera every frame,
- * with a single authoritative moveEntity snap at the end. Notes:
- *  - `engine.isDeviceAnimating` keeps MapCanvas's gated render loop in
- *    continuous mode for the duration (it has no React state for devices).
- *  - FOV is recalculated per frame, but GameEngine's options-hash dedupe (which
- *    includes each device's ROUNDED tile) makes that a no-op until the drone
- *    actually crosses a tile boundary. Do NOT call invalidateFOV() here — that
- *    would defeat the dedupe and force a full shadowcast every frame.
+ * Cost and charge are settled up front, then RemoteTween interpolates the whole
+ * path (mirroring PlayerContext.smoothAnimateMovement) with a single
+ * authoritative moveEntity snap at the end.
  */
 export function moveActiveDevice(x, y, engine) {
   const drone = getActiveDevice(engine);
@@ -117,46 +102,7 @@ export function moveActiveDevice(x, y, engine) {
 
   const result = { success: true, tiles, apCost };
 
-  // Headless (tests / Node): no rAF to tween on — snap straight to the target.
-  if (typeof requestAnimationFrame === 'undefined') {
-    finishFlight(drone, path, engine);
-    return Promise.resolve(result);
-  }
-
-  const duration = Math.min(MAX_FLIGHT_MS, Math.max(MIN_FLIGHT_MS, tiles * MS_PER_TILE));
-  const startTime = performance.now();
-
-  // Drive render coords directly and leave movementPath empty so EntityRenderer
-  // falls through to entity.x/entity.y rather than running its own competing
-  // animationProgress interpolation.
-  drone.movementPath = [];
-  drone.isAnimating = true;
-  engine.isDeviceAnimating = true;
-
-  return new Promise((resolve) => {
-    const animate = (now) => {
-      const progress = Math.min((now - startTime) / duration, 1);
-      const p = ease(progress) * (path.length - 1);
-      const idx = Math.floor(p);
-      const frac = p - idx;
-      const curr = path[idx];
-      const next = path[Math.min(idx + 1, path.length - 1)];
-
-      const smoothX = curr.x + (next.x - curr.x) * frac;
-      const smoothY = curr.y + (next.y - curr.y) * frac;
-
-      drone.renderX = smoothX;
-      drone.renderY = smoothY;
-      engine.camera?.centerOn(smoothX, smoothY);
-      engine.recalculateFOV?.();
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        finishFlight(drone, path, engine);
-        resolve(result);
-      }
-    };
-    requestAnimationFrame(animate);
-  });
+  return tweenAlongPath(drone, path, engine, { msPerTile: MS_PER_TILE },
+    () => finishFlight(drone, path, engine)
+  ).then(() => result);
 }

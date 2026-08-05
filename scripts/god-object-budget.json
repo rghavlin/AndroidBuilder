@@ -3,9 +3,9 @@
   "budgets": {
     "client/src/game/entities/Entity.js": 1213,
     "client/src/game/map/GameMap.js": 1647,
-    "client/src/game/inventory/InventoryManager.js": 2982,
+    "client/src/game/inventory/InventoryManager.js": 2981,
     "client/src/game/inventory/Item.js": 1812,
-    "client/src/game/map/LootGenerator.js": 1798,
+    "client/src/game/map/LootGenerator.js": 1790,
     "client/src/game/managers/SimulationManager.js": 328,
     "client/src/pages/editor.tsx": 5413
   }

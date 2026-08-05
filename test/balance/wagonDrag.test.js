@@ -162,6 +162,73 @@ describe('Total move cost with a wagon', () => {
   });
 });
 
+describe('Remote drive cost (RC receiver)', () => {
+  const remote = (item) => VehicleUtils.getRemoteStepPenalty(item);
+
+  it('matches the headline table when fully motorized', () => {
+    expect(remote(makeVehicle('vehicle.toy_wagon', 1))).toBe(2);
+    expect(remote(makeVehicle('vehicle.wagon', 2))).toBe(4);
+    expect(remote(makeVehicle('vehicle.cargo_wagon', 3))).toBe(6);
+  });
+
+  it('drops one AP per powered motor pair', () => {
+    expect(remote(makeVehicle('vehicle.wagon', 0))).toBe(6);
+    expect(remote(makeVehicle('vehicle.wagon', 1))).toBe(5);
+    expect(remote(makeVehicle('vehicle.cargo_wagon', 1))).toBe(8);
+    expect(remote(makeVehicle('vehicle.cargo_wagon', 2))).toBe(7);
+  });
+
+  it('is completely independent of Strength — no muscle is involved', () => {
+    // getRemoteStepPenalty takes no player context at all; this pins that it
+    // stays that way, since every other cost function on this object does.
+    expect(VehicleUtils.getRemoteStepPenalty.length).toBe(1);
+    const toy = makeVehicle('vehicle.toy_wagon', 1);
+    expect(remote(toy)).toBe(2);
+  });
+
+  it('reverts to base + 1 when the batteries are flat', () => {
+    expect(remote(makeVehicle('vehicle.toy_wagon', 1, { charge: 0 }))).toBe(3);
+    expect(remote(makeVehicle('vehicle.cargo_wagon', 3, { charge: 0 }))).toBe(9);
+  });
+
+  it('never costs less than hand-pulling, and strictly more for any character with muscle', () => {
+    for (const [defId, maxMotors] of [['vehicle.toy_wagon', 1], ['vehicle.wagon', 2], ['vehicle.cargo_wagon', 3]]) {
+      for (let m = 0; m <= maxMotors; m++) {
+        const wagon = makeVehicle(defId, m);
+        for (const s of [0, 20, 60, 100]) {
+          // Hand-pulling one tile costs the 1.0 walk baseline plus the penalty.
+          const byHand = 1 + penalty(wagon, s);
+          const label = `${defId} m=${m} Str=${s}`;
+          expect(remote(wagon), label).toBeGreaterThanOrEqual(byHand);
+          // The two tie only below Strength 10, where the surcharge exactly
+          // replaces a muscle contribution that is itself zero. Characters
+          // start at 20, so in practice remote driving always costs more.
+          if (VehicleUtils.strengthDragBonus(s) > 0) {
+            expect(remote(wagon), label).toBeGreaterThan(byHand);
+          }
+        }
+      }
+    }
+  });
+
+  it('takes the road discount per step and floors each step at 0.5', () => {
+    const toy = makeVehicle('vehicle.toy_wagon', 1); // 2.0/tile
+    const path = straightPath(4);
+    expect(VehicleUtils.calculateRemoteDriveCost(toy, path, mapOf('grass'))).toBe(8);
+    expect(VehicleUtils.calculateRemoteDriveCost(toy, path, mapOf('road'))).toBe(6);   // 1.5/tile
+    expect(VehicleUtils.calculateRemoteDriveCost(toy, path, mapOf('sidewalk'))).toBe(6);
+
+    expect(VehicleUtils.calculateRemoteDriveCost(makeVehicle('vehicle.wagon', 2), path, mapOf('road'))).toBe(14);
+    expect(VehicleUtils.calculateRemoteDriveCost(makeVehicle('vehicle.cargo_wagon', 3), path, mapOf('road'))).toBe(22);
+  });
+
+  it('costs nothing for a zero-step path', () => {
+    const toy = makeVehicle('vehicle.toy_wagon', 1);
+    expect(VehicleUtils.calculateRemoteDriveCost(toy, straightPath(0), mapOf('grass'))).toBe(0);
+    expect(VehicleUtils.calculateRemoteDriveCost(null, straightPath(4), mapOf('grass'))).toBe(0);
+  });
+});
+
 describe('Riding', () => {
   const ride = (defId, motors, opts) => {
     const v = makeVehicle(defId, motors, opts);
