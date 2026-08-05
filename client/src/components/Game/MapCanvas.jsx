@@ -12,6 +12,7 @@ import { useSpeechBubbles } from '../../contexts/SpeechBubbleContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { configManager } from '../../game/utils/ConfigManager.js';
 import { EntityType } from '../../game/entities/Entity.js';
+import { isRemoteDevice, getUnderfootDevice } from '../../game/remote/RemoteDeviceKinds.js';
 import { isIndoorFloor } from '../../game/map/TerrainTypes.js';
 import { getEffectiveHour, isNightHour } from '../../game/config/VisionConfig.js';
 import { getHourFromTurn } from '../../game/utils/TimeUtils.js';
@@ -511,7 +512,7 @@ export default function MapCanvas({
       const allEntities = gameMap.getAllEntities();
       const groundEntities = [];
       const livingEntities = [];
-      const aerialEntities = []; // airborne remote devices — drawn above the player
+      const deviceEntities = []; // remote devices — drawn above the player
 
       allEntities.forEach(entity => {
         if (entity.type === EntityType.PLAYER) return;
@@ -544,13 +545,15 @@ export default function MapCanvas({
         if (maxX < extendedBounds.startX || minX > extendedBounds.endX || maxY < extendedBounds.startY || minY > extendedBounds.endY) return;
 
         // Categorize into layers: Persistent structures and ground items go to bottom
-        if ([EntityType.ITEM, EntityType.PLACE_ICON, EntityType.DOOR, EntityType.WINDOW, EntityType.GARAGE_DOOR].includes(entity.type)) {
+        if (entity.type === EntityType.DRONE || (entity.type === EntityType.ITEM && isRemoteDevice(entity))) {
+          // Remote devices draw in their own pass after the player — otherwise
+          // the player sprite (Layer 4) paints over a drone hovering on their
+          // tile or an RC wagon rolling across it, and a device you can't see
+          // is a device you can't command. EntityRenderer fades them while they
+          // overlap the player so they don't hide them in turn.
+          deviceEntities.push(entity);
+        } else if ([EntityType.ITEM, EntityType.PLACE_ICON, EntityType.DOOR, EntityType.WINDOW, EntityType.GARAGE_DOOR].includes(entity.type)) {
           groundEntities.push(entity);
-        } else if (entity.type === EntityType.DRONE) {
-          // Airborne devices fly OVER everything, so they draw in their own pass
-          // after the player — otherwise the player sprite (Layer 4) would paint
-          // over a drone hovering on the same tile.
-          aerialEntities.push(entity);
         } else {
           livingEntities.push(entity);
         }
@@ -639,18 +642,49 @@ export default function MapCanvas({
         ctx.restore();
       }
 
-      // Layer 4.1: Aerial devices (recon drone). Drawn last of the world layers
-      // so a drone hovering on the player's tile reads as being ABOVE them —
-      // EntityRenderer fades it while it overlaps the player so they stay visible.
-      if (aerialEntities.length > 0) {
+      // Layer 4.1: Remote devices (recon drone, RC wagon). Drawn last of the
+      // world layers so a device on the player's tile reads as being ABOVE them
+      // — EntityRenderer fades it while it overlaps the player so they stay
+      // visible.
+      if (deviceEntities.length > 0) {
         ctx.save();
         ctx.translate(globalOffsetX, globalOffsetY);
-        aerialEntities.forEach(entity => {
+        deviceEntities.forEach(entity => {
           const isExplored = gameMap.getTile(Math.round(entity.x), Math.round(entity.y))?.flags?.explored;
           ctx.save(); // Isolate individual entity draws to prevent state leakage (e.g. globalAlpha)
           EntityRenderer.renderEntity(ctx, entity, rTileSize, imageLoader.images, visibleTileSet, isExplored, engine, currentTime, isAnimatingZombies);
           ctx.restore();
         });
+        ctx.restore();
+      }
+
+      // Layer 4.2: a remote device at the player's OWN feet. The player's tile
+      // is owned by the ground container — syncWithMap empties the tile when
+      // they arrive — so no map entity exists to draw and the loop above can't
+      // see it. Synthesize a render-only stand-in at the player's position.
+      const underfootDevice = player ? getUnderfootDevice(engine) : null;
+      if (underfootDevice) {
+        const dX = isAnimatingMovement ? playerRenderPosition.x : player.x;
+        const dY = isAnimatingMovement ? playerRenderPosition.y : player.y;
+        ctx.save();
+        ctx.translate(globalOffsetX, globalOffsetY);
+        EntityRenderer.renderEntity(ctx, {
+          type: EntityType.ITEM,
+          id: underfootDevice.instanceId,
+          instanceId: underfootDevice.instanceId,
+          defId: underfootDevice.defId,
+          imageId: underfootDevice.imageId,
+          name: underfootDevice.name,
+          subtype: underfootDevice.defId ? underfootDevice.defId.split('.').pop() : 'basic',
+          // Always the circular token, never the full-tile sprite: it's what
+          // the same device looks like one tile away (where the tile's own
+          // vehicle flag forces a token) and what carries the radio-link ring.
+          renderFullTile: false,
+          attachments: underfootDevice.attachments,
+          containerGrid: underfootDevice.containerGrid,
+          isOn: underfootDevice.isOn,
+          x: dX, y: dY, logicalX: dX, logicalY: dY
+        }, rTileSize, imageLoader.images, visibleTileSet, true, engine, currentTime, isAnimatingZombies);
         ctx.restore();
       }
 

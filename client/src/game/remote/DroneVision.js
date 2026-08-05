@@ -1,5 +1,6 @@
 import { LineOfSight } from '../utils/LineOfSight.js';
 import { RcVehicleConfig } from '../config/RcVehicleConfig.js';
+import { hasReceiver } from './RemoteDeviceKinds.js';
 
 /**
  * Merges remote devices into the player's FOV — conceptually the rifle
@@ -11,8 +12,8 @@ import { RcVehicleConfig } from '../config/RcVehicleConfig.js';
  * Deliberately imports nothing from entities/Entity.js or the RcVehicle layer:
  * this module is pulled in by GameEngine.js itself, and Entity.js/Item.js reach
  * back to the engine singleton — either import would close a cycle. The literal
- * 'drone'/'item' strings are EntityType values, and the receiver check is a
- * two-field read against RcVehicleConfig (a pure data module).
+ * 'drone'/'item' strings are EntityType values, and RemoteDeviceKinds is
+ * dependency-free for exactly this reason.
  */
 const DRONE_TYPE = 'drone';
 const ITEM_TYPE = 'item';
@@ -40,8 +41,7 @@ function visionSources(gameMap, engine, baseRange) {
   // so getEntity finds nothing and it correctly contributes no extra vision.
   const activeKey = engine?.activeDeviceId;
   const active = activeKey ? gameMap.getEntity?.(activeKey) : null;
-  if (active && active.type === ITEM_TYPE
-      && active.attachments?.[RcVehicleConfig.RECEIVER_SLOT_ID]?.defId === RcVehicleConfig.RECEIVER_DEF_ID) {
+  if (active && active.type === ITEM_TYPE && hasReceiver(active)) {
     sources.push({ id: active.id, entity: active, range: RcVehicleConfig.SIGHT_RANGE, key: 'rc' });
   }
 

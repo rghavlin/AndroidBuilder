@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1785827668.7422264,
-    "ast_hash": "de3002e381b0576ed30b7a0179212811",
+    "mtime": 1785912581.2117124,
+    "ast_hash": "919c8450032e920e327619101eaf74a7",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -990,8 +990,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
-    "mtime": 1785909234.1284919,
-    "ast_hash": "9ad48ebf0a082e50cd6f2872eb2aa199",
+    "mtime": 1785911142.2301662,
+    "ast_hash": "ab715fc092fe3fff3a7d25309c2ecc0b",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemPricing.js": {
@@ -1165,8 +1165,8 @@
     "semantic_hash": "8227401cf12e62741245570c60d4640d"
   },
   "client/src/game/renderer/EntityRenderer.js": {
-    "mtime": 1785909998.2800207,
-    "ast_hash": "d5163a403d18060188cf476bbf2e5859",
+    "mtime": 1785912542.6873105,
+    "ast_hash": "991ae3652235aeff09310cc381a4e755",
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileChunkCache.js": {
@@ -3300,8 +3300,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/DroneVision.js": {
-    "mtime": 1785909835.6014142,
-    "ast_hash": "5bc7ca1cce04b0c3461ea5010783b458",
+    "mtime": 1785912475.2628849,
+    "ast_hash": "e83c0ef68307d25a71395469af984154",
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteDeviceRegistry.js": {
@@ -3355,13 +3355,13 @@
     "semantic_hash": ""
   },
   "customMaps/drone test.editor.json": {
-    "mtime": 1785818497.4019074,
-    "ast_hash": "aada2b6283a9d298ba78530ceec14393",
+    "mtime": 1785911630.538277,
+    "ast_hash": "53772e1b4775cbd532dc639515113cb5",
     "semantic_hash": ""
   },
   "customMaps/drone test.scenario.json": {
-    "mtime": 1785818498.2167926,
-    "ast_hash": "a7c5ce53f3522dffd2aa2e08be36c6e3",
+    "mtime": 1785911631.6113322,
+    "ast_hash": "bbcfd13de27c09a6b3365ed151bdec3d",
     "semantic_hash": ""
   },
   "client/src/game/inventory/containerSearch.js": {
@@ -3420,8 +3420,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RcVehicle.js": {
-    "mtime": 1785909485.1114936,
-    "ast_hash": "268aeff72258188814835dd658c1cee0",
+    "mtime": 1785912455.332743,
+    "ast_hash": "3ca572abb51ac0c270d01f47c8265791",
     "semantic_hash": ""
   },
   "client/src/game/remote/RcVehicleMovement.js": {
@@ -3457,6 +3457,16 @@
   "test/serialization/rcWagonRoundTrip.test.js": {
     "mtime": 1785910131.5478888,
     "ast_hash": "daf6baad919a7d984f97b9770c4f4388",
+    "semantic_hash": ""
+  },
+  "client/src/game/remote/RemoteDeviceKinds.js": {
+    "mtime": 1785912446.7017949,
+    "ast_hash": "58ec42ad1b42fca9adf8b3ec771b13e6",
+    "semantic_hash": ""
+  },
+  "test/renderer/remoteDeviceDisplay.test.js": {
+    "mtime": 1785912632.4782517,
+    "ast_hash": "3e97bf3bb7193e4331a7e2332bef1549",
     "semantic_hash": ""
   }
 }

@@ -1,7 +1,7 @@
 import { ItemTrait } from '../inventory/traits.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
-import { RcVehicleConfig } from '../config/RcVehicleConfig.js';
 import { asItemInstance } from './RemoteItem.js';
+import { hasReceiver } from './RemoteDeviceKinds.js';
 
 /**
  * Identity layer for remote-controlled ground vehicles — wagons carrying an RC
@@ -18,17 +18,9 @@ import { asItemInstance } from './RemoteItem.js';
  * something with getMotorizedBonus()/consumeMotorPower() on it.
  */
 
-const { RECEIVER_SLOT_ID, RECEIVER_DEF_ID } = RcVehicleConfig;
-
-/**
- * Whether this wagon has a receiver fitted. Written as a pure field read so it
- * works on both shapes — an Item's attachments hold Item instances, an on-map
- * entity's hold plain JSON, and both expose `.defId`.
- * @param {Item|Entity} candidate
- */
-export function hasReceiver(candidate) {
-  return candidate?.attachments?.[RECEIVER_SLOT_ID]?.defId === RECEIVER_DEF_ID;
-}
+// Re-exported so callers of this layer don't need to know the predicate lives
+// in the dependency-free module the renderer also pulls from.
+export { hasReceiver };
 
 /**
  * Whether this is a wagon at all. `traits` is not in Item.SERIALIZABLE_PROPERTIES,

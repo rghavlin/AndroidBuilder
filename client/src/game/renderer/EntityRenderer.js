@@ -8,6 +8,7 @@ import { ItemDefs } from '../inventory/ItemDefs.js';
 import { EquipmentSlot, ItemCategory, ItemTrait } from '../inventory/traits.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 import { gridItems } from '../inventory/gridUtils.js';
+import { isRemoteDevice } from '../remote/RemoteDeviceKinds.js';
 
 let tempCanvas = null;
 let tempCtx = null;
@@ -85,14 +86,20 @@ function getPoweredTurretForEntity(entity) {
 // Ground-pile icon priority. A tile may hold many items, but it renders as a
 // single icon — the "dominant" item. We pick by category tier first (lower
 // rank = shown on top), then by footprint area within a tier. Tiers below mirror
-// the design: interactive markers > vehicles > backpacks > food > guns > medical
-// > containers > lighters/matches > (everything else, by size).
+// the design: interactive markers > remote devices > vehicles > backpacks >
+// food > guns > medical > containers > lighters/matches > (everything else, by
+// size).
 const TILE_ICON_RANK = {
   // Interactive world markers (help "?", authored event switches) outrank
   // everything: they exist to be seen and clicked, and they're 1x1, so without
   // a tier of their own any dropped can of food would win the tile and hide
   // them. See Item.groundPriority / EventMarkers.js.
-  INTERACTIVE: -1,
+  INTERACTIVE: -2,
+  // Remote devices (drone, RC wagon) outrank everything else INCLUDING a
+  // powered turret: a device you can't see is a device you can't command, and
+  // unlike the turret it's the thing the player is actively steering. They stay
+  // below interactive markers so a parked wagon can never hide a quest switch.
+  RC_DEVICE: -1,
   VEHICLE: 0,
   BACKPACK: 1,
   FOOD: 2,
@@ -128,6 +135,7 @@ function getTileIconRank(item) {
   const hasCategory = (c) => categories.includes(c);
 
   if (groundPriority) return TILE_ICON_RANK.INTERACTIVE;
+  if (isRemoteDevice(item)) return TILE_ICON_RANK.RC_DEVICE;
   if (hasTrait(ItemTrait.VEHICLE) || hasTrait(ItemTrait.WAGON) ||
       hasTrait(ItemTrait.SCOOTER) || hasCategory(ItemCategory.VEHICLE)) {
     return TILE_ICON_RANK.VEHICLE;
@@ -331,6 +339,15 @@ export const EntityRenderer = {
     // Persistent entities stay visible if explored, but use consistent fog alpha
     // PHASE 15 Fix: Increase opacity for structural objects in fog to prevent them looking 'open' or hollow
     if (!isVisible) ctx.globalAlpha = isPersistent ? 0.8 : 0.55;
+
+    // A remote-device ITEM is drawn in its own pass AFTER the player, so on the
+    // player's own tile it has to be see-through or it hides them. Multiplied
+    // into the fog alpha, exactly as drawDrone does for the airborne form.
+    if (entity.type === 'item' && engine?.player && isRemoteDevice(entity)
+        && Math.round(engine.player.x) === Math.round(renderX)
+        && Math.round(engine.player.y) === Math.round(renderY)) {
+      ctx.globalAlpha *= OVER_PLAYER_ALPHA;
+    }
 
     const screenX = renderX * tileSize;
     const screenY = renderY * tileSize;
