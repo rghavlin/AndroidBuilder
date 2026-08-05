@@ -13,6 +13,9 @@ class ConfigManager {
      * Load settings from localStorage
      */
     load() {
+        if (typeof localStorage === 'undefined') {
+            return this.getDefaults();
+        }
         try {
             const saved = localStorage.getItem(this.storageKey);
             return saved ? JSON.parse(saved) : this.getDefaults();
@@ -57,6 +60,9 @@ class ConfigManager {
      * Persist current config to localStorage
      */
     save() {
+        if (typeof localStorage === 'undefined') {
+            return;
+        }
         try {
             localStorage.setItem(this.storageKey, JSON.stringify(this.config));
         } catch (e) {

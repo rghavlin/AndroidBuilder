@@ -1,4 +1,6 @@
 
+import { configManager } from './ConfigManager';
+
 /**
  * AudioManager - Centralized utility for managing game audio
  */
@@ -14,8 +16,8 @@ class AudioManager {
     debugLog(`[AudioManager] New instance created: ${this.id}`);
     this.sounds = new Map(); // Store { instances: Audio[], index: number }
     this.soundDefaults = new Map(); // Store default volume per sound
-    this.masterVolume = 1.0;
-    this.sfxVolume = 1.0;
+    this.masterVolume = configManager.get('masterVolume') ?? 0.8;
+    this.sfxVolume = configManager.get('sfxVolume') ?? 1.0;
     this.isMuted = false;
 
     // Phase 25: Web Audio API for Gapless Looping

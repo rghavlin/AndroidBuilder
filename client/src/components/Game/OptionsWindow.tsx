@@ -10,7 +10,7 @@ import {
     SelectTrigger, 
     SelectValue 
 } from "@/components/ui/select";
-import { X, Settings, Gamepad2, Monitor, Volume2, Music, Volume1, Save, Upload, Download, Trash2 } from "lucide-react";
+import { X, Settings, Gamepad2, Monitor, Volume2, Save, Upload, Download, Trash2 } from "lucide-react";
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { configManager } from '@/game/utils/ConfigManager';
 import audioManager from '@/game/utils/AudioManager';
@@ -142,8 +142,6 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
     };
 
     const [masterVol, setMasterVol] = useState(configManager.get('masterVolume') ?? 0.8);
-    const [musicVol, setMusicVol] = useState(configManager.get('musicVolume') ?? 0.5);
-    const [sfxVol, setSfxVol] = useState(configManager.get('sfxVolume') ?? 1.0);
 
     const handleMasterVolChange = (vals: number[]) => {
         const val = vals[0];
@@ -151,22 +149,6 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
         configManager.set('masterVolume', val);
         audioManager.setVolume(val);
         musicManager.updateVolume();
-    };
-
-    const handleMusicVolChange = (vals: number[]) => {
-        const val = vals[0];
-        setMusicVol(val);
-        configManager.set('musicVolume', val);
-        musicManager.updateVolume();
-    };
-
-    const handleSfxVolChange = (vals: number[]) => {
-        const val = vals[0];
-        setSfxVol(val);
-        configManager.set('sfxVolume', val);
-        audioManager.setSfxVolume(val);
-        // Play a test sound to give feedback
-        audioManager.playOneShot('Click', { volume: 0.5 });
     };
 
     const [furnitureOpacity, setFurnitureOpacity] = useState(configManager.get('furnitureOpacity') ?? 0.5);
@@ -321,7 +303,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                         <div className="space-y-3 bg-muted/30 p-4 rounded-xl border border-border/40">
                                             <div className="flex justify-between items-center px-1">
                                                 <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                                                    <Volume2 className="w-4 h-4" /> Master Volume
+                                                    <Volume2 className="w-4 h-4" /> Sound Volume
                                                 </div>
                                                 <span className="text-xs font-mono text-muted-foreground bg-background px-2 py-1 rounded-md">
                                                     {Math.round(masterVol * 100)}%
@@ -333,10 +315,11 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                                 step={0.01} 
                                                 onValueChange={handleMasterVolChange} 
                                             />
-                                         </div>
-                                     </div>
-                                 </div>
-                             </TabsContent>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </TabsContent>
 
                             <TabsContent value="saves" className="mt-0 w-full animate-in slide-in-from-bottom-2 duration-300">
                                 <div className="space-y-6 py-1">
