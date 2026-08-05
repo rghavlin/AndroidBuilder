@@ -12,7 +12,7 @@ import { useSpeechBubbles } from '../../contexts/SpeechBubbleContext.jsx';
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { configManager } from '../../game/utils/ConfigManager.js';
 import { EntityType } from '../../game/entities/Entity.js';
-import { isRemoteDevice, getUnderfootDevice } from '../../game/remote/RemoteDeviceKinds.js';
+import { isLinkedDevice, getLinkedDeviceUnderfoot } from '../../game/remote/RemoteDeviceKinds.js';
 import { isIndoorFloor } from '../../game/map/TerrainTypes.js';
 import { getEffectiveHour, isNightHour } from '../../game/config/VisionConfig.js';
 import { getHourFromTurn } from '../../game/utils/TimeUtils.js';
@@ -545,12 +545,15 @@ export default function MapCanvas({
         if (maxX < extendedBounds.startX || minX > extendedBounds.endX || maxY < extendedBounds.startY || minY > extendedBounds.endY) return;
 
         // Categorize into layers: Persistent structures and ground items go to bottom
-        if (entity.type === EntityType.DRONE || (entity.type === EntityType.ITEM && isRemoteDevice(entity))) {
-          // Remote devices draw in their own pass after the player — otherwise
-          // the player sprite (Layer 4) paints over a drone hovering on their
-          // tile or an RC wagon rolling across it, and a device you can't see
-          // is a device you can't command. EntityRenderer fades them while they
-          // overlap the player so they don't hide them in turn.
+        if (entity.type === EntityType.DRONE
+            || (entity.type === EntityType.ITEM && isLinkedDevice(entity, engine))) {
+          // Airborne drones and the ONE device the phone is linked to draw in
+          // their own pass after the player — otherwise the player sprite
+          // (Layer 4) paints over a drone hovering on their tile or an RC wagon
+          // being driven across it. Unlinked devices deliberately stay in the
+          // ground layer: they already win their own tile via TILE_ICON_RANK,
+          // and promoting them here would let a parked wagon cover a zombie
+          // standing on it.
           deviceEntities.push(entity);
         } else if ([EntityType.ITEM, EntityType.PLACE_ICON, EntityType.DOOR, EntityType.WINDOW, EntityType.GARAGE_DOOR].includes(entity.type)) {
           groundEntities.push(entity);
@@ -658,14 +661,19 @@ export default function MapCanvas({
         ctx.restore();
       }
 
-      // Layer 4.2: a remote device at the player's OWN feet. The player's tile
-      // is owned by the ground container — syncWithMap empties the tile when
-      // they arrive — so no map entity exists to draw and the loop above can't
-      // see it. Synthesize a render-only stand-in at the player's position.
-      const underfootDevice = player ? getUnderfootDevice(engine) : null;
+      // Layer 4.2: the linked remote device at the player's OWN feet. The
+      // player's tile is owned by the ground container — syncWithMap empties
+      // the tile when they arrive — so no map entity exists to draw and the
+      // loop above can't see it. Synthesize a render-only stand-in.
+      const underfootDevice = player ? getLinkedDeviceUnderfoot(engine) : null;
       if (underfootDevice) {
-        const dX = isAnimatingMovement ? playerRenderPosition.x : player.x;
-        const dY = isAnimatingMovement ? playerRenderPosition.y : player.y;
+        // Anchored to the TILE THE CONTAINER BELONGS TO, never the player's
+        // animated position: the device is parked, so following the player
+        // across a multi-tile walk would drag its icon along and snap it back
+        // on arrival. lastSynced is the player's tile until the move completes,
+        // which is exactly when the container hands the device back to the map.
+        const dX = engine.inventoryManager?.lastSyncedX ?? player.x;
+        const dY = engine.inventoryManager?.lastSyncedY ?? player.y;
         ctx.save();
         ctx.translate(globalOffsetX, globalOffsetY);
         EntityRenderer.renderEntity(ctx, {
@@ -683,7 +691,12 @@ export default function MapCanvas({
           attachments: underfootDevice.attachments,
           containerGrid: underfootDevice.containerGrid,
           isOn: underfootDevice.isOn,
-          x: dX, y: dY, logicalX: dX, logicalY: dY
+          x: dX, y: dY, logicalX: dX, logicalY: dY,
+          // This stand-in is on the player's tile by definition, so it always
+          // gets the see-through treatment — no position comparison needed (and
+          // none would be reliable mid-walk, when the player's logical tile has
+          // already moved on).
+          fadeOverPlayer: true
         }, rTileSize, imageLoader.images, visibleTileSet, true, engine, currentTime, isAnimatingZombies);
         ctx.restore();
       }

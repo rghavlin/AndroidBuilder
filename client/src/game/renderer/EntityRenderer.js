@@ -340,12 +340,16 @@ export const EntityRenderer = {
     // PHASE 15 Fix: Increase opacity for structural objects in fog to prevent them looking 'open' or hollow
     if (!isVisible) ctx.globalAlpha = isPersistent ? 0.8 : 0.55;
 
-    // A remote-device ITEM is drawn in its own pass AFTER the player, so on the
-    // player's own tile it has to be see-through or it hides them. Multiplied
-    // into the fog alpha, exactly as drawDrone does for the airborne form.
-    if (entity.type === 'item' && engine?.player && isRemoteDevice(entity)
-        && Math.round(engine.player.x) === Math.round(renderX)
-        && Math.round(engine.player.y) === Math.round(renderY)) {
+    // A linked remote-device ITEM is drawn in its own pass AFTER the player, so
+    // on the player's own tile it has to be see-through or it hides them.
+    // Multiplied into the fog alpha, exactly as drawDrone does for the airborne
+    // form. `fadeOverPlayer` is set by callers that already know the two
+    // overlap (the underfoot stand-in, whose tile IS the player's).
+    if (entity.type === 'item' && isRemoteDevice(entity)
+        && (entity.fadeOverPlayer
+            || (engine?.player
+                && Math.round(engine.player.x) === Math.round(renderX)
+                && Math.round(engine.player.y) === Math.round(renderY)))) {
       ctx.globalAlpha *= OVER_PLAYER_ALPHA;
     }
 

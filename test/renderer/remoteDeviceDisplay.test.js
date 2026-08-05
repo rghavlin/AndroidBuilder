@@ -7,7 +7,7 @@ import { GameHarness } from '../harness/GameHarness.js';
 import { Item } from '../../client/src/game/inventory/Item.js';
 import { createItemFromDef } from '../../client/src/game/inventory/ItemDefs.js';
 import { getDominantItemInTile } from '../../client/src/game/renderer/EntityRenderer.js';
-import { isRemoteDevice, hasReceiver, getUnderfootDevice } from '../../client/src/game/remote/RemoteDeviceKinds.js';
+import { isRemoteDevice, hasReceiver, getLinkedDeviceUnderfoot } from '../../client/src/game/remote/RemoteDeviceKinds.js';
 import { TURRET_DEF_ID } from '../../client/src/game/ai/TurretCombat.js';
 import engine from '../../client/src/game/GameEngine.js';
 
@@ -87,7 +87,7 @@ describe('Tile icon dominance', () => {
   });
 });
 
-describe('getUnderfootDevice', () => {
+describe('getLinkedDeviceUnderfoot', () => {
   let harness;
 
   beforeEach(() => {
@@ -107,27 +107,40 @@ describe('getUnderfootDevice', () => {
   it('returns null when nothing remote is at the player\'s feet', () => {
     dropAtFeet(make('weapon.plank'));
     dropAtFeet(make('vehicle.toy_wagon')); // no receiver
-    expect(getUnderfootDevice(engine)).toBeNull();
+    expect(getLinkedDeviceUnderfoot(engine)).toBeNull();
   });
 
-  it('finds a device the map itself cannot see, because the tile was emptied', () => {
+  it('does NOT draw over the player just for standing on a device', () => {
+    // The regression this exists for: a wagon covering the player's own sprite
+    // for a player who has no phone at all.
+    dropAtFeet(makeRcWagon());
+    dropAtFeet(make('tool.recon_drone'));
+    expect(engine.activeDeviceId).toBeNull();
+    expect(getLinkedDeviceUnderfoot(engine)).toBeNull();
+  });
+
+  it('finds the linked device the map itself cannot see, because the tile was emptied', () => {
     const wagon = dropAtFeet(makeRcWagon());
+    engine.activeDeviceId = wagon.instanceId;
     const p = harness.player;
+
     // The container owns it; the tile has nothing to render.
     expect(harness.gameMap.getItemsOnTile(Math.round(p.x), Math.round(p.y))).toHaveLength(0);
-    expect(getUnderfootDevice(engine)?.instanceId).toBe(wagon.instanceId);
+    expect(getLinkedDeviceUnderfoot(engine).instanceId).toBe(wagon.instanceId);
   });
 
-  it('prefers the device the phone is linked to', () => {
-    dropAtFeet(make('tool.recon_drone'));
-    const wagon = dropAtFeet(makeRcWagon());
+  it('returns only the linked device when several are underfoot', () => {
+    dropAtFeet(makeRcWagon());
+    const drone = dropAtFeet(make('tool.recon_drone'));
 
-    engine.activeDeviceId = wagon.instanceId;
-    expect(getUnderfootDevice(engine).instanceId).toBe(wagon.instanceId);
-
-    const drone = engine.inventoryManager.groundContainer.getAllItems()
-      .find(it => it.defId === 'tool.recon_drone');
     engine.activeDeviceId = drone.instanceId;
-    expect(getUnderfootDevice(engine).instanceId).toBe(drone.instanceId);
+    const found = getLinkedDeviceUnderfoot(engine);
+    expect(found.instanceId).toBe(drone.instanceId);
+  });
+
+  it('ignores a link pointing at a device that is somewhere else entirely', () => {
+    dropAtFeet(makeRcWagon());
+    engine.activeDeviceId = 'a-drone-flying-across-the-map';
+    expect(getLinkedDeviceUnderfoot(engine)).toBeNull();
   });
 });

@@ -33,22 +33,30 @@ export function isRemoteDevice(candidate) {
 }
 
 /**
- * The remote device at the player's own feet, or null.
+ * Whether the phone currently has a radio link to this device.
+ * Null/absent activeDeviceId means the player is in control of themselves.
+ */
+export function isLinkedDevice(candidate, engine) {
+  const key = engine?.activeDeviceId;
+  return !!key && !!candidate?.instanceId && candidate.instanceId === key;
+}
+
+/**
+ * The LINKED remote device at the player's own feet, or null.
  *
  * The player's tile is owned by the ground container — syncWithMap empties the
- * tile when they arrive — so a device underfoot has NO map entity representing
- * it and the renderer has to synthesize one. Prefers whichever device the phone
- * is linked to, since that's the one the player is asking about.
+ * tile when they arrive — so a device underfoot has no map entity representing
+ * it and the renderer has to synthesize one.
+ *
+ * Restricted to the linked device on purpose. Drawing every device underfoot
+ * would put a wagon on top of the player's own sprite permanently, for a player
+ * who may not even own a phone; only the thing you are actively steering earns
+ * the right to cover you.
  *
  * @returns {Item|null}
  */
-export function getUnderfootDevice(engine) {
-  const items = engine?.inventoryManager?.groundContainer?.getAllItems?.() || [];
-  let fallback = null;
-  for (const item of items) {
-    if (!isRemoteDevice(item)) continue;
-    if (item.instanceId && item.instanceId === engine?.activeDeviceId) return item;
-    if (!fallback) fallback = item;
-  }
-  return fallback;
+export function getLinkedDeviceUnderfoot(engine) {
+  if (!engine?.activeDeviceId) return null;
+  const items = engine.inventoryManager?.groundContainer?.getAllItems?.() || [];
+  return items.find(item => isRemoteDevice(item) && isLinkedDevice(item, engine)) || null;
 }
