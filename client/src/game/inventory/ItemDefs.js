@@ -1299,8 +1299,8 @@ export const ItemDefs = {
     noLoot: true,
     rarity: Rarity.RARE,
     imageId: 'rcreceiver',
-    width: 2,
-    height: 2,
+    width: 1,
+    height: 1,
     traits: [],
     categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
     description: 'Fit to a motorized wagon to drive it from a smartphone'

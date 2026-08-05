@@ -42725,7 +42725,20 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "vehicle.toy_wagon",
+            "vehicleAttachments": {
+              "motor": {
+                "defId": "electric_motor"
+              },
+              "battery": {
+                "defId": "tool.large_battery",
+                "charges": 150
+              }
+            }
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -42802,7 +42815,34 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "vehicle.cargo_wagon",
+            "vehicleAttachments": {
+              "motor_front": {
+                "defId": "electric_motor"
+              },
+              "battery_front": {
+                "defId": "tool.large_battery",
+                "charges": 150
+              },
+              "motor_middle": {
+                "defId": "electric_motor"
+              },
+              "battery_middle": {
+                "defId": "tool.large_battery",
+                "charges": 150
+              },
+              "motor_rear": {
+                "defId": "electric_motor"
+              },
+              "battery_rear": {
+                "defId": "tool.large_battery",
+                "charges": 150
+              }
+            }
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -43649,6 +43689,12 @@
           },
           {
             "defId": "backpack.hiking"
+          },
+          {
+            "defId": "tool.rc_receiver"
+          },
+          {
+            "defId": "tool.rc_receiver"
           }
         ]
       },
