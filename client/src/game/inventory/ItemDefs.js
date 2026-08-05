@@ -711,7 +711,7 @@ export const ItemDefs = {
     rarity: Rarity.UNCOMMON,
     imageId: 'machete',
     width: 3,
-    height: 2,
+    height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
     categories: [ItemCategory.WEAPON],
@@ -719,6 +719,22 @@ export const ItemDefs = {
     combat: {
       hitChance: 0.75,
       damage: { min: 3, max: 9 }
+    }
+  },
+  'weapon.golf_club': {
+    id: 'weapon.golf_club',
+    name: 'Golf club',
+    rarity: Rarity.UNCOMMON,
+    imageId: 'golfclub',
+    width: 5,
+    height: 1,
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
+    equippableSlot: EquipmentSlot.MELEE,
+    categories: [ItemCategory.WEAPON],
+    condition: 100,
+    combat: {
+      hitChance: 0.75,
+      damage: { min: 3, max: 8 }
     }
   },
   'weapon.crowbar': {
@@ -924,7 +940,7 @@ export const ItemDefs = {
     noLoot: true,
     rarity: Rarity.COMMON,
     imageId: 'spear',
-    width: 4,
+    width: 5,
     height: 1,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,

@@ -54492,140 +54492,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "weapon.357Pistol-1785752131054-whub1",
-            "defId": "weapon.357Pistol",
-            "id": "weapon.357Pistol",
-            "name": ".357 Pistol",
-            "rarity": "rare",
-            "imageId": "357",
-            "width": 2,
-            "height": 2,
-            "traits": [
-              "equippable",
-              "container",
-              "openable-when-nested"
-            ],
-            "equippableSlot": "handgun",
-            "categories": [
-              "weapon",
-              "gun"
-            ],
-            "attachmentSlots": [
-              {
-                "id": "sight",
-                "name": "Optic",
-                "allowedCategories": [
-                  "laser_sight"
-                ]
-              },
-              {
-                "id": "ammo",
-                "name": "Ammo",
-                "hidden": true,
-                "allowedCategories": [
-                  "ammo"
-                ],
-                "allowedItems": [
-                  "ammo.357"
-                ]
-              }
-            ],
-            "rangedStats": {
-              "noiseRadius": 15,
-              "damage": {
-                "min": 5,
-                "max": 12
-              },
-              "accuracyFalloff": 0.1,
-              "minAccuracy": 0.01
-            },
-            "directLoad": {
-              "slotId": "ammo",
-              "ammoId": "ammo.357",
-              "capacity": 6
-            },
-            "spawnMaxRounds": 6
-          },
-          {
-            "instanceId": "ammo.357-1785752131054-3ae6s",
-            "defId": "ammo.357",
-            "id": "ammo.357",
-            "name": ".357 Ammo",
-            "rarity": "uncommon",
-            "imageId": "357ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 1,
-            "spawnStackMax": 3
-          },
-          {
-            "instanceId": "ammo.357-1785752131054-5hstw",
-            "defId": "ammo.357",
-            "id": "ammo.357",
-            "name": ".357 Ammo",
-            "rarity": "uncommon",
-            "imageId": "357ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 1,
-            "spawnStackMax": 3
-          },
-          {
-            "instanceId": "ammo.357-1785752131054-adgje",
-            "defId": "ammo.357",
-            "id": "ammo.357",
-            "name": ".357 Ammo",
-            "rarity": "uncommon",
-            "imageId": "357ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 1,
-            "spawnStackMax": 3
-          },
-          {
-            "instanceId": "ammo.357-1785752131054-cx3qh",
-            "defId": "ammo.357",
-            "id": "ammo.357",
-            "name": ".357 Ammo",
-            "rarity": "uncommon",
-            "imageId": "357ammo",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [
-              "ammo"
-            ],
-            "stackMax": 50,
-            "spawnStackMin": 1,
-            "spawnStackMax": 3
-          }
-        ]
+        "contents": []
       },
       {
         "x": 24,
@@ -55170,7 +55037,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.hammer-1785752131054-lyhqz",
+            "instanceId": "weapon.hammer-1785890014334-vjx0c",
             "defId": "weapon.hammer",
             "id": "weapon.hammer",
             "name": "Hammer",
@@ -58692,7 +58559,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_corn-1785752131054-b1kp9",
+            "instanceId": "provision.harvestable_corn-1785890014334-m69em",
             "defId": "provision.harvestable_corn",
             "id": "provision.harvestable_corn",
             "name": "Harvestable corn",

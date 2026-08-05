@@ -105,12 +105,11 @@ describe('ZombieReplenishmentSystem', () => {
     };
 
     // We keep tiles outside compound (at x >= 35) explored & walkable,
-    // and make all other tiles unexplored except the player's immediate vicinity
-    // (player's vicinity is excluded by distance check anyway, but let's make it clear).
+    // and make all other tiles unexplored.
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const isOutsideCandidate = x >= 35;
-        if (!isOutsideCandidate && !(x < 15 && y < 15)) {
+        if (!isOutsideCandidate) {
           gameMap.getTile(x, y).flags.explored = false;
         }
       }
