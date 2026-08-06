@@ -7,7 +7,7 @@ import { GameHarness } from '../harness/GameHarness.js';
 import { Item } from '../../client/src/game/inventory/Item.js';
 import { createItemFromDef } from '../../client/src/game/inventory/ItemDefs.js';
 import { getDominantItemInTile } from '../../client/src/game/renderer/EntityRenderer.js';
-import { isRemoteDevice, hasReceiver, getLinkedDeviceUnderfoot } from '../../client/src/game/remote/RemoteDeviceKinds.js';
+import { isRemoteDevice, hasReceiver, hasAutonomy, getLinkedDeviceUnderfoot } from '../../client/src/game/remote/RemoteDeviceKinds.js';
 import { TURRET_DEF_ID } from '../../client/src/game/ai/TurretCombat.js';
 import engine from '../../client/src/game/GameEngine.js';
 
@@ -16,6 +16,12 @@ const make = (defId) => new Item(createItemFromDef(defId));
 function makeRcWagon(defId = 'vehicle.toy_wagon') {
   const wagon = make(defId);
   wagon.attachments = { rc_receiver: make('tool.rc_receiver') };
+  return wagon;
+}
+
+function makeAutoWagon(defId = 'vehicle.toy_wagon') {
+  const wagon = make(defId);
+  wagon.attachments = { rc_receiver: make('tool.autonomous_controller') };
   return wagon;
 }
 
@@ -45,6 +51,40 @@ describe('isRemoteDevice', () => {
     const asEntityData = JSON.parse(JSON.stringify(makeRcWagon().toJSON()));
     expect(hasReceiver(asEntityData)).toBe(true);
     expect(isRemoteDevice(asEntityData)).toBe(true);
+  });
+
+  it('treats an autonomous controller as a receiver everywhere a receiver counts', () => {
+    // hasReceiver gates cycling, driving, the link ring and FOV. If the
+    // controller ever stops passing it, a wagon fitted with one goes invisible
+    // to the entire RC stack at once — the single highest-blast-radius
+    // regression in this feature.
+    expect(hasReceiver(makeAutoWagon())).toBe(true);
+    expect(isRemoteDevice(makeAutoWagon())).toBe(true);
+    expect(isRemoteDevice(makeAutoWagon('vehicle.cargo_wagon'))).toBe(true);
+
+    const asEntityData = JSON.parse(JSON.stringify(makeAutoWagon().toJSON()));
+    expect(hasReceiver(asEntityData)).toBe(true);
+    expect(isRemoteDevice(asEntityData)).toBe(true);
+  });
+});
+
+describe('hasAutonomy', () => {
+  it('is true only for a fitted autonomous controller', () => {
+    expect(hasAutonomy(makeAutoWagon())).toBe(true);
+    expect(hasAutonomy(JSON.parse(JSON.stringify(makeAutoWagon().toJSON())))).toBe(true);
+  });
+
+  it('is false for a plain receiver — the narrower half of hasReceiver', () => {
+    // The two predicates deliberately disagree here: a receiver-only wagon is
+    // drivable but cannot be given a destination.
+    expect(hasReceiver(makeRcWagon())).toBe(true);
+    expect(hasAutonomy(makeRcWagon())).toBe(false);
+  });
+
+  it('is false for an unfitted wagon, a loose controller, and null', () => {
+    expect(hasAutonomy(make('vehicle.toy_wagon'))).toBe(false);
+    expect(hasAutonomy(make('tool.autonomous_controller'))).toBe(false);
+    expect(hasAutonomy(null)).toBe(false);
   });
 });
 

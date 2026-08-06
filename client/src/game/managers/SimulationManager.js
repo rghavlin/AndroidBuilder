@@ -16,6 +16,7 @@ import { EntityType } from '../entities/Entity.js';
 import { IntentQueue } from './IntentQueue.js';
 import { TurretSystem } from '../systems/TurretSystem.js';
 import { DroneSystem } from '../systems/DroneSystem.js';
+import { WagonSystem } from '../systems/WagonSystem.js';
 import { FireSystem } from '../systems/FireSystem.js';
 import { DestructionSystem } from '../systems/DestructionSystem.js';
 import { DestroyIntent } from '../components/DestroyIntent.js';
@@ -104,6 +105,11 @@ export class SimulationManager {
       // Runs before turrets so a future autonomous drone can carry a turret
       // into range before it fires this same turn (see systems/DroneSystem.js).
       DroneSystem.process(gameMap, engine, actionQueue);
+
+      // --- 0b. Autonomous wagons ---
+      // Before turrets for the same reason: a turret riding a wagon fires from
+      // the tile the wagon reached this turn (see systems/WagonSystem.js).
+      WagonSystem.process(gameMap, engine, actionQueue, { isSleeping });
 
       // --- 1. Turret Turns ---
       // Runs first, immediately after the player's turn (before zombies, rabbits, NPCs)

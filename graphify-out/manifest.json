@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1785925511.7686863,
-    "ast_hash": "71d9229500104b704120ad1dd2f90c43",
+    "mtime": 1785981211.5523393,
+    "ast_hash": "0b2884006f57bd4036e8172396a169b4",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -180,8 +180,8 @@
     "semantic_hash": "6cb0e10aaee5e3646f729c705db6a5f0"
   },
   "client/src/components/Game/OptionsWindow.tsx": {
-    "mtime": 1785825938.289878,
-    "ast_hash": "65614a82ee4f2186fba32a703a6659df",
+    "mtime": 1785926773.8155544,
+    "ast_hash": "1882a2a6a14c448d843a92cd59af1c2b",
     "semantic_hash": ""
   },
   "client/src/components/Game/OverlayManager.tsx": {
@@ -345,8 +345,8 @@
     "semantic_hash": "18fa86d376fe5e2c825e585a7ede892d"
   },
   "client/src/components/Inventory/ItemContextMenu.tsx": {
-    "mtime": 1785818007.5697834,
-    "ast_hash": "1b561671d15b059f49404573a5af246c",
+    "mtime": 1785981145.4968827,
+    "ast_hash": "43df6284f010d153804fdc15850af6e9",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/ItemTooltip.tsx": {
@@ -640,13 +640,13 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1785909954.6189928,
-    "ast_hash": "ebcc1a3826a35de7619be4340ef6f9a7",
+    "mtime": 1785981114.9512324,
+    "ast_hash": "21874c0ccc35d5a8f57122860551e3b1",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
-    "mtime": 1785909941.7025957,
-    "ast_hash": "fa8e7499c2dbb66fc416df7838d2ee61",
+    "mtime": 1785981178.4147198,
+    "ast_hash": "05d6994cdd513891ef53c6ee9d2d9b2e",
     "semantic_hash": ""
   },
   "client/src/contexts/GridSizeContext.tsx": {
@@ -705,8 +705,8 @@
     "semantic_hash": ""
   },
   "client/src/game/GameEngine.js": {
-    "mtime": 1785909968.493188,
-    "ast_hash": "598ab9ff34de43cc3c608ae9050cb551",
+    "mtime": 1785980989.61049,
+    "ast_hash": "30340fb75bab1a042334aff4e5888fb3",
     "semantic_hash": ""
   },
   "client/src/game/GameInitializationManager.js": {
@@ -715,8 +715,8 @@
     "semantic_hash": ""
   },
   "client/src/game/GameSaveSystem.js": {
-    "mtime": 1785728524.2713163,
-    "ast_hash": "996a8b6c3a6f3c4ac5bf47900c579d91",
+    "mtime": 1785981027.1077437,
+    "ast_hash": "c13c5b901acd9894154067570f621062",
     "semantic_hash": ""
   },
   "client/src/game/ScenarioStorage.js": {
@@ -970,8 +970,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/CraftingRecipes.js": {
-    "mtime": 1785909240.1949275,
-    "ast_hash": "fb08158174ef24617eaee2f2d19038cf",
+    "mtime": 1785980580.002017,
+    "ast_hash": "f064513da115bca510e717ee8b638001",
     "semantic_hash": ""
   },
   "client/src/game/inventory/GroundManager.js": {
@@ -990,8 +990,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
-    "mtime": 1785911142.2301662,
-    "ast_hash": "ab715fc092fe3fff3a7d25309c2ecc0b",
+    "mtime": 1785980571.2996385,
+    "ast_hash": "109470b4546ba9605fe768d90817f019",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemPricing.js": {
@@ -1035,13 +1035,13 @@
     "semantic_hash": "5715d56998f6ea89742ca95e58ff8d0a"
   },
   "client/src/game/managers/SimulationManager.js": {
-    "mtime": 1785729211.4028025,
-    "ast_hash": "15c16b1f601dab8266d754224d1eb941",
+    "mtime": 1785980827.7277417,
+    "ast_hash": "70305d00b33e69859440033eee7a50fc",
     "semantic_hash": ""
   },
   "client/src/game/managers/TurnManager.js": {
-    "mtime": 1785818602.8296254,
-    "ast_hash": "5b424407b06843b3b0dc6b79c8d026c9",
+    "mtime": 1785980890.2483847,
+    "ast_hash": "7fe285c190d152dd3e3e323fc1ed7c88",
     "semantic_hash": ""
   },
   "client/src/game/map/AsciiMapRenderer.js": {
@@ -1255,13 +1255,13 @@
     "semantic_hash": "97f8ed7c0eab1dda48fa481d7172d4b2"
   },
   "client/src/game/utils/AudioManager.js": {
-    "mtime": 1784688361.321849,
-    "ast_hash": "1b28cfb1ff0cf029eb5db94c1ef41bdc",
+    "mtime": 1785926580.5935802,
+    "ast_hash": "7c92faec08f48a5fe15dd170eaa2bd76",
     "semantic_hash": ""
   },
   "client/src/game/utils/ConfigManager.js": {
-    "mtime": 1785825934.9916747,
-    "ast_hash": "5ec45d9aedb800db0383714d2509a49a",
+    "mtime": 1785926638.1688747,
+    "ast_hash": "266e823f4b92544665b59c45c2778c4d",
     "semantic_hash": ""
   },
   "client/src/game/utils/EdgeStructure.js": {
@@ -1350,8 +1350,8 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/VehicleUtils.js": {
-    "mtime": 1785909306.099751,
-    "ast_hash": "e858207bdb3e484d7fd73e72cc2e4328",
+    "mtime": 1785980610.2168386,
+    "ast_hash": "695b488113b7f744d3cc12f3529e3041",
     "semantic_hash": ""
   },
   "client/src/game/utils/WeatherManager.js": {
@@ -3250,8 +3250,8 @@
     "semantic_hash": ""
   },
   "scripts/god-object-budget.json": {
-    "mtime": 1785910727.5743463,
-    "ast_hash": "f30d29128a9127fc1f0eec6a759651c7",
+    "mtime": 1785980842.7397091,
+    "ast_hash": "a50afdd8e83ce13a4a36d070586a3a99",
     "semantic_hash": ""
   },
   "scripts/godObjectBudget.mjs": {
@@ -3335,8 +3335,8 @@
     "semantic_hash": ""
   },
   "test/remote/droneVision.test.js": {
-    "mtime": 1785909899.5673075,
-    "ast_hash": "29b05da888da79b5da511e362fdc9c4a",
+    "mtime": 1785981993.0150757,
+    "ast_hash": "b2dfa2d94b669605bec97224dd83d8c0",
     "semantic_hash": ""
   },
   "test/serialization/droneRoundTrip.test.js": {
@@ -3415,18 +3415,18 @@
     "semantic_hash": ""
   },
   "client/src/game/config/RcVehicleConfig.js": {
-    "mtime": 1785909247.8297727,
-    "ast_hash": "6c4d01db9c667a48e2ed11762956d8e7",
+    "mtime": 1785980535.7706091,
+    "ast_hash": "a58178468e902ef469bc95430816d426",
     "semantic_hash": ""
   },
   "client/src/game/remote/RcVehicle.js": {
-    "mtime": 1785912455.332743,
-    "ast_hash": "3ca572abb51ac0c270d01f47c8265791",
+    "mtime": 1785980715.5999532,
+    "ast_hash": "3a13ece9ed0a04b753d9179df2728e12",
     "semantic_hash": ""
   },
   "client/src/game/remote/RcVehicleMovement.js": {
-    "mtime": 1785910503.2128837,
-    "ast_hash": "44e3fa6e1e3769cdcfa7d911b544c1ac",
+    "mtime": 1785980667.9151855,
+    "ast_hash": "b1a51290cb4a935e58153a279ac23858",
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteItem.js": {
@@ -3435,8 +3435,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteTween.js": {
-    "mtime": 1785909572.242994,
-    "ast_hash": "ea2c00c716f70ff9544f04ce4e2f9741",
+    "mtime": 1785980858.7300699,
+    "ast_hash": "3aef4841eefcc1fc1c9bd80fc31ce371",
     "semantic_hash": ""
   },
   "test/remote/rcVehicle.test.js": {
@@ -3445,8 +3445,8 @@
     "semantic_hash": ""
   },
   "test/remote/rcVehicleDefs.test.js": {
-    "mtime": 1785909271.2809944,
-    "ast_hash": "bfffa13e31d17300fd35e169ef5783b8",
+    "mtime": 1785981301.9183133,
+    "ast_hash": "454e69fac2140bebf79ebec4e8f90654",
     "semantic_hash": ""
   },
   "test/remote/rcVehicleMovement.test.js": {
@@ -3455,18 +3455,63 @@
     "semantic_hash": ""
   },
   "test/serialization/rcWagonRoundTrip.test.js": {
-    "mtime": 1785910131.5478888,
-    "ast_hash": "daf6baad919a7d984f97b9770c4f4388",
+    "mtime": 1785981970.3347468,
+    "ast_hash": "68df6b580134cd3a5a0ac12d8a5eea4b",
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteDeviceKinds.js": {
-    "mtime": 1785925475.9185193,
-    "ast_hash": "788ddede84c765b87bb9677e02d33639",
+    "mtime": 1785980544.4832897,
+    "ast_hash": "dc2c3fa19720f27295075aec4f03eca4",
     "semantic_hash": ""
   },
   "test/renderer/remoteDeviceDisplay.test.js": {
-    "mtime": 1785925539.3355315,
-    "ast_hash": "fe7fc709f9caafbbd6b8de409482f183",
+    "mtime": 1785981322.8718593,
+    "ast_hash": "d3396fcf0e77952e386a25abbbaa7f8e",
+    "semantic_hash": ""
+  },
+  "client/src/game/remote/AutoWagonOrders.js": {
+    "mtime": 1785980740.3642266,
+    "ast_hash": "3a387e97f5abc160909215ed2a22ca77",
+    "semantic_hash": ""
+  },
+  "client/src/game/remote/RcPathing.js": {
+    "mtime": 1785980631.1077147,
+    "ast_hash": "ba958356d3809a802f3dd981cc72e137",
+    "semantic_hash": ""
+  },
+  "client/src/game/remote/RcVehiclePlacement.js": {
+    "mtime": 1785980649.5461333,
+    "ast_hash": "92b4cdd390c8c84ae48f371b485c25a7",
+    "semantic_hash": ""
+  },
+  "client/src/game/systems/WagonSystem.js": {
+    "mtime": 1785980821.3097506,
+    "ast_hash": "ba8aaf16cb2c08217e1a1bafe232c938",
+    "semantic_hash": ""
+  },
+  "test/remote/autoWagonSleep.test.js": {
+    "mtime": 1785981923.9641242,
+    "ast_hash": "6ffeb5508af603beb20e03c2eda476b5",
+    "semantic_hash": ""
+  },
+  "test/serialization/autoWagonOrders.test.js": {
+    "mtime": 1785981904.0632522,
+    "ast_hash": "c86a5af22db48cf337db6346cbb4bf8e",
+    "semantic_hash": ""
+  },
+  "test/systems/wagonSystem.test.js": {
+    "mtime": 1785981700.8083324,
+    "ast_hash": "bf1fdc6aeef108bded04c65a410c60fc",
+    "semantic_hash": ""
+  },
+  "test/systems/wagonTurretOrder.test.js": {
+    "mtime": 1785981880.836442,
+    "ast_hash": "27b9208d3f141ff501b56ace38a8e4c6",
+    "semantic_hash": ""
+  },
+  "test/utils/audioVolumeConfig.test.js": {
+    "mtime": 1785926777.176801,
+    "ast_hash": "9a8b8430724b33dd4e360dc11b9db262",
     "semantic_hash": ""
   }
 }

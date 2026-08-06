@@ -4,6 +4,8 @@ import { EntityType } from '../entities/Entity.js';
 import engine from '../GameEngine.js';
 import { CombatResolver } from '../systems/CombatResolver.js';
 import { SICKNESS_TURNS } from '../systems/CombatSystem.js';
+import { tweenAlongPath } from '../remote/RemoteTween.js';
+import { RcVehicleConfig } from '../config/RcVehicleConfig.js';
 
 /**
  * TurnManager - Orchestrates the sequential playback of game actions.
@@ -28,6 +30,10 @@ import { SICKNESS_TURNS } from '../systems/CombatSystem.js';
  *                           during simulation (CombatSystem.js). The playback
  *                           case carries an explicit "do NOT call takeDamage"
  *                           note for the same reason.
+ *     - WAGON_MOVE:         Not damage, but the same shape. WagonSystem relocates
+ *                           the wagon's Item during simulation so a turret riding
+ *                           it fires from the post-move tile; playback only slides
+ *                           the render coords across (systems/WagonSystem.js).
  *
  *  2. PLAYBACK-FIRST    (damage deferred to the animation's impact moment)
  *     - ATTACK (entity-vs-entity): CombatSystem pushes the ATTACK action WITHOUT
@@ -163,7 +169,10 @@ class TurnManager {
     // Find the entity responsible
     const entity = gameMap.getEntity(entityId) || (entityId === 'player' ? player : null);
     
-    if (!entity && type !== 'GLOBAL' && type !== 'TURRET_SHOT' && type !== 'DEATH') {
+    // WAGON_MOVE is exempt because an autonomous wagon that finished its trip on
+    // the player's own tile lives in the ground container and has no map entity
+    // — but its arrival notice still has to reach the log.
+    if (!entity && type !== 'GLOBAL' && type !== 'TURRET_SHOT' && type !== 'DEATH' && type !== 'WAGON_MOVE') {
       console.warn(`[TurnManager] Entity not found for action: ${entityId}`, action);
       return;
     }
@@ -414,6 +423,32 @@ class TurnManager {
 
         // Add a small delay so consecutive turret shots are visually and audibly distinct
         await new Promise(resolve => setTimeout(resolve, 200));
+        break;
+      }
+
+      case 'WAGON_MOVE': {
+        // SIMULATION-FIRST (see class header): WagonSystem already relocated the
+        // wagon's Item and spent its batteries, so this is purely the slide
+        // across the tiles it covered. The entity's logical position is already
+        // the destination; only render coords move here.
+        //
+        // An empty path is a notice-only action — blocked, gave up, or arrived
+        // somewhere with no entity to animate.
+        if (entity && data.path?.length > 1) {
+          await tweenAlongPath(entity, data.path, engine, {
+            msPerTile: RcVehicleConfig.MS_PER_TILE,
+            followCamera: false
+          }, () => {
+            entity.renderX = data.to.x;
+            entity.renderY = data.to.y;
+            engine.isDeviceAnimating = false;
+            engine.invalidateFOV?.();
+            engine.recalculateFOV?.();
+          });
+        }
+        if (context.addLog && data.log) {
+          context.addLog(data.log, 'info');
+        }
         break;
       }
 

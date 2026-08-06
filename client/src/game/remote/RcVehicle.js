@@ -1,7 +1,7 @@
 import { ItemTrait } from '../inventory/traits.js';
 import { ItemDefs } from '../inventory/ItemDefs.js';
 import { asItemInstance } from './RemoteItem.js';
-import { hasReceiver } from './RemoteDeviceKinds.js';
+import { hasReceiver, hasAutonomy } from './RemoteDeviceKinds.js';
 
 /**
  * Identity layer for remote-controlled ground vehicles — wagons carrying an RC
@@ -18,9 +18,9 @@ import { hasReceiver } from './RemoteDeviceKinds.js';
  * something with getMotorizedBonus()/consumeMotorPower() on it.
  */
 
-// Re-exported so callers of this layer don't need to know the predicate lives
+// Re-exported so callers of this layer don't need to know the predicates live
 // in the dependency-free module the renderer also pulls from.
-export { hasReceiver };
+export { hasReceiver, hasAutonomy };
 
 /**
  * Whether this is a wagon at all. `traits` is not in Item.SERIALIZABLE_PROPERTIES,
@@ -60,14 +60,17 @@ export function listRcVehicles(engine) {
 }
 
 /**
- * The RC wagon the phone is currently linked to, or null (including when the
- * active device is a drone). `item` is always a real Item; `entity` is the
- * on-map render form when there is one.
+ * Resolve a receiver-fitted wagon by instanceId, wherever it currently lives.
+ * `item` is always a real Item; `entity` is the on-map render form when there
+ * is one (a wagon in the ground container has none).
+ *
+ * Keyed rather than always reading activeDeviceId because an autonomous wagon
+ * carries on driving long after the phone has moved on to something else — the
+ * order book resolves each wagon by its own key.
  *
  * @returns {{item: Item, entity: Object|null, x: number, y: number, source: 'map'|'ground'}|null}
  */
-export function getActiveRcVehicle(engine) {
-  const key = engine?.activeDeviceId;
+export function getRcVehicle(engine, key) {
   if (!key) return null;
 
   const onMap = engine.gameMap?.getEntity?.(key);
@@ -95,6 +98,24 @@ export function getActiveRcVehicle(engine) {
     y: Math.round(inv.lastSyncedY ?? engine.player?.y ?? 0),
     source: 'ground'
   };
+}
+
+/**
+ * The RC wagon the phone is currently linked to, or null (including when the
+ * active device is a drone).
+ */
+export function getActiveRcVehicle(engine) {
+  return getRcVehicle(engine, engine?.activeDeviceId);
+}
+
+/**
+ * The linked wagon, but only if it can drive itself. Null for drones, for
+ * wagons carrying a plain receiver, and when nothing is linked — which is
+ * exactly the gate the phone's autonomous-control menu items need.
+ */
+export function getAutonomousVehicle(engine) {
+  const device = getActiveRcVehicle(engine);
+  return device && hasAutonomy(device.item) ? device : null;
 }
 
 /**

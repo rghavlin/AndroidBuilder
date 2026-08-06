@@ -12,7 +12,9 @@ import { isTerrainWalkable } from '../game/map/TerrainTypes.js';
 import * as DroneMovement from '../game/remote/DroneMovement.js';
 import { getActiveDevice } from '../game/remote/RemoteDeviceRegistry.js';
 import * as RcVehicleMovement from '../game/remote/RcVehicleMovement.js';
-import { getActiveRcVehicle } from '../game/remote/RcVehicle.js';
+import { getActiveRcVehicle, getAutonomousVehicle } from '../game/remote/RcVehicle.js';
+import * as AutoWagonOrders from '../game/remote/AutoWagonOrders.js';
+import { findRcPath } from '../game/remote/RcPathing.js';
 
 const GameMapContext = createContext();
 
@@ -84,6 +86,14 @@ export const GameMapProvider = ({ children }) => {
     if (engine.activeDeviceId) {
       if (getActiveDevice(engine)) {
         await DroneMovement.moveActiveDevice(x, y, engine);
+      } else if (engine.deviceControlMode === 'auto' && getAutonomousVehicle(engine)) {
+        // Autonomous mode: the click sets a destination rather than spending the
+        // player's AP now. One click, one order — drop straight back to remote
+        // so the next click doesn't silently re-task the wagon.
+        const result = AutoWagonOrders.setDestination(x, y, engine);
+        addLog(result.message, result.success ? 'info' : 'error');
+        if (result.success) engine.deviceControlMode = 'remote';
+        engine.notifyUpdate?.();
       } else if (getActiveRcVehicle(engine)) {
         const result = await RcVehicleMovement.driveActiveVehicle(x, y, engine);
         if (!result.success && result.reason) addLog(result.reason, 'error');
@@ -175,6 +185,23 @@ export const GameMapProvider = ({ children }) => {
       setHoveredTile(preview?.possible
         ? { x, y, apCost: preview.apCost, canAfford: preview.canAfford, isDroneTarget: true, drone: hoveredDrone }
         : null);
+      return;
+    }
+
+    // Arming an autonomous destination: the wagon pays, not the player, so the
+    // useful number is how long the trip takes rather than what it costs.
+    if (engine.activeDeviceId && engine.deviceControlMode === 'auto' && getAutonomousVehicle(engine)) {
+      if (!targetTile) { setHoveredTile(null); return; }
+      const device = getAutonomousVehicle(engine);
+      const path = findRcPath(device.x, device.y, x, y, engine, device.item.instanceId);
+      if (path.length <= 1) {
+        setHoveredTile({ x, y, apCost: 0, canAfford: false, isRcTarget: true, reason: 'No route there' });
+        return;
+      }
+      const turns = AutoWagonOrders.estimateTurns(path, device.item, engine.gameMap);
+      setHoveredTile(Number.isFinite(turns)
+        ? { x, y, apCost: 0, canAfford: true, isRcTarget: true, label: `${turns}t` }
+        : { x, y, apCost: 0, canAfford: false, isRcTarget: true, reason: 'No power to move' });
       return;
     }
 

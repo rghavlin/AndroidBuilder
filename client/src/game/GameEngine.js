@@ -10,6 +10,7 @@ import { FactionRegistry } from './ai/FactionRegistry.js';
 import { getSightRangeForHour, getEffectiveHour, getLightMode, isNightHour, MAX_VISION_RANGE, FLASHLIGHT_RANGE } from './config/VisionConfig.js';
 import { getHourFromTurn } from './utils/TimeUtils.js';
 import * as DroneVision from './remote/DroneVision.js';
+import { restoreOrders } from './remote/AutoWagonOrders.js';
 
 
 import { gameRandom } from './utils/SeededRandom.js';
@@ -104,6 +105,17 @@ class GameEngine extends SafeEventEmitter {
     // loop has no React state for devices (unlike isAnimatingMovement for the
     // player), so this is what keeps it painting continuously during a flight.
     this.isDeviceAnimating = false;
+    // Which verb a click on the map issues to the linked device: 'remote' drives
+    // it here and now for player AP, 'auto' hands it a destination to reach on
+    // its own turns. Transient and never saved — a control mode outliving the
+    // session that set it would silently re-task a wagon on the next stray
+    // click. See remote/AutoWagonOrders.js.
+    this.deviceControlMode = 'remote';
+    // Standing orders for autonomous wagons, keyed by item instanceId. A side
+    // table rather than a field on each wagon because the on-map save path
+    // serializes items through a whitelist that would drop it — see the module
+    // header in remote/AutoWagonOrders.js for the full reasoning.
+    this.autoWagonOrders = new Map();
     // Turn number the equipped phone last charged, so cycling devices or
     // toggling the phone off/on within the same turn never costs a second
     // charge (see remote/DronePower.consumePhoneChargeOncePerTurn).
@@ -318,6 +330,10 @@ class GameEngine extends SafeEventEmitter {
           .some(it => it?.instanceId === savedDeviceId)
       );
       this.activeDeviceId = deviceExists ? savedDeviceId : null;
+      // Same both-homes validation, applied per order: a marker for a wagon
+      // that was scrapped three saves ago would sit on the map forever.
+      this.deviceControlMode = 'remote';
+      restoreOrders(this, gameObjects.interactionState.autoWagonOrders);
       this._phoneChargeTurn = gameObjects.interactionState.phoneChargeTurn ?? null;
       this.isSleeping = gameObjects.interactionState.isSleeping ?? false;
       this.sleepProgress = gameObjects.interactionState.sleepProgress ?? 0;

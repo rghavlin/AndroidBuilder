@@ -88,7 +88,7 @@ export const ItemDefs = {
     attachmentSlots: [
       { id: 'motor', name: 'Electric Motor', allowedItems: ['electric_motor'] },
       { id: 'battery', name: 'Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
-      { id: 'rc_receiver', name: 'RC Receiver', allowedItems: ['tool.rc_receiver'] }
+      { id: 'rc_receiver', name: 'Receiver', allowedItems: ['tool.rc_receiver', 'tool.autonomous_controller'] }
     ],
     disassembleData: {
       toolId: 'weapon.wrench',
@@ -121,7 +121,7 @@ export const ItemDefs = {
       { id: 'battery_front', name: 'Front Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
       { id: 'motor_rear', name: 'Rear Motor', allowedItems: ['electric_motor'] },
       { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
-      { id: 'rc_receiver', name: 'RC Receiver', allowedItems: ['tool.rc_receiver'] }
+      { id: 'rc_receiver', name: 'Receiver', allowedItems: ['tool.rc_receiver', 'tool.autonomous_controller'] }
     ],
     disassembleData: {
       toolId: 'weapon.wrench',
@@ -158,7 +158,7 @@ export const ItemDefs = {
       { id: 'battery_middle', name: 'Middle Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
       { id: 'motor_rear', name: 'Rear Motor', allowedItems: ['electric_motor'] },
       { id: 'battery_rear', name: 'Rear Power Cell', allowedCategories: [ItemCategory.LARGE_BATTERY], allowedItems: ['tool.large_battery', 'tool.high_capacity_battery'] },
-      { id: 'rc_receiver', name: 'RC Receiver', allowedItems: ['tool.rc_receiver'] }
+      { id: 'rc_receiver', name: 'Receiver', allowedItems: ['tool.rc_receiver', 'tool.autonomous_controller'] }
     ],
     disassembleData: {
       toolId: 'weapon.wrench',
@@ -1238,7 +1238,6 @@ export const ItemDefs = {
   'tool.recon_drone_stowed': {
     id: 'tool.recon_drone_stowed',
     name: 'Recon drone (stowed)',
-    noLoot: true,
     rarity: Rarity.RARE,
     imageId: 'recondronestowed',
     width: 2,
@@ -1278,7 +1277,7 @@ export const ItemDefs = {
   'tool.smartphone': {
     id: 'tool.smartphone',
     name: 'Smartphone',
-    rarity: Rarity.RARE,
+    rarity: Rarity.UNCOMMON,
     imageId: 'smartphone',
     width: 2,
     height: 1,
@@ -1304,6 +1303,30 @@ export const ItemDefs = {
     traits: [],
     categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
     description: 'Fit to a motorized wagon to drive it from a smartphone'
+  },
+
+  // A receiver with a CPU wired into it, so the wagon can follow a destination
+  // instead of a live signal. Occupies the same slot as the plain receiver and
+  // does everything it does — there is no reason to ever fit both.
+  //
+  // autonomyStats mirrors the auto turret's turretStats: an autonomous device
+  // owns its AP budget rather than drawing on the player's, so it keeps working
+  // at full speed while the player is exhausted, asleep, or across the map.
+  // TODO: art — shares rcreceiver.png until autonomouscontroller.png exists.
+  'tool.autonomous_controller': {
+    id: 'tool.autonomous_controller',
+    name: 'Autonomous Controller',
+    noLoot: true,
+    rarity: Rarity.EXTREMELY_RARE,
+    imageId: 'rcreceiver',
+    width: 1,
+    height: 1,
+    traits: [],
+    categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
+    autonomyStats: {
+      maxAp: 10
+    },
+    description: 'Fit to a motorized wagon so it can drive itself to a set destination'
   },
   'container.toolbox': {
     id: 'container.toolbox',

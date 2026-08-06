@@ -3,6 +3,7 @@ import { gameRandom } from './utils/SeededRandom.js';
 import { CharacterRegistry } from './CharacterRegistry.js';
 import eventRunner from './quest/EventRunner.js';
 import { FactionRegistry } from './ai/FactionRegistry.js';
+import { serializeOrders } from './remote/AutoWagonOrders.js';
 
 export const DEFAULT_PLAYER_STATS = {
   hp: 100,
@@ -313,6 +314,7 @@ export class GameSaveSystem {
           targetingItemInstanceId: engine.targetingItemInstanceId,
           isFlashlightOn: engine.isFlashlightOn,
           activeDeviceId: engine.activeDeviceId,
+          autoWagonOrders: serializeOrders(engine),
           phoneChargeTurn: engine._phoneChargeTurn,
           dragging: (engine.dragging && engine.dragging.item) ? {
             itemInstanceId: engine.dragging.item.instanceId,

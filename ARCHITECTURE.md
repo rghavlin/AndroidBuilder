@@ -86,6 +86,14 @@ The engine supports two distinct execution models for entity AI during turn simu
     - Resolves cascading path collisions and breaches.      - Returns actionQueue to playback.
 ```
 
+Both are preceded by the **device phases**, which run first and in a fixed order:
+`DroneSystem` (hover charge / auto-land) → `WagonSystem` (autonomous wagon movement)
+→ `TurretSystem` (turret fire). Devices move before turrets fire so a turret riding
+in a wagon engages from the tile the wagon reached this turn. These phases are
+*simulation-first*: they commit their state changes during `runTurn`, and the
+`actionQueue` entries they emit are cosmetic only. See `systems/WagonSystem.js`
+and `remote/RcVehiclePlacement.js`.
+
 ### ECS Intent-Component System (Zombies)
 * **Mechanic:** Swarm-like entities do not perform actions directly. During the turn cycle, `AISystem.process` inspects each active entity and queues declarative component intents (like `MoveIntent` or `DamageIntent`) into the `IntentQueue`.
 * **Resolution:** The `IntentQueue` resolves these intents sequentially. For instance, if two zombies attempt to walk onto the same tile, the first one succeeds, and the second one's intent is blocked, prompting a path recalculation or fallback action.

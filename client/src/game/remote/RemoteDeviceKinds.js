@@ -14,9 +14,27 @@ import { RcVehicleConfig } from '../config/RcVehicleConfig.js';
 /** The drone's two item forms: 2x2 deployed/landed, and the 2x1 carry form. */
 export const DRONE_ITEM_DEF_IDS = new Set(['tool.recon_drone', 'tool.recon_drone_stowed']);
 
-/** Whether a wagon has an RC receiver fitted. */
+/**
+ * Whether a wagon has anything fitted that answers the phone — a plain RC
+ * receiver or the autonomous controller that supersedes it.
+ *
+ * Membership, not equality: this predicate is the chokepoint for the entire RC
+ * stack (listRcVehicles, getActiveRcVehicle, isRemoteDevice, the link ring,
+ * DroneVision), so a wagon carrying the controller has to pass it or it goes
+ * invisible to all of them at once.
+ */
 export function hasReceiver(candidate) {
-  return candidate?.attachments?.[RcVehicleConfig.RECEIVER_SLOT_ID]?.defId === RcVehicleConfig.RECEIVER_DEF_ID;
+  const fitted = candidate?.attachments?.[RcVehicleConfig.RECEIVER_SLOT_ID]?.defId;
+  return !!fitted && RcVehicleConfig.RECEIVER_DEF_IDS.includes(fitted);
+}
+
+/**
+ * Whether a wagon can drive itself — the narrower question hasReceiver's
+ * superset hides. False for a plain receiver, which only ever moves while the
+ * player is holding the phone.
+ */
+export function hasAutonomy(candidate) {
+  return candidate?.attachments?.[RcVehicleConfig.RECEIVER_SLOT_ID]?.defId === RcVehicleConfig.AUTONOMOUS_DEF_ID;
 }
 
 /**

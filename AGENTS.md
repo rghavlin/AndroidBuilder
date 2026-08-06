@@ -223,6 +223,8 @@ The game loop is explicit and state-machine-driven:
 1. `PLAYER_TURN` — Player spends AP on movement, attacks, items.
 2. `SIMULATING` — `SimulationManager.runTurn()` runs all AI math instantly:
    - Tile fires
+   - Drone upkeep (`DroneSystem` — hover charge, auto-land when flat)
+   - Autonomous wagon movement (`WagonSystem` — spends the wagon's own AP, not the player's)
    - Turret turns
    - Zombie AP refresh
    - Vision → `AISystem` → `IntentQueue` loop (up to 50 cycles)
@@ -230,6 +232,8 @@ The game loop is explicit and state-machine-driven:
    - Rabbit AI
    - NPC AP refresh, Vision → `NPCAISystem` → `IntentQueue` loop
    - Final death check
+   Drones and wagons run before turrets on purpose, so a device can carry a
+   turret into range before it fires in the same turn.
 3. `ANIMATING` — `TurnManager.processQueue()` plays the generated `actionQueue` (movement, attacks, effects).
 4. `PAUSED_FOR_EVENT` — If an NPC action requires player input (e.g., a demand), the queue pauses and resumes via a UI callback.
 5. Post-turn — player upkeep (survival cascade, infection, AP refill, skill progression).

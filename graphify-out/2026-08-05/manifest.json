@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapCanvas.jsx": {
-    "mtime": 1785912581.2117124,
-    "ast_hash": "919c8450032e920e327619101eaf74a7",
+    "mtime": 1785925511.7686863,
+    "ast_hash": "71d9229500104b704120ad1dd2f90c43",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
@@ -1165,8 +1165,8 @@
     "semantic_hash": "8227401cf12e62741245570c60d4640d"
   },
   "client/src/game/renderer/EntityRenderer.js": {
-    "mtime": 1785912542.6873105,
-    "ast_hash": "991ae3652235aeff09310cc381a4e755",
+    "mtime": 1785925519.2542517,
+    "ast_hash": "7f49808962ab6639c2845887c6309057",
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileChunkCache.js": {
@@ -3460,13 +3460,13 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteDeviceKinds.js": {
-    "mtime": 1785912446.7017949,
-    "ast_hash": "58ec42ad1b42fca9adf8b3ec771b13e6",
+    "mtime": 1785925475.9185193,
+    "ast_hash": "788ddede84c765b87bb9677e02d33639",
     "semantic_hash": ""
   },
   "test/renderer/remoteDeviceDisplay.test.js": {
-    "mtime": 1785912632.4782517,
-    "ast_hash": "3e97bf3bb7193e4331a7e2332bef1549",
+    "mtime": 1785925539.3355315,
+    "ast_hash": "fe7fc709f9caafbbd6b8de409482f183",
     "semantic_hash": ""
   }
 }

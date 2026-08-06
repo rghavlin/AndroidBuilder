@@ -492,10 +492,25 @@ export const CraftingRecipes = [
             { id: 'tool.pliers', label: 'Pliers' }
         ],
         ingredients: [
-            { id: 'crafting.motion_sensor', count: 1 },
-            { id: 'crafting.metal_plate',   count: 1 },
-            { id: 'weapon.metal_rod',       count: 1 },
-            { id: 'crafting.wire',          count: 2 }
+            { id: 'crafting.electronic_parts', count: 1 },
+            { id: 'tool.smartphone',           count: 1 },
+            { id: 'crafting.wire',              count: 2 }
+        ]
+    },
+    {
+        id: 'tool.autonomous_controller',
+        name: 'Autonomous Controller',
+        resultItem: 'tool.autonomous_controller',
+        description: 'A receiver with a CPU wired in. Give the wagon a destination from your phone, then walk away — it drives itself there over the following turns, spending its own power instead of your AP.',
+        apCost: 34,
+        tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_9',
+        tools: [
+            { id: 'tool.pliers', label: 'Pliers' }
+        ],
+        ingredients: [
+            { id: 'tool.rc_receiver', count: 1 },
+            { id: 'crafting.cpu',     count: 1 }
         ]
     },
     {

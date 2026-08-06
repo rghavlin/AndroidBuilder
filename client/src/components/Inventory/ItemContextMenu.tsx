@@ -8,6 +8,7 @@ import { useAction } from '../../contexts/ActionContext.jsx';
 import engine from '../../game/GameEngine.js';
 import { VehicleUtils } from '../../game/utils/VehicleUtils.js';
 import { getActiveDevice, getActiveGroundedDevice } from '../../game/remote/RemoteDeviceRegistry.js';
+import { getAutonomousVehicle } from '../../game/remote/RcVehicle.js';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -43,9 +44,12 @@ export function ItemContextMenu({
     const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, deployDrone, landDrone, stowDrone, toggleGenerator, toggleFireMode, consumeItem, bindWound, drinkWater, unrollBedroll, rollupBedroll, crankCharger, readBook, disassembleItem, startDrag, stopDrag, pickSafeLock } = useInventory();
     // activeDeviceId is read off GameContext (not the engine directly) so this
     // menu re-renders when control of a device changes.
-    const { igniteTorch, inventoryManager, activeDeviceId, launchActiveDevice } = useGame();
+    const { igniteTorch, inventoryManager, activeDeviceId, launchActiveDevice, deviceControlMode, setDeviceControlMode } = useGame();
     const activeDrone = activeDeviceId ? getActiveDevice(engine) : null;
     const activeGroundedDrone = activeDeviceId && !activeDrone ? getActiveGroundedDevice(engine) : null;
+    // Null unless the linked device is a wagon that can actually drive itself —
+    // so the mode choice never appears for drones or plain-receiver wagons.
+    const activeAutoWagon = activeDeviceId && !activeDrone ? getAutonomousVehicle(engine) : null;
     const { triggerSleep } = useSleep();
     const { startTargetingItem, harvestPlant } = useAction();
     const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
@@ -412,6 +416,26 @@ export function ItemContextMenu({
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
                             >
                                 Land drone
+                            </ContextMenuItem>
+                        )}
+                        {/* Which verb a map click issues to the linked wagon. Only a
+                            wagon with an Autonomous Controller fitted gets the choice —
+                            a plain receiver has nothing to offer but live driving, so
+                            showing it a mode switch would be a lie. */}
+                        {item?.defId === 'tool.smartphone' && activeAutoWagon && (
+                            <ContextMenuItem
+                                onClick={() => setDeviceControlMode('remote')}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                {deviceControlMode === 'remote' ? '✓ ' : '   '}Remote control
+                            </ContextMenuItem>
+                        )}
+                        {item?.defId === 'tool.smartphone' && activeAutoWagon && (
+                            <ContextMenuItem
+                                onClick={() => setDeviceControlMode('auto')}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                {deviceControlMode === 'auto' ? '✓ ' : '   '}Autonomous control
                             </ContextMenuItem>
                         )}
                         {item?.defId === 'tool.recon_drone' && (

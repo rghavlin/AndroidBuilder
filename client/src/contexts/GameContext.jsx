@@ -39,6 +39,7 @@ import { getHourFromTurn } from '../game/utils/TimeUtils.js';
 import { TestEntity, Item as LegacyItem } from '../game/entities/TestEntity.js';
 import * as RemoteDeviceRegistry from '../game/remote/RemoteDeviceRegistry.js';
 import { consumePhoneChargeOncePerTurn } from '../game/remote/DronePower.js';
+import { hasAutonomy } from '../game/remote/RemoteDeviceKinds.js';
 
 const GameContext = createContext();
 
@@ -392,6 +393,20 @@ const GameContextInner = ({ children }) => {
   }, [isNight, updatePlayerFieldOfView, inventoryManager, addLog, igniteTorch, playSound, getActiveFlashlightRange, isFlashlightOnActual]);
 
   const activeDeviceId = engine.activeDeviceId;
+  // Read through the context (rather than off the engine) so the phone's
+  // context menu re-renders when the mode changes and its checkmark moves.
+  const deviceControlMode = engine.deviceControlMode;
+
+  // "Remote control" / "Autonomous control" on the phone's context menu. The
+  // engine is the source of truth because GameMapContext's click handler reads
+  // it directly, outside React's render cycle.
+  const setDeviceControlMode = useCallback((mode) => {
+    engine.deviceControlMode = mode;
+    if (mode === 'auto') {
+      addLog('Pick a destination for the wagon.', 'info');
+    }
+    engine.notifyUpdate();
+  }, [addLog]);
 
   // Phone action button: cycles the camera/control focus through the player's
   // remote devices, then back to the player once the list is exhausted. Camera
@@ -424,6 +439,10 @@ const GameContextInner = ({ children }) => {
 
     const nextKey = RemoteDeviceRegistry.cycleTarget(engine.activeDeviceId, devices);
     engine.activeDeviceId = nextKey;
+    // Every link starts in plain remote control. Autonomous targeting is armed
+    // deliberately, one destination at a time, so it can never be the mode a
+    // stray click lands in.
+    engine.deviceControlMode = 'remote';
 
     const target = nextKey ? devices.find(d => d.key === nextKey) : null;
     const focus = target ? (target.drone || target.item) : engine.player;
@@ -434,7 +453,10 @@ const GameContextInner = ({ children }) => {
       );
     }
     if (target?.kind === 'rc-vehicle') {
-      addLog(`Linked to the ${target.item.name}. Click a tile to drive it.`, 'info');
+      const autonomous = hasAutonomy(target.item);
+      addLog(autonomous
+        ? `Linked to the ${target.item.name}. Click a tile to drive it, or right-click the phone to send it on its own.`
+        : `Linked to the ${target.item.name}. Click a tile to drive it.`, 'info');
     } else if (target?.kind === 'drone-ground') {
       addLog('Linked to a grounded drone. Right-click the phone to launch it.', 'info');
     }
@@ -2205,6 +2227,8 @@ const GameContextInner = ({ children }) => {
     toggleFlashlight,
     igniteTorch,
     activeDeviceId,
+    deviceControlMode,
+    setDeviceControlMode,
     cycleRemoteDevice,
     launchActiveDevice,
     isPlayerTurn,
@@ -2298,6 +2322,8 @@ const GameContextInner = ({ children }) => {
     toggleFlashlight,
     igniteTorch,
     activeDeviceId,
+    deviceControlMode,
+    setDeviceControlMode,
     cycleRemoteDevice,
     launchActiveDevice,
     isPlayerTurn,

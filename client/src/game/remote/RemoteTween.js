@@ -31,14 +31,20 @@ function ease(t) {
  * actually crosses a tile boundary. Do NOT call invalidateFOV() from here —
  * that would defeat the dedupe and force a full shadowcast every frame.
  *
+ * `followCamera` is on by default because the two hand-driven cases ARE the
+ * camera: the player is looking through the device they're steering. An
+ * autonomous wagon is the opposite — it moves on its own turn while the player
+ * is somewhere else entirely, and yanking the view to it every end-turn would
+ * make the game unplayable.
+ *
  * @param {Object} entity - the render form being moved (drone entity / item ghost)
  * @param {Array<{x:number,y:number}>} path - includes the start tile
  * @param {GameEngine} engine
- * @param {{msPerTile: number}} options
+ * @param {{msPerTile: number, followCamera?: boolean}} options
  * @param {Function} onFinish - authoritative snap; runs exactly once
  * @returns {Promise<void>}
  */
-export function tweenAlongPath(entity, path, engine, { msPerTile }, onFinish) {
+export function tweenAlongPath(entity, path, engine, { msPerTile, followCamera = true }, onFinish) {
   // Headless (tests / Node): no rAF to tween on — snap straight to the target.
   if (typeof requestAnimationFrame === 'undefined') {
     onFinish();
@@ -70,7 +76,7 @@ export function tweenAlongPath(entity, path, engine, { msPerTile }, onFinish) {
 
       entity.renderX = smoothX;
       entity.renderY = smoothY;
-      engine.camera?.centerOn(smoothX, smoothY);
+      if (followCamera) engine.camera?.centerOn(smoothX, smoothY);
       engine.recalculateFOV?.();
 
       if (progress < 1) {

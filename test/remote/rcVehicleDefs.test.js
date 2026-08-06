@@ -10,9 +10,10 @@ import { CraftingRecipes } from '../../client/src/game/inventory/CraftingRecipes
 import { RcVehicleConfig } from '../../client/src/game/config/RcVehicleConfig.js';
 
 const WAGONS = ['vehicle.toy_wagon', 'vehicle.wagon', 'vehicle.cargo_wagon'];
-const { RECEIVER_SLOT_ID, RECEIVER_DEF_ID } = RcVehicleConfig;
+const { RECEIVER_SLOT_ID, RECEIVER_DEF_ID, RECEIVER_DEF_IDS, AUTONOMOUS_DEF_ID } = RcVehicleConfig;
 
 const makeReceiver = () => new Item(createItemFromDef(RECEIVER_DEF_ID));
+const makeController = () => new Item(createItemFromDef(AUTONOMOUS_DEF_ID));
 
 describe('RC receiver item def', () => {
   it('exists, points at the shipped image, and never spawns as loot', () => {
@@ -44,15 +45,67 @@ describe('RC receiver item def', () => {
   });
 });
 
+describe('Autonomous controller item def', () => {
+  it('exists, is crafting-only, and carries its own AP budget', () => {
+    const def = ItemDefs[AUTONOMOUS_DEF_ID];
+    expect(def).toBeDefined();
+    expect(def.noLoot).toBe(true);
+    // The controller owns its AP pool rather than borrowing the player's, so
+    // an exhausted or sleeping player never slows their wagons down.
+    expect(def.autonomyStats?.maxAp).toBe(RcVehicleConfig.AUTONOMOUS_MAX_AP);
+  });
+
+  it('points at an image that ships with the game', () => {
+    // Currently shares the receiver's art. If this changes, the new file has to
+    // exist in client/public/images/items or the loader falls back to default.
+    const def = ItemDefs[AUTONOMOUS_DEF_ID];
+    expect(['rcreceiver', 'autonomouscontroller']).toContain(def.imageId);
+  });
+
+  it('upgrades a receiver with a CPU, behind the same book', () => {
+    const recipe = CraftingRecipes.find(r => r.resultItem === AUTONOMOUS_DEF_ID);
+    expect(recipe).toBeDefined();
+    expect(ItemDefs[recipe.requiredBook]).toBeDefined();
+
+    const ingredientIds = recipe.ingredients.map(i => i.id);
+    expect(ingredientIds).toContain(RECEIVER_DEF_ID);
+    expect(ingredientIds).toContain('crafting.cpu');
+
+    for (const ing of recipe.ingredients) {
+      expect(ItemDefs[ing.id], `missing ingredient ${ing.id}`).toBeDefined();
+    }
+    for (const tool of recipe.tools) {
+      expect(ItemDefs[tool.id], `missing tool ${tool.id}`).toBeDefined();
+    }
+  });
+
+  it('costs more to build than the plain receiver it consumes', () => {
+    const receiver = CraftingRecipes.find(r => r.resultItem === RECEIVER_DEF_ID);
+    const controller = CraftingRecipes.find(r => r.resultItem === AUTONOMOUS_DEF_ID);
+    expect(controller.apCost).toBeGreaterThan(receiver.apCost);
+  });
+});
+
 describe('Wagon receiver slots', () => {
-  it.each(WAGONS)('%s has exactly one receiver slot that accepts only the receiver', (defId) => {
+  it.each(WAGONS)('%s has exactly one receiver slot, accepting either controller', (defId) => {
     const wagon = new Item(createItemFromDef(defId));
     const slots = wagon.attachmentSlots.filter(s => s.id === RECEIVER_SLOT_ID);
     expect(slots).toHaveLength(1);
-    expect(slots[0].allowedItems).toEqual([RECEIVER_DEF_ID]);
+    // Both parts live in the same slot, so a wagon can never carry redundant
+    // radio hardware — the autonomous controller supersedes the receiver.
+    expect(slots[0].allowedItems).toEqual(RECEIVER_DEF_IDS);
 
     expect(wagon.attachItem(RECEIVER_SLOT_ID, makeReceiver())).toBeTruthy();
     expect(wagon.getAttachment(RECEIVER_SLOT_ID).defId).toBe(RECEIVER_DEF_ID);
+  });
+
+  it.each(WAGONS)('%s accepts the autonomous controller in the receiver slot', (defId) => {
+    // The regression guard for the allow-list: attachItem validates against
+    // slot.allowedItems, so a slot that still listed only the receiver would
+    // reject the controller silently (returns null, no throw).
+    const wagon = new Item(createItemFromDef(defId));
+    expect(wagon.attachItem(RECEIVER_SLOT_ID, makeController())).toBeTruthy();
+    expect(wagon.getAttachment(RECEIVER_SLOT_ID).defId).toBe(AUTONOMOUS_DEF_ID);
   });
 
   it.each(WAGONS)('%s receiver slot id avoids the "battery" substring trap', (defId) => {
@@ -75,6 +128,12 @@ describe('Wagon receiver slots', () => {
     expect(motors).toHaveLength(batteries.length);
     // The receiver is appended last so the pairs stay adjacent in the panel.
     expect(ids[ids.length - 1]).toBe(RECEIVER_SLOT_ID);
+  });
+
+  it('is not a battery, so the controller can never occupy a power cell slot', () => {
+    const wagon = new Item(createItemFromDef('vehicle.wagon'));
+    expect(wagon.attachItem('battery_front', makeController())).toBeNull();
+    expect(wagon.attachItem('motor_front', makeController())).toBeNull();
   });
 
   it('does not put a receiver slot on non-wagon vehicles', () => {

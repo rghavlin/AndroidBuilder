@@ -106,10 +106,10 @@ describe('remote/DroneVision — RC wagon camera', () => {
   const NEAR_WAGON = { x: WAGON_POS.x + 2, y: WAGON_POS.y };
   const FAR_FROM_WAGON = { x: WAGON_POS.x + 6, y: WAGON_POS.y }; // beyond SIGHT_RANGE 3
 
-  function addWagon(harness, { receiver = true, pos = WAGON_POS } = {}) {
+  function addWagon(harness, { receiver = 'tool.rc_receiver', pos = WAGON_POS } = {}) {
     const wagon = new Item(createItemFromDef('vehicle.toy_wagon'));
     wagon.attachments = {};
-    if (receiver) wagon.attachments.rc_receiver = new Item(createItemFromDef('tool.rc_receiver'));
+    if (receiver) wagon.attachments.rc_receiver = new Item(createItemFromDef(receiver));
     engine.inventoryManager.dropItemAtLocation(wagon, pos.x, pos.y, harness.gameMap);
     return wagon;
   }
@@ -135,6 +135,19 @@ describe('remote/DroneVision — RC wagon camera', () => {
     const wagon = addWagon(harness, { receiver: false });
     engine.activeDeviceId = wagon.instanceId;
     expect(collectDeviceFov(harness.gameMap, 15, engine)).toEqual([]);
+  });
+
+  it('sees just the same with an autonomous controller fitted', () => {
+    // DroneVision gates on hasReceiver. The controller has to satisfy that
+    // broad predicate or a wagon fitted with one goes blind — one of several
+    // systems that would fail at once if hasReceiver narrowed back to equality.
+    const harness = buildHarness();
+    const wagon = addWagon(harness, { receiver: 'tool.autonomous_controller' });
+    engine.activeDeviceId = wagon.instanceId;
+
+    const tiles = collectDeviceFov(harness.gameMap, 15, engine);
+    expect(keysOf(tiles).has(key(NEAR_WAGON))).toBe(true);
+    expect(keysOf(tiles).has(key(FAR_FROM_WAGON))).toBe(false);
   });
 
   it('sees at its OWN fixed range, not the player\'s — a flashlight does not help a cart', () => {

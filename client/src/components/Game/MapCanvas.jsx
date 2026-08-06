@@ -586,10 +586,12 @@ export default function MapCanvas({
           // Draw Cursor Highlight!
           drawImprovedCursor(ctx, hoveredTile.x, hoveredTile.y, rTileSize, hoveredTile.canAfford);
           
-          // AP Text with thick dark outline for readability
+          // AP Text with thick dark outline for readability. An explicit label
+          // wins: an autonomous destination costs the player no AP, so the
+          // useful number there is the trip length ("3t"), not "0.0".
           const textX = hoveredTile.x * rTileSize + rTileSize / 2;
           const textY = hoveredTile.y * rTileSize + rTileSize / 2 + rTileSize / 8;
-          const text = hoveredTile.apCost.toFixed(1);
+          const text = hoveredTile.label ?? hoveredTile.apCost.toFixed(1);
 
           ctx.font = `bold ${Math.floor(rTileSize / 3)}px Arial`;
           ctx.textAlign = 'center';
@@ -606,6 +608,49 @@ export default function MapCanvas({
           
           ctx.restore();
         }
+      }
+
+      // Pass 2a-2b: Autonomous Wagon Destination Markers
+      // A UI overlay, not an entity — EntityRenderer deliberately sits upstream
+      // of engine-singleton code, and these are read straight off the order book.
+      // Explored tiles only: a marker on unexplored ground would leak map
+      // knowledge the player hasn't earned.
+      if (engine.autoWagonOrders?.size > 0) {
+        ctx.save();
+        ctx.translate(globalOffsetX, globalOffsetY);
+        const t = 0.5 + 0.5 * Math.sin(currentTime / 400);
+        for (const [instanceId, order] of engine.autoWagonOrders) {
+          const tile = gameMap.getTile(order.x, order.y);
+          if (!tile || !tile.flags?.explored) continue;
+          frameRenderFlags.hasPulser = true;
+
+          const cx = order.x * rTileSize + rTileSize / 2;
+          const cy = order.y * rTileSize + rTileSize / 2;
+          const r = rTileSize * (0.28 + 0.06 * t);
+
+          // The linked wagon's own marker glows cyan to match its link ring;
+          // every other outstanding order stays a muted slate, so a player
+          // running three wagons can tell which one they're currently aiming.
+          const linked = engine.activeDeviceId === instanceId;
+          ctx.strokeStyle = linked
+            ? `rgba(34, 211, 238, ${0.55 + 0.35 * t})`
+            : `rgba(148, 163, 184, ${0.4 + 0.2 * t})`;
+          ctx.lineWidth = Math.max(1.5, rTileSize * 0.06);
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Crosshair ticks so the marker reads as a destination pin rather than
+          // just another circular token on a map full of them.
+          ctx.beginPath();
+          ctx.moveTo(cx - r * 1.45, cy); ctx.lineTo(cx - r * 0.75, cy);
+          ctx.moveTo(cx + r * 0.75, cy); ctx.lineTo(cx + r * 1.45, cy);
+          ctx.moveTo(cx, cy - r * 1.45); ctx.lineTo(cx, cy - r * 0.75);
+          ctx.moveTo(cx, cy + r * 0.75); ctx.lineTo(cx, cy + r * 1.45);
+          ctx.stroke();
+        }
+        ctx.restore();
       }
 
       // Pass 2a-3: Other Ground & Structural Layer (Doors, Windows, Place Icons)

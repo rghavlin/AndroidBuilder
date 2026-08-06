@@ -110,6 +110,25 @@ export const VehicleUtils = {
   },
 
   /**
+   * AP for ONE remote step onto `tile`, terrain included.
+   *
+   * The per-tile atom every remote cost is built from: the player-driven total
+   * below, and the autonomous controller's per-turn budget walker
+   * (remote/RcPathing.js). Both must price a tile identically or a wagon would
+   * quote one distance and drive another, so the rule lives here alone.
+   *
+   * @param {Item} item
+   * @param {Tile|null} tile
+   * @returns {number} >= MIN_AP_PER_TILE
+   */
+  remoteStepCost(item, tile) {
+    return Math.max(
+      MIN_REMOTE_AP_PER_TILE,
+      this.getRemoteStepPenalty(item) + this.getTerrainDiscount([item], tile)
+    );
+  },
+
+  /**
    * Total AP for a whole remote drive. Single source of truth for both the
    * hover preview and the actual charge — the drone's two costs drifted apart
    * exactly once, and a lockstep test is why they no longer can.
@@ -127,12 +146,10 @@ export const VehicleUtils = {
   calculateRemoteDriveCost(item, path, gameMap) {
     if (!item || !path || path.length <= 1) return 0;
 
-    const perStep = this.getRemoteStepPenalty(item);
-
     let total = 0;
     for (let i = 1; i < path.length; i++) {
       const tile = gameMap ? gameMap.getTile(path[i].x, path[i].y) : null;
-      total += Math.max(MIN_REMOTE_AP_PER_TILE, perStep + this.getTerrainDiscount([item], tile));
+      total += this.remoteStepCost(item, tile);
     }
 
     return Math.round(total * 10) / 10;
