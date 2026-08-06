@@ -13,22 +13,31 @@
 // sequentially to completion; never interleave two live harnesses (their RNG
 // streams would cross). Determinism holds per sequential run from a given seed.
 //
-// Fidelity notes (where the adapter mirrors real UI code):
+// Fidelity notes (which real engine path each action drives):
 //   - move   -> MovementSystem.resolve (the exact mover the AI uses;
 //               validates via gameMap.moveEntity and deducts Movable.apCost)
-//   - attack -> CombatResolver.rollPlayerMelee + applyArmorAbsorption +
-//               target.takeDamage + player.useAP(1), mirroring
-//               CombatContext.performMeleeAttack's core (minus stun-rod, acid,
-//               skill progression, UI events/logs).
+//   - attack -> PlayerCombatSystem.performMeleeAttack — the SAME function
+//               CombatContext calls. Stun-rod, acid splash, skill progression,
+//               degradation, structures and kill loot all included.
+//   - shoot  -> PlayerCombatSystem.performRangedAttack — likewise. Burst fire,
+//               sling ammo, scope/laser sight and suppressor noise included.
 //   - endTurn -> SimulationManager.runTurn (authoritative enemy/AI turn) plus a
 //               distilled version of GameContext.simulateTurn's player upkeep.
 //
-// KNOWN SIMPLIFICATIONS (intentional for v1, tracked for follow-up):
-//   - reload and ranged/thrown attacks are not implemented yet (see applyPlayerAction).
+// Melee and ranged used to be hand-written COPIES of the CombatContext logic, and
+// they had drifted badly (no burst, no sling, no attachments, no degradation, no
+// edge-structure retargeting). Since balance.js's policy is "shoot > melee > close
+// in", that made every balance number wrong. The logic now lives in
+// client/src/game/systems/PlayerCombatSystem.js and both callers share it. Do NOT
+// reintroduce a local copy here — extend the system instead.
+//
+// KNOWN SIMPLIFICATIONS (intentional, tracked for follow-up):
+//   - `throw` is still a local approximation of CombatContext's throw handlers.
 //   - endTurn upkeep is distilled: it does NOT run the full survival/infection
 //     cascade; it refills AP with the same injury penalty the game uses.
 //   The right long-term fix is to extract GameContext.simulateTurn's pure core
-//   into a shared module both the UI and this harness call.
+//   into a shared module both the UI and this harness call — the same treatment
+//   the attack paths just got.
 
 import { gameRandom } from '../../client/src/game/utils/SeededRandom.js';
 import { GameMap } from '../../client/src/game/map/GameMap.js';
@@ -38,6 +47,7 @@ import { SimulationManager } from '../../client/src/game/managers/SimulationMana
 import { IntentQueue } from '../../client/src/game/managers/IntentQueue.js';
 import { MovementSystem } from '../../client/src/game/systems/MovementSystem.js';
 import { CombatResolver } from '../../client/src/game/systems/CombatResolver.js';
+import PlayerCombatSystem from '../../client/src/game/systems/PlayerCombatSystem.js';
 import { SICKNESS_TURNS } from '../../client/src/game/systems/CombatSystem.js';
 import { ExplosionSystem } from '../../client/src/game/systems/ExplosionSystem.js';
 import { ItemDefs, createItemFromDef } from '../../client/src/game/inventory/ItemDefs.js';
@@ -165,50 +175,44 @@ export class GameHarness {
     }
   }
 
-  /** Mirrors CombatContext.performMeleeAttack's core against the real resolver. */
-  _meleeAttack(targetId) {
-    const player = this.player;
-    if ((player.ap ?? 0) < 1) return { ok: false, reason: 'not enough AP' };
+  /** The `playerStats` shape PlayerCombatSystem expects (React state in the UI). */
+  _playerStats() {
+    return {
+      meleeLvl: this.player.meleeLvl ?? 1,
+      rangedLvl: this.player.rangedLvl ?? 1,
+    };
+  }
 
+  /** Args common to both PlayerCombatSystem attack entry points. */
+  _combatArgs() {
+    return {
+      player: this.player,
+      gameMap: this.gameMap,
+      playerStats: this._playerStats(),
+      inventoryManager: engine.inventoryManager,
+      lootGenerator: engine.lootGenerator ?? null,
+      // ui omitted -> PlayerCombatSystem's no-op bag.
+    };
+  }
+
+  /** Real player melee attack (PlayerCombatSystem — the same call the UI makes). */
+  _meleeAttack(targetId) {
     const target = this.gameMap.getEntity(targetId);
     if (!target || target.hp <= 0) return { ok: false, reason: 'no living target' };
 
     // Melee weapon = equipped melee slot, else unarmed.
-    const equipped = engine.inventoryManager?.equipment?.melee || null;
-    const weapon = equipped || UNARMED_WEAPON;
-    const defStats = ItemDefs[weapon.defId]?.combat || {};
-    const instanceStats = weapon.combat || {};
-    const weaponStats = { ...defStats, ...instanceStats };
-    const range = defStats.range || instanceStats.range || 1.0;
-
-    const p = GameHarness.pos(player);
+    const weapon = engine.inventoryManager?.equipment?.melee || UNARMED_WEAPON;
     const t = GameHarness.pos(target);
-    const distance = Math.sqrt((p.x - t.x) ** 2 + (p.y - t.y) ** 2);
-    if (distance > range + 0.1) return { ok: false, reason: 'out of range' };
 
-    const { hit, isCrit, damage } = CombatResolver.rollPlayerMelee({
-      weaponStats,
-      skillLvl: player.meleeLvl ?? 1,
-      drunkenness: player.drunkenness || 0,
-      isWindowTarget: false,
-      isStunRodActive: false,
-      hasTargetEntity: true,
-      currentStrength: player.currentStrength,
-      currentAgility: player.currentAgility,
-      currentPerception: player.currentPerception,
-      defenderType: target.type,
-      defenderSubtype: target.subtype,
-      defender: target,
+    const r = PlayerCombatSystem.performMeleeAttack({
+      ...this._combatArgs(),
+      weapon,
+      targetX: t.x,
+      targetY: t.y,
     });
 
-    player.useAP(1);
-    if (hit) {
-      const finalDamage = CombatResolver.applyArmorAbsorption(target, damage);
-      if (finalDamage > 0) target.takeDamage(finalDamage, player);
-    }
-    // Melee vs an entity emits no noise in the live game (CombatContext only
-    // emits for structure hits), so nothing to mirror here.
-    return { ok: true, hit, isCrit, damage };
+    if (!r.success) return { ok: false, reason: r.reason };
+    return { ok: true, hit: r.hit, isCrit: r.isCrit, damage: r.damage, killed: r.killed };
   }
 
   /** The equipped weapon that has rangedStats, or null. */
@@ -230,66 +234,38 @@ export class GameHarness {
     return { ammoSlot, mag, isMagazine, rounds };
   }
 
-  /** Mirrors CombatContext.performRangedAttack (single shot; no burst/sling/scope). */
+  /**
+   * Real player ranged attack (PlayerCombatSystem — the same call the UI makes).
+   * Burst fire, sling ammo, scope/laser sight, suppressor noise, weapon
+   * degradation and kill loot all come along for free now.
+   *
+   * `shots` is the number actually fired (up to 3 on a burst weapon), so callers
+   * counting trigger-pulls must use it rather than assuming 1.
+   */
   _rangedAttack(targetId) {
-    const player = this.player;
     const weapon = this.getRangedWeapon();
     if (!weapon) return { ok: false, reason: 'no ranged weapon' };
-    if ((player.ap ?? 0) < 1) return { ok: false, reason: 'not enough AP' };
-
-    const stats = ItemDefs[weapon.defId]?.rangedStats || { damage: { min: 4, max: 10 }, accuracyFalloff: 0.1, minAccuracy: 0.01 };
-    const ammo = this._weaponAmmo(weapon);
-    if (!ammo || ammo.rounds <= 0) return { ok: false, reason: 'out of ammo' };
 
     const target = this.gameMap.getEntity(targetId);
     if (!target || target.hp <= 0) return { ok: false, reason: 'no living target' };
 
-    const p = GameHarness.pos(player);
     const t = GameHarness.pos(target);
-    const distance = Math.hypot(t.x - p.x, t.y - p.y);
-    if (stats.minRange && distance < stats.minRange) return { ok: false, reason: 'target too close' };
-    const los = LineOfSight.hasLineOfSight(this.gameMap, p.x, p.y, t.x, t.y, { maxRange: 20 });
-    if (!los.hasLineOfSight) return { ok: false, reason: 'no line of sight' };
 
-    player.useAP(1);
-    // Consume one round.
-    if (ammo.isMagazine) {
-      ammo.mag.ammoCount--;
-    } else {
-      ammo.mag.stackCount--;
-      if (ammo.mag.stackCount <= 0) weapon.detachItem?.(ammo.ammoSlot.id);
-    }
-
-    const { hit, isCrit, damage } = CombatResolver.rollPlayerRanged({
-      stats,
-      skillLvl: player.rangedLvl ?? 1,
-      drunkenness: player.drunkenness || 0,
-      squaresAway: Math.floor(distance),
-      isWindowTarget: false,
-      hasScope: false,
-      hasLaserSight: false,
-      currentAgility: player.currentAgility,
-      currentPerception: player.currentPerception,
-      defenderType: target.type,
-      defenderSubtype: target.subtype,
-      defender: target,
+    const r = PlayerCombatSystem.performRangedAttack({
+      ...this._combatArgs(),
+      weapon,
+      targetX: t.x,
+      targetY: t.y,
     });
 
-    if (hit) {
-      const finalDamage = CombatResolver.applyArmorAbsorption(target, damage);
-      if (finalDamage > 0) target.takeDamage(finalDamage, player);
-    }
-
-    // Mirror CombatContext.performRangedAttack: every shot emits noise at the
-    // PLAYER's position (suppressor cuts the radius to 3). This is what pulls
-    // nearby zombies toward gunfire — without it, balance sims understate
-    // ranged difficulty.
-    const barrelSlot = weapon.attachmentSlots?.find((s) => s.id === 'barrel');
-    const isSuppressed = barrelSlot && weapon.attachments?.[barrelSlot.id]?.categories?.includes(ItemCategory.SUPPRESSOR);
-    const noiseRadius = isSuppressed ? 3 : (stats.noiseRadius || 10);
-    this.gameMap.emitNoise?.(p.x, p.y, noiseRadius);
-
-    return { ok: true, hit, isCrit, damage };
+    if (!r.success) return { ok: false, reason: r.reason };
+    return {
+      ok: true,
+      hit: r.hits > 0,
+      damage: r.totalDamage,
+      shots: r.shotsFired,
+      kills: r.kills,
+    };
   }
 
   /**

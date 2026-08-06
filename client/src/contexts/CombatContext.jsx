@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { usePlayer } from './PlayerContext.jsx';
 import { useGameMap } from './GameMapContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
@@ -6,66 +6,25 @@ import { useGame } from './GameContext.jsx';
 import { useInventory } from './InventoryContext.jsx';
 import { useLog } from './LogContext.jsx';
 import { useAudio } from './AudioContext.jsx';
-import { ItemDefs, createItemFromDef } from '../game/inventory/ItemDefs.js';
+import { createItemFromDef } from '../game/inventory/ItemDefs.js';
 import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
-import { getCorpseOverrides, dropZombieDeathLoot } from '../game/entities/ZombieCorpseConfig.js';
 
-import { ItemCategory, ItemTrait, FireMode } from '../game/inventory/traits.js';
 import { LineOfSight } from '../game/utils/LineOfSight.js';
-import { findEdgeStructure } from '../game/utils/EdgeStructure.js';
 import { ProjectileManager } from '../game/utils/ProjectileManager.js';
 import { EntityType } from '../game/entities/Entity.js';
-import { Pathfinding } from '../game/utils/Pathfinding.js';
-import { getAttackableTurretOnTile, removeDestroyedTurret, provokeTargetFaction } from '../game/ai/TurretCombat.js';
+import { removeDestroyedTurret } from '../game/ai/TurretCombat.js';
 import engine from '../game/GameEngine.js';
 import { IntentQueue } from '../game/managers/IntentQueue.js';
 import { ExplosionIntent } from '../game/components/ExplosionIntent.js';
 import { CombatResolver } from '../game/systems/CombatResolver.js';
 import { gameRandom } from '../game/utils/SeededRandom.js';
-
-const isWindowTile = (gameMap, x, y) => {
-    const tile = gameMap?.getTile(x, y);
-    return !!(tile && tile.contents.some(e => e.type === EntityType.WINDOW));
-};
-
-// The player attacked an NPC or turret: provoke its faction (flip to attack-on-
-// sight, faction-wide) and, only on the first flip, log the warning. Shared by
-// the melee / ranged / thrown attack paths.
-const provokeAndWarn = (gameMap, target, addLog) => {
-    const { faction, newlyHostile } = provokeTargetFaction(gameMap, target);
-    if (faction && newlyHostile) {
-        const label = faction === 'town'
-            ? 'The town turrets turn on you!'
-            : `The ${faction.charAt(0).toUpperCase() + faction.slice(1)} turn on you!`;
-        addLog(label, 'warning');
-    }
-};
-
-// Resolve the primary combat target for a click at (x, y), in priority order:
-// living entity (zombie/rabbit/npc) > attackable turret > breakable structure
-// (window/door). Edge-aligned windows/doors are anchored to a single tile but
-// visually sit on the shared boundary between two tiles, so when no structure is
-// found on the clicked tile we also check the four neighbors for an edge
-// structure facing this tile. This lets the player smash a window while standing
-// on its sill (clicking outward) instead of having to back up a tile first.
-// structureX/structureY give the structure's true anchor tile, where damage,
-// effects, and noise must be applied.
-// Thrown stones can't target turrets, so callers pass includeTurret:false there.
-const resolveTileTarget = (gameMap, x, y, player, { includeTurret = true } = {}) => {
-    const tile = gameMap?.getTile(x, y);
-    const targetEntity = tile?.contents.find(
-        e => e.type === EntityType.ZOMBIE || e.type === EntityType.RABBIT || e.type === EntityType.NPC
-    ) || null;
-    const turret = (includeTurret && !targetEntity) ? (getAttackableTurretOnTile(tile, player) || null) : null;
-
-    let structure = null;
-    let structureX = x;
-    let structureY = y;
-    if (!targetEntity && !turret) {
-        ({ structure, structureX, structureY } = findEdgeStructure(gameMap, x, y));
-    }
-    return { targetEntity, turret, structure, structureX, structureY };
-};
+// Player melee/ranged attacks live in the engine so the headless harness runs the
+// SAME code the UI does (see PlayerCombatSystem's header). This context is the
+// presentation adapter: it supplies the `ui` callback bag and React-only state.
+import PlayerCombatSystem, {
+    resolveTileTarget,
+    provokeAndWarn,
+} from '../game/systems/PlayerCombatSystem.js';
 
 // Every zombie kill awards the player a single Earbuck (now disabled in favor of corpse collection).
 const awardZombieEarbuck = () => {
@@ -112,72 +71,23 @@ export const CombatProvider = ({ children }) => {
         setTargetingWeapon(null);
     }, []);
 
+    // The presentation bag handed to PlayerCombatSystem. Everything in here is
+    // React-side; the engine calls these but never depends on them (they all
+    // default to no-ops headlessly).
+    const combatUi = useMemo(() => ({
+        addLog,
+        addEffect,
+        destroyItem,
+        cancelTargeting,
+        updatePlayerStats,
+        forceRefresh,
+        triggerMapUpdate,
+        recordHit,
+    }), [addLog, addEffect, destroyItem, cancelTargeting, updatePlayerStats, forceRefresh, triggerMapUpdate, recordHit]);
+
     const triggerAcidEffect = useCallback((zombie, isDeath) => {
-        const gameMap = gameMapRef.current;
-        if (!gameMap || zombie.subtype !== 'acid') return;
-
-        const radius = 1.4;
-        // Re-read: "When an acid zombie is attacked (and HIT), any entity within 1.4 squares takes 1-3 damage."
-        // "When an acid zombie is killed, it explodes doing 2-5 damage"
-        const dMin = isDeath ? 2 : 1;
-        const dMax = isDeath ? 5 : 3;
-        const color = '#86efac'; // light green
-
-        console.log(`[Combat] Acid ${isDeath ? 'EXPLOSION' : 'SPLASH'} from zombie ${zombie.id} at (${zombie.x}, ${zombie.y})`);
-
-        // 1. Visual Flashes
-        for (let dy = -1; dy <= 1; dy++) {
-            for (let dx = -1; dx <= 1; dx++) {
-                const tx = zombie.x + dx;
-                const ty = zombie.y + dy;
-                if (tx < 0 || tx >= gameMap.width || ty < 0 || ty >= gameMap.height) continue;
-                
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist <= radius) {
-                    addEffect({
-                        type: 'tile_flash',
-                        x: tx,
-                        y: ty,
-                        color: color,
-                        duration: isDeath ? 800 : 400
-                    });
-                }
-            }
-        }
-
-        // 2. Damage Entities
-        // Manual range check since getEntitiesInRange might not exist
-        const allEntities = Array.from(gameMap.entityMap.values());
-        allEntities.forEach(entity => {
-            // Skip the source zombie for splash (it already took damage)
-            if (entity.id === zombie.id && !isDeath) return;
-            
-            const dist = Math.sqrt(Math.pow(entity.x - zombie.x, 2) + Math.pow(entity.y - zombie.y, 2));
-            if (dist <= radius) {
-                if (entity.type === EntityType.PLAYER || entity.type === EntityType.ZOMBIE) {
-                    const damage = gameRandom.nextInt(dMin, dMax);
-                    
-                    if (typeof entity.takeDamage === 'function') {
-                        entity.takeDamage(damage, { id: zombie.id, type: EntityType.ZOMBIE, subtype: 'acid' });
-                        
-                        addEffect({
-                            type: 'damage',
-                            x: entity.x,
-                            y: entity.y,
-                            value: damage,
-                            color: '#ef4444',
-                            duration: 1200
-                        });
-
-                        addLog(`${isDeath ? 'Acid explosion' : 'Acid splash'} deals ${damage} damage to ${entity.type === EntityType.PLAYER ? 'you' : 'zombie'}`, 'combat');
-                    }
-                }
-            }
-        });
-
-        triggerMapUpdate();
-        forceRefresh();
-    }, [gameMapRef, addEffect, addLog, triggerMapUpdate, forceRefresh]);
+        PlayerCombatSystem.triggerAcidEffect(gameMapRef.current, zombie, isDeath, combatUi);
+    }, [gameMapRef, combatUi]);
 
     // Fires on every landed player hit (not just kills) — skill progress and its
     // paired attribute-XP trickle are hit-driven now, decoupled from whether the
@@ -199,47 +109,18 @@ export const CombatProvider = ({ children }) => {
     //                            target dies on the player's own tile (melee/stone don't).
     //  - clearNpcInventory:    melee/ranged clear the looted NPC inventory; stone doesn't.
     //  - cancelOnKill:         melee/ranged cancel targeting on kill; stone doesn't.
-    const processEntityKill = useCallback((entity, lootX, lootY, {
-        lootToGroundIfOnPlayer = false,
-        clearNpcInventory = true,
-        cancelOnKill = true,
-    }) => {
-        const gameMap = gameMapRef.current;
-        const player = playerRef.current;
-
-        addLog(`${entity.type.charAt(0).toUpperCase() + entity.type.slice(1)} killed!`, 'combat');
-
-        // Place dropped items either on the ground container (ranged-on-player-tile) or the map tile.
-        const placeItems = (items) => {
-            if (!items || items.length === 0) return;
-            if (lootToGroundIfOnPlayer && player && entity.x === player.x && entity.y === player.y && engine.inventoryManager) {
-                items.forEach(it => engine.inventoryManager.groundContainer.addItem(it, null, null, true));
-                engine.inventoryManager.groundManager.updateCategoryAreas();
-                engine.inventoryManager.emit('inventoryChanged');
-            } else {
-                gameMap.addItemsToTile(lootX, lootY, items);
-            }
-        };
-
-        if (entity.type === EntityType.ZOMBIE) {
-            if (entity.subtype === 'acid') triggerAcidEffect(entity, true);
-            dropZombieDeathLoot(entity, lootX, lootY, gameMap, lootGenerator, placeItems);
-        } else if (entity.type === EntityType.NPC) {
-            // NPCs drop their entire inventory on death
-            if (typeof entity.die === 'function') entity.die(); // Emits npcDied event
-            const items = entity.inventory.getAllItems();
-            if (items.length > 0) {
-                placeItems(items);
-                if (clearNpcInventory) entity.inventory.clear();
-            }
-        } else if (entity.type === EntityType.RABBIT) {
-            const carcass = createItemFromDef('food.rabbit_carcass');
-            if (carcass) placeItems([carcass]);
-        }
-
-        gameMap.removeEntity(entity.id);
-        if (cancelOnKill) cancelTargeting();
-    }, [gameMapRef, playerRef, addLog, lootGenerator, triggerAcidEffect, cancelTargeting]);
+    const processEntityKill = useCallback((entity, lootX, lootY, flags = {}) => {
+        PlayerCombatSystem.processEntityKill({
+            gameMap: gameMapRef.current,
+            player: playerRef.current,
+            entity,
+            lootX,
+            lootY,
+            lootGenerator,
+            ...flags,
+            ui: combatUi,
+        });
+    }, [gameMapRef, playerRef, lootGenerator, combatUi]);
 
     // Shared playback for the action queue produced by an ExplosionIntent (grenades / molotovs).
     // The two callers differ only in the death-effect color and the structure-break source tag.
@@ -268,428 +149,38 @@ export const CombatProvider = ({ children }) => {
         });
     }, [addEffect, addLog, playSound]);
 
+    // Thin adapters over the engine. All the combat logic (burst fire, sling ammo,
+    // attachments, edge-structure retargeting, turrets, kill loot, degradation)
+    // lives in PlayerCombatSystem so the headless harness runs the identical path.
     const performMeleeAttack = useCallback((weapon, targetX, targetY) => {
-        const player = playerRef.current;
-        const gameMap = gameMapRef.current;
-        if (!player || !gameMap) return { success: false, reason: 'System error' };
-
-        // Guard: Prevent attack with broken weapon
-        if (weapon && weapon.instanceId !== 'unarmed' && weapon.condition !== null && weapon.condition <= 0) {
-            console.warn(`[Combat] Blocked attack with broken weapon: ${weapon.name}`);
-            addEffect({
-                type: 'damage',
-                x: player.x,
-                y: player.y,
-                value: 'Broke!',
-                color: '#ef4444',
-                duration: 1000
-            });
-            destroyItem(weapon.instanceId);
-            cancelTargeting();
-            return { success: false, reason: 'Weapon is broken' };
-        }
-
-        if (player.ap < 1) return { success: false, reason: 'Not enough AP' };
-
-        // Resolve the target first so an edge-aligned window/door can be hit when
-        // the player clicks the tile on their side of the wall (e.g. smashing a
-        // window while standing on its sill). Retarget to the structure's anchor
-        // tile so the range check, damage, effects, and noise all land correctly.
-        let { targetEntity, turret, structure, structureX, structureY } = resolveTileTarget(gameMap, targetX, targetY, player);
-
-        // Redirect melee attack to a closed window if targeting a zombie on the other side
-        if (targetEntity && targetEntity.type === EntityType.ZOMBIE) {
-            const blockingWin = Pathfinding.getBlockingStructure(gameMap, player.x, player.y, targetX, targetY);
-            if (blockingWin && blockingWin.type === EntityType.WINDOW && !blockingWin.isOpen && !blockingWin.isBroken) {
-                structure = blockingWin;
-                structureX = blockingWin.x;
-                structureY = blockingWin.y;
-                targetEntity = null;
-                turret = null;
-            }
-        }
-
-        if (!targetEntity && !turret && !structure) return { success: false, reason: 'No target here' };
-
-        if (structure) {
-            targetX = structureX;
-            targetY = structureY;
-        }
-
-        const dx = Math.abs(player.x - targetX);
-        const dy = Math.abs(player.y - targetY);
-        const defStats = ItemDefs[weapon.defId]?.combat || {};
-        const instanceStats = weapon.combat || {};
-        const weaponStats = { ...defStats, ...instanceStats };
-        const weaponRange = defStats.range || instanceStats.range || 1.0;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance > weaponRange + 0.1) {
-            return { success: false, reason: 'Target out of range' };
-        }
-
-        // Stun Rod battery charge check and consumption
-        let isStunRodActive = false;
-        if (weapon && weapon.defId === 'weapon.stun_rod') {
-            const battery = typeof weapon.getBattery === 'function' ? weapon.getBattery() : null;
-            if (battery && battery.ammoCount > 0) {
-                isStunRodActive = true;
-                battery.ammoCount = Math.max(0, battery.ammoCount - 1);
-                // Trigger inventory changed event so the UI updates
-                if (inventoryRef.current) {
-                    inventoryRef.current.emit('inventoryChanged');
-                }
-            }
-        }
-
-        // 1. Calculate Outcome
-        const meleeLvl = playerStats.meleeLvl || 1;
-        const isWindowTarget = structure && (structure.type === EntityType.WINDOW);
-        const { hit, isCrit, damage, extraDamageApplied, stunDuration, dodged } = CombatResolver.rollPlayerMelee({
-            weaponStats,
-            skillLvl: meleeLvl,
-            drunkenness: player.drunkenness || 0,
-            isWindowTarget,
-            isStunRodActive,
-            hasTargetEntity: !!targetEntity,
-            currentStrength: player.currentStrength,
-            currentAgility: player.currentAgility,
-            currentPerception: player.currentPerception,
-            defenderType: targetEntity?.type,
-            defenderSubtype: targetEntity?.subtype,
-            defender: targetEntity
-        });
-        if (dodged && targetEntity) {
-            addLog(`${targetEntity.name || targetEntity.type} dodges your attack!`, 'combat');
-        }
-        const stunApplied = stunDuration > 0;
-        if (stunApplied && targetEntity) {
-            targetEntity.stunnedTurns = stunDuration;
-        }
-
-        // Note: isKillingBlow is safe because Zombie/NPC takeDamage does not use armor or difficulty reductions
-        const isKillingBlow = hit && targetEntity && targetEntity.hp <= damage;
-
-        // 2. Event emission for UI and Audio
-        const attackData = { 
-            weaponId: weapon.defId, 
-            weaponType: weapon.isRanged ? 'ranged' : 'melee',
-            hit,
-            isCrit,
-            isKillingBlow,
-            damage,
+        return PlayerCombatSystem.performMeleeAttack({
+            player: playerRef.current,
+            gameMap: gameMapRef.current,
+            weapon,
             targetX,
-            targetY
-        };
-        GameEvents.emit(GAME_EVENT.PLAYER_ATTACK, attackData);
-
-        if (hit && targetEntity) {
-            GameEvents.emit(GAME_EVENT.ZOMBIE_DAMAGE, { 
-                zombieId: targetEntity.id, 
-                damage, 
-                isKillingBlow
-            });
-        }
-
-        // 3. Apply AP Consumption (Primary state update)
-        player.useAP(1);
-
-        // 4. Detailed Logic Execution
-        if (hit) {
-            applyHitProgression('melee');
-            if (targetEntity) {
-                const finalMeleeDamage = CombatResolver.applyArmorAbsorption(targetEntity, damage);
-                if (finalMeleeDamage > 0) targetEntity.takeDamage(finalMeleeDamage, player);
-                let logMsg = `${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`;
-                if (stunApplied) {
-                    logMsg += ` (Charged Strike! +${extraDamageApplied} damage, Stunned for ${stunDuration} turns!)`;
-                }
-                addLog(logMsg, 'combat');
-                if (targetEntity.type === 'zombie' && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
-                if (targetEntity.type === EntityType.NPC) provokeAndWarn(gameMap, targetEntity, addLog);
-            } else if (turret) {
-                turret.takeDamage(damage);
-                addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}You hit the turret: ${damage} damage (${weapon.name})`, 'combat');
-                // Attacking a faction's turret provokes that whole faction.
-                provokeAndWarn(gameMap, turret, addLog);
-            } else if (structure) {
-                if (structure.type === 'window') {
-                    structure.break();
-                    if (structure.isReinforced) {
-                        structure.isReinforced = false;
-                        structure.reinforcementHp = 0;
-                        structure.dirtyVision();
-                        structure.emitEvent('windowReinforcementDestroyed');
-                        structure.updateBlocking();
-                    }
-                    GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY }, source: 'player' });
-                    addLog(`You smash the window with your ${weapon.name}!`, 'combat');
-                    if (weapon.instanceId === 'unarmed') {
-                        if (typeof player?.setBleeding === 'function') player.setBleeding(true);
-                        updatePlayerStats({ isBleeding: true });
-                        addLog('You cut your hands smashing the glass!', 'warning');
-                    }
-                    gameMap.emitNoise(targetX, targetY, 5);
-                } else {
-                    if (typeof structure.takeDamage === 'function') structure.takeDamage(damage);
-                    else structure.hp = Math.max(0, (structure.hp || 10) - damage);
-                    addLog(`You hit the ${structure.type} with your ${weapon.name}!`, 'combat');
-                    gameMap.emitNoise(targetX, targetY, 3);
-                }
-            }
-
-            addEffect({
-                type: 'damage',
-                x: targetX,
-                y: targetY,
-                value: isCrit ? `CRIT! ${damage}` : damage,
-                color: isCrit ? '#facc15' : '#ef4444',
-                duration: isCrit ? 1500 : 1200
-            });
-
-            if (targetEntity && targetEntity.isDead()) {
-                processEntityKill(targetEntity, targetX, targetY, {});
-            }
-
-            if (turret && turret.isDead()) {
-                addLog('Turret destroyed!', 'combat');
-                removeDestroyedTurret(turret, gameMap, targetX, targetY);
-                cancelTargeting();
-            }
-            triggerMapUpdate();
-            forceRefresh();
-        } else {
-            // Miss Logic
-            addLog(`Player attacks: miss (${weapon.name})`, 'combat');
-            addEffect({ type: 'damage', x: targetX, y: targetY, value: 'Miss', color: '#9ca3af', duration: 1200 });
-        }
-
-        // Weapon Degradation
-        if (weapon.instanceId !== 'unarmed' && typeof weapon.degrade === 'function' && weapon.isDegradable()) {
-            weapon.degrade();
-            if (weapon.condition !== null && weapon.condition <= 0) {
-                addEffect({ type: 'damage', x: player.x, y: player.y, value: 'Broke!', color: '#fbbf24', duration: 1500 });
-                destroyItem(weapon.instanceId);
-                if (targetingWeapon?.item?.instanceId === weapon.instanceId) cancelTargeting();
-                forceRefresh();
-            }
-        }
-
-        return { success: true };
-    }, [playerRef, gameMapRef, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, updatePlayerStats, playerStats, destroyItem, processEntityKill, applyHitProgression]);
+            targetY,
+            playerStats,
+            inventoryManager: inventoryRef.current,
+            lootGenerator,
+            targetingWeapon,
+            ui: combatUi,
+        });
+    }, [playerRef, gameMapRef, playerStats, inventoryRef, lootGenerator, targetingWeapon, combatUi]);
 
     const performRangedAttack = useCallback((weapon, targetX, targetY) => {
-        const player = playerRef.current;
-        const gameMap = gameMapRef.current;
-        if (!player || !gameMap) return { success: false, reason: 'System error' };
-
-        if (weapon && weapon.isDegradable() && weapon.condition !== null && weapon.condition <= 0) {
-            addEffect({ type: 'damage', x: player.x, y: player.y, value: 'Broke!', color: '#ef4444', duration: 1000 });
-            destroyItem(weapon.instanceId);
-            cancelTargeting();
-            return { success: false, reason: 'Weapon is broken' };
-        }
-
-        if (player.ap < 1) return { success: false, reason: 'Not enough AP' };
-
-        const stats = ItemDefs[weapon.defId]?.rangedStats || { damage: { min: 4, max: 10 }, accuracyFalloff: 0.1, minAccuracy: 0.01 };
-        const isSling = stats.isSling;
-        let ammoFound = false;
-        let magazine = null;
-        let ammoSlot = null;
-
-        const isBurst = weapon.fireMode === FireMode.BURST;
-        const shotCount = isBurst ? 3 : 1;
-        let shotsFired = 0;
-        let totalDamage = 0;
-        let hits = 0;
-        let kills = 0;
-
-        // 1. Initial Resource Check for the whole burst (or at least first shot)
-        if (isSling) {
-            ammoFound = inventoryRef.current.hasItemByDefId('crafting.stone', 1);
-        } else {
-            ammoSlot = weapon.attachmentSlots?.find(slot => slot.id === 'ammo' || slot.allowedCategories?.includes(ItemCategory.AMMO));
-            magazine = ammoSlot ? weapon.attachments[ammoSlot.id] : null;
-            const isMagazine = magazine && magazine.hasTrait?.(ItemTrait.MAGAZINE);
-            ammoFound = magazine && (isMagazine ? (magazine.ammoCount > 0) : (magazine.stackCount > 0));
-        }
-
-        if (!ammoFound) return { success: false, reason: 'Out of ammo' };
-
-        // Resolve target first so an edge-aligned window/door retargets to its
-        // anchor tile before the distance and line-of-sight checks run.
-        const { targetEntity, turret, structure, structureX, structureY } = resolveTileTarget(gameMap, targetX, targetY, player);
-
-        if (!targetEntity && !turret && !structure) {
-            cancelTargeting();
-            return { success: false, reason: 'No target at location' };
-        }
-
-        if (structure) {
-            targetX = structureX;
-            targetY = structureY;
-        }
-
-        const distance = Math.sqrt(Math.pow(targetX - player.x, 2) + Math.pow(targetY - player.y, 2));
-        if (stats.minRange && distance < stats.minRange) return { success: false, reason: 'Target too close' };
-
-        const losResult = LineOfSight.hasLineOfSight(gameMap, player.x, player.y, targetX, targetY, { maxRange: 20 });
-        if (!losResult.hasLineOfSight) return { success: false, reason: losResult.blockedBy?.message || 'No line of sight' };
-
-        // 2. Event emission for UI and Audio (Emit once per burst for sound sync)
-        const attackData = { 
-            weaponId: weapon.defId, 
-            weaponType: 'ranged',
-            isBurst,
+        return PlayerCombatSystem.performRangedAttack({
+            player: playerRef.current,
+            gameMap: gameMapRef.current,
+            weapon,
             targetX,
-            targetY
-        };
-        GameEvents.emit(GAME_EVENT.PLAYER_ATTACK, attackData);
-
-        // 3. Apply AP Consumption (1 AP for the whole burst)
-        player.useAP(1);
-
-        // 4. Burst Loop
-        for (let i = 0; i < shotCount; i++) {
-            // Re-check ammo for each shot in burst
-            if (isSling) {
-                ammoFound = inventoryRef.current.hasItemByDefId('crafting.stone', 1);
-            } else {
-                const isMagazine = magazine && magazine.hasTrait?.(ItemTrait.MAGAZINE);
-                ammoFound = magazine && (isMagazine ? (magazine.ammoCount > 0) : (magazine.stackCount > 0));
-            }
-
-            if (!ammoFound) break; // End burst if out of ammo
-            shotsFired++;
-
-            // Resource Consumption
-            if (isSling) {
-                inventoryRef.current.consumeItemByDefId('crafting.stone', 1);
-            } else {
-                const isMagazine = magazine && magazine.hasTrait?.(ItemTrait.MAGAZINE);
-                if (isMagazine) magazine.ammoCount--;
-                else {
-                    magazine.stackCount--;
-                    if (magazine.stackCount <= 0 && ammoSlot) weapon.detachItem(ammoSlot.id);
-                }
-            }
-
-            // Projectile Path Tracking
-            ProjectileManager.processProjectilePath(gameMap, player.x, player.y, targetX, targetY);
-
-            // Outcome Calculation
-            const rangedLvl = playerStats.rangedLvl || 1;
-            const squaresAway = Math.floor(distance);
-            const sightSlot = weapon.attachmentSlots?.find(s => s.id === 'sight');
-            const hasScope = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.RIFLE_SCOPE);
-            const hasLaserSight = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.LASER_SIGHT);
-
-            const isWindowTarget = structure && (structure.type === EntityType.WINDOW);
-            const { hit, isCrit, damage, dodged } = CombatResolver.rollPlayerRanged({
-                stats,
-                skillLvl: rangedLvl,
-                drunkenness: player.drunkenness || 0,
-                squaresAway,
-                isWindowTarget,
-                hasScope,
-                hasLaserSight,
-                currentAgility: player.currentAgility,
-                currentPerception: player.currentPerception,
-                defenderType: targetEntity?.type,
-                defenderSubtype: targetEntity?.subtype,
-                defender: targetEntity
-            });
-            if (dodged && targetEntity) {
-                addLog(`${targetEntity.name || targetEntity.type} dodges your attack!`, 'combat');
-            }
-
-            // Note: isKillingBlow is safe because Zombie/NPC takeDamage does not use armor or difficulty reductions
-            const isKillingBlow = hit && targetEntity && targetEntity.hp <= damage;
-
-            if (hit && targetEntity) {
-                GameEvents.emit(GAME_EVENT.ZOMBIE_DAMAGE, { 
-                    zombieId: targetEntity.id, 
-                    damage, 
-                    isKillingBlow
-                });
-            }
-
-            // Emit Noise
-            const barrelSlot = weapon.attachmentSlots?.find(s => s.id === 'barrel');
-            const isSuppressed = barrelSlot && weapon.attachments[barrelSlot.id]?.categories?.includes(ItemCategory.SUPPRESSOR);
-            const noiseRadius = isSuppressed ? 3 : (stats.noiseRadius || 10);
-            if (gameMap.emitNoise) gameMap.emitNoise(player.x, player.y, noiseRadius);
-
-            if (hit) {
-                hits++;
-                totalDamage += damage;
-                applyHitProgression('ranged');
-                if (targetEntity) {
-                    const finalRangedDamage = CombatResolver.applyArmorAbsorption(targetEntity, damage);
-                    if (finalRangedDamage > 0) targetEntity.takeDamage(finalRangedDamage, player);
-                    addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}Player attacks ${targetEntity.type}: ${damage} damage (${weapon.name})`, 'combat');
-                    if (targetEntity.type === EntityType.ZOMBIE && targetEntity.subtype === 'acid') triggerAcidEffect(targetEntity, false);
-                    if (targetEntity.type === EntityType.NPC) provokeAndWarn(gameMap, targetEntity, addLog);
-                } else if (turret) {
-                    turret.takeDamage(damage);
-                    addLog(`${isCrit ? 'CRITICAL HIT! ' : ''}You hit the turret: ${damage} damage (${weapon.name})`, 'combat');
-                    // Attacking a faction's turret provokes that whole faction.
-                    provokeAndWarn(gameMap, turret, addLog);
-                } else if (structure) {
-                    if (structure.type === EntityType.WINDOW) {
-                        structure.break();
-                        GameEvents.emit(GAME_EVENT.WINDOW_SMASH, { windowPos: { x: targetX, y: targetY }, source: 'player' });
-                        addLog('The window shatters!', 'combat');
-                        gameMap.emitNoise(targetX, targetY, 5);
-                    } else {
-                        if (typeof structure.takeDamage === 'function') structure.takeDamage(damage);
-                        else structure.hp = Math.max(0, (structure.hp || 10) - damage);
-                        addLog(`You hit the ${structure.type} with a gunshot!`, 'combat');
-                        gameMap.emitNoise(targetX, targetY, 3);
-                    }
-                }
-
-                addEffect({ 
-                    type: 'damage', 
-                    x: targetX, 
-                    y: targetY, 
-                    value: isCrit ? `CRIT! ${damage}` : damage, 
-                    color: isCrit ? '#facc15' : '#ef4444', 
-                    duration: isCrit ? 1500 : 1200 
-                });
-
-                if (targetEntity && targetEntity.isDead()) {
-                    kills++;
-                    processEntityKill(targetEntity, targetEntity.x, targetEntity.y, { lootToGroundIfOnPlayer: true });
-                    break; // End burst if target dies
-                }
-
-                if (turret && turret.isDead()) {
-                    addLog('Turret destroyed!', 'combat');
-                    removeDestroyedTurret(turret, gameMap, targetX, targetY);
-                    cancelTargeting();
-                    break; // End burst if the turret is destroyed
-                }
-            } else {
-                addLog(`Player attacks: miss (${weapon.name})`, 'combat');
-                addEffect({ type: 'damage', x: targetX, y: targetY, value: 'Miss', color: '#9ca3af', duration: 1200 });
-            }
-        }
-
-        if (typeof weapon.degrade === 'function' && weapon.isDegradable()) {
-            weapon.degrade();
-            if (weapon.condition !== null && weapon.condition <= 0) {
-                addEffect({ type: 'damage', x: player.x, y: player.y, value: 'Broke!', color: '#fbbf24', duration: 1500 });
-                destroyItem(weapon.instanceId);
-                if (targetingWeapon?.item?.instanceId === weapon.instanceId) cancelTargeting();
-            }
-        }
-
-        forceRefresh();
-        triggerMapUpdate();
-        return { success: true };
-    }, [playerRef, gameMapRef, addEffect, forceRefresh, cancelTargeting, triggerMapUpdate, inventoryRef, targetingWeapon, triggerAcidEffect, playerStats, destroyItem, processEntityKill, applyHitProgression]);
+            targetY,
+            playerStats,
+            inventoryManager: inventoryRef.current,
+            lootGenerator,
+            targetingWeapon,
+            ui: combatUi,
+        });
+    }, [playerRef, gameMapRef, playerStats, inventoryRef, lootGenerator, targetingWeapon, combatUi]);
 
     const performGrenadeThrow = useCallback((item, targetX, targetY) => {
         const player = playerRef.current;

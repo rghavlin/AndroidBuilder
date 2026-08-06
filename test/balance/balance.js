@@ -92,7 +92,9 @@ function playerTurn(h) {
     if (weapon && ammo && ammo.rounds > 0) {
       const shot = h.applyPlayerAction({ type: 'shoot', targetId: target.id });
       if (shot.ok) {
-        shots++;
+        // A burst weapon fires up to 3 rounds for the single AP, so count the
+        // rounds actually discharged rather than assuming one per action.
+        shots += shot.shots ?? 1;
         if (shot.hit) damageDealt += shot.damage || 0;
         continue;
       }

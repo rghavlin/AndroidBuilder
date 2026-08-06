@@ -1,5 +1,5 @@
-import { configManager } from './ConfigManager';
-import audioManager from './AudioManager';
+import { configManager } from './ConfigManager.js';
+import audioManager from './AudioManager.js';
 
 /**
  * MusicManager - Handles background music, playlists, and continuous sequential playback

@@ -461,6 +461,23 @@ the cleanest seam, move on.**
 - **Consistency layers worth centralizing:** a `TURN_PHASE` constants module for the 11
   raw-string phase assignments (R30#5); migrate zombie/NPC targeting onto
   `AITargeting.acquireTargets` so "who may I attack" lives in one place (R25#3).
+- **React contexts (added 2026-08-06)** — the original review only covered `client/src/game`,
+  so the 8,900-line `contexts/` layer was never triaged. It holds engine logic that the
+  headless harness cannot reach, which forced `test/harness/GameHarness.js` to keep
+  hand-written *copies* of it. Remaining forks, in value order:
+  1. `GameContext.simulateTurn` (turn loop / survival cascade) vs `GameHarness.endTurn`.
+  2. `InventoryContext.loadAmmoDirectly` vs `GameHarness._reload`.
+  3. CombatContext's grenade / stone / molotov throws vs `GameHarness._throw`.
+  - ✅ **Player melee + ranged done (2026-08-06):** extracted to
+    `game/systems/PlayerCombatSystem.js`; `CombatContext.jsx` 1,044 → 535 lines and is now a
+    presentation adapter (a `ui` callback bag, no-op by default). The harness calls the real
+    path — its copy is deleted. Found and fixed a live latent bug in the process: the logic
+    read `player.x`/`player.y`, which are RENDER coords maintained by the React animation
+    layer; headless they never advance, so every post-move melee swing was rejected as out of
+    range. Now reads `gridX ?? logicalX ?? x`, the same rule `simulateTurn` documents for AI.
+    New `test/systems/playerCombat.test.js` (16 tests) pins burst fire, sling ammo, suppressor
+    noise, minRange, breakage and the coordinate regression. Balance re-baselined: gun
+    scenarios byte-identical (port is faithful), `melee_vs_4` win rate 22.4% → 24.5%.
 - **`GameEngine`**: export the class alongside the singleton so tests can build isolated
   engines (two-line change, big test-hygiene payoff) (R41#9).
 

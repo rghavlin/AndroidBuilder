@@ -1,5 +1,5 @@
 
-import { configManager } from './ConfigManager';
+import { configManager } from './ConfigManager.js';
 
 /**
  * AudioManager - Centralized utility for managing game audio

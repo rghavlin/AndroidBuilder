@@ -635,8 +635,8 @@
     "semantic_hash": "32da00638860128668bf6487df2a9a96"
   },
   "client/src/contexts/CombatContext.jsx": {
-    "mtime": 1785818597.6100643,
-    "ast_hash": "1d600e9959191d6bb8f4672a3ad451ff",
+    "mtime": 1785999021.3196359,
+    "ast_hash": "19c20946aca1a5b57174012885adc9f9",
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
@@ -1255,8 +1255,8 @@
     "semantic_hash": "97f8ed7c0eab1dda48fa481d7172d4b2"
   },
   "client/src/game/utils/AudioManager.js": {
-    "mtime": 1785926580.5935802,
-    "ast_hash": "7c92faec08f48a5fe15dd170eaa2bd76",
+    "mtime": 1785997760.7482162,
+    "ast_hash": "3a2f8afbc005da93828eacb710bf4468",
     "semantic_hash": ""
   },
   "client/src/game/utils/ConfigManager.js": {
@@ -1295,9 +1295,9 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/MusicManager.js": {
-    "mtime": 1782952120.8993795,
-    "ast_hash": "18acf3d8594baa2f4274e9cbd4956626",
-    "semantic_hash": "18acf3d8594baa2f4274e9cbd4956626"
+    "mtime": 1785997761.6812057,
+    "ast_hash": "182f69c2b9a7c8cd429fec3c3ee207b3",
+    "semantic_hash": ""
   },
   "client/src/game/utils/NPCSpawner.js": {
     "mtime": 1784621572.004854,
@@ -2840,8 +2840,8 @@
     "semantic_hash": ""
   },
   "test/harness/GameHarness.js": {
-    "mtime": 1784302993.6772623,
-    "ast_hash": "71fcfa53c43fbc96c9d0c6c8077f71ff",
+    "mtime": 1785998300.932166,
+    "ast_hash": "3a42137d79225e07ef2a79d0d2a258dd",
     "semantic_hash": ""
   },
   "test/harness/harness.test.js": {
@@ -2865,8 +2865,8 @@
     "semantic_hash": ""
   },
   "test/balance/balance.js": {
-    "mtime": 1784179517.707553,
-    "ast_hash": "5582bcb3f06dd521f8058845a99a1824",
+    "mtime": 1785998306.7011654,
+    "ast_hash": "fed75a519cd66b9c547e57e7e277555c",
     "semantic_hash": ""
   },
   "test/balance/balance.mjs": {
@@ -3537,6 +3537,16 @@
   "test/remote/remoteTweenRefcount.test.js": {
     "mtime": 1785996296.9207003,
     "ast_hash": "2e7e5b5df97789f8cc85c3ff798bac6c",
+    "semantic_hash": ""
+  },
+  "client/src/game/systems/PlayerCombatSystem.js": {
+    "mtime": 1785998627.1674716,
+    "ast_hash": "4cdbf4521c891d8cb393609154c80a3b",
+    "semantic_hash": ""
+  },
+  "test/systems/playerCombat.test.js": {
+    "mtime": 1785998966.8096578,
+    "ast_hash": "4ec034e2ec6dca90b1cdec6bc60e002d",
     "semantic_hash": ""
   }
 }
