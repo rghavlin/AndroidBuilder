@@ -73,7 +73,7 @@ function getTempCanvas(size) {
  * (e.g. a wagon). Returns null if none. Used for turret icon priority + the
  * pulsing "active/targetable" border. (Inert turrets return null.)
  */
-function getPoweredTurretForEntity(entity) {
+export function getPoweredTurretForEntity(entity) {
   if (!entity) return null;
   if (entity.defId === TURRET_DEF_ID && entity.isOn) return entity;
   const grid = entity.containerGrid || (typeof entity.getContainerGrid === 'function' ? entity.getContainerGrid() : null);
@@ -81,6 +81,37 @@ function getPoweredTurretForEntity(entity) {
     if (it && it.defId === TURRET_DEF_ID && it.isOn) return it;
   }
   return null;
+}
+
+/**
+ * Whether this item renders AS the powered turret it is or carries — taking the
+ * turret's icon and its pulsing blue "active" ring.
+ *
+ * True for a standalone powered turret, and for a carrier (a wagon) with one
+ * riding in it: the turret is the exposed, targetable object on that tile, so it
+ * outranks the box it came in.
+ *
+ * The exception is the carrier you are currently steering. While the phone is
+ * linked to it, the wagon shows as itself and wears the cyan link ring instead:
+ * "which wagon am I driving" is the question that matters at that moment, and a
+ * turret icon plus a blue ring answers a different one. A standalone turret is
+ * never a controllable device, so it is unaffected either way.
+ *
+ * @param {Object} entity - an on-map item entity
+ * @param {GameEngine} engine
+ * @param {Object|null} [poweredTurret] - pre-resolved result of
+ *   getPoweredTurretForEntity, so the render loop doesn't walk the container
+ *   grid twice per frame. Omit and it resolves itself.
+ * @returns {boolean}
+ */
+export function showsAsPoweredTurret(entity, engine, poweredTurret = undefined) {
+  const turret = poweredTurret === undefined ? getPoweredTurretForEntity(entity) : poweredTurret;
+  if (!turret) return false;
+
+  const isLinked = !!engine?.activeDeviceId && !!entity?.instanceId
+    && engine.activeDeviceId === entity.instanceId;
+
+  return !(isLinked && entity.defId !== TURRET_DEF_ID);
 }
 
 // Ground-pile icon priority. A tile may hold many items, but it renders as a
@@ -384,6 +415,10 @@ export const EntityRenderer = {
       const isLinkedDevice = entity.type === 'item' && !!engine
         && !!entity.instanceId && engine.activeDeviceId === entity.instanceId;
 
+      // Whether this entity wears the turret's icon + blue ring, or its own.
+      // renderTurret is passed through so the container grid isn't walked twice.
+      const showsAsTurret = showsAsPoweredTurret(entity, engine, renderTurret);
+
       // Phase 27: Priority for Image Mapping
       // 1. If it's an Item with an explicit imageId, use it (canonical)
       // 2. If it's an item subtype with a definition, use that definition's imageId
@@ -404,8 +439,10 @@ export const EntityRenderer = {
 
         // Turret icon priority: a carrier (e.g. a wagon) holding a powered-on
         // turret renders AS the turret — it's the exposed, targetable object on
-        // this tile. (Standalone turrets already use the turret image.)
-        if (renderTurret && entity.defId !== TURRET_DEF_ID) {
+        // this tile. (Standalone turrets already use the turret image.) A
+        // carrier under active radio control keeps its own icon; see
+        // showsAsTurret above.
+        if (showsAsTurret && entity.defId !== TURRET_DEF_ID) {
           effectiveImageId = 'turret';
         }
       }
@@ -577,7 +614,9 @@ export const EntityRenderer = {
 
           // Draw inner border. Normally silver; a powered-on turret pulses its
           // ring between silver and dark electric blue to signal it's active.
-          if (renderTurret) {
+          // A linked carrier falls through to the cyan link ring below, so the
+          // wagon you're steering is never disguised as its cargo.
+          if (showsAsTurret) {
             frameRenderFlags.hasPulser = true; // pulsing active-turret ring
             const t = 0.5 + 0.5 * Math.sin(currentTime / 250); // 0..1
             const lerp = (a, b) => Math.round(a + (b - a) * t);

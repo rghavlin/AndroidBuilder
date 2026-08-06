@@ -1165,8 +1165,8 @@
     "semantic_hash": "8227401cf12e62741245570c60d4640d"
   },
   "client/src/game/renderer/EntityRenderer.js": {
-    "mtime": 1785925519.2542517,
-    "ast_hash": "7f49808962ab6639c2845887c6309057",
+    "mtime": 1785994842.4839525,
+    "ast_hash": "a40c7145e38d56aaab77cf424b8fddf0",
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileChunkCache.js": {
@@ -3522,6 +3522,11 @@
   "test/remote/deviceFocusPoint.test.js": {
     "mtime": 1785994051.9133377,
     "ast_hash": "496830b12188bbb4c93e074fe3faf67d",
+    "semantic_hash": ""
+  },
+  "test/renderer/turretCarrierDisplay.test.js": {
+    "mtime": 1785994873.088582,
+    "ast_hash": "8b11af642eeb3134b6f50a53d5abd4af",
     "semantic_hash": ""
   }
 }
