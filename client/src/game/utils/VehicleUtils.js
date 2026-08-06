@@ -256,5 +256,24 @@ export const VehicleUtils = {
 
     // Hard speed cap: nothing in the game moves faster than 0.5 AP per tile.
     return Math.max(0.5 * steps, totalCost);
+  },
+
+  /**
+   * Check if any zombie is currently within the player's field of view
+   * @param {Object} engine - The GameEngine singleton
+   * @returns {boolean} True if a zombie is in sight
+   */
+  isZombieInSightOfPlayer(engine) {
+    if (!engine || !engine.gameMap || !engine.playerFieldOfView) return false;
+    const visibleKeys = new Set(engine.playerFieldOfView.map(t => `${t.x},${t.y}`));
+    const zombies = engine.gameMap.getEntitiesByType('zombie') || [];
+    for (const zombie of zombies) {
+      const zx = Math.round(zombie.x);
+      const zy = Math.round(zombie.y);
+      if (visibleKeys.has(`${zx},${zy}`)) {
+        return true;
+      }
+    }
+    return false;
   }
 };

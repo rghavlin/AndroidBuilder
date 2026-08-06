@@ -667,9 +667,10 @@ export class AISystem {
       };
 
       // Visibility: prefer the cached Vision component, fall back to direct LOS.
-      const playerInLoS = vision
-        ? vision.visibleEntities.includes(player.id)
-        : entity.canSeeEntity(gameMap, player);
+      // If the player is sleeping inside a wagon sleeper, they are completely invisible to zombies.
+      const playerInLoS = (engine && engine.isSleeping && engine.sleepingInWagonInstanceId)
+        ? false
+        : (vision ? vision.visibleEntities.includes(player.id) : entity.canSeeEntity(gameMap, player));
 
       // --- Decision tree (highest priority first) ---
       // Hunting is gated on faction hostility. Zombies are HOSTILE -> player in

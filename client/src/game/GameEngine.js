@@ -151,6 +151,7 @@ class GameEngine extends SafeEventEmitter {
     this.actionsLocked = false;
     this.isSleeping = false;
     this.sleepProgress = 0;
+    this.sleepingInWagonInstanceId = null;
     this.targetingItemInstanceId = null;
     this.dragging = null; // Phase 25: Drag Mechanic
     this.riding = null;   // Scooter Riding Slot
@@ -170,8 +171,9 @@ class GameEngine extends SafeEventEmitter {
     this.bookStats = {};
     for (const [defId, def] of Object.entries(ItemDefs)) {
       if (def.traits?.includes(ItemTrait.READABLE)) {
+        const isNomad = defId.startsWith('book.nomad_survivor_');
         this.bookStats[defId] = {
-          pagesLeft: def.totalPages, // Track how many pages remain to be read
+          pagesLeft: isNomad ? 0 : def.totalPages, // Track how many pages remain to be read
           milestonesReached: 0 // Track how many 100-page milestones were processed
         };
       }
@@ -340,6 +342,7 @@ class GameEngine extends SafeEventEmitter {
       this._phoneChargeTurn = gameObjects.interactionState.phoneChargeTurn ?? null;
       this.isSleeping = gameObjects.interactionState.isSleeping ?? false;
       this.sleepProgress = gameObjects.interactionState.sleepProgress ?? 0;
+      this.sleepingInWagonInstanceId = gameObjects.interactionState.sleepingInWagonInstanceId ?? null;
       this.targetingItemInstanceId = gameObjects.interactionState.targetingItemInstanceId ?? null;
       
       // Phase 25: Restore dragging state

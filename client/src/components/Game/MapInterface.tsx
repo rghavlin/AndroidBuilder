@@ -19,6 +19,7 @@ import { ActionSlotButton } from './ActionSlotButton';
 import { imageLoader } from '../../game/utils/ImageLoader';
 import { EntityType } from '../../game/entities/Entity.js';
 import { findEdgeStructure } from '../../game/utils/EdgeStructure.js';
+import { VehicleUtils } from '../../game/utils/VehicleUtils.js';
 import { cn } from "@/lib/utils";
 import { useCombat } from '../../contexts/CombatContext.jsx';
 import { useVisualEffects } from '../../contexts/VisualEffectsContext.jsx';
@@ -187,6 +188,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
   const [windowMenu, setWindowMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, window: any } | null>(null);
   const [waterMenu, setWaterMenu] = useState<{ x: number, y: number, screenX: number, screenY: number } | null>(null);
   const [npcMenu, setNpcMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, npc: any } | null>(null);
+  const [wagonMenu, setWagonMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, wagon: any } | null>(null);
   const mapAreaRef = useRef<HTMLDivElement>(null);
 
   // Log tile interactions for debugging
@@ -209,6 +211,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       setWindowMenu(null);
       setWaterMenu(null);
       setNpcMenu(null);
+      setWagonMenu(null);
     }
   }, [isAnimatingMovement]);
 
@@ -251,6 +254,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     setWindowMenu(null);
     setWaterMenu(null);
     setNpcMenu(null);
+    setWagonMenu(null);
 
     // If an item is selected for movement, cancel it and don't process map click
     if (selectedItem) {
@@ -495,6 +499,37 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
       }
       return;
     }
+
+    // Check for a wagon with sleeper upgrade on the clicked tile
+    const itemsOnTile = gameMap.getItemsOnTile(x, y) || [];
+    const wagon = itemsOnTile.find((e: any) => {
+      const isWagon = e.defId === 'vehicle.wagon' || e.defId === 'vehicle.cargo_wagon';
+      const hasSleeper = e.attachments?.['sleeper'] !== undefined && e.attachments?.['sleeper'] !== null;
+      return isWagon && hasSleeper;
+    });
+
+    if (wagon) {
+      const px = Math.floor(player.x);
+      const py = Math.floor(player.y);
+      const dx = x - px;
+      const dy = y - py;
+      const isAdjacentOrOn = (Math.abs(dx) <= 1 && Math.abs(dy) <= 1);
+
+      if (isAdjacentOrOn) {
+        setWagonMenu({ x, y, screenX, screenY, wagon });
+      } else {
+        console.log('[MapInterface] Wagon not adjacent for interaction');
+        addEffect({
+          type: 'damage',
+          x,
+          y,
+          value: 'Must be adjacent',
+          color: '#fbbf24',
+          duration: 1000
+        });
+      }
+      return;
+    }
   };
 
   // Block all map area clicks when item is selected or targeting
@@ -703,6 +738,39 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
 
 
+
+      {/* Wagon Context Menu */}
+      {wagonMenu && (
+        <div
+          className="fixed z-[10002] bg-popover border border-border rounded-md shadow-lg py-1 w-32"
+          style={{ left: wagonMenu.screenX, top: wagonMenu.screenY }}
+          onMouseLeave={() => setWagonMenu(null)}
+        >
+          <button
+            disabled={VehicleUtils.isZombieInSightOfPlayer(engine)}
+            className="w-full text-left px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-bold uppercase tracking-wider text-zinc-300 hover:text-white"
+            onClick={() => {
+              if (!isPlayerTurn) return;
+              if (VehicleUtils.isZombieInSightOfPlayer(engine)) {
+                addEffect({
+                  type: 'damage',
+                  x: wagonMenu.x,
+                  y: wagonMenu.y,
+                  value: 'Zombies nearby!',
+                  color: '#ef4444',
+                  duration: 1000
+                });
+                setWagonMenu(null);
+                return;
+              }
+              triggerSleep(1.25, { wagonInstanceId: wagonMenu.wagon.id || wagonMenu.wagon.instanceId });
+              setWagonMenu(null);
+            }}
+          >
+            Sleep
+          </button>
+        </div>
+      )}
 
       {/* Door Context Menu */}
       {doorMenu && (

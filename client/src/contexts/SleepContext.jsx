@@ -82,6 +82,7 @@ export const SleepProvider = ({ children }) => {
   const wakePlayer = useCallback((reason = null) => {
     engine.isSleeping = false;
     engine.sleepProgress = 0;
+    engine.sleepingInWagonInstanceId = null;
     setIsSleeping(false);
     setSleepProgress(0);
     setIsPlayerTurn(true);
@@ -267,30 +268,30 @@ export const SleepProvider = ({ children }) => {
                 addLog('Zombie smashes a window!', 'combat');
                 GameEvents.emit(GAME_EVENT.WINDOW_SMASH, action.data);
               }
-              noiseInterruption = true;
+              if (!engine.sleepingInWagonInstanceId) {
+                noiseInterruption = true;
+              }
             }
             if (addEffect) {
               addEffect({ type: 'damage', x: targetPos.x, y: targetPos.y, value: 'bang', color: '#ffffff', duration: 800 });
             }
           } else if (action.type === 'ATTACK' && action.data.targetType === 'player') {
             if (entity && (entity.type === EntityType.ZOMBIE)) {
-              if (action.data.success) {
-                player.takeDamage(action.data.damage, entity);
-                // Mirror TurnManager's awake ATTACK handling: apply ALL afflictions.
-                // Without these lines, a zombie that hits a sleeping player would
-                // apply them when awake but not asleep.
-                if (action.data.bleedingInflicted) player.setBleeding(true);
-                if (action.data.sickInflicted) player.inflictSickness(24);
-                if (action.data.infectionInflicted) player.inflictInfection();
-                addLog(`Zombie attacks while you sleep! ${action.data.damage} damage`, 'combat');
-              } else {
-                addLog(`A zombie swipes at you and misses!`, 'combat');
+              if (!engine.sleepingInWagonInstanceId) {
+                if (action.data.success) {
+                  player.takeDamage(action.data.damage, entity);
+                  // Mirror TurnManager's awake ATTACK handling: apply ALL afflictions.
+                  // Without these lines, a zombie that hits a sleeping player would
+                  // apply them when awake but not asleep.
+                  if (action.data.bleedingInflicted) player.setBleeding(true);
+                  if (action.data.sickInflicted) player.inflictSickness(24);
+                  if (action.data.infectionInflicted) player.inflictInfection();
+                  addLog(`Zombie attacks while you sleep! ${action.data.damage} damage`, 'combat');
+                } else {
+                  addLog(`A zombie swipes at you and misses!`, 'combat');
+                }
+                hitByZombie = true;
               }
-              // R3#8: ZOMBIE_ATTACK_RESULT was emitted here with no listener
-              // anywhere (its {success,zombieId} payload matched no consumer);
-              // damage, afflictions, and the log line are all handled inline
-              // above. Removed the dead emit.
-              hitByZombie = true;
             } else if (entity && (entity.type === EntityType.NPC)) {
               npcInterruption = true;
             }
@@ -396,8 +397,9 @@ export const SleepProvider = ({ children }) => {
     }
   }, [isInitialized, isPlayerTurn, isNight, isFlashlightOnActual, getActiveFlashlightRange, wakePlayer, animateVisibleNPCs, addLog, addEffect, updatePlayerStats, updatePlayerFieldOfView, updatePlayerCardinalPositions, getPlayerCardinalPositions, performAutosave, setTurn, setIsPlayerTurn, triggerMapUpdate]);
 
-  const triggerSleep = useCallback((multiplier = 1) => {
+  const triggerSleep = useCallback((multiplier = 1, options = {}) => {
     setSleepMultiplier(multiplier);
+    engine.sleepingInWagonInstanceId = options.wagonInstanceId || null;
     setIsSleepModalOpen(true);
   }, []);
 
@@ -418,6 +420,7 @@ export const SleepProvider = ({ children }) => {
       setSleepProgress(0);
       setIsSleepModalOpen(false);
       setSleepMultiplier(1);
+      engine.sleepingInWagonInstanceId = null;
     };
     window.addEventListener('game-shutdown', handleShutdown);
     return () => window.removeEventListener('game-shutdown', handleShutdown);

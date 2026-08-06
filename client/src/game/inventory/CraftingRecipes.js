@@ -34,7 +34,7 @@ export const CraftingRecipes = [
         name: 'Cargo Wagon',
         resultItem: 'vehicle.cargo_wagon',
         description: 'For moving items',
-        apCost: 40,
+        apCost: 30,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_6',
         tools: [
@@ -52,7 +52,7 @@ export const CraftingRecipes = [
         name: 'Stun rod',
         resultItem: 'weapon.stun_rod',
         description: 'A defensive stun rod that can be powered with a large battery to shock and stun enemies.',
-        apCost: 22,
+        apCost: 15,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_7',
         tools: [
@@ -140,7 +140,7 @@ export const CraftingRecipes = [
         name: 'Rain Collector',
         resultItem: 'provision.rain_collector',
         description: 'A large basin for collecting rainwater. Must be placed in the open air.',
-        apCost: 17,
+        apCost: 12,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_3',
         tools: [
@@ -388,7 +388,7 @@ export const CraftingRecipes = [
         resultItem: 'vehicle.small_sled',
         description: 'For moving items',
         resultCount: 1,
-        apCost: 15,
+        apCost: 10,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_1',
         tools: [
@@ -400,11 +400,28 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'crafting.wagon_sleeper',
+        name: 'Wagon Sleeper',
+        resultItem: 'wagon_sleeper',
+        description: 'An upgrade for wagons that provides a comfortable space to sleep.',
+        apCost: 15,
+        tab: 'crafting',
+        tools: [
+            { either: ['weapon.hammer', 'weapon.makeshift_hammer'], count: 1, label: 'Hammer' }
+        ],
+        ingredients: [
+            { id: 'weapon.plank', count: 4 },
+            { id: 'crafting.metal_plate', count: 2 },
+            { id: 'crafting.nail', count: 6 },
+            { id: 'bedroll.closed', count: 1 }
+        ]
+    },
+    {
         id: 'crafting.planter_box',
         name: 'Planter box',
         resultItem: 'furniture.planter_box',
         description: 'A wooden box filled with soil for growing plants.',
-        apCost: 13,
+        apCost: 12,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_2',
         tools: [
@@ -421,7 +438,7 @@ export const CraftingRecipes = [
         name: 'Solar charger',
         resultItem: 'tool.solar_charger',
         description: 'A sustainable battery charging station. Requires daylight and outdoor placement to function.',
-        apCost: 26,
+        apCost: 20,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_5',
         tools: [
@@ -464,7 +481,7 @@ export const CraftingRecipes = [
         name: 'Auto Turret',
         resultItem: TURRET_DEF_ID,
         description: 'A fully automated defensive turret that detects and eliminates zombies within range. Requires a large battery for power and a .556 magazine for ammunition.',
-        apCost: 34,
+        apCost: 25,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_8',
         tools: [
@@ -485,7 +502,7 @@ export const CraftingRecipes = [
         name: 'RC Receiver',
         resultItem: 'tool.rc_receiver',
         description: 'Bolts into a wagon and lets you drive it from your smartphone. The wagon still needs a motor and a charged power cell to actually move.',
-        apCost: 28,
+        apCost: 20,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_9',
         tools: [
@@ -502,7 +519,7 @@ export const CraftingRecipes = [
         name: 'Autonomous Controller',
         resultItem: 'tool.autonomous_controller',
         description: 'A receiver with a CPU wired in. Give the wagon a destination from your phone, then walk away — it drives itself there over the following turns, spending its own power instead of your AP.',
-        apCost: 34,
+        apCost: 20,
         tab: 'crafting',
         requiredBook: 'book.nomad_survivor_9',
         tools: [

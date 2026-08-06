@@ -116,8 +116,9 @@ export function ItemContextMenu({
                 // Phase: Specialized Ground Containers (Wagon/Sled) bypass ContextMenu
                 const isSpecialGroundContainer = item.hasTrait?.(ItemTrait.VEHICLE) && 
                                                engine.inventoryManager.groundContainer.items.has(item.instanceId);
+                const hasSleeperUpgrade = item.attachments?.['sleeper'] !== undefined && item.attachments?.['sleeper'] !== null;
                 
-                if (isSpecialGroundContainer) return null;
+                if (isSpecialGroundContainer && !hasSleeperUpgrade) return null;
 
                 return (
                     <ContextMenuPortal>
@@ -185,7 +186,7 @@ export function ItemContextMenu({
                             </ContextMenuItem>
                         )}
 
-                        {canOpenContainer(item) && (
+                        {canOpenContainer(item) && item.defId !== 'vehicle.wagon' && item.defId !== 'vehicle.cargo_wagon' && (
                             <ContextMenuItem
                                 onClick={() => {
                                     console.log('[ItemContextMenu] Open container requested for:', item.name, 'instanceId:', item.instanceId);
@@ -304,6 +305,15 @@ export function ItemContextMenu({
                             <ContextMenuItem
                                 onSelect={() => triggerSleep(1.25)}
                                 className="hover:bg-accent focus:bg-accent focus:text-white"
+                            >
+                                Sleep
+                            </ContextMenuItem>
+                        )}
+                        {(item?.defId === 'vehicle.wagon' || item?.defId === 'vehicle.cargo_wagon') && item.attachments?.['sleeper'] && (
+                            <ContextMenuItem
+                                onSelect={() => triggerSleep(1.25, { wagonInstanceId: item.instanceId })}
+                                className="hover:bg-accent focus:bg-accent focus:text-white"
+                                disabled={VehicleUtils.isZombieInSightOfPlayer(engine)}
                             >
                                 Sleep
                             </ContextMenuItem>
@@ -447,7 +457,7 @@ export function ItemContextMenu({
                             </ContextMenuItem>
                         )}
                         {(() => {
-                            if (!item || !item.hasTrait?.(ItemTrait.DRAGGABLE) || item.noDrag) return null;
+                            if (!item || !item.hasTrait?.(ItemTrait.DRAGGABLE) || item.noDrag || item.defId === 'vehicle.wagon' || item.defId === 'vehicle.cargo_wagon') return null;
                             
                             // Check if item is on ground
                             const isDraggingThis = engine.dragging?.item?.instanceId === item.instanceId;

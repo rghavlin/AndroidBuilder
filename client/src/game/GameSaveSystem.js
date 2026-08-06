@@ -311,6 +311,7 @@ export class GameSaveSystem {
           isPlayerTurn: gameState.isPlayerTurn !== undefined ? gameState.isPlayerTurn : true,
           isSleeping: engine.isSleeping,
           sleepProgress: engine.sleepProgress,
+          sleepingInWagonInstanceId: engine.sleepingInWagonInstanceId,
           targetingItemInstanceId: engine.targetingItemInstanceId,
           isFlashlightOn: engine.isFlashlightOn,
           activeDeviceId: engine.activeDeviceId,
@@ -437,6 +438,18 @@ export class GameSaveSystem {
 
       if (saveData.bookStats) {
           engine.bookStats = saveData.bookStats;
+      }
+      // Ensure all nomad survivor books are marked as read (pagesLeft: 0) on load.
+      if (!engine.bookStats) {
+          engine.bookStats = {};
+      }
+      for (let i = 1; i <= 9; i++) {
+          const bookId = `book.nomad_survivor_${i}`;
+          if (!engine.bookStats[bookId]) {
+              engine.bookStats[bookId] = { pagesLeft: 0, milestonesReached: 0 };
+          } else {
+              engine.bookStats[bookId].pagesLeft = 0;
+          }
       }
 
       engine.craftingQueue = saveData.craftingQueue || null;
