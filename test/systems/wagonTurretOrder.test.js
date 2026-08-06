@@ -7,12 +7,10 @@
 // SimulationManager.runTurn, and the reason the move is simulation-first
 // (see remote/RcVehiclePlacement.js).
 //
-// NOTE: a turret nested in an ON-MAP wagon's container currently never fires at
-// all — TurretSystem hands TurretAI the raw serialized grid entry rather than an
-// Item, and TurretAI throws `attacker.isHostileTo is not a function` into a
-// swallowed catch. That is a pre-existing TurretSystem bug, unrelated to wagon
-// autonomy, so these tests prove the ordering directly at the phase boundary
-// instead of through a riding turret's muzzle.
+// Proved twice over: directly at the phase boundary (where the wagon is when
+// TurretSystem is called), and through a riding turret's muzzle. The second only
+// became possible once nested turrets fired at all — see
+// test/systems/nestedTurretFiring.test.js.
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { GameHarness } from '../harness/GameHarness.js';
@@ -142,6 +140,40 @@ describe('wagon turn order vs turrets', () => {
 
     expect(order).toEqual(['turrets', 'turrets']);
     expect(positions).toEqual([10, 15]);
+  });
+
+  it('a riding turret fires on a zombie only reachable from the POST-move tile', () => {
+    // The payoff test, and the reason for the whole phase ordering: the turret's
+    // maxRange is 15. The zombie sits 20 tiles east of the wagon's start, so it
+    // is out of reach at x=5 and exactly in reach at x=10 — where the wagon ends
+    // this turn. A shot lands only if the move was committed before turrets ran.
+    const wagon = makeWagon({ withTurret: true });
+    deploy(wagon, 5, 10, 40);
+
+    const zombie = harness.spawnZombie(25, 10, 'standard', 'z-muzzle');
+    const hpBefore = zombie.hp;
+
+    const actionQueue = harness.endTurn();
+
+    expect(getRcVehicle(engine, wagon.instanceId).x).toBe(10);
+    expect(actionQueue.filter(a => a.type === 'TURRET_SHOT').length).toBeGreaterThan(0);
+    expect(zombie.hp).toBeLessThan(hpBefore);
+  });
+
+  it('the same turret cannot reach that zombie while the wagon stays put', () => {
+    // Negative control for the test above: identical geometry, no order, so the
+    // wagon never leaves x=5 and the zombie stays out of range.
+    const wagon = makeWagon({ withTurret: true });
+    engine.inventoryManager.dropItemAtLocation(wagon, 5, 10, harness.gameMap);
+
+    const zombie = harness.spawnZombie(25, 10, 'standard', 'z-muzzle-control');
+    const hpBefore = zombie.hp;
+
+    const actionQueue = harness.endTurn();
+
+    expect(getRcVehicle(engine, wagon.instanceId).x).toBe(5);
+    expect(actionQueue.filter(a => a.type === 'TURRET_SHOT').length).toBe(0);
+    expect(zombie.hp).toBe(hpBefore);
   });
 
   it('carries its cargo along — the wagon still holds the turret after moving', () => {

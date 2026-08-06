@@ -1,6 +1,6 @@
 import { TurretAI } from '../ai/TurretAI.js';
 import { getExposedTurretTargets, TURRET_DEF_ID, removeDestroyedTurret } from '../ai/TurretCombat.js';
-import { gridItems } from '../inventory/gridUtils.js';
+import { hydratedGridItems } from '../inventory/gridUtils.js';
 
 /**
  * Turret turn orchestration + destruction cleanup, extracted from
@@ -58,7 +58,11 @@ export class TurretSystem {
         containerGrid = item.getContainerGrid();
       }
       if (containerGrid) {
-        const nestedItems = gridItems(containerGrid);
+        // hydratedGridItems, not gridItems: an on-map wagon's grid holds plain
+        // serialized objects, and TurretAI calls Item methods on whatever it is
+        // handed. It also writes the inflated Items back into the grid, so the
+        // rounds a riding turret spends are actually gone next turn.
+        const nestedItems = hydratedGridItems(containerGrid);
         for (const nestedItem of nestedItems) {
           fireTurretFromItem(nestedItem, atX, atY);
         }
@@ -115,7 +119,7 @@ export class TurretSystem {
         containerGrid = item.getContainerGrid();
       }
       if (containerGrid) {
-        const nestedItems = gridItems(containerGrid);
+        const nestedItems = hydratedGridItems(containerGrid);
 
         let cleanedAny = false;
         for (const nestedItem of nestedItems) {

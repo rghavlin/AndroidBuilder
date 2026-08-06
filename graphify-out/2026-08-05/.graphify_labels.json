@@ -151,7 +151,12 @@
   "149": "DialogOverlay.tsx",
   "150": "migrateEvents.js",
   "151": "NPM Configuration Testing",
+  "152": "react",
+  "153": "MinHeap",
   "154": "Electron Preload Script",
+  "155": "FactionRegistry",
+  "156": "SplitRoadGenerator",
+  "157": "fillBottleDuplication.test.js",
   "158": "Firestation Layout Verification",
   "159": "Special Window Layouts",
   "160": "Book System Verification",
@@ -163,6 +168,9 @@
   "166": "Simple Utility Script",
   "167": "Tailwind CSS Configuration",
   "168": "Vite Electron Configuration",
+  "169": "TurretAI.js",
+  "170": ".recordHit",
+  "171": "npcAttackOnSight.test.js",
   "176": "TestMapBuilder",
   "194": "TileRenderer.js"
 }

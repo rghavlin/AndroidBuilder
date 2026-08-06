@@ -43695,6 +43695,15 @@
           },
           {
             "defId": "tool.rc_receiver"
+          },
+          {
+            "defId": "tool.autonomous_controller"
+          },
+          {
+            "defId": "tool.autonomous_controller"
+          },
+          {
+            "defId": "tool.autonomous_controller"
           }
         ]
       },

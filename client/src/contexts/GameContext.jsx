@@ -445,12 +445,12 @@ const GameContextInner = ({ children }) => {
     engine.deviceControlMode = 'remote';
 
     const target = nextKey ? devices.find(d => d.key === nextKey) : null;
-    const focus = target ? (target.drone || target.item) : engine.player;
-    if (focus && engine.camera) {
-      engine.camera.centerOn(
-        focus.logicalX ?? focus.x,
-        focus.logicalY ?? focus.y
-      );
+    // focusPointOf, not the device's own x/y: a device at the player's feet is
+    // an Item in the ground container whose x/y are cells inside that container,
+    // not map tiles. Reading them directly sent the camera to (0, 0).
+    if (engine.camera) {
+      const focus = RemoteDeviceRegistry.focusPointOf(target, engine);
+      engine.camera.centerOn(focus.x, focus.y);
     }
     if (target?.kind === 'rc-vehicle') {
       const autonomous = hasAutonomy(target.item);

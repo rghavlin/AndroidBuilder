@@ -141,6 +141,57 @@ export function listControllables(engine) {
   ];
 }
 
+/**
+ * Where the camera has to look to see a controllable, in MAP tiles.
+ *
+ * Needed because a controllable is not always an entity with world coordinates.
+ * listGroundedDevices and listRcVehicles both scan two homes, and a device
+ * standing on the player's own tile lives in inventoryManager.groundContainer as
+ * a plain Item — which has NO map position. Its `x`/`y` are the cell it occupies
+ * inside that container's grid, so reading them as tiles points the camera at
+ * the top-left corner of the map (see the ground-container ownership rule in
+ * GroundManager.placeItemAtTile).
+ *
+ * A device in the ground container is, by definition, at the player's feet, so
+ * that is where the camera goes. Passing a null target (cycled back past the
+ * last device) yields the same point, which is exactly right.
+ *
+ * @param {{kind: string, drone?: Object, item?: Object}|null} target
+ * @param {GameEngine} engine
+ * @returns {{x: number, y: number}}
+ */
+export function focusPointOf(target, engine) {
+  const inv = engine?.inventoryManager;
+  const player = engine?.player;
+  const underfoot = {
+    x: Math.round(inv?.lastSyncedX ?? player?.x ?? 0),
+    y: Math.round(inv?.lastSyncedY ?? player?.y ?? 0)
+  };
+
+  if (!target) return underfoot;
+
+  // An airborne drone is its own entity and always carries real coordinates.
+  if (target.kind === 'drone-air') {
+    const drone = target.drone;
+    if (drone) {
+      return {
+        x: Math.round(drone.logicalX ?? drone.x ?? underfoot.x),
+        y: Math.round(drone.logicalY ?? drone.y ?? underfoot.y)
+      };
+    }
+    return underfoot;
+  }
+
+  // Grounded drone / RC wagon. An on-map entity has logicalX/logicalY; deliberately
+  // NO fallback to `.x` here, because that is the container-grid coordinate that
+  // caused the bug this function exists to prevent.
+  const item = target.item;
+  if (item?.logicalX !== undefined && item?.logicalY !== undefined) {
+    return { x: Math.round(item.logicalX), y: Math.round(item.logicalY) };
+  }
+  return underfoot;
+}
+
 let deployCounter = 0;
 
 /**

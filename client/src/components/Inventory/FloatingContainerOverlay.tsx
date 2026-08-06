@@ -363,8 +363,14 @@ export default function FloatingContainerOverlay({
                   variant="ghost"
                   className={cn(
                     "h-4 w-4 p-0 transition-all text-white rounded-[3px]",
-                    item.isOn 
-                      ? "bg-red-600/90 border border-red-500 text-white hover:bg-red-700 shadow-[0_0_8px_rgba(239,68,68,0.5)]" 
+                    // state-toggle opts this button out of the per-theme
+                    // ground-grid button skins, which repaint background,
+                    // border and box-shadow with !important (see index.css) and
+                    // would otherwise make lit and unlit look identical in
+                    // light2 / metallic / steampunk. Applied only while lit, so
+                    // a powered-down turret still wears the theme's own button.
+                    item.isOn
+                      ? "state-toggle bg-red-600/90 border border-red-500 text-white hover:bg-red-700 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
                       : "bg-zinc-800/80 border border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white"
                   )}
                   onClick={(e) => {
@@ -416,7 +422,9 @@ export default function FloatingContainerOverlay({
                   className={cn(
                     "h-6 w-6 p-0 border border-white/10 hover:bg-white/10 hover:border-white/50 hover:text-white rounded-[3px]",
                     "transition-all text-white",
-                    showMods && "bg-accent/80 hover:bg-accent/90 border-accent shadow-[0_0_10px_rgba(245,158,11,0.4)]"
+                    // See the power button above: the amber "panel open" state
+                    // needs the same opt-out or the theme skin hides it.
+                    showMods && "state-toggle bg-accent/80 hover:bg-accent/90 border-accent shadow-[0_0_10px_rgba(245,158,11,0.4)]"
                   )}
                   onClick={handleToggleMods}
                 >
@@ -443,7 +451,9 @@ export default function FloatingContainerOverlay({
                 className={cn(
                   "h-4 w-4 p-0 bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700 hover:text-white rounded-[3px]",
                   "transition-all text-white",
-                  showMods && "bg-accent/80 hover:bg-accent/90 border-accent shadow-[0_0_10px_rgba(245,158,11,0.4)]"
+                  // See the power button above: the amber "panel open" state
+                  // needs the same opt-out or the theme skin hides it.
+                  showMods && "state-toggle bg-accent/80 hover:bg-accent/90 border-accent shadow-[0_0_10px_rgba(245,158,11,0.4)]"
                 )}
                 onClick={handleToggleMods}
               >

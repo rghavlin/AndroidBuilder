@@ -325,8 +325,8 @@
     "semantic_hash": "57f25a74206bfda7dfa086cc9406f585"
   },
   "client/src/components/Inventory/FloatingContainerOverlay.tsx": {
-    "mtime": 1785121739.1201813,
-    "ast_hash": "9416c9a11be3795543f2b8322ad90a79",
+    "mtime": 1785992698.8017247,
+    "ast_hash": "234f581ead80cf177a7c1210e2d767e5",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/GridSlot.tsx": {
@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1785981114.9512324,
-    "ast_hash": "21874c0ccc35d5a8f57122860551e3b1",
+    "mtime": 1785994026.4109478,
+    "ast_hash": "3de8075f8297108fbab858ef4c76637c",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -1010,8 +1010,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/gridUtils.js": {
-    "mtime": 1785368704.7991877,
-    "ast_hash": "9cd653e7d509917028c4e83954d865d0",
+    "mtime": 1785990696.8249717,
+    "ast_hash": "48f938541aaad4bd08bb9d3a86a3e8af",
     "semantic_hash": ""
   },
   "client/src/game/inventory/index.js": {
@@ -3305,8 +3305,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteDeviceRegistry.js": {
-    "mtime": 1785910663.629508,
-    "ast_hash": "3aa04c10c69e27dc091895eb0e892502",
+    "mtime": 1785994019.8899453,
+    "ast_hash": "0114ba8ab59811faa6818924a749f036",
     "semantic_hash": ""
   },
   "client/src/game/systems/DroneSystem.js": {
@@ -3315,8 +3315,8 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/TurretSystem.js": {
-    "mtime": 1785727390.672039,
-    "ast_hash": "bc115fccca9b70fa185975e13fa59b82",
+    "mtime": 1785990707.3956525,
+    "ast_hash": "07276120f133a7db8b1f6f2d0bdef3d7",
     "semantic_hash": ""
   },
   "test/remote/droneMovement.test.js": {
@@ -3355,13 +3355,13 @@
     "semantic_hash": ""
   },
   "customMaps/drone test.editor.json": {
-    "mtime": 1785911630.538277,
-    "ast_hash": "53772e1b4775cbd532dc639515113cb5",
+    "mtime": 1785992940.118775,
+    "ast_hash": "5a0e50da1fa9b4fdc142be32b0b9c4a3",
     "semantic_hash": ""
   },
   "customMaps/drone test.scenario.json": {
-    "mtime": 1785911631.6113322,
-    "ast_hash": "bbcfd13de27c09a6b3365ed151bdec3d",
+    "mtime": 1785992940.940008,
+    "ast_hash": "3bfa26321a31d81c248f1cee2bce08c0",
     "semantic_hash": ""
   },
   "client/src/game/inventory/containerSearch.js": {
@@ -3505,13 +3505,23 @@
     "semantic_hash": ""
   },
   "test/systems/wagonTurretOrder.test.js": {
-    "mtime": 1785981880.836442,
-    "ast_hash": "27b9208d3f141ff501b56ace38a8e4c6",
+    "mtime": 1785990791.807409,
+    "ast_hash": "8260ccd002ee0384e1cb6e05ccd200b7",
     "semantic_hash": ""
   },
   "test/utils/audioVolumeConfig.test.js": {
     "mtime": 1785926777.176801,
     "ast_hash": "9a8b8430724b33dd4e360dc11b9db262",
+    "semantic_hash": ""
+  },
+  "test/systems/nestedTurretFiring.test.js": {
+    "mtime": 1785990755.9579623,
+    "ast_hash": "a70527397f6abd3055bf7fb0529a170d",
+    "semantic_hash": ""
+  },
+  "test/remote/deviceFocusPoint.test.js": {
+    "mtime": 1785994051.9133377,
+    "ast_hash": "496830b12188bbb4c93e074fe3faf67d",
     "semantic_hash": ""
   }
 }
