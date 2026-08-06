@@ -105,6 +105,9 @@ class GameEngine extends SafeEventEmitter {
     // loop has no React state for devices (unlike isAnimatingMovement for the
     // player), so this is what keeps it painting continuously during a flight.
     this.isDeviceAnimating = false;
+    // How many remote-device tweens are in flight. Reference counted because
+    // playback lanes run concurrently — see remote/RemoteTween.js.
+    this._deviceTweenCount = 0;
     // Which verb a click on the map issues to the linked device: 'remote' drives
     // it here and now for player AP, 'auto' hands it a destination to reach on
     // its own turns. Transient and never saved — a control mode outliving the

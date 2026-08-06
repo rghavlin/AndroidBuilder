@@ -20,6 +20,42 @@ function ease(t) {
 }
 
 /**
+ * engine.isDeviceAnimating keeps MapCanvas's render loop painting continuously
+ * (it has no React state to drive it). It is REFERENCE COUNTED because playback
+ * lanes run concurrently: several autonomous wagons tween at once, and a plain
+ * boolean let the first one to finish switch the loop off underneath the rest,
+ * leaving the longer trips to animate at the pulse cadence.
+ *
+ * This module owns the flag start to finish. Callers' onFinish handlers must not
+ * touch it, or the count and the flag drift apart.
+ */
+function beginTween(engine) {
+  if (!engine) return;
+  engine._deviceTweenCount = (engine._deviceTweenCount || 0) + 1;
+  engine.isDeviceAnimating = true;
+}
+
+function endTween(engine) {
+  if (!engine) return;
+  engine._deviceTweenCount = Math.max(0, (engine._deviceTweenCount || 1) - 1);
+  engine.isDeviceAnimating = engine._deviceTweenCount > 0;
+}
+
+/**
+ * Run the caller's authoritative placement, then release the render-loop count
+ * whatever happens. Errors are logged rather than rethrown — see the call site.
+ */
+function settleTween(engine, onFinish) {
+  try {
+    onFinish();
+  } catch (err) {
+    console.error('[RemoteTween] onFinish threw; the device may be left mid-placement:', err);
+  } finally {
+    endTween(engine);
+  }
+}
+
+/**
  * Tween `entity` along `path`, driving the camera and FOV every frame, then
  * hand off to `onFinish` for the authoritative placement.
  *
@@ -46,8 +82,10 @@ function ease(t) {
  */
 export function tweenAlongPath(entity, path, engine, { msPerTile, followCamera = true }, onFinish) {
   // Headless (tests / Node): no rAF to tween on — snap straight to the target.
+  // Same settle contract as the animated path, so behaviour can't diverge
+  // between the two: the promise always resolves, errors are logged not thrown.
   if (typeof requestAnimationFrame === 'undefined') {
-    onFinish();
+    settleTween(engine, onFinish);
     return Promise.resolve();
   }
 
@@ -60,7 +98,7 @@ export function tweenAlongPath(entity, path, engine, { msPerTile, followCamera =
   // animationProgress interpolation.
   entity.movementPath = [];
   entity.isAnimating = true;
-  engine.isDeviceAnimating = true;
+  beginTween(engine);
 
   return new Promise((resolve) => {
     const animate = (now) => {
@@ -82,7 +120,14 @@ export function tweenAlongPath(entity, path, engine, { msPerTile, followCamera =
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        onFinish();
+        // Release the count only after the authoritative placement, so the final
+        // frame is painted with the device already where it belongs.
+        //
+        // A throwing onFinish must neither strand the render loop on nor leave
+        // this promise unsettled: TurnManager.processQueue awaits it, and a
+        // promise that never settles wedges isProcessing true — which aborts
+        // every subsequent turn with "Already processing". Log and carry on.
+        settleTween(engine, onFinish);
         resolve();
       }
     };

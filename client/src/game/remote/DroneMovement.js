@@ -59,7 +59,8 @@ function finishFlight(drone, path, engine) {
   engine.gameMap.moveEntity(drone.id, final.x, final.y, { flying: true, skipEdgeCheck: true });
   drone.movementPath = [];
   drone.isAnimating = false;
-  engine.isDeviceAnimating = false;
+  // engine.isDeviceAnimating is owned by RemoteTween's reference count — do not
+  // clear it here, or a second concurrent tween loses its render loop.
   engine.recalculateFOV?.();
   engine.notifyUpdate?.();
 }

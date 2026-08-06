@@ -441,7 +441,8 @@ class TurnManager {
           }, () => {
             entity.renderX = data.to.x;
             entity.renderY = data.to.y;
-            engine.isDeviceAnimating = false;
+            // isDeviceAnimating is RemoteTween's reference count to release —
+            // several wagons animate concurrently in their own playback lanes.
             engine.invalidateFOV?.();
             engine.recalculateFOV?.();
           });

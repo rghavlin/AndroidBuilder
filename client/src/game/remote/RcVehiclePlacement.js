@@ -87,7 +87,9 @@ export function finishDrive(device, ghost, x, y, engine) {
   if (ghost) gameMap.removeEntity(ghost.id);
   engine.inventoryManager.dropItemAtLocation(device.item, x, y, gameMap);
 
-  engine.isDeviceAnimating = false;
+  // engine.isDeviceAnimating is owned by RemoteTween's reference count. This
+  // runs as its onFinish (and, when there was no ghost to animate, on a path
+  // that never started a tween at all) — either way it must not touch the flag.
   engine.invalidateFOV?.();
   engine.recalculateFOV?.();
   engine.notifyUpdate?.();

@@ -56,6 +56,16 @@ function deployedPosition(candidate, engine) {
   const y = candidate?.logicalY;
   if (Number.isFinite(x) && Number.isFinite(y)) return { x: Math.round(x), y: Math.round(y) };
 
+  return underfootPosition(engine);
+}
+
+/**
+ * The player's own tile — where anything in the ground container physically is.
+ * Prefers the container's last sync point over the player's live coordinates so
+ * it stays correct mid-walk, when the player has moved but the container hasn't
+ * re-synced yet.
+ */
+function underfootPosition(engine) {
   const inv = engine?.inventoryManager;
   const player = engine?.player;
   return {
@@ -161,35 +171,15 @@ export function listControllables(engine) {
  * @returns {{x: number, y: number}}
  */
 export function focusPointOf(target, engine) {
-  const inv = engine?.inventoryManager;
-  const player = engine?.player;
-  const underfoot = {
-    x: Math.round(inv?.lastSyncedX ?? player?.x ?? 0),
-    y: Math.round(inv?.lastSyncedY ?? player?.y ?? 0)
-  };
+  if (!target) return underfootPosition(engine);
 
-  if (!target) return underfoot;
-
-  // An airborne drone is its own entity and always carries real coordinates.
-  if (target.kind === 'drone-air') {
-    const drone = target.drone;
-    if (drone) {
-      return {
-        x: Math.round(drone.logicalX ?? drone.x ?? underfoot.x),
-        y: Math.round(drone.logicalY ?? drone.y ?? underfoot.y)
-      };
-    }
-    return underfoot;
-  }
-
-  // Grounded drone / RC wagon. An on-map entity has logicalX/logicalY; deliberately
-  // NO fallback to `.x` here, because that is the container-grid coordinate that
-  // caused the bug this function exists to prevent.
-  const item = target.item;
-  if (item?.logicalX !== undefined && item?.logicalY !== undefined) {
-    return { x: Math.round(item.logicalX), y: Math.round(item.logicalY) };
-  }
-  return underfoot;
+  // Exactly the question deployedPosition already answers: map coordinates if
+  // this thing has them, the player's tile otherwise. An airborne drone is an
+  // Entity, whose constructor seeds logicalX/logicalY, so it always takes the
+  // first branch; a device in the ground container has neither and takes the
+  // second. Deliberately no fallback to `.x` in either case — for an Item that
+  // is a container-grid cell, which is the bug this function exists to prevent.
+  return deployedPosition(target.drone || target.item, engine);
 }
 
 let deployCounter = 0;

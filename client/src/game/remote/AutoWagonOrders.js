@@ -1,6 +1,6 @@
 import { RcVehicleConfig } from '../config/RcVehicleConfig.js';
 import { getRcVehicle, getAutonomousVehicle, driveBlockedReason } from './RcVehicle.js';
-import { findRcPath, sliceLegByAp } from './RcPathing.js';
+import { findRcPath, countTurnsForPath } from './RcPathing.js';
 import { consumePhoneChargeOncePerTurn } from './DronePower.js';
 
 /**
@@ -50,19 +50,7 @@ export function clearOrder(engine, instanceId) {
  * @returns {number} >= 1, or Infinity if the wagon can't afford a single step
  */
 export function estimateTurns(path, item, gameMap) {
-  if (!path || path.length <= 1) return 0;
-
-  let remaining = path;
-  let turns = 0;
-
-  while (remaining.length > 1) {
-    const { leg } = sliceLegByAp(remaining, item, gameMap, RcVehicleConfig.AUTONOMOUS_MAX_AP);
-    if (leg.length <= 1) return Infinity; // can't even afford one step
-    remaining = remaining.slice(leg.length - 1);
-    turns++;
-  }
-
-  return turns;
+  return countTurnsForPath(path, item, gameMap, RcVehicleConfig.AUTONOMOUS_MAX_AP);
 }
 
 /**
@@ -88,15 +76,17 @@ export function setDestination(x, y, engine) {
   const path = findRcPath(device.x, device.y, x, y, engine, device.item.instanceId);
   if (path.length <= 1) return { success: false, message: 'No route there' };
 
+  // Every refusal must come BEFORE the charge is spent, or a rejected order
+  // still costs the player a turn's worth of phone battery.
+  const turns = estimateTurns(path, device.item, engine.gameMap);
+  if (!Number.isFinite(turns)) {
+    return { success: false, message: 'It has no power to move' };
+  }
+
   // Same rule as every other phone command: issuing one costs at most one
   // charge per turn, and it's free if the player already spent it linking.
   if (!consumePhoneChargeOncePerTurn(engine)) {
     return { success: false, message: 'The phone has no charge.' };
-  }
-
-  const turns = estimateTurns(path, device.item, engine.gameMap);
-  if (!Number.isFinite(turns)) {
-    return { success: false, message: 'It has no power to move' };
   }
 
   // One order per wagon: a new destination replaces the old one outright.

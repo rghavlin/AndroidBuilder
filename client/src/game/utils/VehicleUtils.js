@@ -119,12 +119,15 @@ export const VehicleUtils = {
    *
    * @param {Item} item
    * @param {Tile|null} tile
+   * @param {number} [perStep] - precomputed getRemoteStepPenalty(item). It is
+   *   loop-invariant, and resolving it allocates (getMotorizedBonus builds its
+   *   slot-pair table on every call), so callers walking a path hoist it out.
    * @returns {number} >= MIN_AP_PER_TILE
    */
-  remoteStepCost(item, tile) {
+  remoteStepCost(item, tile, perStep = this.getRemoteStepPenalty(item)) {
     return Math.max(
       MIN_REMOTE_AP_PER_TILE,
-      this.getRemoteStepPenalty(item) + this.getTerrainDiscount([item], tile)
+      perStep + this.getTerrainDiscount([item], tile)
     );
   },
 
@@ -146,10 +149,12 @@ export const VehicleUtils = {
   calculateRemoteDriveCost(item, path, gameMap) {
     if (!item || !path || path.length <= 1) return 0;
 
+    const perStep = this.getRemoteStepPenalty(item);
+
     let total = 0;
     for (let i = 1; i < path.length; i++) {
       const tile = gameMap ? gameMap.getTile(path[i].x, path[i].y) : null;
-      total += this.remoteStepCost(item, tile);
+      total += this.remoteStepCost(item, tile, perStep);
     }
 
     return Math.round(total * 10) / 10;

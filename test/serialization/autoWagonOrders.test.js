@@ -104,4 +104,20 @@ describe('AutoWagonOrders persistence', () => {
     engine.autoWagonOrders = new Map();
     expect(AutoWagonOrders.serializeOrders(engine)).toEqual([]);
   });
+
+  it('a cleared book leaves no marker behind for a new map to draw', () => {
+    // GameMapContext clears activeDeviceId AND the order book on a map change.
+    // MapCanvas draws markers straight from this map with no existence check,
+    // so an order surviving the transition paints a phantom crosshair on
+    // whatever the new map happens to have at those coordinates — WagonSystem
+    // only prunes it a whole turn later.
+    const wagon = makeAutoWagon();
+    engine.inventoryManager.dropItemAtLocation(wagon, 5, 5, harness.gameMap);
+    engine.autoWagonOrders.set(wagon.instanceId, { x: 20, y: 9, failedTurns: 0, lastBlockReason: null });
+
+    engine.autoWagonOrders.clear();
+
+    expect(engine.autoWagonOrders.size).toBe(0);
+    expect(AutoWagonOrders.getOrder(engine, wagon.instanceId)).toBeNull();
+  });
 });

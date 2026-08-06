@@ -98,12 +98,13 @@ export function sliceLegByAp(path, item, gameMap, apBudget) {
     return { leg: path?.length ? [path[0]] : [], apSpent: 0 };
   }
 
+  const perStep = VehicleUtils.getRemoteStepPenalty(item);
   let spent = 0;
   let end = 0;
 
   for (let i = 1; i < path.length; i++) {
     const tile = gameMap ? gameMap.getTile(path[i].x, path[i].y) : null;
-    const cost = VehicleUtils.remoteStepCost(item, tile);
+    const cost = VehicleUtils.remoteStepCost(item, tile, perStep);
     if (spent + cost > apBudget) break;
     spent += cost;
     end = i;
@@ -113,4 +114,42 @@ export function sliceLegByAp(path, item, gameMap, apBudget) {
     leg: path.slice(0, end + 1),
     apSpent: Math.round(spent * 10) / 10
   };
+}
+
+/**
+ * How many turns of `apBudget` it takes to walk `path` end to end.
+ *
+ * The same greedy rule sliceLegByAp applies, in one pass: fill a turn until the
+ * next step won't fit, then start a fresh turn with that step. Kept here beside
+ * sliceLegByAp because the two must price a tile identically — a quoted "3t"
+ * that the wagon then takes four turns to honour is a bug the player can see.
+ *
+ * Deliberately not implemented by calling sliceLegByAp in a loop: that copies a
+ * shrinking tail of the path on every iteration, and this runs on every mouse
+ * move while a destination is being aimed.
+ *
+ * @returns {number} turns (>= 1 for a non-empty path), or Infinity if any single
+ *   step costs more than a whole turn's budget — the wagon can never start.
+ */
+export function countTurnsForPath(path, item, gameMap, apBudget) {
+  if (!path || path.length <= 1 || !item) return 0;
+
+  const perStep = VehicleUtils.getRemoteStepPenalty(item);
+  let turns = 1;
+  let spent = 0;
+
+  for (let i = 1; i < path.length; i++) {
+    const tile = gameMap ? gameMap.getTile(path[i].x, path[i].y) : null;
+    const cost = VehicleUtils.remoteStepCost(item, tile, perStep);
+    if (cost > apBudget) return Infinity;
+
+    if (spent + cost > apBudget) {
+      turns++;
+      spent = cost;
+    } else {
+      spent += cost;
+    }
+  }
+
+  return turns;
 }

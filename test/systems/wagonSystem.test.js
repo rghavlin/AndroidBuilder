@@ -414,6 +414,34 @@ describe('systems/WagonSystem', () => {
       expect(engine.autoWagonOrders.size).toBe(0);
     });
 
+    it('refuses without spending phone charge on the refusal', () => {
+      // Every rejection path must run before consumePhoneChargeOncePerTurn, or
+      // an order the wagon was never going to accept still costs a charge.
+      const phone = engine.inventoryManager.equipment.phone;
+      const wagon = makeWagon('vehicle.toy_wagon', { motors: 1 });
+      engine.inventoryManager.dropItemAtLocation(wagon, 5, 5, harness.gameMap);
+      engine.activeDeviceId = wagon.instanceId;
+      engine._phoneChargeTurn = null;
+
+      for (let y = 0; y < 40; y++) harness.gameMap.setTerrain(9, y, 'water');
+      const before = phone.attachments.battery.ammoCount;
+
+      expect(AutoWagonOrders.setDestination(20, 5, engine).success).toBe(false);
+      expect(phone.attachments.battery.ammoCount).toBe(before);
+    });
+
+    it('spends a charge when the order is actually accepted', () => {
+      const phone = engine.inventoryManager.equipment.phone;
+      const wagon = makeWagon('vehicle.toy_wagon', { motors: 1 });
+      engine.inventoryManager.dropItemAtLocation(wagon, 5, 5, harness.gameMap);
+      engine.activeDeviceId = wagon.instanceId;
+      engine._phoneChargeTurn = null;
+
+      const before = phone.attachments.battery.ammoCount;
+      expect(AutoWagonOrders.setDestination(20, 5, engine).success).toBe(true);
+      expect(phone.attachments.battery.ammoCount).toBeLessThan(before);
+    });
+
     it('reports a trip length that matches how long the trip actually takes', () => {
       const wagon = makeWagon('vehicle.toy_wagon', { motors: 1 });
       engine.inventoryManager.dropItemAtLocation(wagon, 5, 5, harness.gameMap);

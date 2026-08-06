@@ -373,6 +373,11 @@ export const GameMapProvider = ({ children }) => {
         // control to the player rather than leave activeDeviceId pointing at
         // an entity that no longer exists on the new map.
         engine.activeDeviceId = null;
+        // Standing orders are keyed the same way and go stale for the same
+        // reason. WagonSystem prunes unresolvable ones on the next end-turn,
+        // but the destination markers are drawn straight from this map — left
+        // in place they'd paint a phantom crosshair on the new map's tiles.
+        engine.autoWagonOrders?.clear();
 
         // 5. Centering and Syncing
         if (cameraOperations?.setWorldBounds) cameraOperations.setWorldBounds(newMap.width, newMap.height);
