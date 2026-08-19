@@ -671,7 +671,7 @@ export default function EventWindow({
   event, onChange, onSave, onCancel, onDelete, onPickPlacement, onPickStepCoord, itemOptions, appearanceOptions = [], knownEventIds, knownFlags, knownVars, varTypes = {}, knownEntities, knownQuests, knownFactions = [],
 }: EventWindowProps) {
   const setSteps = (steps: EventStep[]) => onChange({ ...event, steps });
-  const showEndCondition = event.trigger === 'auto' || event.trigger === 'parallel';
+  const showEndCondition = event.trigger === 'auto' || event.trigger === 'parallel' || event.trigger === 'onMapEnter';
 
   // A marker gated on a flag that this event never sets can never change state —
   // the classic half-built toggle, where both halves of a switch pair read the
@@ -728,6 +728,7 @@ export default function EventWindow({
                 <option value="onEnter">On enter</option>
                 <option value="onInteract">On interact</option>
                 <option value="auto">Auto</option>
+                <option value="onMapEnter">On map enter</option>
                 <option value="parallel">Parallel</option>
               </select>
             </label>

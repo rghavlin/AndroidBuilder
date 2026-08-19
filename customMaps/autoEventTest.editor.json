@@ -1893,8 +1893,8 @@
             "wall": false,
             "door": true,
             "window": false,
-            "locked": false,
-            "keylocked": false,
+            "locked": true,
+            "keylocked": true,
             "isGarage": true
           },
           "w": {
@@ -47437,7 +47437,7 @@
         "entities": [],
         "items": [],
         "eventTrigger": {
-          "id": "lightOn",
+          "id": "offSwitch",
           "steps": [],
           "oneShot": false
         }
@@ -48591,6 +48591,16 @@
           },
           {
             "defId": "attachment.suppressor"
+          },
+          {
+            "defId": "tool.smallflashlight",
+            "batteryCharges": 20
+          },
+          {
+            "defId": "placeable.stairs_up",
+            "transitionTargetId": "zombieSightSoundTest",
+            "transitionTargetX": 10,
+            "transitionTargetY": 12
           }
         ]
       },
@@ -48874,160 +48884,39 @@
   "bubbleEvents": [],
   "chainDialogEvents": [
     {
-      "id": "ev1",
+      "id": "enterMap",
+      "steps": [],
+      "oneShot": true
+    },
+    {
+      "id": "lightAutoOff",
+      "steps": [],
+      "oneShot": false
+    },
+    {
+      "id": "timerIncrease",
       "steps": [
         {
           "speaker": "",
-          "text": "[ev1] [words]"
+          "text": "[timer]"
         }
       ],
       "oneShot": true
     },
     {
-      "id": "ev2",
+      "id": "displayTimer",
       "steps": [
         {
           "speaker": "",
-          "text": "[ev1]"
+          "text": "Timer: [timer]"
         }
       ],
-      "oneShot": true
-    },
-    {
-      "id": "openGarage",
-      "steps": [],
-      "oneShot": true
-    },
-    {
-      "id": "closeGarage",
-      "steps": [],
       "oneShot": true
     }
   ],
   "events": [
     {
-      "id": "ev1",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "auto",
-      "preconditions": [],
-      "repeat": "oncePerTurn",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "[ev1] [words]"
-        },
-        {
-          "type": "setVar",
-          "var": "ev1",
-          "op": "add",
-          "varValue": 1
-        }
-      ],
-      "endWhen": [
-        {
-          "kind": "var",
-          "var": "ev1",
-          "op": ">",
-          "value": 2
-        }
-      ]
-    },
-    {
-      "id": "ev2",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "auto",
-      "preconditions": [],
-      "repeat": "oncePerTurn",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "[ev1]"
-        }
-      ]
-    },
-    {
-      "id": "openGarage",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "auto",
-      "preconditions": [],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "controlEntity",
-          "entityTag": "gDoor",
-          "entityAction": "open"
-        }
-      ]
-    },
-    {
-      "id": "closeGarage",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "auto",
-      "preconditions": [
-        {
-          "kind": "var",
-          "var": "ev1",
-          "op": ">",
-          "value": 2
-        }
-      ],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "controlEntity",
-          "entityTag": "gDoor",
-          "entityAction": "close"
-        },
-        {
-          "type": "controlEntity",
-          "entityTag": "gDoor",
-          "entityAction": "lock"
-        }
-      ]
-    },
-    {
-      "id": "lightOff",
-      "placement": {
-        "kind": "tile",
-        "x": 5,
-        "y": 81
-      },
-      "trigger": "onInteract",
-      "preconditions": [
-        {
-          "kind": "flag",
-          "flag": "lightOn",
-          "value": true
-        }
-      ],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "setLightMode",
-          "lightMode": "always_dark"
-        },
-        {
-          "type": "setFlag",
-          "flag": "lightOn",
-          "value": false
-        }
-      ],
-      "appearance": {
-        "defId": "placeable.switch_on"
-      }
-    },
-    {
-      "id": "lightOn",
+      "id": "onSwitch",
       "placement": {
         "kind": "tile",
         "x": 9,
@@ -49051,11 +48940,182 @@
           "type": "setFlag",
           "flag": "lightOn",
           "value": true
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "open"
         }
       ],
       "appearance": {
         "defId": "placeable.switch_off"
       }
+    },
+    {
+      "id": "enterMap",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "setVar",
+          "var": "timer",
+          "op": "set",
+          "varValue": 0
+        },
+        {
+          "type": "setFlag",
+          "flag": "lightOn",
+          "value": false
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "close"
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "lock"
+        }
+      ]
+    },
+    {
+      "id": "lightAutoOff",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [
+        {
+          "kind": "var",
+          "var": "timer",
+          "op": ">",
+          "value": 3
+        }
+      ],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "setFlag",
+          "flag": "lightOn",
+          "value": false
+        },
+        {
+          "type": "setLightMode",
+          "lightMode": "always_dark"
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "close"
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "lock"
+        },
+        {
+          "type": "setVar",
+          "var": "timer",
+          "op": "set",
+          "varValue": 0
+        }
+      ]
+    },
+    {
+      "id": "offSwitch",
+      "placement": {
+        "kind": "tile",
+        "x": 9,
+        "y": 87
+      },
+      "trigger": "onInteract",
+      "preconditions": [
+        {
+          "kind": "flag",
+          "flag": "lightOn",
+          "value": true
+        }
+      ],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "setLightMode",
+          "lightMode": "always_dark"
+        },
+        {
+          "type": "setFlag",
+          "flag": "lightOn",
+          "value": false
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "close"
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "lock"
+        },
+        {
+          "type": "setVar",
+          "var": "timer",
+          "op": "set",
+          "varValue": 0
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.switch_on"
+      }
+    },
+    {
+      "id": "timerIncrease",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [
+        {
+          "kind": "flag",
+          "flag": "lightOn",
+          "value": true
+        }
+      ],
+      "repeat": "oncePerTurn",
+      "steps": [
+        {
+          "type": "setVar",
+          "var": "timer",
+          "op": "add",
+          "varValue": 1
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "[timer]"
+        }
+      ]
+    },
+    {
+      "id": "displayTimer",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onMapEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Timer: [timer]"
+        }
+      ]
     }
   ],
   "questRegistry": {
@@ -49066,15 +49126,8 @@
     ],
     "vars": [
       {
-        "name": "ev1"
-      },
-      {
-        "name": "words",
-        "type": "string",
-        "initialValue": "wordsWords"
-      },
-      {
-        "name": "lightsOn"
+        "name": "timer",
+        "description": "Light timer"
       }
     ],
     "quests": [],
@@ -49088,6 +49141,13 @@
         "type": "door",
         "x": 9,
         "y": 3
+      },
+      {
+        "tag": "door-9-3-s",
+        "type": "door",
+        "x": 9,
+        "y": 3,
+        "description": "Keylocked door at (9,3)"
       }
     ]
   },

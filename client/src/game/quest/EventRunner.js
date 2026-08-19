@@ -72,6 +72,9 @@ class EventRunner {
     // event never fires again via the auto/onEnter path once its "obligation"
     // is resolved, independent of repeat mode.
     this.autoResolved = new Set();
+    // Event ids queued by the last map entry, waiting their turn to run (only
+    // one event runs at a time). Drained in _endRun() ahead of the auto check.
+    this.pendingMapEnter = [];
     // Active lockMovement steps awaiting their own `until` conditions:
     // { eventId, until: Condition[] }[]. Distinct from event.endWhen — this is
     // the specific "player can't move until X" release condition.
@@ -151,11 +154,51 @@ class EventRunner {
   onMapLoaded() {
     purgeOrphanMarkers();
     this.syncMarkers();
+    this.checkMapEnterEvents();
+  }
+
+  /**
+   * Queue this map's `onMapEnter` events and start the first eligible one.
+   *
+   * The distinction from `auto`: an auto event is re-checked on every reactive
+   * pulse (player move, inventory change, quest-state change), so authoring one
+   * to run "each visit" means authoring one that runs constantly. onMapEnter is
+   * checked at exactly one moment — the map becoming current — so `repeat:
+   * 'everyTime'` there means once per arrival, which is what per-visit map
+   * setup (reset a timer, re-lock a door, re-close a gate) actually wants.
+   *
+   * Preconditions, endWhen and repeat still apply as they do everywhere else:
+   * repeat:'once' fires on the first visit only.
+   */
+  checkMapEnterEvents() {
+    this.pendingMapEnter = resolveMapEvents(engine.gameMap?.metadata)
+      .filter(ev => ev && ev.trigger === 'onMapEnter')
+      .map(ev => ev.id);
+    this._runNextMapEnterEvent();
+  }
+
+  /**
+   * Start the next queued map-enter event that is still eligible. Re-resolves
+   * each event by id rather than holding references, so a step in an earlier
+   * one that changed the map's state is reflected in what follows.
+   */
+  _runNextMapEnterEvent() {
+    if (this.activeRun || this.pendingMapEnter.length === 0) return;
+    const events = resolveMapEvents(engine.gameMap?.metadata);
+    while (this.pendingMapEnter.length > 0) {
+      const id = this.pendingMapEnter.shift();
+      const ev = events.find(e => e && e.id === id);
+      if (ev && this._isEligible(ev, this._ctx())) {
+        this.runEvent(ev);
+        return;
+      }
+    }
   }
 
   /** Call on new game / map load to forget prior "once" firings and any in-flight run. */
   reset() {
     this.activeRun = null;
+    this.pendingMapEnter = [];
     this.firedOnce = new Set();
     this.lastFiredTurn = new Map();
     this.autoResolved = new Set();
@@ -204,6 +247,9 @@ class EventRunner {
    * what reset() is for, called only on new game / load).
    */
   onMapTransition() {
+    // Map-enter events queued by the map being left never got their turn and
+    // are not this map's business; onMapLoaded() re-queues for the new one.
+    this.pendingMapEnter = [];
     this.activeLocks = [];
     engine.movementLocked = false;
     engine.actionsLocked = false;
@@ -475,6 +521,9 @@ class EventRunner {
     // finished so a still-eligible everyTime/whileConditions auto event can't
     // instantly restart itself with no gap (see checkAutoEvents doc).
     this.recheckLocks();
+    // Map-entry setup runs to completion before auto events get a look in —
+    // those are typically the ones waiting on the flags/vars it sets.
+    this._runNextMapEnterEvent();
     this.checkAutoEvents(finishedId);
     // The run that just ended is the usual way a switch flips: its setFlag step
     // makes the opposite event eligible, so the sprite must swap now rather than

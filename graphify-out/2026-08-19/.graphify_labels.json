@@ -143,6 +143,7 @@
   "141": "IntentQueue",
   "146": "Image Cropping Scripts",
   "147": "verify_phase_3.mjs",
+  "148": "GameEventBus",
   "149": "DialogOverlay.tsx",
   "150": "migrateEvents.js",
   "151": "NPM Configuration Testing",
@@ -160,6 +161,8 @@
   "166": "Simple Utility Script",
   "167": "Tailwind CSS Configuration",
   "168": "Vite Electron Configuration",
+  "171": "npcLoadout.test.js",
+  "172": "AIBehavior",
   "176": "TestMapBuilder",
   "194": "TileRenderer.js"
 }

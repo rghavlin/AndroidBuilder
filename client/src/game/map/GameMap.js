@@ -14,6 +14,7 @@ import { getHourFromTurn } from '../utils/TimeUtils.js';
 import { ZombieReplenishmentSystem } from '../systems/ZombieReplenishmentSystem.js';
 import { Entity, EntityType } from '../entities/Entity.js';
 import { ENTITY_RESTORERS, restoreEntity } from './GameMapRestore.js';
+import { pickPersistedMetadata, restoreMapMetadata } from './MapMetadata.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import { Item as ECSItem } from '../components/Item.js';
@@ -1263,24 +1264,6 @@ export class GameMap extends SafeEventEmitter {
   }
 
   /**
-   * Process and decrement fire turns for all active fire tiles
-   */
-  processTileFires() {
-    for (const fireKey of Array.from(this.activeFires)) {
-      const [x, y] = fireKey.split(',').map(Number);
-      const tile = this.getTile(x, y);
-      if (tile && tile.fireTurns > 0) {
-        tile.fireTurns--;
-        if (tile.fireTurns <= 0) {
-          this.activeFires.delete(fireKey);
-        }
-      } else {
-        this.activeFires.delete(fireKey);
-      }
-    }
-  }
-
-  /**
    * Scan every entity (tile contents + entityMap) for a malformed `components`
    * field (anything that isn't a Map). Logs each offender once and self-heals
    * it so it can neither blank the render frame nor abort a save. Returns the
@@ -1364,7 +1347,9 @@ export class GameMap extends SafeEventEmitter {
       furniture: this.furniture ? structuredClone(this.furniture) : [],
       lowSpots: this.lowSpots ? structuredClone(this.lowSpots) : [],
       mapNumber: this.mapNumber,
-      template: this.template
+      template: this.template,
+      // Authored events/registries/transitions — see MapMetadata.js.
+      metadata: pickPersistedMetadata(this.metadata)
     };
   }
 
@@ -1513,6 +1498,7 @@ export class GameMap extends SafeEventEmitter {
       gameMap.buildings = structuredClone(data.specialBuildings);
     }
     gameMap.specialBuildings = gameMap.buildings;
+    restoreMapMetadata(gameMap, data);
   }
 
   /** Rebuild crop metadata for every tile (used by both restore paths). */

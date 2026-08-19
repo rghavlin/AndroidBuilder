@@ -28,7 +28,7 @@ export interface Placement {
   radius?: number;
 }
 
-export type TriggerType = 'onEnter' | 'onInteract' | 'auto' | 'parallel';
+export type TriggerType = 'onEnter' | 'onInteract' | 'auto' | 'parallel' | 'onMapEnter';
 export type RepeatMode = 'once' | 'everyTime' | 'whileConditions' | 'oncePerTurn';
 
 // What the event looks like on the map while it is active. This is our

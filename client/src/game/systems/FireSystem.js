@@ -1,8 +1,26 @@
 import { gameRandom } from '../utils/SeededRandom.js';
 export class FireSystem {
-  // NOTE: tile-fire ticking lives on GameMap.processTileFires(), which iterates
-  // the sparse gameMap.activeFires index and self-cleans extinguished tiles.
-  // ignite() below is the single registrar for that index.
+  /**
+   * Tick every burning tile. Iterates the sparse gameMap.activeFires index
+   * (ignite() below is its single registrar) rather than scanning the whole
+   * map, and drops each tile from the index as it burns out — a full-map scan
+   * here used to leak stale entries into saves.
+   */
+  static processTileFires(gameMap) {
+    if (!gameMap) return;
+    for (const fireKey of Array.from(gameMap.activeFires)) {
+      const [x, y] = fireKey.split(',').map(Number);
+      const tile = gameMap.getTile(x, y);
+      if (tile && tile.fireTurns > 0) {
+        tile.fireTurns--;
+        if (tile.fireTurns <= 0) {
+          gameMap.activeFires.delete(fireKey);
+        }
+      } else {
+        gameMap.activeFires.delete(fireKey);
+      }
+    }
+  }
 
   static processEntityFires(gameMap) {
     if (!gameMap) return;

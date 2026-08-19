@@ -1468,10 +1468,12 @@ const GameContextInner = ({ children }) => {
   useEffect(() => {
     if (!isInitialized) return;
     applyMapRegistries(engine.questState, engine.gameMap);
-    eventRunner.checkAutoEvents();
     // Purge markers a save restored for events that no longer exist, then place
-    // the ones this map's events currently want (see EventMarkers.js).
+    // the ones this map's events currently want (see EventMarkers.js). Also
+    // fires this map's onMapEnter events — before the auto check, since map
+    // setup is usually what the auto events are waiting on.
     eventRunner.onMapLoaded();
+    eventRunner.checkAutoEvents();
   }, [isInitialized]);
 
   useEffect(() => {
@@ -2138,9 +2140,11 @@ const GameContextInner = ({ children }) => {
       // before — apply them, then re-check auto/parallel events in case seeding
       // just satisfied one's preconditions.
       applyMapRegistries(engine.questState, engine.gameMap);
-      eventRunner.checkAutoEvents();
-      // New map, new set of authored appearances to place (see EventMarkers.js).
+      // New map, new set of authored appearances to place (see EventMarkers.js),
+      // and the new map's onMapEnter events — ahead of the auto check, which is
+      // usually waiting on the flags/vars that map setup writes.
       eventRunner.onMapLoaded();
+      eventRunner.checkAutoEvents();
 
       // Update PlayerContext data after successful transition (no timer)
       updatePlayerFieldOfView(engine.gameMap, isNight, isFlashlightOn, false, getActiveFlashlightRange(), isNightVisionActual);

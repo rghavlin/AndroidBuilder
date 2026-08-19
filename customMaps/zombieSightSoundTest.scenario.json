@@ -3040,7 +3040,28 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "placeable.stairs_down-1787122681345-6lpem",
+            "defId": "placeable.stairs_down",
+            "id": "placeable.stairs_down",
+            "name": "Stairs Down",
+            "rarity": "common",
+            "imageId": "stairsdown",
+            "width": 3,
+            "height": 3,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "renderFullTile": true,
+            "transitionTargetId": "autoEventTest",
+            "transitionTargetX": 9,
+            "transitionTargetY": 89
+          }
+        ]
       },
       {
         "x": 11,

@@ -21424,7 +21424,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.wagon-1785746379199-1ry91",
+            "instanceId": "vehicle.wagon-1787124290662-u2m3b",
             "defId": "vehicle.wagon",
             "id": "vehicle.wagon",
             "name": "Wagon",
@@ -21493,6 +21493,21 @@
                   "tool.large_battery",
                   "tool.high_capacity_battery"
                 ]
+              },
+              {
+                "id": "sleeper",
+                "name": "Wagon Sleeper",
+                "allowedItems": [
+                  "wagon_sleeper"
+                ]
+              },
+              {
+                "id": "rc_receiver",
+                "name": "Receiver",
+                "allowedItems": [
+                  "tool.rc_receiver",
+                  "tool.autonomous_controller"
+                ]
               }
             ],
             "disassembleData": {
@@ -21519,7 +21534,7 @@
             },
             "attachments": {
               "motor_front": {
-                "instanceId": "electric_motor-1785746379199-vaj4g",
+                "instanceId": "electric_motor-1787124290663-ilsgr",
                 "defId": "electric_motor",
                 "id": "electric_motor",
                 "name": "Electric motor",
@@ -21534,7 +21549,7 @@
                 ]
               },
               "battery_front": {
-                "instanceId": "tool.large_battery-1785746379199-lfhfy",
+                "instanceId": "tool.large_battery-1787124290663-z339m",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -21555,7 +21570,7 @@
                 "ammoCount": 150
               },
               "motor_rear": {
-                "instanceId": "electric_motor-1785746379199-zbqfv",
+                "instanceId": "electric_motor-1787124290663-4rltb",
                 "defId": "electric_motor",
                 "id": "electric_motor",
                 "name": "Electric motor",
@@ -21570,7 +21585,7 @@
                 ]
               },
               "battery_rear": {
-                "instanceId": "tool.large_battery-1785746379199-8z5xg",
+                "instanceId": "tool.large_battery-1787124290663-vj2ee",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -21837,7 +21852,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.golf_cart-1785746379199-dqext",
+            "instanceId": "vehicle.golf_cart-1787124290663-118ms",
             "defId": "vehicle.golf_cart",
             "id": "vehicle.golf_cart",
             "name": "Golf Cart",
@@ -21939,7 +21954,7 @@
             },
             "attachments": {
               "motor_front": {
-                "instanceId": "electric_motor-1785746379199-vyrsn",
+                "instanceId": "electric_motor-1787124290663-j43oa",
                 "defId": "electric_motor",
                 "id": "electric_motor",
                 "name": "Electric motor",
@@ -21954,7 +21969,7 @@
                 ]
               },
               "battery_front": {
-                "instanceId": "tool.large_battery-1785746379199-4afyv",
+                "instanceId": "tool.large_battery-1787124290663-6eny3",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -21975,7 +21990,7 @@
                 "ammoCount": 100
               },
               "motor_rear": {
-                "instanceId": "electric_motor-1785746379199-trepq",
+                "instanceId": "electric_motor-1787124290663-4pubz",
                 "defId": "electric_motor",
                 "id": "electric_motor",
                 "name": "Electric motor",
@@ -21990,7 +22005,7 @@
                 ]
               },
               "battery_rear": {
-                "instanceId": "tool.large_battery-1785746379199-4cyie",
+                "instanceId": "tool.large_battery-1787124290663-wh9ax",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -22013,7 +22028,7 @@
             }
           },
           {
-            "instanceId": "weapon.deserteagle-1785746379199-mc4vo",
+            "instanceId": "weapon.deserteagle-1787124290663-qeuzs",
             "defId": "weapon.deserteagle",
             "id": "weapon.deserteagle",
             "name": "Desert Eagle",
@@ -22070,7 +22085,7 @@
             }
           },
           {
-            "instanceId": "ammo.de-1785746379199-hb83s",
+            "instanceId": "ammo.de-1787124290663-81bar",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -22089,7 +22104,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785746379199-e210z",
+            "instanceId": "ammo.de-1787124290663-7uaqs",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -22108,7 +22123,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785746379199-2fkvm",
+            "instanceId": "ammo.de-1787124290663-kkw0i",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -22127,7 +22142,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785746379199-en1r0",
+            "instanceId": "ammo.de-1787124290663-8ca01",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -22146,7 +22161,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "ammo.de-1785746379199-cim8b",
+            "instanceId": "ammo.de-1787124290663-qe0mv",
             "defId": "ammo.de",
             "id": "ammo.de",
             "name": "Desert Eagle Ammo",
@@ -22165,7 +22180,7 @@
             "spawnStackMax": 2
           },
           {
-            "instanceId": "attachment.de_magazine-1785746379199-g8nlg",
+            "instanceId": "attachment.de_magazine-1787124290663-sjha1",
             "defId": "attachment.de_magazine",
             "id": "attachment.de_magazine",
             "name": "Desert Eagle Mag",
@@ -22184,7 +22199,7 @@
             "ammoDefId": "ammo.de"
           },
           {
-            "instanceId": "attachment.suppressor-1785746379199-q2w6i",
+            "instanceId": "attachment.suppressor-1787124290663-8ar2m",
             "defId": "attachment.suppressor",
             "id": "attachment.suppressor",
             "name": "Suppressor",
@@ -22196,6 +22211,81 @@
             "categories": [
               "suppressor"
             ]
+          },
+          {
+            "instanceId": "tool.smallflashlight-1787124290663-zfkwk",
+            "defId": "tool.smallflashlight",
+            "id": "tool.smallflashlight",
+            "name": "Flashlight",
+            "rarity": "uncommon",
+            "imageId": "flashlight",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable",
+              "battery-powered",
+              "openable-when-nested"
+            ],
+            "equippableSlot": "flashlight",
+            "categories": [
+              "tool"
+            ],
+            "condition": 100,
+            "lightRange": 8,
+            "lightType": "beam",
+            "attachmentSlots": [
+              {
+                "id": "battery",
+                "name": "Battery",
+                "type": "battery",
+                "allowedCategories": [
+                  "battery"
+                ]
+              }
+            ],
+            "attachments": {
+              "battery": {
+                "instanceId": "tool.battery-1787124290663-w8jqu",
+                "defId": "tool.battery",
+                "id": "tool.battery",
+                "name": "Battery",
+                "rarity": "uncommon",
+                "imageId": "battery",
+                "width": 1,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
+                ],
+                "categories": [
+                  "battery",
+                  "tool"
+                ],
+                "stackMax": 10,
+                "capacity": 20,
+                "ammoCount": 20
+              }
+            }
+          },
+          {
+            "instanceId": "placeable.stairs_up-1787124290663-4hpak",
+            "defId": "placeable.stairs_up",
+            "id": "placeable.stairs_up",
+            "name": "Stairs Up",
+            "rarity": "common",
+            "imageId": "stairsup",
+            "width": 3,
+            "height": 3,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "renderFullTile": true,
+            "transitionTargetId": "zombieSightSoundTest",
+            "transitionTargetX": 10,
+            "transitionTargetY": 12
           }
         ]
       },
@@ -22341,8 +22431,8 @@
       {
         "x": 9,
         "y": 3,
-        "isLocked": false,
-        "isKeylocked": false,
+        "isLocked": true,
+        "isKeylocked": true,
         "isOpen": false,
         "edge": "s",
         "groupId": "garage-group-8-3-s"
@@ -22380,170 +22470,49 @@
     {
       "x": 9,
       "y": 87,
-      "id": "lightOn",
+      "id": "offSwitch",
       "steps": [],
       "oneShot": false
     },
     {
       "chainOnly": true,
-      "id": "ev1",
+      "id": "enterMap",
+      "steps": [],
+      "oneShot": true
+    },
+    {
+      "chainOnly": true,
+      "id": "lightAutoOff",
+      "steps": [],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "timerIncrease",
       "steps": [
         {
           "speaker": "",
-          "text": "[ev1] [words]"
+          "text": "[timer]"
         }
       ],
       "oneShot": true
     },
     {
       "chainOnly": true,
-      "id": "ev2",
+      "id": "displayTimer",
       "steps": [
         {
           "speaker": "",
-          "text": "[ev1]"
+          "text": "Timer: [timer]"
         }
       ],
-      "oneShot": true
-    },
-    {
-      "chainOnly": true,
-      "id": "openGarage",
-      "steps": [],
-      "oneShot": true
-    },
-    {
-      "chainOnly": true,
-      "id": "closeGarage",
-      "steps": [],
       "oneShot": true
     }
   ],
   "mapTransitions": [],
   "events": [
     {
-      "id": "ev1",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "auto",
-      "preconditions": [],
-      "repeat": "oncePerTurn",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "[ev1] [words]"
-        },
-        {
-          "type": "setVar",
-          "var": "ev1",
-          "op": "add",
-          "varValue": 1
-        }
-      ],
-      "endWhen": [
-        {
-          "kind": "var",
-          "var": "ev1",
-          "op": ">",
-          "value": 2
-        }
-      ]
-    },
-    {
-      "id": "ev2",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "auto",
-      "preconditions": [],
-      "repeat": "oncePerTurn",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "[ev1]"
-        }
-      ]
-    },
-    {
-      "id": "openGarage",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "auto",
-      "preconditions": [],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "controlEntity",
-          "entityTag": "gDoor",
-          "entityAction": "open"
-        }
-      ]
-    },
-    {
-      "id": "closeGarage",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "auto",
-      "preconditions": [
-        {
-          "kind": "var",
-          "var": "ev1",
-          "op": ">",
-          "value": 2
-        }
-      ],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "controlEntity",
-          "entityTag": "gDoor",
-          "entityAction": "close"
-        },
-        {
-          "type": "controlEntity",
-          "entityTag": "gDoor",
-          "entityAction": "lock"
-        }
-      ]
-    },
-    {
-      "id": "lightOff",
-      "placement": {
-        "kind": "tile",
-        "x": 5,
-        "y": 81
-      },
-      "trigger": "onInteract",
-      "preconditions": [
-        {
-          "kind": "flag",
-          "flag": "lightOn",
-          "value": true
-        }
-      ],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "setLightMode",
-          "lightMode": "always_dark"
-        },
-        {
-          "type": "setFlag",
-          "flag": "lightOn",
-          "value": false
-        }
-      ],
-      "appearance": {
-        "defId": "placeable.switch_on"
-      }
-    },
-    {
-      "id": "lightOn",
+      "id": "onSwitch",
       "placement": {
         "kind": "tile",
         "x": 9,
@@ -22567,11 +22536,182 @@
           "type": "setFlag",
           "flag": "lightOn",
           "value": true
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "open"
         }
       ],
       "appearance": {
         "defId": "placeable.switch_off"
       }
+    },
+    {
+      "id": "enterMap",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "setVar",
+          "var": "timer",
+          "op": "set",
+          "varValue": 0
+        },
+        {
+          "type": "setFlag",
+          "flag": "lightOn",
+          "value": false
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "close"
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "lock"
+        }
+      ]
+    },
+    {
+      "id": "lightAutoOff",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [
+        {
+          "kind": "var",
+          "var": "timer",
+          "op": ">",
+          "value": 3
+        }
+      ],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "setFlag",
+          "flag": "lightOn",
+          "value": false
+        },
+        {
+          "type": "setLightMode",
+          "lightMode": "always_dark"
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "close"
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "lock"
+        },
+        {
+          "type": "setVar",
+          "var": "timer",
+          "op": "set",
+          "varValue": 0
+        }
+      ]
+    },
+    {
+      "id": "offSwitch",
+      "placement": {
+        "kind": "tile",
+        "x": 9,
+        "y": 87
+      },
+      "trigger": "onInteract",
+      "preconditions": [
+        {
+          "kind": "flag",
+          "flag": "lightOn",
+          "value": true
+        }
+      ],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "setLightMode",
+          "lightMode": "always_dark"
+        },
+        {
+          "type": "setFlag",
+          "flag": "lightOn",
+          "value": false
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "close"
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "lock"
+        },
+        {
+          "type": "setVar",
+          "var": "timer",
+          "op": "set",
+          "varValue": 0
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.switch_on"
+      }
+    },
+    {
+      "id": "timerIncrease",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [
+        {
+          "kind": "flag",
+          "flag": "lightOn",
+          "value": true
+        }
+      ],
+      "repeat": "oncePerTurn",
+      "steps": [
+        {
+          "type": "setVar",
+          "var": "timer",
+          "op": "add",
+          "varValue": 1
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "[timer]"
+        }
+      ]
+    },
+    {
+      "id": "displayTimer",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onMapEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Timer: [timer]"
+        }
+      ]
     }
   ],
   "questRegistry": {
@@ -22582,15 +22722,8 @@
     ],
     "vars": [
       {
-        "name": "ev1"
-      },
-      {
-        "name": "words",
-        "type": "string",
-        "initialValue": "wordsWords"
-      },
-      {
-        "name": "lightsOn"
+        "name": "timer",
+        "description": "Light timer"
       }
     ],
     "quests": [],
@@ -22604,6 +22737,13 @@
         "type": "door",
         "x": 9,
         "y": 3
+      },
+      {
+        "tag": "door-9-3-s",
+        "type": "door",
+        "x": 9,
+        "y": 3,
+        "description": "Keylocked door at (9,3)"
       }
     ]
   }

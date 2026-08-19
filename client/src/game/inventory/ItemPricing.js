@@ -51,9 +51,9 @@ export const FLAT_PRICES = {
   'weapon.machete': 25,
   'weapon.makeshift_machete': 25,
   'weapon.wrench': 15,
-  'weapon.knife': 15,
+  'weapon.knife': 10,
   'weapon.screwdriver': 15,
-  'weapon.makeshift_knife': 15,
+  'weapon.makeshift_knife': 10,
   'tool.pliers': 10,
   'tool.smallflashlight': 15,
 

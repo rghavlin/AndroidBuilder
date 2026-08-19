@@ -3,6 +3,7 @@ import { getProgressionForMap, BASELINE_MAP_AREA } from './config/ProgressionCon
 import GameEvents, { GAME_EVENT } from './utils/GameEvents.js';
 import { compressString, decompressString } from './GameSaveSystem.js';
 import { TEMPLATE_METADATA, getTemplateForMapNumber } from './config/TemplateConfig.js';
+import { isTerrainWalkable } from './map/TerrainTypes.js';
 import { SafeEventEmitter } from './utils/SafeEventEmitter.js';
 
 import { gameRandom } from './utils/SeededRandom.js';
@@ -769,6 +770,53 @@ export class WorldManager extends SafeEventEmitter {
   }
 
   /**
+   * Pick an arrival tile for a transition that carried no authored spawn
+   * position. Every map-generating branch of executeTransition() resolves its
+   * own default from generator metadata, but a destination map that already
+   * exists is restored from a save snapshot — GameMap.toJSON() drops
+   * `metadata`, so the map itself is the only thing left to read.
+   *
+   * Prefers the reciprocal stairs pointing back at the map being left, which
+   * matches the authoring convention that paired stairs share a tile.
+   * @param {GameMap} gameMap - Destination map
+   * @param {string|null} fromMapId - Map being left
+   * @returns {{x:number,y:number}}
+   */
+  resolveArrivalPosition(gameMap, fromMapId) {
+    const isReturnStairs = (item) =>
+      typeof item?.defId === 'string' &&
+      item.defId.startsWith('placeable.stairs_') &&
+      item.transitionTargetId === fromMapId;
+
+    for (let y = 0; y < gameMap.height; y++) {
+      for (let x = 0; x < gameMap.width; x++) {
+        if (gameMap.getTile(x, y)?.inventoryItems?.some(isReturnStairs)) {
+          return { x, y };
+        }
+      }
+    }
+
+    const playerStart = gameMap.metadata?.spawnZones?.playerStart?.[0];
+    if (playerStart) return { x: playerStart.x, y: playerStart.y };
+
+    // Last resort: the middle of the map, nudged out to the nearest walkable
+    // tile so a wall at dead center can't strand the player.
+    const cx = Math.floor(gameMap.width / 2);
+    const cy = Math.floor(gameMap.height / 2);
+    const maxRadius = Math.max(gameMap.width, gameMap.height);
+    for (let r = 0; r < maxRadius; r++) {
+      for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          const tile = gameMap.getTile(cx + dx, cy + dy);
+          if (tile && isTerrainWalkable(tile.terrain)) return { x: cx + dx, y: cy + dy };
+        }
+      }
+    }
+    return { x: cx, y: cy };
+  }
+
+  /**
    * Execute map transition
    * @param {string} targetMapId - ID of map to transition to
    * @param {Object} spawnPosition - Where to spawn player {x, y}
@@ -950,6 +998,16 @@ export class WorldManager extends SafeEventEmitter {
         this.currentMapId = targetMapId;
 
         console.log(`[WorldManager] Generated and saved new road map: ${targetMapId}`);
+      }
+
+      // A transition can arrive without an authored spawn position — stairs
+      // placed without target coordinates are the common case. The generating
+      // branches above each resolve their own default; an already-existing
+      // destination has no generator metadata to consult, and leaving it null
+      // used to throw a few lines below, silently aborting the transition.
+      if (!spawnPosition) {
+        spawnPosition = this.resolveArrivalPosition(mapData.gameMap, fromMapId);
+        console.log(`[WorldManager] No spawn position supplied for ${targetMapId}; resolved to (${spawnPosition.x}, ${spawnPosition.y})`);
       }
 
       // Update current map ID for both paths (existing and new)

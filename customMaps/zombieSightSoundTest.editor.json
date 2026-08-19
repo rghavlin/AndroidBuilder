@@ -6815,7 +6815,14 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "placeable.stairs_down",
+            "transitionTargetId": "autoEventTest",
+            "transitionTargetX": 9,
+            "transitionTargetY": 89
+          }
+        ]
       },
       {
         "terrain": "grass",
