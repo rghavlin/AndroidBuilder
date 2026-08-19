@@ -570,7 +570,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_game_earbucksshopwindow",
-      "community": 3,
+      "community": 4,
       "norm_label": "earbucksshopwindow.tsx"
     },
     {
@@ -580,7 +580,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "client_src_components_game_earbucksshopwindow_earbucksshopwindowprops",
-      "community": 3,
+      "community": 4,
       "norm_label": "earbucksshopwindowprops"
     },
     {
@@ -590,7 +590,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "client_src_components_game_earbucksshopwindow_shopitemrowprops",
-      "community": 3,
+      "community": 4,
       "norm_label": "shopitemrowprops"
     },
     {
@@ -600,7 +600,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "client_src_components_game_earbucksshopwindow_shopitemrow",
-      "community": 3,
+      "community": 4,
       "norm_label": "shopitemrow()"
     },
     {
@@ -700,7 +700,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_game_game",
-      "community": 28,
+      "community": 15,
       "norm_label": "game.tsx"
     },
     {
@@ -710,7 +710,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "client_src_components_game_game_game",
-      "community": 28,
+      "community": 15,
       "norm_label": "game()"
     },
     {
@@ -1720,7 +1720,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_game_speechbubbleinput",
-      "community": 28,
+      "community": 15,
       "norm_label": "speechbubbleinput.tsx"
     },
     {
@@ -1730,7 +1730,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "client_src_components_game_speechbubbleinput_speechbubbleinput",
-      "community": 28,
+      "community": 15,
       "norm_label": "speechbubbleinput()"
     },
     {
@@ -1810,7 +1810,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_game_startmodedialog",
-      "community": 28,
+      "community": 15,
       "norm_label": "startmodedialog.tsx"
     },
     {
@@ -1820,7 +1820,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "client_src_components_game_startmodedialog_startmodedialogprops",
-      "community": 28,
+      "community": 15,
       "norm_label": "startmodedialogprops"
     },
     {
@@ -1830,7 +1830,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "client_src_components_game_startmodedialog_startmodedialog",
-      "community": 28,
+      "community": 15,
       "norm_label": "startmodedialog()"
     },
     {
@@ -2340,7 +2340,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_inventory_floatingcontaineroverlay",
-      "community": 113,
+      "community": 9,
       "norm_label": "floatingcontaineroverlay.tsx"
     },
     {
@@ -2350,7 +2350,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "client_src_components_inventory_floatingcontaineroverlay_floatingcontaineroverlayprops",
-      "community": 113,
+      "community": 9,
       "norm_label": "floatingcontaineroverlayprops"
     },
     {
@@ -2360,7 +2360,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "client_src_components_inventory_floatingcontaineroverlay_floatingcontaineroverlay",
-      "community": 113,
+      "community": 9,
       "norm_label": "floatingcontaineroverlay()"
     },
     {
@@ -2370,7 +2370,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_inventory_gridslot",
-      "community": 15,
+      "community": 3,
       "norm_label": "gridslot.tsx"
     },
     {
@@ -2380,7 +2380,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "client_src_components_inventory_gridslot_gridslotprops",
-      "community": 15,
+      "community": 3,
       "norm_label": "gridslotprops"
     },
     {
@@ -2390,7 +2390,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "client_src_components_inventory_gridslot_gridslot",
-      "community": 15,
+      "community": 3,
       "norm_label": "gridslot"
     },
     {
@@ -2440,7 +2440,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_inventory_itemcontextmenu",
-      "community": 15,
+      "community": 9,
       "norm_label": "itemcontextmenu.tsx"
     },
     {
@@ -2450,7 +2450,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "client_src_components_inventory_itemcontextmenu_itemcontextmenuprops",
-      "community": 15,
+      "community": 9,
       "norm_label": "itemcontextmenuprops"
     },
     {
@@ -2460,7 +2460,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "client_src_components_inventory_itemcontextmenu_itemcontextmenu",
-      "community": 15,
+      "community": 9,
       "norm_label": "itemcontextmenu()"
     },
     {
@@ -2510,7 +2510,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "client_src_components_inventory_splitdialog_splitdialog",
-      "community": 15,
+      "community": 9,
       "norm_label": "splitdialog()"
     },
     {
@@ -2550,7 +2550,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_inventory_universalgrid",
-      "community": 15,
+      "community": 3,
       "norm_label": "universalgrid.tsx"
     },
     {
@@ -2560,7 +2560,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "client_src_components_inventory_universalgrid_getadjustedbgcolor",
-      "community": 15,
+      "community": 3,
       "norm_label": "getadjustedbgcolor()"
     },
     {
@@ -2570,7 +2570,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "client_src_components_inventory_universalgrid_universalgridprops",
-      "community": 15,
+      "community": 3,
       "norm_label": "universalgridprops"
     },
     {
@@ -2580,7 +2580,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "client_src_components_inventory_universalgrid_universalgrid",
-      "community": 15,
+      "community": 3,
       "norm_label": "universalgrid()"
     },
     {
@@ -3740,7 +3740,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu",
-      "community": 15,
+      "community": 9,
       "norm_label": "context-menu.tsx"
     },
     {
@@ -3750,7 +3750,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenusubtrigger",
-      "community": 15,
+      "community": 9,
       "norm_label": "contextmenusubtrigger"
     },
     {
@@ -3760,7 +3760,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenusubcontent",
-      "community": 15,
+      "community": 9,
       "norm_label": "contextmenusubcontent"
     },
     {
@@ -3770,7 +3770,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenucontent",
-      "community": 15,
+      "community": 9,
       "norm_label": "contextmenucontent"
     },
     {
@@ -3780,7 +3780,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenuitem",
-      "community": 15,
+      "community": 9,
       "norm_label": "contextmenuitem"
     },
     {
@@ -3790,7 +3790,7 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenucheckboxitem",
-      "community": 15,
+      "community": 9,
       "norm_label": "contextmenucheckboxitem"
     },
     {
@@ -3800,7 +3800,7 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenuradioitem",
-      "community": 15,
+      "community": 9,
       "norm_label": "contextmenuradioitem"
     },
     {
@@ -3810,7 +3810,7 @@
       "source_location": "L136",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenulabel",
-      "community": 15,
+      "community": 9,
       "norm_label": "contextmenulabel"
     },
     {
@@ -3820,7 +3820,7 @@
       "source_location": "L154",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenuseparator",
-      "community": 15,
+      "community": 9,
       "norm_label": "contextmenuseparator"
     },
     {
@@ -3830,7 +3830,7 @@
       "source_location": "L166",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenushortcut",
-      "community": 15,
+      "community": 9,
       "norm_label": "contextmenushortcut()"
     },
     {
@@ -5710,7 +5710,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "client_src_contexts_actioncontext_useaction",
-      "community": 15,
+      "community": 9,
       "norm_label": "useaction()"
     },
     {
@@ -5730,7 +5730,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_contexts_audiocontext",
-      "community": 28,
+      "community": 4,
       "norm_label": "audiocontext.jsx"
     },
     {
@@ -5740,7 +5740,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "client_src_contexts_audiocontext_audiocontext",
-      "community": 28,
+      "community": 4,
       "norm_label": "audiocontext"
     },
     {
@@ -5760,7 +5760,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "client_src_contexts_audiocontext_audioprovider",
-      "community": 28,
+      "community": 15,
       "norm_label": "audioprovider()"
     },
     {
@@ -5770,7 +5770,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_contexts_cameracontext",
-      "community": 28,
+      "community": 15,
       "norm_label": "cameracontext.jsx"
     },
     {
@@ -5780,7 +5780,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "client_src_contexts_cameracontext_cameracontext",
-      "community": 28,
+      "community": 15,
       "norm_label": "cameracontext"
     },
     {
@@ -5790,7 +5790,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "client_src_contexts_cameracontext_usecamera",
-      "community": 131,
+      "community": 15,
       "norm_label": "usecamera()"
     },
     {
@@ -5800,7 +5800,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "client_src_contexts_cameracontext_cameraprovider",
-      "community": 28,
+      "community": 15,
       "norm_label": "cameraprovider()"
     },
     {
@@ -5840,7 +5840,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "client_src_contexts_combatcontext_usecombat",
-      "community": 15,
+      "community": 3,
       "norm_label": "usecombat()"
     },
     {
@@ -5850,7 +5850,7 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "client_src_contexts_combatcontext_combatprovider",
-      "community": 4,
+      "community": 15,
       "norm_label": "combatprovider()"
     },
     {
@@ -5860,7 +5860,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_contexts_gamecontext",
-      "community": 28,
+      "community": 15,
       "norm_label": "gamecontext.jsx"
     },
     {
@@ -5870,7 +5870,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "client_src_contexts_gamecontext_logger",
-      "community": 28,
+      "community": 15,
       "norm_label": "logger"
     },
     {
@@ -5880,7 +5880,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "client_src_contexts_gamecontext_gamecontext",
-      "community": 28,
+      "community": 15,
       "norm_label": "gamecontext"
     },
     {
@@ -5900,7 +5900,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "client_src_contexts_gamecontext_gamecontextinner",
-      "community": 28,
+      "community": 15,
       "norm_label": "gamecontextinner()"
     },
     {
@@ -5910,7 +5910,7 @@
       "source_location": "L2397",
       "_origin": "ast",
       "id": "client_src_contexts_gamecontext_gameprovider",
-      "community": 28,
+      "community": 15,
       "norm_label": "gameprovider()"
     },
     {
@@ -5920,7 +5920,7 @@
       "source_location": "L990",
       "_origin": "ast",
       "id": "client_src_contexts_gamecontext_rationale_990",
-      "community": 28,
+      "community": 15,
       "norm_label": "note: do not sync `condition` here \u2014 it is a derived getter, and"
     },
     {
@@ -6130,7 +6130,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "client_src_contexts_logcontext_logprovider",
-      "community": 28,
+      "community": 15,
       "norm_label": "logprovider()"
     },
     {
@@ -6140,7 +6140,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_contexts_overlaycontext",
-      "community": 131,
+      "community": 15,
       "norm_label": "overlaycontext.tsx"
     },
     {
@@ -6150,7 +6150,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "client_src_contexts_overlaycontext_overlaycontexttype",
-      "community": 131,
+      "community": 15,
       "norm_label": "overlaycontexttype"
     },
     {
@@ -6160,7 +6160,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "client_src_contexts_overlaycontext_overlaycontext",
-      "community": 131,
+      "community": 15,
       "norm_label": "overlaycontext"
     },
     {
@@ -6170,7 +6170,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "client_src_contexts_overlaycontext_overlayprovider",
-      "community": 131,
+      "community": 15,
       "norm_label": "overlayprovider()"
     },
     {
@@ -6250,7 +6250,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_contexts_sleepcontext",
-      "community": 28,
+      "community": 15,
       "norm_label": "sleepcontext.jsx"
     },
     {
@@ -6260,7 +6260,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "client_src_contexts_sleepcontext_sleepcontext",
-      "community": 28,
+      "community": 15,
       "norm_label": "sleepcontext"
     },
     {
@@ -6280,7 +6280,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "client_src_contexts_sleepcontext_sleepprovider",
-      "community": 28,
+      "community": 15,
       "norm_label": "sleepprovider()"
     },
     {
@@ -6290,7 +6290,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_contexts_speechbubblecontext",
-      "community": 28,
+      "community": 15,
       "norm_label": "speechbubblecontext.jsx"
     },
     {
@@ -6300,7 +6300,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "client_src_contexts_speechbubblecontext_speechbubblecontext",
-      "community": 28,
+      "community": 15,
       "norm_label": "speechbubblecontext"
     },
     {
@@ -6310,7 +6310,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "client_src_contexts_speechbubblecontext_usespeechbubbles",
-      "community": 28,
+      "community": 15,
       "norm_label": "usespeechbubbles()"
     },
     {
@@ -6320,7 +6320,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "client_src_contexts_speechbubblecontext_speechbubbleprovider",
-      "community": 28,
+      "community": 15,
       "norm_label": "speechbubbleprovider()"
     },
     {
@@ -6420,7 +6420,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "client_src_contexts_visualeffectscontext_usevisualeffects",
-      "community": 28,
+      "community": 15,
       "norm_label": "usevisualeffects()"
     },
     {
@@ -6430,7 +6430,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "client_src_contexts_visualeffectscontext_visualeffectsprovider",
-      "community": 28,
+      "community": 15,
       "norm_label": "visualeffectsprovider()"
     },
     {
@@ -8680,7 +8680,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_explosionintent",
-      "community": 115,
+      "community": 28,
       "norm_label": "explosionintent.js"
     },
     {
@@ -8690,7 +8690,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_explosionintent_explosionintent",
-      "community": 115,
+      "community": 28,
       "norm_label": "explosionintent"
     },
     {
@@ -8700,7 +8700,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_explosionintent_explosionintent_constructor",
-      "community": 115,
+      "community": 28,
       "norm_label": ".constructor()"
     },
     {
@@ -8710,7 +8710,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "client_src_game_components_explosionintent_explosionintent_tojson",
-      "community": 115,
+      "community": 28,
       "norm_label": ".tojson()"
     },
     {
@@ -13820,7 +13820,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "client_src_game_inventory_gridutils_hasitemsinside",
-      "community": 15,
+      "community": 3,
       "norm_label": "hasitemsinside()"
     },
     {
@@ -19410,7 +19410,7 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "client_src_game_remote_rcvehicle_getautonomousvehicle",
-      "community": 15,
+      "community": 9,
       "norm_label": "getautonomousvehicle()"
     },
     {
@@ -19640,7 +19640,7 @@
       "source_location": "L109",
       "_origin": "ast",
       "id": "client_src_game_remote_remotedeviceregistry_getactivegroundeddevice",
-      "community": 15,
+      "community": 9,
       "norm_label": "getactivegroundeddevice()"
     },
     {
@@ -22060,7 +22060,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_utils_edgestructure",
-      "community": 131,
+      "community": 28,
       "norm_label": "edgestructure.js"
     },
     {
@@ -22070,7 +22070,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "client_src_game_utils_edgestructure_neighbors",
-      "community": 131,
+      "community": 28,
       "norm_label": "neighbors"
     },
     {
@@ -22080,7 +22080,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "client_src_game_utils_edgestructure_matchestype",
-      "community": 131,
+      "community": 28,
       "norm_label": "matchestype()"
     },
     {
@@ -22090,7 +22090,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "client_src_game_utils_edgestructure_findedgestructure",
-      "community": 131,
+      "community": 28,
       "norm_label": "findedgestructure()"
     },
     {
@@ -22700,7 +22700,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "client_src_game_utils_logger_logger",
-      "community": 9,
+      "community": 28,
       "norm_label": "logger"
     },
     {
@@ -22710,7 +22710,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "client_src_game_utils_logger_logger_constructor",
-      "community": 9,
+      "community": 28,
       "norm_label": ".constructor()"
     },
     {
@@ -22720,7 +22720,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "client_src_game_utils_logger_logger_scope",
-      "community": 9,
+      "community": 28,
       "norm_label": ".scope()"
     },
     {
@@ -22730,7 +22730,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "client_src_game_utils_logger_logger_formatmessage",
-      "community": 9,
+      "community": 28,
       "norm_label": "._formatmessage()"
     },
     {
@@ -22740,7 +22740,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "client_src_game_utils_logger_logger_debug",
-      "community": 9,
+      "community": 28,
       "norm_label": ".debug()"
     },
     {
@@ -22750,7 +22750,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "client_src_game_utils_logger_logger_info",
-      "community": 9,
+      "community": 28,
       "norm_label": ".info()"
     },
     {
@@ -22760,7 +22760,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "client_src_game_utils_logger_logger_warn",
-      "community": 9,
+      "community": 28,
       "norm_label": ".warn()"
     },
     {
@@ -23600,7 +23600,7 @@
       "source_location": "L307",
       "_origin": "ast",
       "id": "client_src_game_utils_survivalcascade_recalccharacter",
-      "community": 28,
+      "community": 15,
       "norm_label": "recalccharacter()"
     },
     {
@@ -23610,7 +23610,7 @@
       "source_location": "L324",
       "_origin": "ast",
       "id": "client_src_game_utils_survivalcascade_tickinfection",
-      "community": 28,
+      "community": 15,
       "norm_label": "tickinfection()"
     },
     {
@@ -23630,7 +23630,7 @@
       "source_location": "L365",
       "_origin": "ast",
       "id": "client_src_game_utils_survivalcascade_rollwoundinfectioncure",
-      "community": 28,
+      "community": 15,
       "norm_label": "rollwoundinfectioncure()"
     },
     {
@@ -23650,7 +23650,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_utils_timeutils",
-      "community": 28,
+      "community": 15,
       "norm_label": "timeutils.js"
     },
     {
@@ -23660,7 +23660,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "client_src_game_utils_timeutils_gethourfromturn",
-      "community": 28,
+      "community": 15,
       "norm_label": "gethourfromturn()"
     },
     {
@@ -23720,7 +23720,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_utils_vehicleutils",
-      "community": 113,
+      "community": 9,
       "norm_label": "vehicleutils.js"
     },
     {
@@ -23730,7 +23730,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "client_src_game_utils_vehicleutils_vehicleutils",
-      "community": 113,
+      "community": 9,
       "norm_label": "vehicleutils"
     },
     {
@@ -24270,7 +24270,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "client_src_lib_utils_rainbowbackground",
-      "community": 15,
+      "community": 3,
       "norm_label": "rainbowbackground()"
     },
     {
@@ -24290,7 +24290,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "client_src_lib_utils_getcategoryclass",
-      "community": 15,
+      "community": 3,
       "norm_label": "getcategoryclass()"
     },
     {
@@ -47838,7 +47838,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/components/MapEditor/EventWindow.tsx",
-      "source_location": "L704",
+      "source_location": "L708",
       "weight": 1.0,
       "source": "client_src_components_mapeditor_eventwindow_eventwindow",
       "target": "client_src_components_mapeditor_eventwindow_btnstyle",
@@ -47893,7 +47893,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "client/src/components/MapEditor/EventWindow.tsx",
-      "source_location": "L838",
+      "source_location": "L842",
       "weight": 1.0,
       "source": "client_src_components_mapeditor_eventwindow_eventwindow",
       "target": "client_src_components_mapeditor_eventwindow_emptystep",
@@ -125692,5 +125692,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "5127dbe60fd0af0479638628fb3f611722f9feea"
+  "built_at_commit": "03bfb46a980c5f91c5cb3cf2d5bbcd8ea7079ed3"
 }

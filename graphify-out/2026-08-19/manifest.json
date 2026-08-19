@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1785994026.4109478,
-    "ast_hash": "3de8075f8297108fbab858ef4c76637c",
+    "mtime": 1787123526.6117334,
+    "ast_hash": "9cb4ab7a97928a71149b98ce4ee4112e",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -1035,8 +1035,8 @@
     "semantic_hash": "5715d56998f6ea89742ca95e58ff8d0a"
   },
   "client/src/game/managers/SimulationManager.js": {
-    "mtime": 1785980827.7277417,
-    "ast_hash": "70305d00b33e69859440033eee7a50fc",
+    "mtime": 1787123399.978529,
+    "ast_hash": "8d024102c1e96b116b7673cbbcf0e98b",
     "semantic_hash": ""
   },
   "client/src/game/managers/TurnManager.js": {
@@ -1055,8 +1055,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/GameMap.js": {
-    "mtime": 1785727749.5931582,
-    "ast_hash": "b96e096a18d08387d2e018c1133050d6",
+    "mtime": 1787123469.0732794,
+    "ast_hash": "602f925ff6459a0566f2e7edca795217",
     "semantic_hash": ""
   },
   "client/src/game/map/LootGenerator.js": {
@@ -1220,9 +1220,9 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/FireSystem.js": {
-    "mtime": 1783074649.9706597,
-    "ast_hash": "87a9d8d6bfd296fbcae26add1724c8fa",
-    "semantic_hash": "87a9d8d6bfd296fbcae26add1724c8fa"
+    "mtime": 1787123399.9775279,
+    "ast_hash": "56d822d94916ca3a77014340b2bba2c0",
+    "semantic_hash": ""
   },
   "client/src/game/systems/MovementSystem.js": {
     "mtime": 1784698748.6508968,
@@ -2745,18 +2745,18 @@
     "semantic_hash": ""
   },
   "client/src/components/MapEditor/EventWindow.tsx": {
-    "mtime": 1785282860.4772818,
-    "ast_hash": "7b3799a5105cba502ded3933be5c6e3d",
+    "mtime": 1787123526.6107333,
+    "ast_hash": "9bc61bf8f7737d3e5dbd8107aecc453c",
     "semantic_hash": ""
   },
   "client/src/game/quest/eventTypes.ts": {
-    "mtime": 1785371422.0824895,
-    "ast_hash": "88f402ca9a3d2d97d0bfb7e8e70e299c",
+    "mtime": 1787123526.6097324,
+    "ast_hash": "d78efe8b49aefa986be888d6b2463336",
     "semantic_hash": ""
   },
   "client/src/game/quest/EventRunner.js": {
-    "mtime": 1785282854.4946961,
-    "ast_hash": "a229e8d431c5762d9824b0cbbe6323d5",
+    "mtime": 1787123526.6087332,
+    "ast_hash": "1bd6d3f0f4febd645754c0d43e586f5e",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p3.mjs": {
@@ -3165,13 +3165,13 @@
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.editor.json": {
-    "mtime": 1787121457.290653,
-    "ast_hash": "8e28274faa088de2834213522824927d",
+    "mtime": 1787122833.300189,
+    "ast_hash": "c925cd68e671db22ebdfbbe61b539195",
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.scenario.json": {
-    "mtime": 1787121458.1197524,
-    "ast_hash": "98281e55406df98644a7599a57470a75",
+    "mtime": 1787122834.7309475,
+    "ast_hash": "76e28a475adcf03a9c24d730e6e1b481",
     "semantic_hash": ""
   },
   "test/quest/eventOncePerTurn.test.js": {
@@ -3395,13 +3395,13 @@
     "semantic_hash": ""
   },
   "customMaps/zombieSightSoundTest.editor.json": {
-    "mtime": 1787121180.8942287,
-    "ast_hash": "4fb25e34033768cc38f77bb36c1169b6",
+    "mtime": 1787122679.582521,
+    "ast_hash": "6ef1e8d8b673a1dcf26102916397e989",
     "semantic_hash": ""
   },
   "customMaps/zombieSightSoundTest.scenario.json": {
-    "mtime": 1787121182.0386603,
-    "ast_hash": "e0b47c04598128501b1de5a66bff750f",
+    "mtime": 1787122681.3483162,
+    "ast_hash": "69e5f44df81270043f138c97c125f4af",
     "semantic_hash": ""
   },
   "test/ai/scentOcclusion.test.js": {
@@ -3562,6 +3562,16 @@
   "test/systems/wagonSleeper.test.js": {
     "mtime": 1786003574.98551,
     "ast_hash": "b12b58f002f4eb2d2c08c2509ec73657",
+    "semantic_hash": ""
+  },
+  "client/src/game/map/MapMetadata.js": {
+    "mtime": 1787123433.5937135,
+    "ast_hash": "f6cf74c7d3df0860d7359bf12e44fffd",
+    "semantic_hash": ""
+  },
+  "test/quest/mapEnterEvents.test.js": {
+    "mtime": 1787123578.9547749,
+    "ast_hash": "e42fa77fc8d6198684641b2ee7846d41",
     "semantic_hash": ""
   }
 }

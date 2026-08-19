@@ -48884,11 +48884,6 @@
   "bubbleEvents": [],
   "chainDialogEvents": [
     {
-      "id": "enterMap",
-      "steps": [],
-      "oneShot": true
-    },
-    {
       "id": "lightAutoOff",
       "steps": [],
       "oneShot": false
@@ -48911,7 +48906,12 @@
           "text": "Timer: [timer]"
         }
       ],
-      "oneShot": true
+      "oneShot": false
+    },
+    {
+      "id": "enterMap",
+      "steps": [],
+      "oneShot": false
     }
   ],
   "events": [
@@ -48950,38 +48950,6 @@
       "appearance": {
         "defId": "placeable.switch_off"
       }
-    },
-    {
-      "id": "enterMap",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "auto",
-      "preconditions": [],
-      "repeat": "once",
-      "steps": [
-        {
-          "type": "setVar",
-          "var": "timer",
-          "op": "set",
-          "varValue": 0
-        },
-        {
-          "type": "setFlag",
-          "flag": "lightOn",
-          "value": false
-        },
-        {
-          "type": "controlEntity",
-          "entityTag": "gDoor",
-          "entityAction": "close"
-        },
-        {
-          "type": "controlEntity",
-          "entityTag": "gDoor",
-          "entityAction": "lock"
-        }
-      ]
     },
     {
       "id": "lightAutoOff",
@@ -49108,12 +49076,48 @@
       },
       "trigger": "onMapEnter",
       "preconditions": [],
-      "repeat": "once",
+      "repeat": "everyTime",
       "steps": [
         {
           "type": "dialog",
           "speaker": "",
           "text": "Timer: [timer]"
+        }
+      ]
+    },
+    {
+      "id": "enterMap",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onMapEnter",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "setVar",
+          "var": "timer",
+          "op": "set",
+          "varValue": 0
+        },
+        {
+          "type": "setFlag",
+          "flag": "lightOn",
+          "value": false
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "close"
+        },
+        {
+          "type": "controlEntity",
+          "entityTag": "gDoor",
+          "entityAction": "lock"
+        },
+        {
+          "type": "setLightMode",
+          "lightMode": "always_dark"
         }
       ]
     }

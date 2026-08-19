@@ -672,6 +672,10 @@ export default function EventWindow({
 }: EventWindowProps) {
   const setSteps = (steps: EventStep[]) => onChange({ ...event, steps });
   const showEndCondition = event.trigger === 'auto' || event.trigger === 'parallel' || event.trigger === 'onMapEnter';
+  // The repeat modes are worded for events that fire off a recurring condition.
+  // On a map-enter event the unit is a visit, and "Once" reads as "once per
+  // visit" when it actually means once for the whole game — say so outright.
+  const perVisit = event.trigger === 'onMapEnter';
 
   // A marker gated on a flag that this event never sets can never change state —
   // the classic half-built toggle, where both halves of a switch pair read the
@@ -734,8 +738,8 @@ export default function EventWindow({
             </label>
             <label style={{ fontSize: 11, color: '#888' }}>Repeat
               <select style={{ ...inputStyle, width: '100%', marginTop: 4 }} value={event.repeat} onChange={e => onChange({ ...event, repeat: e.target.value as RepeatMode })}>
-                <option value="once">Once</option>
-                <option value="everyTime">Every time</option>
+                <option value="once">{perVisit ? 'Once ever (first visit only)' : 'Once'}</option>
+                <option value="everyTime">{perVisit ? 'Every visit' : 'Every time'}</option>
                 <option value="whileConditions">While conditions</option>
                 <option value="oncePerTurn">Once per turn (while conditions)</option>
               </select>

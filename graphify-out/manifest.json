@@ -2745,8 +2745,8 @@
     "semantic_hash": ""
   },
   "client/src/components/MapEditor/EventWindow.tsx": {
-    "mtime": 1787123526.6107333,
-    "ast_hash": "9bc61bf8f7737d3e5dbd8107aecc453c",
+    "mtime": 1787124551.0663812,
+    "ast_hash": "e15cfc8ecce46d83a811c1a50c9468b5",
     "semantic_hash": ""
   },
   "client/src/game/quest/eventTypes.ts": {
@@ -3165,13 +3165,13 @@
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.editor.json": {
-    "mtime": 1787122833.300189,
-    "ast_hash": "c925cd68e671db22ebdfbbe61b539195",
+    "mtime": 1787124290.0578003,
+    "ast_hash": "30e5c5dfb90a258ba5583df1a5fe5647",
     "semantic_hash": ""
   },
   "customMaps/autoEventTest.scenario.json": {
-    "mtime": 1787122834.7309475,
-    "ast_hash": "76e28a475adcf03a9c24d730e6e1b481",
+    "mtime": 1787124290.674812,
+    "ast_hash": "fa977a1f1c6fa9ca8fbfa64da5df34ec",
     "semantic_hash": ""
   },
   "test/quest/eventOncePerTurn.test.js": {
