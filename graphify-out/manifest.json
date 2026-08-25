@@ -900,8 +900,8 @@
     "semantic_hash": ""
   },
   "client/src/game/config/TemplateConfig.js": {
-    "mtime": 1787638739.1305237,
-    "ast_hash": "ef177b1c70a82f24505f3f4fca844ff3",
+    "mtime": 1787652875.050381,
+    "ast_hash": "dbda96e1b20f8e54fc83af2fd44c8b30",
     "semantic_hash": ""
   },
   "client/src/game/config/VisionConfig.js": {
@@ -1060,8 +1060,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/LootGenerator.js": {
-    "mtime": 1785841382.4927866,
-    "ast_hash": "addfe692564bb112863289a059b53a3b",
+    "mtime": 1787645834.6152945,
+    "ast_hash": "a48839af7ab55f60237f13c8658b136e",
     "semantic_hash": ""
   },
   "client/src/game/map/LootTables.js": {
@@ -1070,8 +1070,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
-    "mtime": 1784621571.998343,
-    "ast_hash": "98560d128d099b191675fda5abeff38a",
+    "mtime": 1787644421.8757303,
+    "ast_hash": "7beb54e0b390a95da0db25e61632e4e1",
     "semantic_hash": ""
   },
   "client/src/game/map/MapConnectivityValidator.js": {
@@ -1090,8 +1090,8 @@
     "semantic_hash": "9ef85efd7fec69c93a92b57d52c97760"
   },
   "client/src/game/map/TemplateMapGenerator.js": {
-    "mtime": 1787638739.1316526,
-    "ast_hash": "b1a37a98c9443b26454d55729c014751",
+    "mtime": 1787645807.708846,
+    "ast_hash": "c0183c13b644c95289c330c3ba88eb48",
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
@@ -1130,8 +1130,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/generators/ScenarioMapGenerator.js": {
-    "mtime": 1784617231.0351715,
-    "ast_hash": "7f3fc92fc23b5e4d6cc14eaa32e0d550",
+    "mtime": 1787644415.435272,
+    "ast_hash": "d5ea62ddcdac065fdb0484766090cad3",
     "semantic_hash": ""
   },
   "client/src/game/map/generators/SplitRoadGenerator.js": {
@@ -1175,8 +1175,8 @@
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileRenderer.js": {
-    "mtime": 1785825939.7350533,
-    "ast_hash": "ac77e06387ef395213809d28bfdd39ef",
+    "mtime": 1787641093.229105,
+    "ast_hash": "dccbfd601348967456276e69a50469db",
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
@@ -1360,8 +1360,8 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/ZombieSpawner.js": {
-    "mtime": 1784621572.0058544,
-    "ast_hash": "bc2c452d62b12ace543149c5bf63de9b",
+    "mtime": 1787653220.0006373,
+    "ast_hash": "ecce4a329eee488fff7d6a369e6d0d18",
     "semantic_hash": ""
   },
   "client/src/hooks/use-mobile.tsx": {
@@ -1405,8 +1405,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1787638739.1337495,
-    "ast_hash": "92361f7bdcd8441ac8d31b6677409209",
+    "mtime": 1787653113.7212658,
+    "ast_hash": "a92d238a1421723c179604e8f9005b43",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -2910,8 +2910,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/FurniturePlanner.js": {
-    "mtime": 1784885852.9999735,
-    "ast_hash": "b89a6f60a68d44cd2c5f7eede7ec9bf3",
+    "mtime": 1787641063.9197805,
+    "ast_hash": "9860fe50299be6cbf619e10934230415",
     "semantic_hash": ""
   },
   "test/map/furniturePlanner.test.js": {
@@ -2930,8 +2930,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/FloorplanRegistry.js": {
-    "mtime": 1784885873.603828,
-    "ast_hash": "c87322d782421d9d93dc39128b79abec",
+    "mtime": 1787641070.275377,
+    "ast_hash": "2125cbb5f6b5b3e5480550b27b6daa0e",
     "semantic_hash": ""
   },
   "test/map/floorplanRegistry.test.js": {
@@ -3250,8 +3250,8 @@
     "semantic_hash": ""
   },
   "scripts/god-object-budget.json": {
-    "mtime": 1787638739.1342833,
-    "ast_hash": "8311f0a98713b6afc271524f21f8f5e8",
+    "mtime": 1787653450.8822255,
+    "ast_hash": "d18ba1318368cfe1f58ff7fac4bc659f",
     "semantic_hash": ""
   },
   "scripts/godObjectBudget.mjs": {
@@ -3595,8 +3595,88 @@
     "semantic_hash": ""
   },
   "test/map/corridorGenerator.test.js": {
-    "mtime": 1787638821.9349108,
-    "ast_hash": "8a294e0729639c967cf4deff1e5fd3f1",
+    "mtime": 1787653369.1492033,
+    "ast_hash": "a5df2543762640513bea71b6f1bdb214",
+    "semantic_hash": ""
+  },
+  "client/src/components/MapEditor/DecorationGeneratorModal.tsx": {
+    "mtime": 1787643470.9621618,
+    "ast_hash": "f63e9498d2efa037e490fdcbb5871f55",
+    "semantic_hash": ""
+  },
+  "client/src/components/MapEditor/LootGeneratorModal.tsx": {
+    "mtime": 1787645844.0055077,
+    "ast_hash": "519543a314188d0bae3f6abc1f8446f0",
+    "semantic_hash": ""
+  },
+  "client/src/components/MapEditor/ZombieGeneratorModal.tsx": {
+    "mtime": 1787643574.3795054,
+    "ast_hash": "0e284a412b28855796d40e0741122de6",
+    "semantic_hash": ""
+  },
+  "client/src/game/editor/minimapLayout.js": {
+    "mtime": 1787653104.9582634,
+    "ast_hash": "a7359913612ac7ec7e2fd0a1184e9ccd",
+    "semantic_hash": ""
+  },
+  "client/src/game/map/DecorationPlanner.js": {
+    "mtime": 1787643502.7688477,
+    "ast_hash": "f7cd1fa98cb07740e96bcd7fd4d5b851",
+    "semantic_hash": ""
+  },
+  "client/src/game/map/RoadVehiclePlanner.js": {
+    "mtime": 1787642586.4315903,
+    "ast_hash": "a9b69ac239a72dbf2a56b53708609541",
+    "semantic_hash": ""
+  },
+  "client/src/game/map/generators/CorridorLootGenerator.js": {
+    "mtime": 1787648934.7546854,
+    "ast_hash": "c6ee781469c0dbc32b40ac6a0d69a60e",
+    "semantic_hash": ""
+  },
+  "customMaps/corridorTest.editor.json": {
+    "mtime": 1787646846.4714532,
+    "ast_hash": "9bdcb40b5effa2db41e5e08816c3f969",
+    "semantic_hash": ""
+  },
+  "customMaps/corridorTest.scenario.json": {
+    "mtime": 1787646846.9788313,
+    "ast_hash": "5f558eaecec115cb76fd39913c7cc92b",
+    "semantic_hash": ""
+  },
+  "test/editor/minimapLayout.test.js": {
+    "mtime": 1787653429.7541695,
+    "ast_hash": "82f87ec742ed3390e7b2aff55fd97618",
+    "semantic_hash": ""
+  },
+  "test/loot/corridorLootGenerator.test.js": {
+    "mtime": 1787648949.911182,
+    "ast_hash": "a39a88811b0de9c9ec0a1da5bdd91126",
+    "semantic_hash": ""
+  },
+  "test/map/corridorZombieSpawn.test.js": {
+    "mtime": 1787653404.35639,
+    "ast_hash": "94fcf734e978ae7861411efca4c7f95f",
+    "semantic_hash": ""
+  },
+  "test/map/decorationPlanner.test.js": {
+    "mtime": 1787644449.0695982,
+    "ast_hash": "cadf3812c2aaa3dd67e95486961b2e55",
+    "semantic_hash": ""
+  },
+  "test/map/mapProgressionOrder.test.js": {
+    "mtime": 1787651622.280234,
+    "ast_hash": "2a25331e51eb0e570f5f0b88d6b3dc49",
+    "semantic_hash": ""
+  },
+  "test/map/roadVehiclePlanner.test.js": {
+    "mtime": 1787642593.339199,
+    "ast_hash": "647465a100ac5e732fd270808857ba6d",
+    "semantic_hash": ""
+  },
+  "test/map/vehicleOutlines.test.js": {
+    "mtime": 1787641196.1739907,
+    "ast_hash": "97642e0e157fe5a0ff385032c0bb3c80",
     "semantic_hash": ""
   }
 }

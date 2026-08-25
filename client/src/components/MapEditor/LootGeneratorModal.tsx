@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 
+export type LootGeneratorMode = 'standard' | 'corridor';
+export type LootAmount = 'lots' | 'some' | 'little';
+
 interface LootGeneratorModalProps {
-  initialAmount?: 'lots' | 'some' | 'little';
+  initialAmount?: LootAmount;
+  initialMode?: LootGeneratorMode;
   initialSeed?: string;
   isGenerating?: boolean;
-  onGenerate: (amount: 'lots' | 'some' | 'little', seed: string) => void;
+  onGenerate: (amount: LootAmount, seed: string, mode: LootGeneratorMode) => void;
   onClose: () => void;
 }
 
@@ -30,12 +34,14 @@ const inputStyle: React.CSSProperties = {
 
 export const LootGeneratorModal: React.FC<LootGeneratorModalProps> = ({
   initialAmount = 'some',
+  initialMode = 'standard',
   initialSeed = '',
   isGenerating = false,
   onGenerate,
   onClose,
 }) => {
-  const [amount, setAmount] = useState<'lots' | 'some' | 'little'>(initialAmount);
+  const [mode, setMode] = useState<LootGeneratorMode>(initialMode);
+  const [amount, setAmount] = useState<LootAmount>(initialAmount);
   const [seed, setSeed] = useState(() => initialSeed || Math.floor(Math.random() * 1000000).toString());
 
   return (
@@ -57,19 +63,53 @@ export const LootGeneratorModal: React.FC<LootGeneratorModalProps> = ({
           border: '1px solid #555',
           borderRadius: 8,
           padding: 16,
-          minWidth: 320,
-          maxHeight: '80vh',
+          minWidth: 340,
+          maxWidth: 420,
+          maxHeight: '85vh',
           overflow: 'auto',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.7)',
         }}
         onClick={e => e.stopPropagation()}
       >
         <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>🎲 Generate Ambient Loot</h3>
-        <p style={{ fontSize: 12, color: '#aaa', marginBottom: 16 }}>
-          This will populate buildings and outdoor areas with random items. Items will be merged with any existing loot on the tiles.
+        <p style={{ fontSize: 12, color: '#aaa', marginBottom: 16, lineHeight: 1.4 }}>
+          {mode === 'corridor'
+            ? 'Special loot generator for corridor travel roads. Spawns sparse items (mostly sticks & stones). Food, water, and weapons are extremely rare. No wild crops, mowers, generators, or wagons.'
+            : 'Populates buildings and outdoor areas with standard survival items. Items will be merged with any existing loot on the tiles.'}
         </p>
 
+        {/* Generator Profile / Map Type Selection */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+          <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>Map Type</label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[
+              { id: 'standard', label: '🏘️ Standard Map' },
+              { id: 'corridor', label: '🛣️ Corridor Map' },
+            ].map(opt => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setMode(opt.id as LootGeneratorMode)}
+                style={{
+                  flex: 1,
+                  padding: '8px 6px',
+                  background: mode === opt.id ? '#316999' : '#333',
+                  color: '#eee',
+                  border: mode === opt.id ? '2px solid #7bb8ff' : '1px solid #555',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: mode === opt.id ? 'bold' : 'normal',
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Loot Amount Selection */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
           <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>Loot Amount</label>
           <div style={{ display: 'flex', gap: 6 }}>
             {[
@@ -80,7 +120,7 @@ export const LootGeneratorModal: React.FC<LootGeneratorModalProps> = ({
               <button
                 key={opt.id}
                 type="button"
-                onClick={() => setAmount(opt.id as any)}
+                onClick={() => setAmount(opt.id as LootAmount)}
                 style={{
                   flex: 1,
                   padding: '8px 4px',
@@ -123,9 +163,9 @@ export const LootGeneratorModal: React.FC<LootGeneratorModalProps> = ({
         {/* Confirm / Cancel Actions */}
         <div style={{ display: 'flex', gap: 8 }}>
           <button
-            onClick={() => onGenerate(amount, seed)}
+            onClick={() => onGenerate(amount, seed, mode)}
             disabled={isGenerating}
-            style={{ ...btnStyle('#2b9a7a'), flex: 1, padding: '10px' }}
+            style={{ ...btnStyle('#2b9a7a'), flex: 1, padding: '10px', fontWeight: 'bold' }}
           >
             {isGenerating ? 'Generating...' : 'Generate'}
           </button>

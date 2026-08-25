@@ -47,11 +47,17 @@ export const TEMPLATE_METADATA = {
     northExitX: 22
   },
   // Long-haul travel corridor: narrow, empty, and tall. The height is the
-  // design knob — at ~15 tiles/turn and ~16 waking turns a day, 500 tiles is
-  // roughly two days of travel, so chain several of these for a longer journey.
+  // design knob — at ~15 tiles/turn and ~16 waking turns a day, 800 tiles is
+  // roughly three days of travel, so chain a couple for a longer journey.
+  //
+  // 800 is deliberately under ~1000: Pathfinding.findPath caps a search at
+  // maxDistance 1000 Manhattan, and an end-to-end path down a corridor costs
+  // about `height`. Past that, long paths (notably NPC travel goals, which
+  // target the map exit) silently return an empty path. Raising this materially
+  // above 1000 means raising that cap too.
   corridor: {
     name: 'Corridor',
-    size: { width: 20, height: 500 },
+    size: { width: 20, height: 800 },
     southEntranceX: 10,
     northExitX: 10
   }
@@ -99,14 +105,20 @@ export const EDITOR_GENERATOR_CHOICES = [
 
 export const FIXED_TEMPLATE_ASSIGNMENTS = {
   1: 'branching_road',
-  2: 'branching_road',
-  3: 'lab',
-  4: 'road',
-  5: 'road',
-  6: 'winding_road',
-  7: 'mirrored_winding_road',
-  8: 'split_road'
+  2: 'corridor',
+  3: 'road',
+  4: 'corridor',
+  5: 'branching_road',
+  6: 'corridor',
+  7: 'lab'
 };
+
+export const POST_MAP_7_CYCLE = [
+  'corridor',
+  'road',
+  'corridor',
+  'branching_road'
+];
 
 /**
  * Determine template for a specific map number
@@ -117,10 +129,10 @@ export function getTemplateForMapNumber(mapNumber, devForceLab = false) {
     return FIXED_TEMPLATE_ASSIGNMENTS[mapNumber];
   }
   
-  // Pseudo-random selection fallback for unspecified maps
-  const seed = (mapNumber * 12345) % 100;
-  if (seed < 25) return 'road';
-  if (seed < 50) return 'winding_road';
-  if (seed < 75) return 'mirrored_winding_road';
-  return 'split_road';
+  if (mapNumber > 7) {
+    const cycleIndex = (mapNumber - 8) % POST_MAP_7_CYCLE.length;
+    return POST_MAP_7_CYCLE[cycleIndex];
+  }
+
+  return 'road';
 }

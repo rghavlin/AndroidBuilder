@@ -22,6 +22,7 @@ import { TileRenderer } from '@/game/renderer/TileRenderer';
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { FURNITURE_FOOTPRINTS } from '@/game/map/FurniturePlanner';
 import { EDITOR_TEMPLATE_CHOICES, EDITOR_GENERATOR_CHOICES } from '@/game/config/TemplateConfig';
+import { computeMinimapSize } from '@/game/editor/minimapLayout';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -1748,6 +1749,7 @@ export default function MapEditor() {
   const [savedScenarios, setSavedScenarios] = useState<{ name: string; width: number; height: number }[]>([]);
   const [showLootModal, setShowLootModal] = useState(false);
   const [lootAmount, setLootAmount] = useState<'lots' | 'some' | 'little'>('some');
+  const [lootMode, setLootMode] = useState<'standard' | 'corridor'>('standard');
   const [mapSeed, setMapSeed] = useState<number | ''>('');
   const [mapLowSpots, setMapLowSpots] = useState<{ x: number; y: number }[]>([]);
   const [lootModalSeed, setLootModalSeed] = useState<string>('');
@@ -2417,12 +2419,9 @@ export default function MapEditor() {
   useEffect(() => {
     const canvas = minimapRef.current;
     if (!canvas) return;
-    const maxMinimapDim = 120;
-    const mapTotalW = width * CELL;
-    const mapTotalH = height * CELL;
-    const minimapScale = Math.min(maxMinimapDim / mapTotalW, maxMinimapDim / mapTotalH);
-    canvas.width = Math.round(mapTotalW * minimapScale);
-    canvas.height = Math.round(mapTotalH * minimapScale);
+    const { width: mmW, height: mmH } = computeMinimapSize(width * CELL, height * CELL);
+    canvas.width = mmW;
+    canvas.height = mmH;
     updateMinimapViewport();
   }, [width, height, updateMinimapViewport]);
 
@@ -2765,14 +2764,15 @@ export default function MapEditor() {
     return entry;
   };
 
-  const handleGenerateLoot = async () => {
+  const handleGenerateLoot = async (amountParam?: 'lots' | 'some' | 'little', seedParam?: string, modeParam?: 'standard' | 'corridor') => {
     setIsGeneratingLoot(true);
     setStatusMsg('Running loot generator...');
     try {
-      let finalSeed = parseInt(lootModalSeed, 10);
-      if (isNaN(finalSeed)) {
-        finalSeed = (Math.random() * 0xFFFFFFFF) >>> 0;
-      }
+      const curAmount = amountParam || lootAmount;
+      const curMode = modeParam || lootMode;
+      const seedStr = seedParam !== undefined ? seedParam : lootModalSeed;
+      let finalSeed = parseInt(seedStr, 10);
+      if (isNaN(finalSeed)) finalSeed = (Math.random() * 0xFFFFFFFF) >>> 0;
 
       setMapSeed(finalSeed);
       setLootModalSeed(finalSeed.toString());
@@ -2780,13 +2780,7 @@ export default function MapEditor() {
       const { gameRandom } = await import('@/game/utils/SeededRandom');
       gameRandom.seed(finalSeed);
 
-      const scenario: ScenarioData = {
-        name: scenarioName,
-        width, height, tiles, buildings,
-        playerSpawn: getPlayerSpawn(),
-        noAutosave: noAutosave || undefined,
-        seed: finalSeed,
-      };
+      const scenario: ScenarioData = { name: scenarioName, width, height, tiles, buildings, playerSpawn: getPlayerSpawn(), noAutosave: noAutosave || undefined, seed: finalSeed };
       const exported = exportScenario(scenario);
 
       const { TemplateMapGenerator } = await import('@/game/map/TemplateMapGenerator');
@@ -2798,12 +2792,8 @@ export default function MapEditor() {
 
       const { LootGenerator } = await import('@/game/map/LootGenerator');
       const gen = new LootGenerator();
-      
-      let mapNumberForLoot = 5;
-      if (lootAmount === 'lots') mapNumberForLoot = 1;
-      else if (lootAmount === 'little') mapNumberForLoot = 9;
-
-      gen.spawnLoot(gameMap, mapNumberForLoot);
+      const mapNumberForLoot = curAmount === 'lots' ? 1 : (curAmount === 'little' ? 9 : 5);
+      gen.spawnLoot(gameMap, mapNumberForLoot, { amount: curAmount, type: curMode });
 
       const newTiles = tiles.map((row, y) =>
         row.map((t, x) => {
@@ -2815,17 +2805,14 @@ export default function MapEditor() {
             return mapEcsItemToEditorItem(json);
           }).filter((it: any) => it.defId);
 
-          return {
-            ...t,
-            items: [...t.items, ...generatedEditorItems]
-          };
+          return { ...t, items: [...t.items, ...generatedEditorItems] };
         })
       );
 
       pushUndo(tiles, buildings, furniture);
       setTiles(newTiles);
       setMapLowSpots(gameMap.lowSpots || []);
-      setStatusMsg(`Loot generated using seed ${finalSeed}! (Amount level: ${lootAmount})`);
+      setStatusMsg(`Loot generated using seed ${finalSeed}! (${curMode === 'corridor' ? 'Corridor' : 'Standard'}, Amount: ${curAmount})`);
       setShowLootModal(false);
     } catch (err: any) {
       console.error('[GenerateLoot] Failed:', err);
@@ -4566,12 +4553,14 @@ export default function MapEditor() {
       {showLootModal && (
         <LootGeneratorModal
           initialAmount={lootAmount}
+          initialMode={lootMode}
           initialSeed={lootModalSeed}
           isGenerating={isGeneratingLoot}
-          onGenerate={(amount, seed) => {
+          onGenerate={(amount, seed, mode) => {
             setLootAmount(amount);
+            setLootMode(mode);
             setLootModalSeed(seed);
-            handleGenerateLoot();
+            handleGenerateLoot(amount, seed, mode);
           }}
           onClose={() => setShowLootModal(false)}
         />

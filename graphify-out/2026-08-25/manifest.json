@@ -725,8 +725,8 @@
     "semantic_hash": "a5c0da845b52753acd9f626600010f74"
   },
   "client/src/game/WorldManager.js": {
-    "mtime": 1787122450.4575965,
-    "ast_hash": "c3dc2f68c847e0695c2338720e449c5c",
+    "mtime": 1787638739.1300058,
+    "ast_hash": "3a24875419279e5c710cf0f81177fec7",
     "semantic_hash": ""
   },
   "client/src/game/ai/AITargeting.js": {
@@ -900,9 +900,9 @@
     "semantic_hash": ""
   },
   "client/src/game/config/TemplateConfig.js": {
-    "mtime": 1782716467.8001337,
-    "ast_hash": "c294f50a222cd25e7cd16ff14451e507",
-    "semantic_hash": "c294f50a222cd25e7cd16ff14451e507"
+    "mtime": 1787638739.1305237,
+    "ast_hash": "ef177b1c70a82f24505f3f4fca844ff3",
+    "semantic_hash": ""
   },
   "client/src/game/config/VisionConfig.js": {
     "mtime": 1785137396.3762457,
@@ -1090,8 +1090,8 @@
     "semantic_hash": "9ef85efd7fec69c93a92b57d52c97760"
   },
   "client/src/game/map/TemplateMapGenerator.js": {
-    "mtime": 1785370758.7539449,
-    "ast_hash": "df3b78e90bd23cc699a32b516e980898",
+    "mtime": 1787638739.1316526,
+    "ast_hash": "b1a37a98c9443b26454d55729c014751",
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
@@ -1405,8 +1405,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1785823955.6507685,
-    "ast_hash": "bbd8add8f33952fc4f6ca0a66c68e84c",
+    "mtime": 1787638739.1337495,
+    "ast_hash": "92361f7bdcd8441ac8d31b6677409209",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -3250,8 +3250,8 @@
     "semantic_hash": ""
   },
   "scripts/god-object-budget.json": {
-    "mtime": 1785980842.7397091,
-    "ast_hash": "a50afdd8e83ce13a4a36d070586a3a99",
+    "mtime": 1787638739.1342833,
+    "ast_hash": "8311f0a98713b6afc271524f21f8f5e8",
     "semantic_hash": ""
   },
   "scripts/godObjectBudget.mjs": {
@@ -3395,13 +3395,13 @@
     "semantic_hash": ""
   },
   "customMaps/zombieSightSoundTest.editor.json": {
-    "mtime": 1787619671.3721035,
-    "ast_hash": "309c0ccbe46f44e539cdb126a14c398b",
+    "mtime": 1787621463.5999053,
+    "ast_hash": "80852366d9f67b75d7c60a5ec837fbff",
     "semantic_hash": ""
   },
   "customMaps/zombieSightSoundTest.scenario.json": {
-    "mtime": 1787619672.2619321,
-    "ast_hash": "23d322d039e55a0ea734b7324d750d07",
+    "mtime": 1787621464.7524326,
+    "ast_hash": "76f783070365e870f8f30a3fc53a3fa3",
     "semantic_hash": ""
   },
   "test/ai/scentOcclusion.test.js": {
@@ -3587,6 +3587,16 @@
   "test/quest/setInfectionStep.test.js": {
     "mtime": 1787620801.1326137,
     "ast_hash": "e7424c460f5f95b3e7a6a3d009b8d29d",
+    "semantic_hash": ""
+  },
+  "client/src/game/map/generators/CorridorGenerator.js": {
+    "mtime": 1787638739.1790888,
+    "ast_hash": "16e76db484bbbc00375c88c1d22f3f48",
+    "semantic_hash": ""
+  },
+  "test/map/corridorGenerator.test.js": {
+    "mtime": 1787638821.9349108,
+    "ast_hash": "8a294e0729639c967cf4deff1e5fd3f1",
     "semantic_hash": ""
   }
 }

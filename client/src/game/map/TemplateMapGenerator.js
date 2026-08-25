@@ -322,6 +322,7 @@ export class TemplateMapGenerator {
    * Place wild crops in secluded grass areas
    */
   placeWildCrops(mapData) {
+    if (mapData.template === 'corridor') return;
     const validSpots = [];
     const { width, height, tiles } = mapData;
 

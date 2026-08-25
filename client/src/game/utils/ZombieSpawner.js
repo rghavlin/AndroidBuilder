@@ -3,6 +3,39 @@ import { isInsideCompound, isInsideTollGate, isInStartArea } from '../map/MapUti
 import { isFloor } from '../map/TerrainTypes.js';
 
 import { gameRandom } from './SeededRandom.js';
+
+// ─── Corridor tuning ────────────────────────────────────────────────────
+// Corridor maps break the assumptions behind area-scaled spawn counts. A
+// normal map is wide: the player picks a route through it, much of its area is
+// building interior, and a zombie somewhere off to the side is avoidable. A
+// corridor is ~90% walkable, 20 tiles across, and the player has to walk every
+// single row of it to get out — so the same "zombies per unit area" lands as a
+// far higher encounter rate, on the one map type whose whole point is attrition
+// and starvation rather than combat.
+//
+// So corridors are populated by LENGTH, not area. Difficulty still climbs with
+// map number, but through the mix (more acid/fat/spitters/armoured types, set
+// by MapProgression) rather than through raw bodies.
+//
+// Rows of corridor per zombie at the baseline, before the map-number ramp.
+// Lower = denser. At 800 rows this is the difference between ~90 zombies and
+// the ~165-270 that area scaling produced.
+const CORRIDOR_ROWS_PER_ZOMBIE = 10;
+// Each map number adds this much to the corridor population, so map 6 is
+// meaningfully busier than map 2 without becoming a wall of bodies.
+const CORRIDOR_DIFFICULTY_RAMP = 0.05;
+// Rows kept clear at BOTH ends. Both corridor ends are transition tiles, so the
+// player can arrive at either one; without this they can arrive within Manhattan
+// 7 of a zombie with no room to retreat and nowhere to route around it. Sized to
+// MAX_VISION_RANGE so an arrival always gets one clear turn to react.
+const CORRIDOR_END_BUFFER = 15;
+
+/** Population ceiling for a corridor map of this height and difficulty. */
+function corridorZombieCap(height, mapNumber) {
+  const base = height / CORRIDOR_ROWS_PER_ZOMBIE;
+  return Math.max(1, Math.round(base * (1 + mapNumber * CORRIDOR_DIFFICULTY_RAMP)));
+}
+
 /**
  * ZombieSpawner - Utility class to handle zombie population on maps
  * Centralizes spawning logic for initial and subsequent maps
@@ -33,8 +66,51 @@ export class ZombieSpawner {
       minDistance = null
     } = options;
 
+    // Corridors are populated by length instead of the caller's area-scaled
+    // counts (see the tuning block at the top of this file). Callers keep
+    // passing their normal progression config; it is rescaled here.
+    const isCorridor = gameMap.template === 'corridor';
+
+    // Midpoint estimate of what the caller asked for, so the rescale shrinks the
+    // VOLUME while keeping the MIX.
+    const midpoint = (r) => ((r?.min ?? 0) + (r?.max ?? 0)) / 2;
+    const requestedTotal =
+      basicCount + midpoint(crawlerRange) + runnerCount + peeperCount +
+      midpoint(acidRange) + midpoint(fatRange) + spitterCount +
+      randomSwatCount + randomFirefighterCount + soldierCount;
+
+    // Scale every count by one shared factor rather than letting a running total
+    // cap truncate in spawn order. Capping the total instead looks equivalent and
+    // is not: `basic` spawns first and is ~60% of the mix, so it eats the entire
+    // budget and the corridor ends up populated exclusively by basic zombies.
+    // Difficulty progression here comes from the MIX (acid, fat, spitters,
+    // armoured types), so that would flatten map 2 and map 6 into the same fight.
+    const corridorScale = (isCorridor && requestedTotal > 0)
+      ? Math.min(1, corridorZombieCap(gameMap.height, gameMap.mapNumber || 1) / requestedTotal)
+      : 1;
+
+    // Keep at least one of any type the caller actually asked for, so the rare
+    // types (a lone soldier) are not rounded out of existence.
+    const scaleCount = (v) => (corridorScale === 1 || !v) ? v : Math.max(1, Math.round(v * corridorScale));
+    const scaleRange = (r) => corridorScale === 1 ? r : { min: scaleCount(r.min), max: scaleCount(r.max) };
+
+    const nBasic = scaleCount(basicCount);
+    const nRunner = scaleCount(runnerCount);
+    const nPeeper = scaleCount(peeperCount);
+    const nSpitter = scaleCount(spitterCount);
+    const nSwat = scaleCount(randomSwatCount);
+    const nFirefighter = scaleCount(randomFirefighterCount);
+    const nSoldier = scaleCount(soldierCount);
+    const rCrawler = scaleRange(crawlerRange);
+    const rAcid = scaleRange(acidRange);
+    const rFat = scaleRange(fatRange);
+
     let spawnedCount = 0;
     const canSpawnMore = () => spawnedCount < maxTotal;
+
+    // Both ends of a corridor are transition tiles the player can arrive on.
+    const inCorridorEndBuffer = (y) =>
+      isCorridor && (y < CORRIDOR_END_BUFFER || y >= gameMap.height - CORRIDOR_END_BUFFER);
 
     const spawnHelper = (subtype, count, minDist, constraints = {}) => {
       for (let i = 0; i < count && canSpawnMore(); i++) {
@@ -56,6 +132,11 @@ export class ZombieSpawner {
 
           const compound = gameMap.metadata?.townSquareCompound;
           const isInside = isInsideCompound(compound, x, y) || isInsideTollGate(gameMap.metadata?.tollGate, x, y);
+
+          if (inCorridorEndBuffer(y)) {
+            attempts++;
+            continue;
+          }
 
           if (tile && tile.isWalkable() && distToPlayer >= actualMinDist && tile.contents.length === 0 && !isInside) {
             if (isInStartArea(gameMap, x, y)) {
@@ -83,32 +164,32 @@ export class ZombieSpawner {
     };
 
     // 1. Basic Zombies equally distributed across the entire map
-    spawnHelper('basic', basicCount, 7);
+    spawnHelper('basic', nBasic, 7);
 
     // 2. Specialized Ranges
-    const crawlerCount = gameRandom.nextInt(crawlerRange.min, crawlerRange.max);
+    const crawlerCount = gameRandom.nextInt(rCrawler.min, rCrawler.max);
     spawnHelper('crawler', crawlerCount, 10);
     
-    spawnHelper('runner', runnerCount, 10);
-    spawnHelper('peeper', peeperCount, 10);
+    spawnHelper('runner', nRunner, 10);
+    spawnHelper('peeper', nPeeper, 10);
     
     const mapNumber = gameMap.mapNumber || 1;
     const isStraightRoad = gameMap.template === 'road' || gameMap.template === 'starting_road';
 
-    const acidCount = gameRandom.nextInt(acidRange.min, acidRange.max);
+    const acidCount = gameRandom.nextInt(rAcid.min, rAcid.max);
     const acidConstraints = isStraightRoad ? { yMin: 0, yRange: Math.floor(gameMap.height * 0.3) } : {};
     spawnHelper('acid', acidCount, 10, acidConstraints);
     
-    const fatCount = gameRandom.nextInt(fatRange.min, fatRange.max);
+    const fatCount = gameRandom.nextInt(rFat.min, rFat.max);
     const fatConstraints = isStraightRoad ? { yMin: 0, yRange: Math.floor(gameMap.height * 0.3) } : {};
     spawnHelper('fat', fatCount, 10, fatConstraints);
 
-    spawnHelper('spitter', spitterCount, 10);
+    spawnHelper('spitter', nSpitter, 10);
 
     // 3. Random Specialized (past Map 3)
-    spawnHelper('swat', randomSwatCount, 10);
-    spawnHelper('firefighter', randomFirefighterCount, 10);
-    spawnHelper('soldier', soldierCount, 10);
+    spawnHelper('swat', nSwat, 10);
+    spawnHelper('firefighter', nFirefighter, 10);
+    spawnHelper('soldier', nSoldier, 10);
 
     // 4. Map-progression Mutants (Starting from Map 11)
     if (mapNumber >= 11) {

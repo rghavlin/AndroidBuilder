@@ -15,6 +15,7 @@ import { isFloor } from './TerrainTypes.js';
 import { planFurniture } from './FurniturePlanner.js';
 import { planRoadVehicles } from './RoadVehiclePlanner.js';
 import { gameRandom } from '../utils/SeededRandom.js';
+import { CorridorLootGenerator } from './generators/CorridorLootGenerator.js';
 const LOOT_CONSTANTS = {
     GENERATOR_SPAWN_FUEL_MAX: 6, // 0-5 units
     FUEL_COVER_OFFSET: 3,
@@ -40,16 +41,6 @@ export function getFoodRejectionChance(mapNumber) {
 
 /**
  * LootGenerator - Handles random item spawning on maps
- * Refined with rarity-based weights and specific item rules:
- * - Backpacks: Max 1 per map
- * - 9mm Ammo: Uncommon, 1-10 rounds
- * - Sniper Ammo: Rare, max 5 rounds
- * - Food/Water: Uncommon
- * - Water Bottle: Max 1 per loot pile, random fill
- * 
- * New Rules:
- * - Outdoor Loot: 15-20 drops, focus on outdoor items
- * - Indoor Loot: Building-centric logic with tiered probabilities
  */
 export class LootGenerator {
     constructor() {
@@ -63,6 +54,9 @@ export class LootGenerator {
      * Spawn loot on the provided game map
      */
     spawnLoot(gameMap, mapNumber = 1, config = {}) {
+        if (gameMap.template === 'corridor' || config.type === 'corridor' || config.template === 'corridor') {
+            return new CorridorLootGenerator().spawnLoot(gameMap, mapNumber, config);
+        }
         this.initItemKeys();
         this.backpacksSpawned = 0;
         this.standardBackpacksSpawnedMap = 0;

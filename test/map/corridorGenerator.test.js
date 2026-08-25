@@ -21,11 +21,17 @@ const PROFILE = [
 
 describe('CorridorGenerator', () => {
   const mapData = new TemplateMapGenerator().generateFromTemplate('corridor', { mapNumber: 1 });
+  // Derived, so changing the corridor length in TemplateConfig retunes this suite
+  // instead of breaking it. Only the size assertion below pins actual numbers.
+  const H = mapData.height;
 
-  it('generates at the configured 20x500 size', () => {
+  it('generates at the configured 20x800 size', () => {
     expect(mapData.width).toBe(20);
-    expect(mapData.height).toBe(500);
-    expect(TEMPLATE_METADATA.corridor.size).toEqual({ width: 20, height: 500 });
+    expect(mapData.height).toBe(800);
+    expect(TEMPLATE_METADATA.corridor.size).toEqual({ width: 20, height: 800 });
+    // 800 must stay under the ~1000 Manhattan cap in Pathfinding.findPath, or
+    // end-to-end paths (NPC travel goals target the map exit) silently fail.
+    expect(H).toBeLessThan(1000);
     expect(PROFILE).toHaveLength(20);
   });
 
@@ -48,15 +54,15 @@ describe('CorridorGenerator', () => {
   it('north and south transitions land on the road, not the grass', () => {
     const { transitionPoints } = mapData.metadata.spawnZones;
     expect(transitionPoints.north).toEqual({ x: 10, y: 0 });
-    expect(transitionPoints.south).toEqual({ x: 10, y: 499 });
+    expect(transitionPoints.south).toEqual({ x: 10, y: H - 1 });
 
     expect(mapData.tiles[0][10].terrain).toBe('transition');
-    expect(mapData.tiles[499][10].terrain).toBe('transition');
+    expect(mapData.tiles[H - 1][10].terrain).toBe('transition');
 
     // The tiles flanking each transition are road, which is what makes the
     // arrival tile reachable rather than stranding the player against a fence.
     expect(mapData.tiles[0][9].terrain).toBe('road');
-    expect(mapData.tiles[499][11].terrain).toBe('road');
+    expect(mapData.tiles[H - 1][11].terrain).toBe('road');
   });
 
   it('places no buildings — the empty roadside is the point', () => {
@@ -65,8 +71,8 @@ describe('CorridorGenerator', () => {
   });
 
   it('starts the player on the road at the south end, off the transition tile', () => {
-    const start = new CorridorGenerator().getStartPosition(20, 500);
-    expect(start).toEqual({ x: 10, y: 498 });
+    const start = new CorridorGenerator().getStartPosition(20, H);
+    expect(start).toEqual({ x: 10, y: H - 2 });
     expect(mapData.tiles[start.y][start.x].terrain).toBe('road');
   });
 
@@ -77,7 +83,7 @@ describe('CorridorGenerator', () => {
       roadThickness: 9,
       sidewalkThickness: 2
     });
-    const row = wide.tiles[250].map(t => t.terrain);
+    const row = wide.tiles[Math.floor(H / 2)].map(t => t.terrain);
     expect(row[0]).toBe('fence');
     expect(row[19]).toBe('fence');
     expect(row.filter(t => t === 'road')).toHaveLength(9);

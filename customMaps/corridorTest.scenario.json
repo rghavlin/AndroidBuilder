@@ -137,7 +137,27 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "placeable.exit-1787646846915-ik6vy",
+            "defId": "placeable.exit",
+            "id": "placeable.exit",
+            "name": "Exit",
+            "rarity": "common",
+            "imageId": "exit",
+            "width": 3,
+            "height": 3,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "renderFullTile": true,
+            "ammoCount": 0,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 11,
@@ -428,7 +448,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-4aypj",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 15,
@@ -440,7 +485,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-3ksq6",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 16,
@@ -1279,7 +1358,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-4ky65",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 5,
@@ -3946,7 +4050,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-ygisn",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 5,
@@ -3958,7 +4087,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-1oj5n",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 6,
@@ -4929,7 +5092,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-nontt",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 6,
@@ -5073,7 +5261,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-net9r",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 18,
@@ -5085,7 +5298,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-edsvk",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 19,
@@ -5414,7 +5661,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-q5a0d",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 6,
@@ -6736,7 +7008,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-1uf61",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 15,
@@ -7475,7 +7772,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-6ipv7",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 16,
@@ -7948,7 +8270,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-c045x",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 15,
@@ -10241,7 +10597,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-or32a",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 4,
@@ -10277,7 +10667,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-xve9f",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -11137,7 +11561,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-u1tdf",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 18,
@@ -11223,7 +11681,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-lyg0r",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 5,
@@ -12107,7 +12590,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-kv5ic",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 18,
@@ -12907,7 +13424,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-l41tw",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 4,
@@ -13305,7 +13847,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-3r5a6",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 17,
@@ -13392,7 +13959,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-3n5hf",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 4,
@@ -13548,7 +14149,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-5wdm2",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 17,
@@ -14542,7 +15168,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-jsuk5",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 19,
@@ -15720,7 +16371,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-gwi0f",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 16,
@@ -18741,7 +19426,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-iwm0c",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 5,
@@ -19700,7 +20410,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-eaxht",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 4,
@@ -21132,7 +21876,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-ckwr6",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 2,
@@ -21811,7 +22589,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-kvcl7",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 18,
@@ -21911,7 +22714,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-nw0mz",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 6,
@@ -24049,7 +24886,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-c4xf5",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 2,
@@ -24097,7 +24968,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-nmx73",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 6,
@@ -24447,7 +25352,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-a0irb",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 15,
@@ -24533,7 +25463,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-hdfnb",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 2,
@@ -27448,7 +28412,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-bhca2",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 2,
@@ -27532,7 +28521,29 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "ammo.9mm-1787646846916-7s6yl",
+            "defId": "ammo.9mm",
+            "id": "ammo.9mm",
+            "name": "9mm Ammo",
+            "rarity": "uncommon",
+            "imageId": "9mmAmmo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 9,
@@ -28235,7 +29246,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-hd3m5",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -28768,7 +29813,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-fu9qm",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 11,
@@ -29147,7 +30226,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846916-5o3kk",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 2,
@@ -29875,7 +30988,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846916-icwu1",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 2,
@@ -31853,7 +32991,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-nh2a2",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 5,
@@ -32582,7 +33754,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-o3r2x",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 5,
@@ -33334,7 +34540,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-oktp3",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 7,
@@ -34041,7 +35272,64 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-3vdly",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          },
+          {
+            "instanceId": "crafting.stone-1787646846917-uiduf",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 5,
@@ -35132,7 +36420,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-dxc6y",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 15,
@@ -35616,7 +36938,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-4vfiy",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 15,
@@ -35726,7 +37082,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-vpoqr",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 4,
@@ -35882,7 +37272,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-n8txa",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 17,
@@ -35906,7 +37321,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-64z5w",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 19,
@@ -35956,7 +37396,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-r57pa",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 3,
@@ -36343,7 +37808,41 @@
           "w": false
         },
         "contents": [],
-        "decoration": "outdoordecor1"
+        "decoration": "outdoordecor1",
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-pi2z2",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 15,
@@ -36441,7 +37940,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-7ly0v",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 3,
@@ -36853,7 +38386,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-2kygl",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 17,
@@ -37351,7 +38909,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-v396n",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 18,
@@ -39013,7 +40596,64 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-9fm9q",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          },
+          {
+            "instanceId": "crafting.stone-1787646846917-ri4uk",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 15,
@@ -39111,7 +40751,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-v3c0z",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 3,
@@ -39402,7 +41067,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-jv75n",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 7,
@@ -39522,7 +41212,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-tqwuo",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 17,
@@ -40363,7 +42087,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-hwt1c",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 6,
@@ -41210,7 +42959,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-sjwhs",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 16,
@@ -41562,7 +43345,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-lvl8h",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 5,
@@ -42457,7 +44274,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-nqdhn",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 19,
@@ -42544,7 +44395,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-j5pop",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 6,
@@ -43226,7 +45111,41 @@
           "w": false
         },
         "contents": [],
-        "decoration": "outdoordecor1"
+        "decoration": "outdoordecor1",
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-twyt0",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 2,
@@ -43869,7 +45788,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-5c6wf",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 15,
@@ -44875,7 +46819,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-mrjy1",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 18,
@@ -45711,7 +47680,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-2vx50",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -46828,7 +48831,73 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-bmnny",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          },
+          {
+            "instanceId": "weapon.stick-1787646846917-i6493",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 19,
@@ -48603,7 +50672,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-2ua52",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 5,
@@ -49053,7 +51156,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-tozmf",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 2,
@@ -49551,7 +51679,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-bkoez",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 3,
@@ -49937,7 +52099,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-c5tb4",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 15,
@@ -51417,7 +53613,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-ui24f",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 17,
@@ -51671,7 +53901,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-i5kzz",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 18,
@@ -51927,7 +54182,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-ptd42",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 19,
@@ -51965,7 +54254,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-5uqsh",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 2,
@@ -52231,7 +54545,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-kxgl5",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 4,
@@ -53701,7 +56049,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-ohj6z",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 5,
@@ -55897,7 +58279,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-gf62z",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 6,
@@ -56115,7 +58531,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-r0vgp",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 4,
@@ -56514,7 +58964,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-gggnd",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 17,
@@ -57582,7 +60057,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-x36z2",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 5,
@@ -58032,7 +60532,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-bxs6z",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 2,
@@ -58275,7 +60800,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-eqpoi",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 2,
@@ -60252,7 +62811,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-kqpdt",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 5,
@@ -60868,7 +63461,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-nz8yp",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 16,
@@ -61184,7 +63811,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-plkv0",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 2,
@@ -61875,7 +64527,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-n2kp7",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 19,
@@ -62156,7 +64842,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-bf1e2",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 2,
@@ -62168,7 +64879,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-97y8y",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 3,
@@ -63406,7 +66151,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-n716b",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 5,
@@ -64993,7 +67772,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846917-ghdg2",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 16,
@@ -65104,7 +67917,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846917-oisyb",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 5,
@@ -68743,7 +71581,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-5r08k",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 5,
@@ -69689,7 +72561,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-17nvx",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 3,
@@ -70648,7 +73545,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-a3fpb",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 2,
@@ -70828,7 +73750,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-m89ai",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 17,
@@ -72384,7 +75331,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-sui7f",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 5,
@@ -74048,7 +77020,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-if3bf",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 2,
@@ -75213,7 +78210,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-f1pen",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 18,
@@ -75554,7 +78576,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-sftt6",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 6,
@@ -76292,7 +79339,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-edrdz",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -76412,7 +79493,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-w9h5t",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 17,
@@ -76425,7 +79531,32 @@
           "w": false
         },
         "contents": [],
-        "decoration": "outdoordecor2"
+        "decoration": "outdoordecor2",
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-z4v2s",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 18,
@@ -76523,7 +79654,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-ci6la",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 6,
@@ -77164,7 +80329,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-im5ke",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 19,
@@ -77262,7 +80461,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-8gpo6",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 7,
@@ -77456,7 +80680,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-6eylb",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 3,
@@ -77468,7 +80726,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-doq0i",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 4,
@@ -77613,7 +80896,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-3hua0",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 16,
@@ -77700,7 +81008,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-x58pw",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 3,
@@ -78686,7 +82028,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-xbibz",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 4,
@@ -80362,7 +83738,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_carrot-1787644676173-0j83u",
+            "instanceId": "provision.harvestable_carrot-1787646846918-2vyj6",
             "defId": "provision.harvestable_carrot",
             "id": "provision.harvestable_carrot",
             "name": "Harvestable carrot",
@@ -80380,6 +83756,27 @@
             "produce": "food.carrot",
             "produceMin": 4,
             "produceMax": 7
+          },
+          {
+            "instanceId": "provision.harvestable_carrot-1787646846918-jihbq",
+            "defId": "provision.harvestable_carrot",
+            "id": "provision.harvestable_carrot",
+            "name": "Harvestable carrot",
+            "rarity": "common",
+            "renderFullTile": true,
+            "imageId": "harvestablecarrot",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "groundOnly"
+            ],
+            "categories": [],
+            "noLoot": true,
+            "noDrag": true,
+            "produce": "food.carrot",
+            "produceMin": 4,
+            "produceMax": 7,
+            "condition": null
           }
         ]
       },
@@ -81606,7 +85003,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-xdbg3",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 3,
@@ -82043,7 +85465,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-kj40k",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 19,
@@ -82589,7 +86045,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-njwss",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 4,
@@ -83483,7 +86973,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-x8fzg",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 18,
@@ -84516,7 +88031,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-44vkf",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 3,
@@ -85501,7 +89041,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-weqd5",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 4,
@@ -85681,7 +89255,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-rkl7c",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 19,
@@ -85732,7 +89340,32 @@
           "w": false
         },
         "contents": [],
-        "decoration": "outdoordecor2"
+        "decoration": "outdoordecor2",
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-ozaug",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 3,
@@ -85912,7 +89545,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-o1r2v",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 18,
@@ -87597,7 +91264,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-03os7",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 17,
@@ -87841,7 +91542,32 @@
           "w": false
         },
         "contents": [],
-        "decoration": "outdoordecor1"
+        "decoration": "outdoordecor1",
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-l5y2e",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 17,
@@ -88546,7 +92272,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-a1pav",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 15,
@@ -91090,7 +94841,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-s3dvz",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 5,
@@ -91599,7 +95384,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-n05n6",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -92815,7 +96634,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-5n9ck",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -93970,7 +97823,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-lfmrb",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 2,
@@ -94162,7 +98040,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-u9zfq",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 18,
@@ -95618,7 +99530,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-3kt4j",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 18,
@@ -96818,7 +100755,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-g3ubi",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 17,
@@ -96916,7 +100878,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-c6wh7",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 5,
@@ -97158,7 +101145,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-7y78k",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 5,
@@ -97182,7 +101203,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-22ips",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -97412,7 +101467,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-xhthj",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 6,
@@ -97532,7 +101621,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-gl0z0",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 16,
@@ -99343,7 +103457,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-jc026",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 5,
@@ -99719,7 +103867,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-l742j",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 16,
@@ -100701,7 +104874,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-eadx6",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 17,
@@ -101516,7 +105723,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-006cu",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 4,
@@ -104465,7 +108706,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-yt0b2",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -105883,7 +110158,38 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "environment.water_puddle-1787646846918-cwtrz",
+            "defId": "environment.water_puddle",
+            "id": "environment.water_puddle",
+            "name": "Water puddle",
+            "rarity": "common",
+            "imageId": "waterpuddle",
+            "width": 5,
+            "height": 5,
+            "isPickable": false,
+            "noDrag": true,
+            "traits": [
+              "water_bottle",
+              "consumable",
+              "water_source"
+            ],
+            "maxWater": 50,
+            "ammoCount": 45,
+            "capacity": 50,
+            "waterQuality": "dirty",
+            "categories": [
+              "environment"
+            ],
+            "noLoot": true,
+            "renderFullTile": false,
+            "backgroundColor": "#0a2e5c",
+            "description": "Use empty bottle or jug to collect dirty water",
+            "condition": null
+          }
+        ]
       },
       {
         "x": 4,
@@ -106358,7 +110664,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-wz8vo",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 3,
@@ -106650,7 +110990,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-rjqpj",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 7,
@@ -106782,7 +111147,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-6hgau",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 18,
@@ -106856,7 +111255,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-gaqul",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 4,
@@ -107596,7 +112020,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-85ysd",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 5,
@@ -107804,7 +112253,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-652dt",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 2,
@@ -109462,7 +113945,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-7iodo",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 19,
@@ -110530,7 +115047,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-v40a3",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 7,
@@ -110626,7 +115168,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-zdhx4",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 15,
@@ -110967,7 +115534,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-qipx9",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 3,
@@ -111608,7 +116209,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-2ulc8",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 16,
@@ -112910,7 +117536,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-f2f78",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 3,
@@ -113624,7 +118284,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-esnde",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 2,
@@ -115322,7 +120016,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-fnqqx",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 2,
@@ -116255,7 +120974,32 @@
           "w": false
         },
         "contents": [],
-        "decoration": "outdoordecor3"
+        "decoration": "outdoordecor3",
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-4s5iv",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 19,
@@ -116562,7 +121306,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-bkghz",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 4,
@@ -118051,7 +122820,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-722f1",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -120351,7 +125154,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-1smly",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 16,
@@ -120450,7 +125287,41 @@
           "w": false
         },
         "contents": [],
-        "decoration": "outdoordecor5"
+        "decoration": "outdoordecor5",
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1787646846918-56nyo",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 4,
@@ -120681,7 +125552,32 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-es3k1",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 3,
@@ -120973,7 +125869,32 @@
           "w": false
         },
         "contents": [],
-        "decoration": "outdoordecor2"
+        "decoration": "outdoordecor2",
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1787646846918-z7p1d",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50,
+            "condition": null
+          }
+        ]
       },
       {
         "x": 7,
@@ -121024,7 +125945,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "backpack.standard-1787644676174-f173d",
+            "instanceId": "backpack.standard-1787646846918-ga6p7",
             "defId": "backpack.standard",
             "id": "backpack.standard",
             "name": "Standard Backpack",
@@ -121047,7 +125968,7 @@
             "description": "When on the ground, right-click to open"
           },
           {
-            "instanceId": "weapon.9mmPistol-1787644676174-ginmg",
+            "instanceId": "weapon.9mmPistol-1787646846918-pmkfe",
             "defId": "weapon.9mmPistol",
             "id": "weapon.9mmPistol",
             "name": "9mm Pistol",
@@ -121104,7 +126025,7 @@
             },
             "attachments": {
               "ammo": {
-                "instanceId": "attachment.9mm_extended_magazine-1787644676174-71dge",
+                "instanceId": "attachment.9mm_extended_magazine-1787646846918-gd828",
                 "defId": "attachment.9mm_extended_magazine",
                 "id": "attachment.9mm_extended_magazine",
                 "name": "9mm Extended Magazine",
@@ -121123,7 +126044,7 @@
                 "ammoCount": 20
               },
               "sight": {
-                "instanceId": "attachment.lasersight-1787644676174-j3799",
+                "instanceId": "attachment.lasersight-1787646846918-36q72",
                 "defId": "attachment.lasersight",
                 "id": "attachment.lasersight",
                 "name": "Laser Sight",
@@ -121139,7 +126060,7 @@
             }
           },
           {
-            "instanceId": "food.beans-1787644676174-lbu90",
+            "instanceId": "food.beans-1787646846918-mj7a3",
             "defId": "food.beans",
             "id": "food.beans",
             "name": "Canned Beans",
@@ -121160,7 +126081,7 @@
             }
           },
           {
-            "instanceId": "food.beans-1787644676174-gheu3",
+            "instanceId": "food.beans-1787646846918-oeujg",
             "defId": "food.beans",
             "id": "food.beans",
             "name": "Canned Beans",
@@ -121181,7 +126102,7 @@
             }
           },
           {
-            "instanceId": "food.beans-1787644676174-ctf6m",
+            "instanceId": "food.beans-1787646846918-0xir0",
             "defId": "food.beans",
             "id": "food.beans",
             "name": "Canned Beans",
@@ -121202,7 +126123,7 @@
             }
           },
           {
-            "instanceId": "food.beans-1787644676174-gvxfo",
+            "instanceId": "food.beans-1787646846918-hh8yy",
             "defId": "food.beans",
             "id": "food.beans",
             "name": "Canned Beans",
@@ -121223,7 +126144,7 @@
             }
           },
           {
-            "instanceId": "food.beans-1787644676174-kif5p",
+            "instanceId": "food.beans-1787646846918-zvose",
             "defId": "food.beans",
             "id": "food.beans",
             "name": "Canned Beans",
@@ -121244,7 +126165,7 @@
             }
           },
           {
-            "instanceId": "food.beans-1787644676174-opujy",
+            "instanceId": "food.beans-1787646846918-xxdnm",
             "defId": "food.beans",
             "id": "food.beans",
             "name": "Canned Beans",
@@ -121265,7 +126186,7 @@
             }
           },
           {
-            "instanceId": "food.beans-1787644676174-bb6zw",
+            "instanceId": "food.beans-1787646846918-3y7q3",
             "defId": "food.beans",
             "id": "food.beans",
             "name": "Canned Beans",
@@ -121286,7 +126207,7 @@
             }
           },
           {
-            "instanceId": "food.waterbottle-1787644676174-pzmzp",
+            "instanceId": "food.waterbottle-1787646846918-2gdg6",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -121311,7 +126232,7 @@
             }
           },
           {
-            "instanceId": "food.waterbottle-1787644676174-jz7pd",
+            "instanceId": "food.waterbottle-1787646846918-x22lj",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -121336,7 +126257,7 @@
             }
           },
           {
-            "instanceId": "weapon.knife-1787644676174-01gnd",
+            "instanceId": "weapon.knife-1787646846918-g0fvb",
             "defId": "weapon.knife",
             "id": "weapon.knife",
             "name": "Knife",
@@ -121364,7 +126285,7 @@
             }
           },
           {
-            "instanceId": "weapon.golf_club-1787644676174-ax4ls",
+            "instanceId": "weapon.golf_club-1787646846918-eaqes",
             "defId": "weapon.golf_club",
             "id": "weapon.golf_club",
             "name": "Golf club",
@@ -121390,7 +126311,7 @@
             }
           },
           {
-            "instanceId": "tool.lighter-1787644676174-u5s4u",
+            "instanceId": "tool.lighter-1787646846918-pto9u",
             "defId": "tool.lighter",
             "id": "tool.lighter",
             "name": "Lighter",
@@ -121410,7 +126331,7 @@
             "spawnAmmoPercent": 1
           },
           {
-            "instanceId": "tool.cooking_pot-1787644676174-er2zw",
+            "instanceId": "tool.cooking_pot-1787646846918-9sjm1",
             "defId": "tool.cooking_pot",
             "id": "tool.cooking_pot",
             "name": "Cooking pot",
@@ -121426,6 +126347,455 @@
               "cooking_pot"
             ],
             "condition": 100
+          },
+          {
+            "instanceId": "backpack.standard-1787646846918-zq55a",
+            "defId": "backpack.standard",
+            "id": "backpack.standard",
+            "name": "Standard Backpack",
+            "rarity": "rare",
+            "imageId": "standardBackpack",
+            "width": 4,
+            "height": 4,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "categories": [
+              "container"
+            ],
+            "equippableSlot": "backpack",
+            "containerGrid": {
+              "width": 5,
+              "height": 7
+            },
+            "description": "When on the ground, right-click to open",
+            "condition": null
+          },
+          {
+            "instanceId": "weapon.9mmPistol-1787646846918-xq4eg",
+            "defId": "weapon.9mmPistol",
+            "id": "weapon.9mmPistol",
+            "name": "9mm Pistol",
+            "rarity": "rare",
+            "imageId": "9mm pistol",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "container",
+              "openable-when-nested"
+            ],
+            "equippableSlot": "handgun",
+            "categories": [
+              "weapon",
+              "gun"
+            ],
+            "attachmentSlots": [
+              {
+                "id": "barrel",
+                "name": "Barrel",
+                "allowedCategories": [
+                  "suppressor"
+                ]
+              },
+              {
+                "id": "sight",
+                "name": "Optic",
+                "allowedCategories": [
+                  "laser_sight"
+                ]
+              },
+              {
+                "id": "ammo",
+                "name": "Magazine",
+                "hidden": true,
+                "allowedCategories": [
+                  "ammo"
+                ],
+                "allowedItems": [
+                  "attachment.9mm_magazine",
+                  "attachment.9mm_extended_magazine"
+                ]
+              }
+            ],
+            "rangedStats": {
+              "noiseRadius": 12,
+              "damage": {
+                "min": 4,
+                "max": 10
+              },
+              "accuracyFalloff": 0.1,
+              "minAccuracy": 0.01
+            },
+            "condition": null,
+            "attachments": {
+              "ammo": {
+                "instanceId": "attachment.9mm_extended_magazine-1787646846918-t7lqb",
+                "defId": "attachment.9mm_extended_magazine",
+                "id": "attachment.9mm_extended_magazine",
+                "name": "9mm Extended Magazine",
+                "rarity": "rare",
+                "imageId": "9mm_extended_magazine",
+                "width": 2,
+                "height": 1,
+                "traits": [
+                  "magazine"
+                ],
+                "categories": [
+                  "ammo"
+                ],
+                "capacity": 20,
+                "ammoDefId": "ammo.9mm",
+                "ammoCount": 20
+              },
+              "sight": {
+                "instanceId": "attachment.lasersight-1787646846918-39461",
+                "defId": "attachment.lasersight",
+                "id": "attachment.lasersight",
+                "name": "Laser Sight",
+                "rarity": "rare",
+                "imageId": "lasersight",
+                "width": 1,
+                "height": 1,
+                "traits": [],
+                "categories": [
+                  "laser_sight"
+                ]
+              }
+            }
+          },
+          {
+            "instanceId": "food.beans-1787646846918-pqetu",
+            "defId": "food.beans",
+            "id": "food.beans",
+            "name": "Canned Beans",
+            "rarity": "common",
+            "imageId": "cannedbeans",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "consumptionEffects": {
+              "nutrition": 10
+            },
+            "condition": null
+          },
+          {
+            "instanceId": "food.beans-1787646846918-eoppl",
+            "defId": "food.beans",
+            "id": "food.beans",
+            "name": "Canned Beans",
+            "rarity": "common",
+            "imageId": "cannedbeans",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "consumptionEffects": {
+              "nutrition": 10
+            },
+            "condition": null
+          },
+          {
+            "instanceId": "food.beans-1787646846918-de0d2",
+            "defId": "food.beans",
+            "id": "food.beans",
+            "name": "Canned Beans",
+            "rarity": "common",
+            "imageId": "cannedbeans",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "consumptionEffects": {
+              "nutrition": 10
+            },
+            "condition": null
+          },
+          {
+            "instanceId": "food.beans-1787646846918-fbyn3",
+            "defId": "food.beans",
+            "id": "food.beans",
+            "name": "Canned Beans",
+            "rarity": "common",
+            "imageId": "cannedbeans",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "consumptionEffects": {
+              "nutrition": 10
+            },
+            "condition": null
+          },
+          {
+            "instanceId": "food.beans-1787646846918-k23j2",
+            "defId": "food.beans",
+            "id": "food.beans",
+            "name": "Canned Beans",
+            "rarity": "common",
+            "imageId": "cannedbeans",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "consumptionEffects": {
+              "nutrition": 10
+            },
+            "condition": null
+          },
+          {
+            "instanceId": "food.beans-1787646846918-yf1vr",
+            "defId": "food.beans",
+            "id": "food.beans",
+            "name": "Canned Beans",
+            "rarity": "common",
+            "imageId": "cannedbeans",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "consumptionEffects": {
+              "nutrition": 10
+            },
+            "condition": null
+          },
+          {
+            "instanceId": "food.beans-1787646846918-ntf7h",
+            "defId": "food.beans",
+            "id": "food.beans",
+            "name": "Canned Beans",
+            "rarity": "common",
+            "imageId": "cannedbeans",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "consumptionEffects": {
+              "nutrition": 10
+            },
+            "condition": null
+          },
+          {
+            "instanceId": "food.waterbottle-1787646846918-hfwzv",
+            "defId": "food.waterbottle",
+            "id": "food.waterbottle",
+            "name": "Water Bottle",
+            "rarity": "common",
+            "imageId": "waterbottle",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable",
+              "water_bottle"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "capacity": 20,
+            "ammoCount": 20,
+            "spawnAmmoPercent": 1,
+            "consumptionEffects": {
+              "hydration": 1
+            },
+            "condition": null
+          },
+          {
+            "instanceId": "food.waterbottle-1787646846918-z61ig",
+            "defId": "food.waterbottle",
+            "id": "food.waterbottle",
+            "name": "Water Bottle",
+            "rarity": "common",
+            "imageId": "waterbottle",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable",
+              "water_bottle"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "capacity": 20,
+            "ammoCount": 20,
+            "spawnAmmoPercent": 1,
+            "consumptionEffects": {
+              "hydration": 1
+            },
+            "condition": null
+          },
+          {
+            "instanceId": "weapon.knife-1787646846918-ts2ty",
+            "defId": "weapon.knife",
+            "id": "weapon.knife",
+            "name": "Knife",
+            "rarity": "common",
+            "imageId": "knife",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool",
+              "knife"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 4
+              }
+            }
+          },
+          {
+            "instanceId": "weapon.golf_club-1787646846918-3d6ks",
+            "defId": "weapon.golf_club",
+            "id": "weapon.golf_club",
+            "name": "Golf club",
+            "rarity": "uncommon",
+            "imageId": "golfclub",
+            "width": 5,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.75,
+              "damage": {
+                "min": 3,
+                "max": 8
+              }
+            }
+          },
+          {
+            "instanceId": "tool.lighter-1787646846918-z6kjm",
+            "defId": "tool.lighter",
+            "id": "tool.lighter",
+            "name": "Lighter",
+            "rarity": "uncommon",
+            "imageId": "lighter",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "charge-based"
+            ],
+            "categories": [
+              "tool"
+            ],
+            "stackMax": 1,
+            "capacity": 10,
+            "ammoCount": 10,
+            "spawnAmmoPercent": 1,
+            "condition": null
+          },
+          {
+            "instanceId": "tool.cooking_pot-1787646846918-18opa",
+            "defId": "tool.cooking_pot",
+            "id": "tool.cooking_pot",
+            "name": "Cooking pot",
+            "rarity": "common",
+            "imageId": "cookingpot",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "degradable"
+            ],
+            "categories": [
+              "tool",
+              "cooking_pot"
+            ],
+            "condition": 100
+          },
+          {
+            "instanceId": "tool.smallflashlight-1787646846918-zznvx",
+            "defId": "tool.smallflashlight",
+            "id": "tool.smallflashlight",
+            "name": "Flashlight",
+            "rarity": "uncommon",
+            "imageId": "flashlight",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable",
+              "battery-powered",
+              "openable-when-nested"
+            ],
+            "equippableSlot": "flashlight",
+            "categories": [
+              "tool"
+            ],
+            "condition": 15,
+            "lightRange": 8,
+            "lightType": "beam",
+            "attachmentSlots": [
+              {
+                "id": "battery",
+                "name": "Battery",
+                "type": "battery",
+                "allowedCategories": [
+                  "battery"
+                ]
+              }
+            ]
           }
         ]
       },
