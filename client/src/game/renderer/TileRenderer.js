@@ -921,6 +921,334 @@ export const TileRenderer = {
         ctx.arc(cx + ox, cy + oy, burnR, 0, Math.PI * 2);
         ctx.stroke();
       }
+    } else if (type === 'car') {
+      // Passenger car (2x4): aerodynamic chassis, hood, windshield, cabin, trunk, 4 wheels
+      const w = tileSize * 2 - pad * 2;
+      const h = tileSize * 4 - pad * 2;
+      const x0 = x + pad;
+      const y0 = y + pad;
+      const cx = x + tileSize;
+      const r = tileSize * 0.25;
+
+      // 4 Wheels (inset under the body edges)
+      const tireW = tileSize * 0.16;
+      const tireH = tileSize * 0.52;
+      const frontTireY = y0 + h * 0.14;
+      const rearTireY = y0 + h * 0.70;
+      ctx.fillRect(x0 - tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.strokeRect(x0 - tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.fillRect(x0 + w - tireW + tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.strokeRect(x0 + w - tireW + tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.fillRect(x0 - tileSize * 0.04, rearTireY, tireW, tireH);
+      ctx.strokeRect(x0 - tileSize * 0.04, rearTireY, tireW, tireH);
+      ctx.fillRect(x0 + w - tireW + tileSize * 0.04, rearTireY, tireW, tireH);
+      ctx.strokeRect(x0 + w - tireW + tileSize * 0.04, rearTireY, tireW, tireH);
+
+      // Main car body
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x0, y0, w, h, r);
+      } else {
+        ctx.rect(x0, y0, w, h);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      // Front bumper & grille curve
+      ctx.beginPath();
+      ctx.moveTo(x0 + w * 0.2, y0 + tileSize * 0.12);
+      ctx.lineTo(x0 + w * 0.8, y0 + tileSize * 0.12);
+      ctx.stroke();
+
+      // Headlights (angled front corner lights)
+      const hlW = tileSize * 0.22;
+      const hlH = tileSize * 0.12;
+      ctx.strokeRect(x0 + tileSize * 0.08, y0 + tileSize * 0.16, hlW, hlH);
+      ctx.strokeRect(x0 + w - tileSize * 0.08 - hlW, y0 + tileSize * 0.16, hlW, hlH);
+
+      // Hood contour creases
+      ctx.beginPath();
+      ctx.moveTo(x0 + w * 0.28, y0 + tileSize * 0.16);
+      ctx.lineTo(x0 + w * 0.24, y0 + h * 0.28);
+      ctx.moveTo(x0 + w * 0.72, y0 + tileSize * 0.16);
+      ctx.lineTo(x0 + w * 0.76, y0 + h * 0.28);
+      ctx.stroke();
+
+      // Front windshield (curved forward arc)
+      ctx.beginPath();
+      ctx.moveTo(x0 + w * 0.12, y0 + h * 0.36);
+      ctx.quadraticCurveTo(cx, y0 + h * 0.26, x0 + w * 0.88, y0 + h * 0.36);
+      ctx.stroke();
+
+      // Side mirrors
+      const mirW = tileSize * 0.14;
+      const mirH = tileSize * 0.10;
+      ctx.strokeRect(x0 - mirW + tileSize * 0.02, y0 + h * 0.30, mirW, mirH);
+      ctx.strokeRect(x0 + w - tileSize * 0.02, y0 + h * 0.30, mirW, mirH);
+
+      // Cabin roof & side windows
+      const cabinW = w * 0.76;
+      const cabinH = h * 0.36;
+      const cabinX = cx - cabinW / 2;
+      const cabinY = y0 + h * 0.36;
+      ctx.strokeRect(cabinX, cabinY, cabinW, cabinH);
+
+      // Steering wheel indicator (driver seat left)
+      ctx.beginPath();
+      ctx.arc(cx - w * 0.20, cabinY + cabinH * 0.22, tileSize * 0.10, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Front seats divider
+      ctx.beginPath();
+      ctx.moveTo(cx, cabinY + tileSize * 0.04);
+      ctx.lineTo(cx, cabinY + cabinH * 0.52);
+      ctx.stroke();
+
+      // Rear windshield (curved rear arc)
+      ctx.beginPath();
+      ctx.moveTo(x0 + w * 0.14, y0 + h * 0.72);
+      ctx.quadraticCurveTo(cx, y0 + h * 0.80, x0 + w * 0.86, y0 + h * 0.72);
+      ctx.stroke();
+
+      // Trunk decklid seam
+      ctx.beginPath();
+      ctx.moveTo(x0 + w * 0.18, y0 + h * 0.88);
+      ctx.lineTo(x0 + w * 0.82, y0 + h * 0.88);
+      ctx.stroke();
+
+      // Taillights
+      const tlW = tileSize * 0.20;
+      const tlH = tileSize * 0.10;
+      ctx.strokeRect(x0 + tileSize * 0.08, y0 + h - tileSize * 0.08 - tlH, tlW, tlH);
+      ctx.strokeRect(x0 + w - tileSize * 0.08 - tlW, y0 + h - tileSize * 0.08 - tlH, tlW, tlH);
+    } else if (type === 'pickup') {
+      // Pickup truck (2x4): broad cab, windshield, open cargo bed with ridges & wheel wells
+      const w = tileSize * 2 - pad * 2;
+      const h = tileSize * 4 - pad * 2;
+      const x0 = x + pad;
+      const y0 = y + pad;
+      const cx = x + tileSize;
+      const r = tileSize * 0.16;
+
+      // 4 Heavy-duty Wheels
+      const tireW = tileSize * 0.18;
+      const tireH = tileSize * 0.56;
+      const frontTireY = y0 + h * 0.12;
+      const rearTireY = y0 + h * 0.68;
+      ctx.fillRect(x0 - tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.strokeRect(x0 - tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.fillRect(x0 + w - tireW + tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.strokeRect(x0 + w - tireW + tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.fillRect(x0 - tileSize * 0.04, rearTireY, tireW, tireH);
+      ctx.strokeRect(x0 - tileSize * 0.04, rearTireY, tireW, tireH);
+      ctx.fillRect(x0 + w - tireW + tileSize * 0.04, rearTireY, tireW, tireH);
+      ctx.strokeRect(x0 + w - tireW + tileSize * 0.04, rearTireY, tireW, tireH);
+
+      // Main truck body
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x0, y0, w, h, r);
+      } else {
+        ctx.rect(x0, y0, w, h);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      // Front sturdy bumper & grille
+      ctx.beginPath();
+      ctx.moveTo(x0 + tileSize * 0.08, y0 + tileSize * 0.10);
+      ctx.lineTo(x0 + w - tileSize * 0.08, y0 + tileSize * 0.10);
+      ctx.stroke();
+
+      // Rectangular heavy headlights
+      const hlW = tileSize * 0.26;
+      const hlH = tileSize * 0.14;
+      ctx.strokeRect(x0 + tileSize * 0.08, y0 + tileSize * 0.14, hlW, hlH);
+      ctx.strokeRect(x0 + w - tileSize * 0.08 - hlW, y0 + tileSize * 0.14, hlW, hlH);
+
+      // Hood lines
+      ctx.beginPath();
+      ctx.moveTo(x0 + w * 0.30, y0 + tileSize * 0.14);
+      ctx.lineTo(x0 + w * 0.26, y0 + h * 0.25);
+      ctx.moveTo(x0 + w * 0.70, y0 + tileSize * 0.14);
+      ctx.lineTo(x0 + w * 0.74, y0 + h * 0.25);
+      ctx.stroke();
+
+      // Windshield
+      ctx.beginPath();
+      ctx.moveTo(x0 + w * 0.10, y0 + h * 0.33);
+      ctx.quadraticCurveTo(cx, y0 + h * 0.25, x0 + w * 0.90, y0 + h * 0.33);
+      ctx.stroke();
+
+      // Side mirrors
+      const mirW = tileSize * 0.16;
+      const mirH = tileSize * 0.12;
+      ctx.strokeRect(x0 - mirW + tileSize * 0.02, y0 + h * 0.27, mirW, mirH);
+      ctx.strokeRect(x0 + w - tileSize * 0.02, y0 + h * 0.27, mirW, mirH);
+
+      // Cab roof
+      const cabW = w * 0.80;
+      const cabH = h * 0.18;
+      const cabX = cx - cabW / 2;
+      const cabY = y0 + h * 0.33;
+      ctx.strokeRect(cabX, cabY, cabW, cabH);
+
+      // Steering wheel
+      ctx.beginPath();
+      ctx.arc(cx - w * 0.22, cabY + cabH * 0.40, tileSize * 0.10, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Rear cab window / bed separator wall
+      ctx.beginPath();
+      ctx.moveTo(x0, y0 + h * 0.51);
+      ctx.lineTo(x0 + w, y0 + h * 0.51);
+      ctx.stroke();
+
+      // Open cargo truck bed
+      const bedPad = tileSize * 0.16;
+      const bedX = x0 + bedPad;
+      const bedY = y0 + h * 0.53;
+      const bedW = w - bedPad * 2;
+      const bedH = h * 0.42;
+      ctx.strokeRect(bedX, bedY, bedW, bedH);
+
+      // Inner wheel well humps in the truck bed
+      const humpW = tileSize * 0.12;
+      const humpH = tileSize * 0.38;
+      const humpY = y0 + h * 0.65;
+      ctx.strokeRect(bedX, humpY, humpW, humpH);
+      ctx.strokeRect(bedX + bedW - humpW, humpY, humpW, humpH);
+
+      // Bed floor ridges (3 vertical stripes)
+      const ridgeStep = bedW / 4;
+      for (let i = 1; i <= 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(bedX + ridgeStep * i, bedY + tileSize * 0.06);
+        ctx.lineTo(bedX + ridgeStep * i, bedY + bedH - tileSize * 0.06);
+        ctx.stroke();
+      }
+
+      // Tailgate seam & latch
+      ctx.beginPath();
+      ctx.moveTo(x0 + tileSize * 0.08, y0 + h - tileSize * 0.08);
+      ctx.lineTo(x0 + w - tileSize * 0.08, y0 + h - tileSize * 0.08);
+      ctx.moveTo(cx - tileSize * 0.10, y0 + h - tileSize * 0.08);
+      ctx.lineTo(cx + tileSize * 0.10, y0 + h - tileSize * 0.08);
+      ctx.stroke();
+
+      // Taillights
+      const tlW = tileSize * 0.18;
+      const tlH = tileSize * 0.10;
+      ctx.strokeRect(x0 + tileSize * 0.06, y0 + h - tileSize * 0.08 - tlH, tlW, tlH);
+      ctx.strokeRect(x0 + w - tileSize * 0.06 - tlW, y0 + h - tileSize * 0.08 - tlH, tlW, tlH);
+    } else if (type === 'van') {
+      // Cargo/Passenger Van (2x4): blunt nose, steep windshield, long cargo body, roof ribs, split rear doors
+      const w = tileSize * 2 - pad * 2;
+      const h = tileSize * 4 - pad * 2;
+      const x0 = x + pad;
+      const y0 = y + pad;
+      const cx = x + tileSize;
+      const r = tileSize * 0.20;
+
+      // 4 Wheels
+      const tireW = tileSize * 0.17;
+      const tireH = tileSize * 0.54;
+      const frontTireY = y0 + h * 0.13;
+      const rearTireY = y0 + h * 0.71;
+      ctx.fillRect(x0 - tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.strokeRect(x0 - tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.fillRect(x0 + w - tireW + tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.strokeRect(x0 + w - tireW + tileSize * 0.04, frontTireY, tireW, tireH);
+      ctx.fillRect(x0 - tileSize * 0.04, rearTireY, tireW, tireH);
+      ctx.strokeRect(x0 - tileSize * 0.04, rearTireY, tireW, tireH);
+      ctx.fillRect(x0 + w - tireW + tileSize * 0.04, rearTireY, tireW, tireH);
+      ctx.strokeRect(x0 + w - tireW + tileSize * 0.04, rearTireY, tireW, tireH);
+
+      // Main van body
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x0, y0, w, h, r);
+      } else {
+        ctx.rect(x0, y0, w, h);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      // Front bumper
+      ctx.beginPath();
+      ctx.moveTo(x0 + tileSize * 0.08, y0 + tileSize * 0.08);
+      ctx.lineTo(x0 + w - tileSize * 0.08, y0 + tileSize * 0.08);
+      ctx.stroke();
+
+      // Headlights
+      const hlW = tileSize * 0.24;
+      const hlH = tileSize * 0.12;
+      ctx.strokeRect(x0 + tileSize * 0.08, y0 + tileSize * 0.12, hlW, hlH);
+      ctx.strokeRect(x0 + w - tileSize * 0.08 - hlW, y0 + tileSize * 0.12, hlW, hlH);
+
+      // Short nose windshield (wide, steep)
+      ctx.beginPath();
+      ctx.moveTo(x0 + w * 0.08, y0 + h * 0.26);
+      ctx.quadraticCurveTo(cx, y0 + h * 0.15, x0 + w * 0.92, y0 + h * 0.26);
+      ctx.stroke();
+
+      // Side mirrors
+      const mirW = tileSize * 0.16;
+      const mirH = tileSize * 0.12;
+      ctx.strokeRect(x0 - mirW + tileSize * 0.02, y0 + h * 0.20, mirW, mirH);
+      ctx.strokeRect(x0 + w - tileSize * 0.02, y0 + h * 0.20, mirW, mirH);
+
+      // Cab front seats & steering wheel
+      ctx.beginPath();
+      ctx.arc(cx - w * 0.22, y0 + h * 0.29, tileSize * 0.10, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Partition wall behind front seats
+      ctx.beginPath();
+      ctx.moveTo(x0 + tileSize * 0.08, y0 + h * 0.35);
+      ctx.lineTo(x0 + w - tileSize * 0.08, y0 + h * 0.35);
+      ctx.stroke();
+
+      // Side sliding door track on right side
+      ctx.beginPath();
+      ctx.moveTo(x0 + w - tileSize * 0.06, y0 + h * 0.35);
+      ctx.lineTo(x0 + w - tileSize * 0.06, y0 + h * 0.75);
+      ctx.stroke();
+
+      // Roof ribs across long cargo roof (3 horizontal structural ribs)
+      const ribY1 = y0 + h * 0.48;
+      const ribY2 = y0 + h * 0.62;
+      const ribY3 = y0 + h * 0.76;
+      for (const ry of [ribY1, ribY2, ribY3]) {
+        ctx.beginPath();
+        ctx.moveTo(x0 + w * 0.20, ry);
+        ctx.lineTo(x0 + w * 0.80, ry);
+        ctx.stroke();
+      }
+
+      // Split rear doors (vertical center dividing seam)
+      ctx.beginPath();
+      ctx.moveTo(cx, y0 + h * 0.82);
+      ctx.lineTo(cx, y0 + h);
+      ctx.stroke();
+
+      // Twin rear door windows
+      const rwW = tileSize * 0.24;
+      const rwH = tileSize * 0.10;
+      const rwY = y0 + h * 0.86;
+      ctx.strokeRect(cx - rwW - tileSize * 0.06, rwY, rwW, rwH);
+      ctx.strokeRect(cx + tileSize * 0.06, rwY, rwW, rwH);
+
+      // Rear bumper & taillights
+      ctx.beginPath();
+      ctx.moveTo(x0 + tileSize * 0.08, y0 + h - tileSize * 0.04);
+      ctx.lineTo(x0 + w - tileSize * 0.08, y0 + h - tileSize * 0.04);
+      ctx.stroke();
+
+      const tlW = tileSize * 0.14;
+      const tlH = tileSize * 0.16;
+      ctx.strokeRect(x0 + tileSize * 0.04, y0 + h - tileSize * 0.08 - tlH, tlW, tlH);
+      ctx.strokeRect(x0 + w - tileSize * 0.04 - tlW, y0 + h - tileSize * 0.08 - tlH, tlW, tlH);
     }
 
     ctx.restore();

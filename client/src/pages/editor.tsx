@@ -120,22 +120,14 @@ const PLACE_ICON_TYPES = [
 interface FurniturePiece { type: string; x: number; y: number; w: number; h: number; rot?: number }
 
 const FOOTPRINTS = FURNITURE_FOOTPRINTS as Record<string, { w: number; h: number }>;
-
 const FURNITURE_STAMP_TYPES: { id: string; label: string }[] =
-  Object.entries(FOOTPRINTS).map(([id, f]) => ({
-    id,
-    label: `${id.charAt(0).toUpperCase()}${id.slice(1)} (${f.w}×${f.h})`,
-  }));
-
-// Footprint in tiles after rotation (odd quarter-turns swap w/h).
-function rotatedFootprint(type: string, rot: number): { w: number; h: number } {
+  Object.entries(FOOTPRINTS).map(([id, f]) => ({ id, label: `${id.charAt(0).toUpperCase()}${id.slice(1)} (${f.w}×${f.h})` }));
+const rotatedFootprint = (type: string, rot: number): { w: number; h: number } => {
   const base = FOOTPRINTS[type] || { w: 1, h: 1 };
   return (rot % 2) ? { w: base.h, h: base.w } : { w: base.w, h: base.h };
-}
-
-function rectsOverlap(a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }): boolean {
-  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-}
+};
+const rectsOverlap = (a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }): boolean =>
+  a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 
 const pieceKey = (p: FurniturePiece) => `${p.type}:${p.x}:${p.y}:${p.w}:${p.h}:${p.rot || 0}`;
 
@@ -3710,15 +3702,22 @@ export default function MapEditor() {
 
         {tool === 'furniture' && (
           <div>
-            <label style={{ fontSize: 11, color: '#888' }}>Furniture Type</label>
+            <label style={{ fontSize: 11, color: '#888' }}>Outline / Stamp Type</label>
             <select
               value={furnitureType}
               onChange={e => setFurnitureType(e.target.value)}
               style={{ ...inputStyle, width: '100%', marginTop: 4 }}
             >
-              {FURNITURE_STAMP_TYPES.map(ft => (
-                <option key={ft.id} value={ft.id}>{ft.label}</option>
-              ))}
+              <optgroup label="Furniture">
+                {FURNITURE_STAMP_TYPES.filter(ft => !['car', 'pickup', 'van'].includes(ft.id)).map(ft => (
+                  <option key={ft.id} value={ft.id}>{ft.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Vehicles (Roads)">
+                {FURNITURE_STAMP_TYPES.filter(ft => ['car', 'pickup', 'van'].includes(ft.id)).map(ft => (
+                  <option key={ft.id} value={ft.id}>{ft.label}</option>
+                ))}
+              </optgroup>
             </select>
             <button
               onClick={() => setFurnitureRot(r => (r + 1) % 4)}
@@ -3727,8 +3726,7 @@ export default function MapEditor() {
               Rotate 90° [R] (now {rotatedFootprint(furnitureType, furnitureRot).w}×{rotatedFootprint(furnitureType, furnitureRot).h})
             </button>
             <p style={{ fontSize: 11, color: '#888', margin: '4px 0 0' }}>
-              Click to stamp the outlined piece. Red outline = blocked (overlap or out of bounds).
-              To remove: use the Eraser tool, or right-click a tile and use Remove in the Furniture section.
+              Click to stamp the outlined piece. Red outline = blocked. Use Eraser or right-click to remove.
               {' '}<span style={{ color: '#8fd0c8' }}>{furniture.length} stamped</span>.
             </p>
           </div>

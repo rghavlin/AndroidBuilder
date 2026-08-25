@@ -13,8 +13,7 @@ import { LootProgression, BASELINE_MAP_AREA } from '../config/ProgressionConfig.
 import { isInsideCompound, isInsideAnyBuilding, isInsideTollGate } from './MapUtils.js';
 import { isFloor } from './TerrainTypes.js';
 import { planFurniture } from './FurniturePlanner.js';
-
-
+import { planRoadVehicles } from './RoadVehiclePlanner.js';
 import { gameRandom } from '../utils/SeededRandom.js';
 const LOOT_CONSTANTS = {
     GENERATOR_SPAWN_FUEL_MAX: 6, // 0-5 units
@@ -259,9 +258,9 @@ export class LootGenerator {
         }
         console.log(`[LootGenerator] Grass Pass: Spawned ${sticksSpawned} sticks and ${stonesSpawned} stones on ${grassTilesCount} empty grass tiles.`);
 
-        // 7. Decorative floorplan furniture outlines (after ALL item spawning,
-        // so real items — lootable beds, planks, safes — can be avoided).
+        // 7. Decorative floorplan furniture and road vehicle outlines (after ALL item spawning)
         planFurniture(gameMap);
+        planRoadVehicles(gameMap);
     }
 
     /**

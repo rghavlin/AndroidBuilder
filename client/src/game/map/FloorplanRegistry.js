@@ -119,6 +119,9 @@ export const FLOORPLAN_FOOTPRINTS = {
   bathtub: { w: 1, h: 2 },
   toilet: { w: 1, h: 1 },
   chair: { w: 1, h: 1 },
+  car: { w: 2, h: 4 },
+  pickup: { w: 2, h: 4 },
+  van: { w: 2, h: 4 },
 };
 
 // --- Authored floorplans (canonical: front door faces SOUTH) --------------
