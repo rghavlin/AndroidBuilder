@@ -48,8 +48,8 @@ export type StepType =
   | 'dialog' | 'speech' | 'give' | 'setFlag' | 'setVar'
   | 'lockMovement' | 'unlockMovement' | 'lockActions' | 'unlockActions'
   | 'wait' | 'chain'
-  | 'moveEntity' | 'startQuest' | 'setQuestTask' | 'setNpcAI'
-  | 'controlEntity' | 'setFactionStance' | 'setLightMode';
+  | 'moveEntity' | 'attackEntity' | 'startQuest' | 'setQuestTask' | 'setNpcAI'
+  | 'controlEntity' | 'setFactionStance' | 'setLightMode' | 'setInfection';
 
 export interface EventStep {
   type: StepType;
@@ -82,6 +82,11 @@ export interface EventStep {
   entityTag?: string;
   targetX?: number;
   targetY?: number;
+  // attackEntity (reuses entityTag above as the *attacker*): one scripted swing
+  // at `attackTargetTag`, ignoring AP, range and line of sight. `attackMode`
+  // picks the weapon path — 'auto' shoots when the attacker holds a gun.
+  attackTargetTag?: string;
+  attackMode?: 'auto' | 'melee' | 'ranged';
   // startQuest / setQuestTask
   questId?: string;
   taskIndex?: number;
@@ -100,6 +105,11 @@ export interface EventStep {
   mirror?: boolean;
   // setLightMode: change map lighting dynamically ('always_dark' | 'always_light' | 'time_dependent')
   lightMode?: 'always_dark' | 'always_light' | 'time_dependent';
+  // setInfection: give the player the zombie virus, or clear it. `infected`
+  // defaults to true (infect). `infectionHours` optionally sets the lethal
+  // countdown; omitted, an infection runs the standard 24h clock.
+  infected?: boolean;
+  infectionHours?: number;
 }
 
 export interface GameEvent {

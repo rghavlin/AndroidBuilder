@@ -69,6 +69,11 @@ const SICK_PER_PENALTY_CAP = 8;
 // Diseased far longer than any single source intends.
 export const MAX_SICKNESS_DURATION = 30;
 
+// Hours the zombie virus takes to kill an untreated player (tickInfection below
+// counts this down once per turn/hour). Also the value the clock is restored to
+// when an infection is cured or a treatment resets it.
+export const DEFAULT_INFECTION_HOURS = 24;
+
 // Wound infection (rag-bound bleeding wound) routes through the exact same attribute
 // layer as sickness. While infected we feed this fixed sickness-equivalent magnitude
 // into sicknessPenalties, so it saps Con/Agi/Per by a steady amount that — unlike a
@@ -344,6 +349,58 @@ export function tickInfection(player, logCallback = null) {
       }
     }
   }
+}
+
+/**
+ * Give the player the zombie virus on purpose — the authored counterpart to
+ * catching it from a bite (map editor's setInfection event step). Routes
+ * through Entity.inflictInfection so there is still one place that flips the
+ * flag, then applies the authored clock.
+ *
+ * @param {Entity} player
+ * @param {number|null} hours - lethal countdown to set. Omitted, a fresh
+ *   infection starts on the standard DEFAULT_INFECTION_HOURS clock and an
+ *   already-infected player keeps whatever time is left. Given, it re-times
+ *   even an existing infection: an author saying "you have 3 hours" means it,
+ *   whereas the bite path must never reset a countdown already ticking.
+ * @returns {boolean} true if this call newly infected the player
+ */
+export function infectPlayer(player, hours = null) {
+  if (!player) return false;
+  const wasInfected = !!player.isInfected;
+  if (typeof player.inflictInfection === 'function') {
+    player.inflictInfection();
+  } else {
+    player.isInfected = true;
+  }
+  if (Number.isFinite(hours) && hours > 0) {
+    player.infectionTicksRemaining = Math.floor(hours);
+    player.notifyChange?.();
+  } else if (!wasInfected) {
+    player.infectionTicksRemaining = DEFAULT_INFECTION_HOURS;
+  }
+  return !wasInfected;
+}
+
+/**
+ * Clear a zombie-virus infection outright, restoring the full clock and
+ * dropping any in-progress brain-pulp treatment (there is nothing left to
+ * treat). No item does this — brain pulp only ever *pauses* the virus — so
+ * this exists for authored events: a story beat, a doctor NPC, a quest reward.
+ *
+ * @returns {boolean} true if the player was infected and is now clean
+ */
+export function cureInfection(player) {
+  if (!player || !player.isInfected) return false;
+  player.isInfected = false;
+  player.infectionTicksRemaining = DEFAULT_INFECTION_HOURS;
+  player.treatmentTicksRemaining = 0;
+  player.treatmentSubtype = null;
+  player.treatmentEffects = null;
+  player.treatmentColor = null;
+  player.treatmentName = null;
+  player.notifyChange?.();
+  return true;
 }
 
 /**

@@ -3043,7 +3043,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.stairs_down-1787122681345-6lpem",
+            "instanceId": "placeable.stairs_down-1787621464748-ku75f",
             "defId": "placeable.stairs_down",
             "id": "placeable.stairs_down",
             "name": "Stairs Down",
@@ -4910,12 +4910,58 @@
       "subtype": "basic"
     },
     {
+      "type": "zombie",
+      "x": 9,
+      "y": 11,
+      "subtype": "basic"
+    },
+    {
       "type": "player",
       "x": 9,
       "y": 12,
       "subtype": null
     }
   ],
-  "eventTriggers": [],
-  "mapTransitions": []
+  "eventTriggers": [
+    {
+      "chainOnly": true,
+      "id": "zombieAttack",
+      "steps": [],
+      "oneShot": true
+    }
+  ],
+  "mapTransitions": [],
+  "events": [
+    {
+      "id": "zombieAttack",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "attackEntity",
+          "entityTag": "attackZombie",
+          "attackTargetTag": "player",
+          "attackMode": "auto"
+        },
+        {
+          "type": "setInfection",
+          "infected": true
+        }
+      ]
+    }
+  ],
+  "entityRegistry": {
+    "entries": [
+      {
+        "tag": "attackZombie",
+        "type": "zombie",
+        "x": 9,
+        "y": 11
+      }
+    ]
+  }
 }

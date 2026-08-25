@@ -6,6 +6,8 @@ import { syncEventMarkers, purgeOrphanMarkers } from './EventMarkers.js';
 import { interpolateText } from './interpolate.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import { FactionRegistry } from '../ai/FactionRegistry.js';
+import { performScriptedAttack } from '../systems/ScriptedAttack.js';
+import { infectPlayer, cureInfection } from '../utils/SurvivalCascade.js';
 import Logger from '../utils/Logger.js';
 import { getLightMode } from '../config/VisionConfig.js';
 
@@ -755,6 +757,37 @@ class EventRunner {
         return;
       }
 
+      case 'attackEntity': {
+        // One scripted swing: no AP gate, no range/LOS check, damage and death
+        // resolved by ScriptedAttack (see that module for why it differs from
+        // the AI's own attack path).
+        const attacker = step.entityTag ? this._resolveEntity(step.entityTag) : null;
+        const victim = step.attackTargetTag ? this._resolveEntity(step.attackTargetTag) : null;
+
+        if (!step.entityTag || !step.attackTargetTag) {
+          log.warn(`[EventRunner] attackEntity step is missing its attacker or target`);
+        } else if (!attacker) {
+          log.warn(`[EventRunner] attackEntity: no entity for attacker tag "${step.entityTag}"`);
+        } else if (!victim) {
+          log.warn(`[EventRunner] attackEntity: no entity for target tag "${step.attackTargetTag}"`);
+        } else if (attacker === victim) {
+          log.warn(`[EventRunner] attackEntity: "${step.entityTag}" cannot attack itself`);
+        } else {
+          const runToken = this.activeRun;
+          performScriptedAttack(attacker, victim, step.attackMode || 'auto')
+            .catch(err => log.warn(`[EventRunner] attackEntity failed: ${err?.message || err}`))
+            .then(() => {
+              if (this.activeRun !== runToken) return; // cancelled/replaced mid-swing
+              this.activeRun.stepIndex++;
+              this._processCurrentStep();
+            });
+          return;
+        }
+        this.activeRun.stepIndex++;
+        this._processCurrentStep();
+        return;
+      }
+
       case 'setNpcAI': {
         if (!step.entityTag) {
           log.warn(`[EventRunner] setNpcAI step has no entityTag`);
@@ -821,6 +854,30 @@ class EventRunner {
           log.info(`[EventRunner] Light mode set to "${mode}"`);
           engine.invalidateFOV();
           engine.recalculateFOV();
+          engine.notifyUpdate();
+        }
+        this.activeRun.stepIndex++;
+        this._processCurrentStep();
+        return;
+      }
+
+      case 'setInfection': {
+        // The zombie virus, handed out (or taken back) by the story rather than
+        // by a bite. Player-only: the lethal countdown is ticked by
+        // SurvivalCascade.tickInfection, which only ever runs on the player.
+        const p = engine.player;
+        if (!p) {
+          log.warn(`[EventRunner] setInfection: no player to infect`);
+        } else if (step.infected === false) {
+          const cured = cureInfection(p);
+          log.info(`[EventRunner] setInfection: player ${cured ? 'cured of the zombie virus' : 'was not infected'}`);
+          engine.notifyUpdate();
+        } else {
+          const hours = Number.isFinite(step.infectionHours) && step.infectionHours > 0
+            ? Math.floor(step.infectionHours)
+            : null;
+          infectPlayer(p, hours);
+          log.info(`[EventRunner] setInfection: player infected with the zombie virus (${p.infectionTicksRemaining}h)`);
           engine.notifyUpdate();
         }
         this.activeRun.stepIndex++;

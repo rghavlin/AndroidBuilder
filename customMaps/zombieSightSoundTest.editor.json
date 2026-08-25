@@ -6241,7 +6241,12 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic"
+          }
+        ],
         "items": []
       },
       {
@@ -10876,8 +10881,36 @@
   "lightMode": "time_dependent",
   "lowSpots": [],
   "bubbleEvents": [],
-  "chainDialogEvents": [],
-  "events": [],
+  "chainDialogEvents": [
+    {
+      "id": "zombieAttack",
+      "steps": [],
+      "oneShot": true
+    }
+  ],
+  "events": [
+    {
+      "id": "zombieAttack",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "attackEntity",
+          "entityTag": "attackZombie",
+          "attackTargetTag": "player",
+          "attackMode": "auto"
+        },
+        {
+          "type": "setInfection",
+          "infected": true
+        }
+      ]
+    }
+  ],
   "questRegistry": {
     "flags": [],
     "vars": [],
@@ -10886,7 +10919,14 @@
     "factionStances": {}
   },
   "entityRegistry": {
-    "entries": []
+    "entries": [
+      {
+        "tag": "attackZombie",
+        "type": "zombie",
+        "x": 9,
+        "y": 11
+      }
+    ]
   },
   "furniture": []
 }

@@ -920,7 +920,7 @@
     "semantic_hash": ""
   },
   "client/src/game/entities/Entity.js": {
-    "mtime": 1787620704.9556265,
+    "mtime": 1785728168.1918032,
     "ast_hash": "a6c2700849101be7ab94a29c17815940",
     "semantic_hash": ""
   },
@@ -1335,8 +1335,8 @@
     "semantic_hash": "92c293a3109316da2ca3951331e09f2c"
   },
   "client/src/game/utils/SurvivalCascade.js": {
-    "mtime": 1787620725.0691543,
-    "ast_hash": "0753b783acdbc0c7bb7ce0ad3133c0e7",
+    "mtime": 1785126483.5353646,
+    "ast_hash": "f8a0e934fc6c3134cb91893f775f40a9",
     "semantic_hash": ""
   },
   "client/src/game/utils/TimeUtils.js": {
@@ -2745,18 +2745,18 @@
     "semantic_hash": ""
   },
   "client/src/components/MapEditor/EventWindow.tsx": {
-    "mtime": 1787620771.732054,
-    "ast_hash": "fb2376f642d4883a18713c2ebf7ad5a3",
+    "mtime": 1787619861.36113,
+    "ast_hash": "248521c1bae8450dcf161c1a24830ed7",
     "semantic_hash": ""
   },
   "client/src/game/quest/eventTypes.ts": {
-    "mtime": 1787620734.168053,
-    "ast_hash": "6b3ae8f13ce58da2cef7c6fcd3cefdc6",
+    "mtime": 1787618591.1252868,
+    "ast_hash": "811d2fdba66db7cdb948816cedab90c9",
     "semantic_hash": ""
   },
   "client/src/game/quest/EventRunner.js": {
-    "mtime": 1787620744.3421488,
-    "ast_hash": "30853b0ed99425724454017e1cbc0e7d",
+    "mtime": 1787618602.6514816,
+    "ast_hash": "48a6a9c27fd9905993b3de3cbca118a6",
     "semantic_hash": ""
   },
   "scratch/verify_questsystem_p3.mjs": {
@@ -3582,11 +3582,6 @@
   "test/quest/attackEntityStep.test.js": {
     "mtime": 1787619889.1669726,
     "ast_hash": "c924cfbff62df3f161492f5f00f2aff1",
-    "semantic_hash": ""
-  },
-  "test/quest/setInfectionStep.test.js": {
-    "mtime": 1787620801.1326137,
-    "ast_hash": "e7424c460f5f95b3e7a6a3d009b8d29d",
     "semantic_hash": ""
   }
 }

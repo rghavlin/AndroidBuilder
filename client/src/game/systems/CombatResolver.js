@@ -338,8 +338,14 @@ export class CombatResolver {
    * play for the player. combatSkill 0.5 (today's universal default) produces a
    * zero modifier, so existing NPC balance is unchanged until NPC types are
    * tuned with different combatSkill values.
+   *
+   * `alwaysHit` is for AUTHORED attacks only (the map editor's attackEntity
+   * event step — see systems/ScriptedAttack.js): the blow lands and cannot be
+   * dodged, because a scripted beat that whiffs is a broken cutscene, not a
+   * dramatic near-miss. Damage, crits and the strength bonus still roll
+   * normally. Never pass it from AI or player combat.
    */
-  static rollNpc({ isRanged, combatSkill, weaponDef, weapon, distance, currentStrength = 20, currentAgility = 20, currentPerception = 20, defenderType, defenderSubtype, defender }) {
+  static rollNpc({ isRanged, combatSkill, weaponDef, weapon, distance, currentStrength = 20, currentAgility = 20, currentPerception = 20, defenderType, defenderSubtype, defender, alwaysHit = false }) {
     const skillModifier = (combatSkill - 0.5) * 0.5;
 
     let baseChance;
@@ -356,7 +362,7 @@ export class CombatResolver {
       : CombatResolver.meleeAimBonus(currentStrength, currentAgility);
     const hitChance = Math.max(0.2, Math.min(0.95, baseChance + skillModifier + attributeAim));
     const roll = gameRandom.next();
-    let hit = roll < hitChance;
+    let hit = alwaysHit || roll < hitChance;
     let isCrit = hit && roll < hitChance / CRIT_DIVISOR;
 
     let damage = 0;
@@ -368,7 +374,9 @@ export class CombatResolver {
       damage = isCrit ? Math.floor(damageRange.max * 1.5) : gameRandom.nextInt(damageRange.min, damageRange.max);
       if (!isRanged) damage += CombatResolver.strengthDamageBonus(currentStrength);
 
-      const { evaded } = CombatResolver.resolveDefense({ defenderType, defenderSubtype, defender });
+      const { evaded } = alwaysHit
+        ? { evaded: false }
+        : CombatResolver.resolveDefense({ defenderType, defenderSubtype, defender });
       if (evaded) {
         dodged = true;
         hit = false;
@@ -380,9 +388,13 @@ export class CombatResolver {
     return { hit, isCrit, damage, dodged };
   }
 
-  /** Zombie melee roll. Attack accuracy stays a flat 50% — only the defender's evasion is new. */
-  static rollZombie({ subtype, defenderType, defenderSubtype, defender }) {
-    let hit = gameRandom.next() < 0.50;
+  /**
+   * Zombie melee roll. Attack accuracy stays a flat 50% — only the defender's
+   * evasion is new. `alwaysHit` is the authored-attack escape hatch documented
+   * on rollNpc: scripted event bites land, undodgeable.
+   */
+  static rollZombie({ subtype, defenderType, defenderSubtype, defender, alwaysHit = false }) {
+    let hit = alwaysHit || gameRandom.next() < 0.50;
     let damage = 0;
     let bleedingInflicted = false;
     let sickInflicted = false;
@@ -398,7 +410,9 @@ export class CombatResolver {
       if (combat.sickChance && gameRandom.next() < combat.sickChance) sickInflicted = true;
       if (gameRandom.next() < ZOMBIE_INFECTION_CHANCE) infectionInflicted = true;
 
-      const { evaded } = CombatResolver.resolveDefense({ defenderType, defenderSubtype, defender });
+      const { evaded } = alwaysHit
+        ? { evaded: false }
+        : CombatResolver.resolveDefense({ defenderType, defenderSubtype, defender });
       if (evaded) {
         dodged = true;
         hit = false;

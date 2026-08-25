@@ -58,6 +58,32 @@ class TurnManager {
   constructor() {
     this.isProcessing = false;
     this.shouldCancel = false;
+    // Zombie-death flash de-duplication for the queue being played. Reset per
+    // queue, but seeded here as well so a single action played outside
+    // processQueue (playScriptedAction) still has a set to consult.
+    this.flashedEntityIds = new Set();
+  }
+
+  /**
+   * Play ONE action outside the turn queue, with identical playback semantics
+   * (animation, impact events, PLAYBACK-FIRST damage). Used by authored events
+   * — see systems/ScriptedAttack.js — which fire between turns, when the queue
+   * is idle, and so have no simulation pass to ride along with.
+   *
+   * Unlike processQueue this is not gated on isProcessing (there is no queue of
+   * its own to conflict with) and it clears a stale cancel flag for the
+   * duration: a cancelPlayback() left over from an earlier turn must not
+   * silently swallow an event's attack.
+   */
+  async playScriptedAction(action, context) {
+    if (!action) return;
+    const prevCancel = this.shouldCancel;
+    this.shouldCancel = false;
+    try {
+      await this.executeAction(action, context);
+    } finally {
+      this.shouldCancel = prevCancel;
+    }
   }
 
   /**

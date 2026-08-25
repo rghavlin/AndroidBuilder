@@ -39,12 +39,14 @@ const STEP_TYPE_OPTIONS: { id: StepType; label: string }[] = [
   { id: 'wait', label: 'Wait' },
   { id: 'chain', label: 'Chain to event' },
   { id: 'moveEntity', label: 'Move entity' },
+  { id: 'attackEntity', label: 'Attack entity' },
   { id: 'setNpcAI', label: 'Set NPC AI mode' },
   { id: 'controlEntity', label: 'Control door/window' },
   { id: 'setFactionStance', label: 'Set faction stance' },
   { id: 'startQuest', label: 'Start quest' },
   { id: 'setQuestTask', label: 'Set quest task' },
   { id: 'setLightMode', label: 'Set map light mode' },
+  { id: 'setInfection', label: 'Infect / cure player (zombie virus)' },
 ];
 
 function emptyStep(type: StepType): EventStep {
@@ -61,12 +63,14 @@ function emptyStep(type: StepType): EventStep {
     case 'wait': return { type, ms: 500 };
     case 'chain': return { type, eventId: '' };
     case 'moveEntity': return { type, entityTag: '', targetX: undefined, targetY: undefined };
+    case 'attackEntity': return { type, entityTag: '', attackTargetTag: 'player', attackMode: 'auto' };
     case 'setNpcAI': return { type, entityTag: '', aiMode: 'disabled' };
     case 'controlEntity': return { type, entityTag: '', entityAction: 'open' };
     case 'setFactionStance': return { type, factionFrom: '', factionTo: 'player', stance: 'hostile' };
     case 'startQuest': return { type, questId: '' };
     case 'setQuestTask': return { type, questId: '', taskIndex: 0 };
     case 'setLightMode': return { type, lightMode: 'always_light' };
+    case 'setInfection': return { type, infected: true };
     default: return { type };
   }
 }
@@ -352,8 +356,8 @@ function StepEditor({
   const badgeColors: Partial<Record<StepType, string>> = {
     dialog: '#1d4f8a', speech: '#1d4f8a', give: '#1d6b3a', setFlag: '#7a5a12', setVar: '#7a5a12',
     lockMovement: '#7a1e1e', unlockMovement: '#7a1e1e', lockActions: '#8a1e3a', unlockActions: '#8a1e3a', wait: '#444', chain: '#5a3a7a',
-    moveEntity: '#2b6b3a', setNpcAI: '#2b6b3a', controlEntity: '#2b6b3a', setFactionStance: '#7a1e1e', startQuest: '#4a2582', setQuestTask: '#4a2582',
-    setLightMode: '#7a5a12',
+    moveEntity: '#2b6b3a', attackEntity: '#7a1e1e', setNpcAI: '#2b6b3a', controlEntity: '#2b6b3a', setFactionStance: '#7a1e1e', startQuest: '#4a2582', setQuestTask: '#4a2582',
+    setLightMode: '#7a5a12', setInfection: '#5c1f5c',
   };
   const label = STEP_TYPE_OPTIONS.find(o => o.id === step.type)?.label || step.type;
 
@@ -520,6 +524,33 @@ function StepEditor({
         </div>
       )}
 
+      {step.type === 'attackEntity' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={rowStyle}>
+            <span style={{ fontSize: 11, color: '#888' }}>Attacker:</span>
+            <select style={{ ...inputStyle, flex: 1 }} value={step.entityTag || ''} onChange={e => onChange({ ...step, entityTag: e.target.value })}>
+              <option value="">select NPC/zombie…</option>
+              {knownEntities.filter(ent => ent.type === 'npc' || ent.type === 'zombie').map(ent => <option key={ent.tag} value={ent.tag}>{ent.label}</option>)}
+            </select>
+            <span style={{ fontSize: 11, color: '#888' }}>attacks</span>
+            <select style={{ ...inputStyle, flex: 1 }} value={step.attackTargetTag || ''} onChange={e => onChange({ ...step, attackTargetTag: e.target.value })}>
+              <option value="">select target…</option>
+              {knownEntities.filter(ent => ent.type === 'player' || ent.type === 'npc' || ent.type === 'zombie').map(ent => <option key={ent.tag} value={ent.tag}>{ent.label}</option>)}
+            </select>
+            <select style={{ ...inputStyle, width: 100 }} value={step.attackMode || 'auto'} onChange={e => onChange({ ...step, attackMode: e.target.value as 'auto' | 'melee' | 'ranged' })}>
+              <option value="auto">Auto</option>
+              <option value="melee">Melee</option>
+              <option value="ranged">Ranged</option>
+            </select>
+          </div>
+          <div style={{ fontSize: 11, color: '#888' }}>
+            One scripted swing that always lands — no miss, no dodge — ignoring AP, range and line of
+            sight. Damage still rolls from the weapon, so the blow can kill. "Auto" shoots when the
+            attacker carries a ranged weapon, otherwise it melees.
+          </div>
+        </div>
+      )}
+
       {step.type === 'setNpcAI' && (
         <div style={rowStyle}>
           <span style={{ fontSize: 11, color: '#888' }}>NPC:</span>
@@ -640,6 +671,47 @@ function StepEditor({
             <option value="always_light">Always Light (Full Power / Constant Light)</option>
             <option value="time_dependent">Time Dependent (Normal Day-Night Cycle)</option>
           </select>
+        </div>
+      )}
+
+      {step.type === 'setInfection' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={rowStyle}>
+            <span style={{ fontSize: 11, color: '#888' }}>Zombie virus:</span>
+            <select
+              style={{ ...inputStyle, width: 200 }}
+              value={step.infected === false ? 'cure' : 'infect'}
+              onChange={e => {
+                const infected = e.target.value === 'infect';
+                onChange({ ...step, infected, ...(infected ? {} : { infectionHours: undefined }) });
+              }}
+            >
+              <option value="infect">Infect the player</option>
+              <option value="cure">Cure the player</option>
+            </select>
+            {step.infected !== false && (
+              <>
+                <span style={{ fontSize: 11, color: '#888' }}>lethal in</span>
+                <input
+                  type="number"
+                  min={1}
+                  placeholder="24"
+                  style={{ ...inputStyle, width: 70 }}
+                  value={step.infectionHours ?? ''}
+                  onChange={e => {
+                    const n = Number(e.target.value);
+                    onChange({ ...step, infectionHours: e.target.value === '' || !(n > 0) ? undefined : Math.floor(n) });
+                  }}
+                />
+                <span style={{ fontSize: 11, color: '#888' }}>hours</span>
+              </>
+            )}
+          </div>
+          <div style={{ fontSize: 11, color: '#888' }}>
+            {step.infected === false
+              ? 'Clears the viral infection outright and cancels any brain-pulp treatment. No item can do this — the virus is otherwise only ever paused.'
+              : 'The lethal viral infection, not the recoverable Disease or a wound infection. Leave the hours blank for the standard 24h clock; brain pulp still buys the player time. Re-infecting an already-infected player only re-times the countdown if you set the hours.'}
+          </div>
         </div>
       )}
     </div>
