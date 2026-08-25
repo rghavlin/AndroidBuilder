@@ -875,6 +875,7 @@ export class WorldManager extends SafeEventEmitter {
           // Procedural generation using a specific template/generator and level scaling
           const generatorToTemplate = {
             'BranchingRoadGenerator': 'branching_road',
+            'CorridorGenerator': 'corridor',
             'LabMapGenerator': 'lab',
             'MirroredWindingRoadGenerator': 'mirrored_winding_road',
             'RoadGenerator': 'road',

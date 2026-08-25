@@ -17,6 +17,7 @@ import { TURRET_DEF_ID } from '@/game/ai/TurretCombat';
 import EventWindow, { ConditionListEditor, QuestRewardEditor } from '@/components/MapEditor/EventWindow';
 import { TileRenderer } from '@/game/renderer/TileRenderer';
 import { FURNITURE_FOOTPRINTS } from '@/game/map/FurniturePlanner';
+import { EDITOR_TEMPLATE_CHOICES, EDITOR_GENERATOR_CHOICES } from '@/game/config/TemplateConfig';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -3895,16 +3896,7 @@ export default function MapEditor() {
                       </option>
                     ))
                   ) : (
-                    [
-                      'BranchingRoadGenerator',
-                      'LabMapGenerator',
-                      'MirroredWindingRoadGenerator',
-                      'RoadGenerator',
-                      'ScenarioMapGenerator',
-                      'SplitRoadGenerator',
-                      'StartingRoadGenerator',
-                      'WindingRoadGenerator'
-                    ].map(gen => (
+                    EDITOR_GENERATOR_CHOICES.map(gen => (
                       <option key={gen} value={gen}>{gen}</option>
                     ))
                   )}
@@ -4004,18 +3996,7 @@ export default function MapEditor() {
             <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>Generate Map Template</h3>
             <p style={{ fontSize: 12, color: '#aaa', marginBottom: 12 }}>Select a map template to procedurally generate. This will overwrite the current map!</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {[
-                { id: 'starting_road', name: 'Starting Road (Yard/House)' },
-                { id: 'road', name: 'Straight Road' },
-                { id: 'winding_road', name: 'Winding Road' },
-                { id: 'mirrored_winding_road', name: 'Mirrored Winding Road' },
-                { id: 'split_road', name: 'Split Road' },
-                { id: 'branching_road', name: 'Branching Road' },
-                { id: 'lab', name: 'Lab Complex' },
-                { id: 'small_building', name: 'Small Building base' },
-                { id: 'mall_section', name: 'Mall Section base' },
-                { id: 'outdoor_area', name: 'Outdoor Area base' },
-              ].map(t => (
+              {EDITOR_TEMPLATE_CHOICES.map(t => (
                 <button
                   key={t.id}
                   onClick={() => handleGenerateTemplate(t.id)}
