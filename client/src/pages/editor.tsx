@@ -15,7 +15,11 @@ import { emptyEvent, emptyQuestRegistry, emptyEntityRegistry, type GameEvent, ty
 import { BUILTIN_FACTIONS, builtinStanceValue } from '@/game/ai/FactionRegistry';
 import { TURRET_DEF_ID } from '@/game/ai/TurretCombat';
 import EventWindow, { ConditionListEditor, QuestRewardEditor } from '@/components/MapEditor/EventWindow';
+import { DecorationGeneratorModal, type DecorationGeneratorConfig } from '@/components/MapEditor/DecorationGeneratorModal';
+import { LootGeneratorModal } from '@/components/MapEditor/LootGeneratorModal';
+import { ZombieGeneratorModal } from '@/components/MapEditor/ZombieGeneratorModal';
 import { TileRenderer } from '@/game/renderer/TileRenderer';
+import { imageLoader } from '@/game/utils/ImageLoader';
 import { FURNITURE_FOOTPRINTS } from '@/game/map/FurniturePlanner';
 import { EDITOR_TEMPLATE_CHOICES, EDITOR_GENERATOR_CHOICES } from '@/game/config/TemplateConfig';
 
@@ -221,6 +225,7 @@ interface TileData {
   eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean; grants?: ItemGrant[]; next?: string };
   mapTransition?: { targetType: 'scenario' | 'generator' | 'tutorial_end'; targetId: string; level?: number };
   placeIcon?: string;
+  decoration?: string;
 }
 
 interface BuildingMeta {
@@ -307,6 +312,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
         const st = scenario.tiles[y]?.[x];
         if (!st) continue;
         tiles[y][x].terrain = st.terrain || 'grass';
+        if (st.decoration) tiles[y][x].decoration = st.decoration;
 
         // Scenario edgeWalls are booleans; reconstruct as wall flags
         if (st.edgeWalls) {
@@ -525,6 +531,7 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
         const st = mapData.tiles[y]?.[x];
         if (!st) continue;
         tiles[y][x].terrain = st.terrain || 'grass';
+        if (st.decoration) tiles[y][x].decoration = st.decoration;
 
         // Reconstruct edge booleans as walls initially
         if (st.edgeWalls) {
@@ -908,7 +915,7 @@ function exportScenario(scenario: ScenarioData) {
         s: t.edgeWalls.s.wall || t.edgeWalls.s.door || t.edgeWalls.s.window,
         w: t.edgeWalls.w.wall || t.edgeWalls.w.door || t.edgeWalls.w.window,
       };
-      const tile: any = { x, y, terrain: t.terrain, edgeWalls, contents: [] };
+      const tile: any = { x, y, terrain: t.terrain, edgeWalls, contents: [], ...(t.decoration ? { decoration: t.decoration } : {}) };
       if (t.items.length > 0) {
         tile.inventoryItems = t.items.map(buildFullItem);
       }
@@ -1749,6 +1756,9 @@ export default function MapEditor() {
   const [zombieDensity, setZombieDensity] = useState<'sparse' | 'normal' | 'dense'>('normal');
   const [zombieModalSeed, setZombieModalSeed] = useState<string>('');
   const [isGeneratingZombies, setIsGeneratingZombies] = useState(false);
+  const [showDecorModal, setShowDecorModal] = useState(false);
+  const [decorModalSeed, setDecorModalSeed] = useState<string>('');
+  const [isGeneratingDecor, setIsGeneratingDecor] = useState(false);
   const [inspectTile, setInspectTile] = useState<{ x: number; y: number; screenX: number; screenY: number } | null>(null);
   const [editStairsItem, setEditStairsItem] = useState<{ x: number; y: number; itemIndex: number } | null>(null);
   const [editStairsId, setEditStairsId] = useState('');
@@ -2139,6 +2149,15 @@ export default function MapEditor() {
         if (showGrid) {
           ctx.strokeStyle = 'rgba(255,255,255,0.08)';
           ctx.strokeRect(sx, sy, CELL, CELL);
+        }
+
+        if (t.decoration) {
+          let decorType = 'outdoor';
+          if (['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(t.decoration)) decorType = 'indoor';
+          else if (['road1', 'road2', 'road3'].includes(t.decoration)) decorType = 'roadandsidewalk';
+          const decorImg = (imageLoader as any).images?.[`decor_${decorType}_${t.decoration}`];
+          if (decorImg) ctx.drawImage(decorImg, sx, sy, CELL, CELL);
+          else (imageLoader as any).getDecorationImage?.(t.decoration, decorType);
         }
       }
     }
@@ -2816,6 +2835,33 @@ export default function MapEditor() {
     }
   };
 
+  const handleGenerateDecorations = async (config: DecorationGeneratorConfig) => {
+    setIsGeneratingDecor(true);
+    setStatusMsg('Placing atmospheric decorations...');
+    try {
+      const { planDecorations } = await import('@/game/map/DecorationPlanner');
+      setMapSeed(config.seed);
+      setDecorModalSeed(config.seed.toString());
+      const nextTiles = tiles.map(row => row.map(t => ({ ...t })));
+      const res = planDecorations(nextTiles, {
+        outdoor: config.outdoor,
+        indoor: config.indoor,
+        road: config.road,
+        density: config.density,
+        clearExisting: config.clearExisting,
+        seedOrRandom: config.seed,
+      });
+      pushUndo(tiles, buildings, furniture);
+      setTiles(nextTiles);
+      setStatusMsg(`Decorations generated: ${res.total} (🌿 ${res.outdoor}, 🏠 ${res.indoor}, 🛣️ ${res.road}) with seed ${config.seed}`);
+      setShowDecorModal(false);
+    } catch (err: any) {
+      setStatusMsg(`Decoration generation failed: ${err.message}`);
+    } finally {
+      setIsGeneratingDecor(false);
+    }
+  };
+
   const handleGenerateZombies = async () => {
     setIsGeneratingZombies(true);
     setStatusMsg('Running zombie spawner...');
@@ -3382,6 +3428,10 @@ export default function MapEditor() {
               setZombieModalSeed(mapSeed !== '' ? mapSeed.toString() : Math.floor(Math.random() * 1000000).toString());
               setShowZombieModal(true);
             }} style={btnStyle('#7a3a8a')}>🧟 Zombie Spawn</button>
+            <button onClick={() => {
+              setDecorModalSeed(mapSeed !== '' ? mapSeed.toString() : Math.floor(Math.random() * 1000000).toString());
+              setShowDecorModal(true);
+            }} style={btnStyle('#a07020')}>🎨 Decor Gen</button>
             <button onClick={() => fileInputRef.current?.click()} style={btnStyle('#444')}>Import</button>
             <button onClick={handleUndo} style={btnStyle('#555')}>Undo</button>
             <button onClick={handleClear} style={btnStyle('#7a2a2a')}>Clear</button>
@@ -4513,88 +4563,18 @@ export default function MapEditor() {
         </div>
       )}
 
-      {/* ─── Loot generator modal ─── */}
       {showLootModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={() => setShowLootModal(false)}>
-          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, minWidth: 320, maxHeight: '80vh', overflow: 'auto' }}
-            onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>🎲 Generate Ambient Loot</h3>
-            <p style={{ fontSize: 12, color: '#aaa', marginBottom: 16 }}>
-              This will populate buildings and outdoor areas with random items. Items will be merged with any existing loot on the tiles.
-            </p>
-
-            {/* Loot Amount Selection */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
-              <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>Loot Amount</label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {[
-                  { id: 'lots', label: 'Lots' },
-                  { id: 'some', label: 'Some' },
-                  { id: 'little', label: 'A Little' },
-                ].map(opt => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setLootAmount(opt.id as any)}
-                    style={{
-                      flex: 1,
-                      padding: '8px 4px',
-                      background: lootAmount === opt.id ? '#4a90d9' : '#333',
-                      color: '#eee',
-                      border: lootAmount === opt.id ? '2px solid #7bb8ff' : '1px solid #555',
-                      borderRadius: 4,
-                      cursor: 'pointer',
-                      fontSize: 12,
-                      fontWeight: lootAmount === opt.id ? 'bold' : 'normal',
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Seed Input */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
-              <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>RNG Seed</label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input
-                  type="text"
-                  value={lootModalSeed}
-                  onChange={e => setLootModalSeed(e.target.value.replace(/[^0-9-]/g, ''))}
-                  placeholder="Enter number seed"
-                  style={{ ...inputStyle, flex: 1 }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setLootModalSeed(Math.floor(Math.random() * 10000000).toString())}
-                  style={btnStyle('#555')}
-                >
-                  🎲 Random
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm / Cancel Actions */}
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                onClick={handleGenerateLoot}
-                disabled={isGeneratingLoot}
-                style={{ ...btnStyle('#2b9a7a'), flex: 1, padding: '10px' }}
-              >
-                {isGeneratingLoot ? 'Generating...' : 'Generate'}
-              </button>
-              <button
-                onClick={() => setShowLootModal(false)}
-                disabled={isGeneratingLoot}
-                style={{ ...btnStyle('#555'), flex: 1, padding: '10px' }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+        <LootGeneratorModal
+          initialAmount={lootAmount}
+          initialSeed={lootModalSeed}
+          isGenerating={isGeneratingLoot}
+          onGenerate={(amount, seed) => {
+            setLootAmount(amount);
+            setLootModalSeed(seed);
+            handleGenerateLoot();
+          }}
+          onClose={() => setShowLootModal(false)}
+        />
       )}
 
       {/* ─── Zombie generator modal ─── */}
@@ -4697,86 +4677,26 @@ export default function MapEditor() {
     })()}
 
       {showZombieModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={() => setShowZombieModal(false)}>
-          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, minWidth: 320, maxHeight: '80vh', overflow: 'auto' }}
-            onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>🧟 Spawn Ambient Zombies</h3>
-            <p style={{ fontSize: 12, color: '#aaa', marginBottom: 16 }}>
-              This will distribute zombies across walkable tiles. Building-specific spawns (SWAT in police, firefighters in fire stations, etc.) will be automatically applied. Zombies are merged with existing entities.
-            </p>
+        <ZombieGeneratorModal
+          initialDensity={zombieDensity}
+          initialSeed={zombieModalSeed}
+          isGenerating={isGeneratingZombies}
+          onGenerate={(density, seed) => {
+            setZombieDensity(density);
+            setZombieModalSeed(seed);
+            handleGenerateZombies();
+          }}
+          onClose={() => setShowZombieModal(false)}
+        />
+      )}
 
-            {/* Density Selection */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
-              <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>Zombie Density</label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {[
-                  { id: 'sparse', label: 'Sparse' },
-                  { id: 'normal', label: 'Normal' },
-                  { id: 'dense', label: 'Dense' },
-                ].map(opt => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setZombieDensity(opt.id as any)}
-                    style={{
-                      flex: 1,
-                      padding: '8px 4px',
-                      background: zombieDensity === opt.id ? '#4a90d9' : '#333',
-                      color: '#eee',
-                      border: zombieDensity === opt.id ? '2px solid #7bb8ff' : '1px solid #555',
-                      borderRadius: 4,
-                      cursor: 'pointer',
-                      fontSize: 12,
-                      fontWeight: zombieDensity === opt.id ? 'bold' : 'normal',
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Seed Input */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
-              <label style={{ fontSize: 12, color: '#888', fontWeight: 'bold' }}>RNG Seed</label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input
-                  type="text"
-                  value={zombieModalSeed}
-                  onChange={e => setZombieModalSeed(e.target.value.replace(/[^0-9-]/g, ''))}
-                  placeholder="Enter number seed"
-                  style={{ ...inputStyle, flex: 1 }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setZombieModalSeed(Math.floor(Math.random() * 10000000).toString())}
-                  style={btnStyle('#555')}
-                >
-                  🎲 Random
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm / Cancel Actions */}
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                onClick={handleGenerateZombies}
-                disabled={isGeneratingZombies}
-                style={{ ...btnStyle('#2b9a7a'), flex: 1, padding: '10px' }}
-              >
-                {isGeneratingZombies ? 'Spawning...' : 'Spawn'}
-              </button>
-              <button
-                onClick={() => setShowZombieModal(false)}
-                disabled={isGeneratingZombies}
-                style={{ ...btnStyle('#555'), flex: 1, padding: '10px' }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+      {showDecorModal && (
+        <DecorationGeneratorModal
+          initialSeed={decorModalSeed}
+          isGenerating={isGeneratingDecor}
+          onGenerate={handleGenerateDecorations}
+          onClose={() => setShowDecorModal(false)}
+        />
       )}
 
       {/* ─── Canvas area ─── */}

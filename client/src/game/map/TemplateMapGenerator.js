@@ -15,6 +15,7 @@ import { isInsideCompound } from './MapUtils.js';
 import { TEMPLATE_METADATA } from '../config/TemplateConfig.js';
 import { MAP_GEN_CONFIG } from '../config/MapGenConfig.js';
 import { getLightMode } from '../config/VisionConfig.js';
+import { planDecorations } from './DecorationPlanner.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
 /**
@@ -410,26 +411,13 @@ export class TemplateMapGenerator {
    * Place outdoor decorations on grass tiles
    */
   placeOutdoorDecorations(mapData) {
-    const { width, height, tiles } = mapData;
-    const decorTypes = ['outdoordecor1', 'outdoordecor2', 'outdoordecor3', 'outdoordecor4', 'outdoordecor5'];
-
-    const compound = mapData.metadata?.townSquareCompound;
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        if (isInsideCompound(compound, x, y)) {
-          continue;
-        }
-
-        const tile = tiles[y] && tiles[y][x];
-        if (tile && tile.terrain === 'grass') {
-          const hasCropsOrItems = tile.inventoryItems && tile.inventoryItems.length > 0;
-          if (!hasCropsOrItems && gameRandom.next() < MAP_GEN_CONFIG.decorationProbability) {
-            const decor = decorTypes[gameRandom.nextInt(0, decorTypes.length - 1)];
-            tile.decoration = decor;
-          }
-        }
-      }
-    }
+    planDecorations(mapData.tiles, {
+      outdoor: true,
+      indoor: false,
+      road: false,
+      density: MAP_GEN_CONFIG.decorationProbability,
+      compound: mapData.metadata?.townSquareCompound,
+    });
     console.log(`[TemplateMapGenerator] Placed outdoor decorations`);
   }
 
@@ -437,26 +425,13 @@ export class TemplateMapGenerator {
    * Place indoor decorations on indoor floor tiles
    */
   placeIndoorDecorations(mapData) {
-    const { width, height, tiles } = mapData;
-    const decorTypes = ['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'];
-
-    const compound = mapData.metadata?.townSquareCompound;
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        if (isInsideCompound(compound, x, y)) {
-          continue;
-        }
-
-        const tile = tiles[y] && tiles[y][x];
-        if (tile && isIndoorFloor(tile.terrain)) {
-          const hasCropsOrItems = tile.inventoryItems && tile.inventoryItems.length > 0;
-          if (!hasCropsOrItems && gameRandom.next() < MAP_GEN_CONFIG.decorationProbability) {
-            const decor = decorTypes[gameRandom.nextInt(0, decorTypes.length - 1)];
-            tile.decoration = decor;
-          }
-        }
-      }
-    }
+    planDecorations(mapData.tiles, {
+      outdoor: false,
+      indoor: true,
+      road: false,
+      density: MAP_GEN_CONFIG.decorationProbability,
+      compound: mapData.metadata?.townSquareCompound,
+    });
     console.log(`[TemplateMapGenerator] Placed indoor decorations`);
   }
 
@@ -464,26 +439,13 @@ export class TemplateMapGenerator {
    * Place road and sidewalk decorations on road and sidewalk tiles
    */
   placeRoadAndSidewalkDecorations(mapData) {
-    const { width, height, tiles } = mapData;
-    const decorTypes = ['road1', 'road2', 'road3'];
-
-    const compound = mapData.metadata?.townSquareCompound;
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        if (isInsideCompound(compound, x, y)) {
-          continue;
-        }
-
-        const tile = tiles[y] && tiles[y][x];
-        if (tile && (tile.terrain === 'road' || tile.terrain === 'sidewalk')) {
-          const hasCropsOrItems = tile.inventoryItems && tile.inventoryItems.length > 0;
-          if (!hasCropsOrItems && gameRandom.next() < MAP_GEN_CONFIG.decorationProbability * 0.5) {
-            const decor = decorTypes[gameRandom.nextInt(0, decorTypes.length - 1)];
-            tile.decoration = decor;
-          }
-        }
-      }
-    }
+    planDecorations(mapData.tiles, {
+      outdoor: false,
+      indoor: false,
+      road: true,
+      density: MAP_GEN_CONFIG.decorationProbability,
+      compound: mapData.metadata?.townSquareCompound,
+    });
     console.log(`[TemplateMapGenerator] Placed road and sidewalk decorations`);
   }
 

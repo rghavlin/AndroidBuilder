@@ -21,6 +21,9 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
         if (t.inventoryItems) {
           builder.layout[y][x].inventoryItems = t.inventoryItems;
         }
+        if (t.decoration) {
+          builder.layout[y][x].decoration = t.decoration;
+        }
       }
     }
 

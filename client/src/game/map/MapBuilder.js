@@ -1165,6 +1165,7 @@ export class MapBuilder {
         row.map((cell, x) => {
           const tile = { x, y, terrain: cell.terrain, edgeWalls: cell.edgeWalls, contents: [] };
           if (cell.inventoryItems) tile.inventoryItems = cell.inventoryItems;
+          if (cell.decoration) tile.decoration = cell.decoration;
           return tile;
         })
       ),
