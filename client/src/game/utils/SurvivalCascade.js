@@ -367,6 +367,11 @@ export function tickInfection(player, logCallback = null) {
  */
 export function infectPlayer(player, hours = null) {
   if (!player) return false;
+  // An immune player cannot be infected by any route, authored ones included.
+  // Checked here as well as in inflictInfection because this function sets the
+  // lethal clock itself — the inner guard alone would leave it re-timing a
+  // player who never becomes infected.
+  if (player.virusImmune) return false;
   const wasInfected = !!player.isInfected;
   if (typeof player.inflictInfection === 'function') {
     player.inflictInfection();
@@ -401,6 +406,28 @@ export function cureInfection(player) {
   player.treatmentName = null;
   player.notifyChange?.();
   return true;
+}
+
+/**
+ * Apply the Zombie Virus Cure (medical.zombie_virus_cure) — the only thing in
+ * the game that confers immunity. It clears any infection in progress AND sets
+ * the permanent virusImmune flag, so a later bite can never take hold. Distinct
+ * from brain pulp / brainstem stew, which only ever *pause* the virus clock.
+ *
+ * @param {Entity} player
+ * @returns {{cured: boolean, newlyImmune: boolean}} what the dose actually did:
+ *   whether it cleared an active infection, and whether it was the dose that
+ *   granted immunity (false when the player was already immune).
+ */
+export function applyVirusCure(player) {
+  if (!player) return { cured: false, newlyImmune: false };
+  const cured = cureInfection(player);
+  const newlyImmune = !player.virusImmune;
+  if (newlyImmune) {
+    player.virusImmune = true;
+    player.notifyChange?.();
+  }
+  return { cured, newlyImmune };
 }
 
 /**

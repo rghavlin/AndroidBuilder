@@ -12,7 +12,7 @@ import { EntityType } from '../game/entities/Entity.js';
 import { findEdgeStructure } from '../game/utils/EdgeStructure.js';
 import { gameRandom } from '../game/utils/SeededRandom.js';
 import { AttributeProgressionManager } from '../game/systems/AttributeProgressionManager.js';
-import { getBrainstemOverrides, getBrainPulpOverrides } from '../game/entities/ZombieCorpseConfig.js';
+import { getBrainstemOverrides, getBrainPulpOverrides, PATIENT_ZERO_SUBTYPE, PATIENT_ZERO_HEAD_DEF_ID } from '../game/entities/ZombieCorpseConfig.js';
 
 const ActionContext = createContext();
 
@@ -572,12 +572,18 @@ export const ActionProvider = ({ children }) => {
     return { success: true };
   }, [addLog, updatePlayerStats, playSound]);
 
+  // Knifing a zombie corpse yields a brainstem — except Patient Zero's, which
+  // yields the game's one Patient Zero Head. That head is the entire reason the
+  // zombie exists, so it is a distinct item, not a renamed brainstem.
   const harvestBrainstem = useCallback((corpseItem, container) => {
     const player = engine.player;
     if (!player) return { success: false };
 
+    const isPatientZero = corpseItem.zombieSubtype === PATIENT_ZERO_SUBTYPE;
+    const yieldLabel = isPatientZero ? 'head' : 'brainstem';
+
     if (player.ap < 5) {
-      addLog('Not enough AP to harvest brainstem (5 required)', 'error');
+      addLog(`Not enough AP to harvest ${yieldLabel} (5 required)`, 'error');
       playSound('Fail');
       return { success: false, reason: 'Need 5 AP' };
     }
@@ -590,28 +596,30 @@ export const ActionProvider = ({ children }) => {
       addLog(`Collected ${earbucksVal} Earbuck(s) from the zombie corpse.`, 'info');
     }
 
-    // Create the brainstem item
-    const brainstemData = createItemFromDef('zombie.brainstem', getBrainstemOverrides(corpseItem.zombieSubtype));
-    const brainstemItem = new Item(brainstemData);
+    // Create the harvested item
+    const harvestedData = isPatientZero
+      ? createItemFromDef(PATIENT_ZERO_HEAD_DEF_ID)
+      : createItemFromDef('zombie.brainstem', getBrainstemOverrides(corpseItem.zombieSubtype));
+    const harvestedItem = new Item(harvestedData);
 
     // Deduct AP
     player.useAP(5);
     updatePlayerStats({ ap: player.ap });
 
-    // Remove the corpse the stem came out of
+    // Remove the corpse it came out of
     const corpseX = corpseItem.x;
     const corpseY = corpseItem.y;
     container.removeItem(corpseItem.instanceId);
 
-    // The stem goes into the player's hands, not onto the corpse's tile: it
-    // merges into a carried stack if there is one, else the first free carried
-    // slot. Only when the player has no room at all does it stay behind, and
-    // then we say so instead of leaving it silently on the ground.
-    const stowed = engine.inventoryManager?.addItemToPlayer(brainstemItem)?.success;
+    // What was cut out goes into the player's hands, not onto the corpse's
+    // tile: it merges into a carried stack if there is one, else the first free
+    // carried slot. Only when the player has no room at all does it stay
+    // behind, and then we say so instead of leaving it silently on the ground.
+    const stowed = engine.inventoryManager?.addItemToPlayer(harvestedItem)?.success;
     if (!stowed) {
-      const placed = container.addItem(brainstemItem, corpseX, corpseY, true);
+      const placed = container.addItem(harvestedItem, corpseX, corpseY, true);
       if (!placed) {
-        engine.inventoryManager?.addItem(brainstemItem);
+        engine.inventoryManager?.addItem(harvestedItem);
       }
     }
 
@@ -620,9 +628,9 @@ export const ActionProvider = ({ children }) => {
     }
 
     playSound('Loot');
-    addLog('You extract a brainstem.', 'item');
+    addLog(isPatientZero ? "You sever Patient Zero's head." : 'You extract a brainstem.', 'item');
     if (!stowed) {
-      addLog('No room to carry it — the brainstem is left behind.', 'error');
+      addLog(`No room to carry it — the ${yieldLabel} is left behind.`, 'error');
     }
 
     if (typeof window.inv?.refresh === 'function') {

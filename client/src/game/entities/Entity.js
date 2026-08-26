@@ -15,6 +15,7 @@ import { ItemCategory } from '../inventory/traits.js';
 import { CombatResolver } from '../systems/CombatResolver.js';
 import { MAX_SICKNESS_DURATION } from '../utils/SurvivalCascade.js';
 import { AttributeProgressionManager } from '../systems/AttributeProgressionManager.js';
+import * as SkillProgress from './entitySkillProgress.js';
 
 
 import { Health } from '../components/Health.js';
@@ -52,7 +53,7 @@ export const ITEM_SERIALIZED_FIELDS = [
   'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
   'availableFireModes', 'isCrop', 'isFurnitureOrVehicle', 'isFood', 'isMedical', 'zombieSubtype',
   'earbucksValue', 'transitionTargetId', 'transitionTargetX', 'transitionTargetY', 'eventId',
-  'groundPriority', 'isEventMarker'
+  'groundPriority', 'isEventMarker', 'fixedAppearance'
 ];
 
 export const EntityType = {
@@ -521,73 +522,22 @@ export class Entity extends SafeEventEmitter {
    */
   inflictInfection() {
     if (this.isInfected) return;
+    // The Zombie Virus Cure grants permanent immunity, and this is the single
+    // place the infection flag is ever raised (bites, the sleep replay, and the
+    // authored infectPlayer step all route through here), so one guard covers
+    // every path into the virus.
+    if (this.virusImmune) return;
     this.isInfected = true;
     this.notifyChange();
   }
 
-  onItemCrafted(apUsed = 1) {
-    this.craftingApUsed += apUsed;
-    const nextTarget = PlayerSkills.getNextCraftingTarget(this.craftingLvl);
-    if (this.craftingApUsed >= nextTarget) {
-      this.craftingLvl++;
-      if (this.type === 'player') {
-        AttributeProgressionManager.recordAction(this, 'CRAFTING_SKILL_UP');
-      }
-    }
-    this.notifyChange();
-  }
+  // Crafting/hit/defense progression lives in ./entitySkillProgress.js; these
+  // stay as thin delegations so existing callers keep working.
+  onItemCrafted(apUsed = 1) { return SkillProgress.onItemCrafted(this, apUsed); }
 
-  /**
-   * Fires on every landed hit (not just kills) — skill progress and its paired
-   * attribute-XP trickle are both hit-driven, decoupled from whether the hit
-   * happened to be lethal. Melee grants Strength+Agility XP per hit, Ranged
-   * grants Agility+Perception, mirroring their skill-seed pairs. Returns the
-   * new level on a milestone crossing, or null otherwise.
-   */
-  recordHit(type) {
-    const isMelee = type === 'melee';
-    const hitField = isMelee ? 'meleeHits' : 'rangedHits';
-    const lvlField = isMelee ? 'meleeLvl' : 'rangedLvl';
-    const currentLevel = this[lvlField];
+  recordHit(type) { return SkillProgress.recordHit(this, type); }
 
-    this.modifyStat(hitField, 1);
-    if (this.type === 'player') {
-      AttributeProgressionManager.recordAction(this, isMelee ? 'MELEE_HIT' : 'RANGED_HIT');
-    }
-
-    const nextMilestone = PlayerSkills.getNextHitMilestone(currentLevel);
-    if (this[hitField] >= nextMilestone) {
-      const newLevel = currentLevel + 1;
-      this.setStat(lvlField, newLevel);
-      return newLevel;
-    }
-    return null;
-  }
-
-  /**
-   * Fires on every successfully contested defense (the attacker's own hit
-   * roll succeeded, and this entity then evaded it) — an attack that would
-   * have missed anyway never calls this, since resolveDefense is only
-   * invoked from inside a roll function's `if (hit)` branch. Mirrors
-   * recordHit's per-action growth model exactly; grants Agility+Perception
-   * XP, matching Defense's seed pair. Player and NPC both progress; only the
-   * player also gets the attribute-XP trickle (same gating as recordHit).
-   */
-  recordDefense() {
-    const currentLevel = this.defenseLvl;
-    this.modifyStat('defenseHits', 1);
-    if (this.type === 'player') {
-      AttributeProgressionManager.recordAction(this, 'DEFENSE_SUCCESS');
-    }
-
-    const nextMilestone = PlayerSkills.getNextHitMilestone(currentLevel);
-    if (this.defenseHits >= nextMilestone) {
-      const newLevel = currentLevel + 1;
-      this.setStat('defenseLvl', newLevel);
-      return newLevel;
-    }
-    return null;
-  }
+  recordDefense() { return SkillProgress.recordDefense(this); }
 
   notifyChange() {
     this.emit('stateChanged', this);
@@ -1198,6 +1148,7 @@ defineAccessors(Entity, 'RpgStats', RpgStats, {
   perceptionXpSpent: 0,
   constitutionXpSpent: 0,
   isInfected: false,
+  virusImmune: false,
   infectionTicksRemaining: 24,
   treatmentTicksRemaining: 0,
   treatmentSubtype: null,

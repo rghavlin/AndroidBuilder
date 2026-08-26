@@ -87,6 +87,7 @@ export const EntityFactory = {
       baseConstitution: customStats?.baseConstitution !== undefined ? customStats.baseConstitution : (customStats?.constitution !== undefined ? customStats.constitution : 20),
       currentConstitution: customStats?.currentConstitution !== undefined ? customStats.currentConstitution : (customStats?.constitution !== undefined ? customStats.constitution : 20),
       isInfected: customStats?.isInfected !== undefined ? customStats.isInfected : false,
+      virusImmune: customStats?.virusImmune !== undefined ? customStats.virusImmune : false,
       infectionTicksRemaining: customStats?.infectionTicksRemaining !== undefined ? customStats.infectionTicksRemaining : 24,
       treatmentTicksRemaining: customStats?.treatmentTicksRemaining !== undefined ? customStats.treatmentTicksRemaining : 0,
       treatmentSubtype: customStats?.treatmentSubtype !== undefined ? customStats.treatmentSubtype : null,
@@ -128,6 +129,7 @@ export const EntityFactory = {
     else if (subtype === 'spitter') color = '#ffd3b6'; // pale yellow
     else if (subtype === 'bomb_disposal') color = '#393e46'; // charcoal black
     else if (subtype === 'mutant') color = '#ff8b94'; // hot pink/red
+    else if (subtype === 'patient_zero') color = '#f8fafc'; // bone white
 
     // Components
     entity.addComponent(new Position({ x, y, level: 0 }));

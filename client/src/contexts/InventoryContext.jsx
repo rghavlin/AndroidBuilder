@@ -14,7 +14,7 @@ import { TurnProcessingUtils } from '../game/utils/TurnProcessingUtils.js';
 import { TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
 import * as RemoteDeviceRegistry from '../game/remote/RemoteDeviceRegistry.js';
 import { gameRandom } from '../game/utils/SeededRandom.js';
-import { recalcCharacter } from '../game/utils/SurvivalCascade.js';
+import { recalcCharacter, applyVirusCure } from '../game/utils/SurvivalCascade.js';
 
 const logger = Logger.scope('InventoryContext');
 
@@ -735,6 +735,19 @@ export const InventoryProvider = ({ children }) => {
             player.woundInfection = false;
             player.notifyChange();
             addLog('You disinfect the wound. The infection clears up.', 'status');
+          }
+      } else if (key === 'cure_virus' && val === true) {
+          // Zombie Virus Cure: clears the infection outright and confers
+          // permanent immunity. The state change lives in SurvivalCascade; this
+          // only reports what the dose did.
+          const { cured, newlyImmune } = applyVirusCure(player);
+          if (cured) {
+            addLog('The cure burns through you. The zombie virus is gone.', 'status');
+          }
+          if (newlyImmune) {
+            addLog('You are now immune to the zombie virus.', 'status');
+          } else {
+            addLog('You are already immune — the dose does nothing.', 'info');
           }
       } else if (key === 'treat_infection') {
           if (player.isInfected) {

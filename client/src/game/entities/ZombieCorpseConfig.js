@@ -1,9 +1,28 @@
 import { gameRandom } from '../utils/SeededRandom.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
+import { PATIENT_ZERO_SUBTYPE } from './ZombieTypes.js';
+
+// Patient Zero is unique: one zombie in the whole game, and knifing its corpse
+// produces the Patient Zero Head instead of the usual brainstem. The subtype id
+// lives with the other subtypes in ZombieTypes and is re-exported here so the
+// harvest path in ActionContext can take the corpse and the head it yields from
+// a single import.
+export { PATIENT_ZERO_SUBTYPE };
+export const PATIENT_ZERO_HEAD_DEF_ID = 'zombie.patient_zero_head';
 
 export const ZombieCorpseConfig = {
   fat:    { name: 'Fat Zombie Corpse',    imageId: 'fatzombiecorpse', backgroundColor: '#833802' },
   mutant: { name: 'Mutant Corpse',        imageId: 'zombiemutantcorpse', backgroundColor: '#A10C00' },
+  // Patient Zero's corpse is the game's one source of the Patient Zero Head, so
+  // it is deliberately the only corpse with a fixed appearance: black art on a
+  // white field in every UI theme (fixedAppearance opts it out of the theme
+  // icon filters). Harvesting it with a knife yields the head, not a brainstem.
+  [PATIENT_ZERO_SUBTYPE]: {
+    name: 'Patient Zero Corpse',
+    imageId: 'patientZeroCorpse',
+    backgroundColor: '#FFFFFF',
+    fixedAppearance: true
+  },
   runner: { name: 'Runner Corpse',        backgroundColor: '#F6C915' },
   peeper: { name: 'Peeper Corpse',        backgroundColor: '#22536A' },
   spitter:{ name: 'Spitter Corpse',       backgroundColor: '#5A4858' },
@@ -22,7 +41,8 @@ export function getCorpseOverrides(zombieSubtype) {
     name: config.name || 'Zombie Corpse',
     zombieSubtype: zombieSubtype || 'basic',
     ...(config.imageId && { imageId: config.imageId }),
-    ...(config.backgroundColor && { backgroundColor: config.backgroundColor })
+    ...(config.backgroundColor && { backgroundColor: config.backgroundColor }),
+    ...(config.fixedAppearance && { fixedAppearance: true })
   };
 }
 

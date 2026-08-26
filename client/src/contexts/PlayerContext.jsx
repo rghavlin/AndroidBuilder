@@ -118,6 +118,7 @@ export const PlayerProvider = ({ children }) => {
       baseConstitution: 20, currentConstitution: 20,
       armorAbsorption: 0, armorMaxAbsorption: 0, armorWeightRequirement: 0,
       isInfected: false,
+      virusImmune: false,
       infectionTicksRemaining: 24,
       treatmentTicksRemaining: 0,
       treatmentSubtype: null,
@@ -172,6 +173,7 @@ export const PlayerProvider = ({ children }) => {
       armorWeightRequirement: player.weightRequirement || 0,
       ammo: 0, // Legacy
       isInfected: player.isInfected,
+      virusImmune: player.virusImmune,
       infectionTicksRemaining: player.infectionTicksRemaining,
       treatmentTicksRemaining: player.treatmentTicksRemaining,
       treatmentSubtype: player.treatmentSubtype,

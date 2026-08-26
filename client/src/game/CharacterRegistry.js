@@ -31,6 +31,9 @@ export const CharacterRegistry = {
             if (c.isInfected === undefined) {
               c.isInfected = false;
             }
+            if (c.virusImmune === undefined) {
+              c.virusImmune = false;
+            }
             // Purge legacy properties
             delete c.baseStrength;
             delete c.currentStrength;
@@ -98,6 +101,9 @@ export const CharacterRegistry = {
     character.perception = playerEntity.basePerception ?? 20;
     character.constitution = playerEntity.baseConstitution ?? 20;
     character.isInfected = !!playerEntity.isInfected;
+    // A character who took the cure stays immune when replayed, mirroring how
+    // an infection they were carrying is remembered.
+    character.virusImmune = !!playerEntity.virusImmune;
     
     // Purge legacy attributes from the object being saved
     delete character.baseStrength;

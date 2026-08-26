@@ -14,6 +14,7 @@ import { FactionRegistry } from '../ai/FactionRegistry.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
+import * as ItemMeters from './itemMeters.js';
 
 // P7-13: the Item constructor ends with a catch-all loop that copies any
 // unrecognized config property onto the instance so dynamic/custom item state
@@ -78,6 +79,7 @@ export class Item extends SafeEventEmitter {
       produce = null,
       backgroundColor = null,
       borderColor = null,
+      fixedAppearance = undefined,
       brainstemColors = null,
       isLit = undefined,
       isOn = undefined,
@@ -181,6 +183,10 @@ export class Item extends SafeEventEmitter {
     this.produce = produce;
     this.backgroundColor = backgroundColor;
     this.borderColor = borderColor;
+    // Opts the icon out of the per-theme filters so it renders identically in
+    // every theme — its own art on its own backgroundColor. Patient Zero's
+    // corpse and head are the only items that ask for this.
+    this.fixedAppearance = fixedAppearance;
     // Ordered list of distinct brainstem colors that went into a brainstem stew, used to
     // render a multi-color "rainbow" icon; backgroundColor stays a single flat color
     // (the first of these) for consumers that need a plain hex, e.g. the infection HUD.
@@ -1066,30 +1072,13 @@ export class Item extends SafeEventEmitter {
     return null;
   }
 
-  getWaterPercent() {
-    if (!this.hasTrait(ItemTrait.WATER_CONTAINER) || !this.capacity) return 0;
-    return (this.ammoCount / this.capacity) * 100;
-  }
+  // Container fill-meter math lives in ./itemMeters.js; these stay as thin
+  // delegations so existing callers keep working.
+  getWaterPercent() { return ItemMeters.getWaterPercent(this); }
 
-  getMeterPercent() {
-    if (this.hasTrait(ItemTrait.WATER_CONTAINER)) {
-      if (!this.hasTrait(ItemTrait.WATER_SOURCE) || this.defId === 'provision.rain_collector') {
-        return this.getWaterPercent();
-      }
-    }
-    if (this.hasTrait(ItemTrait.FUEL_CONTAINER) && this.capacity) return (this.ammoCount / this.capacity) * 100;
-    return null;
-  }
+  getMeterPercent() { return ItemMeters.getMeterPercent(this); }
 
-  getMeterColor() {
-    if (this.hasTrait(ItemTrait.WATER_CONTAINER)) {
-      return this.waterQuality === 'dirty' ? "#8B4513" : "#60a5fa";
-    }
-    if (this.hasTrait(ItemTrait.FUEL_CONTAINER)) {
-      return "#b8860b"; // Dark Gold
-    }
-    return null;
-  }
+  getMeterColor() { return ItemMeters.getMeterColor(this); }
 
   /**
    * Check if item has a specific category
@@ -1677,7 +1666,7 @@ export class Item extends SafeEventEmitter {
     'ammoCount', 'equippableSlot', 'isEquipped', 'pocketLayoutId', 'categories',
     'consumptionEffects', 'waterQuality', 'shelfLife', 'lifetimeTurns', 'rarity',
     'combat', 'rangedStats', 'description', 'transformInto', 'produce',
-    'backgroundColor', 'borderColor', 'isOn', 'providesElectricity', 'fireMode',
+    'backgroundColor', 'borderColor', 'fixedAppearance', 'isOn', 'providesElectricity', 'fireMode',
     'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit', 'isLocked',
     'zombieSubtype', 'earbucksValue', 'brainstemColors',
     'transitionTargetId', 'transitionTargetX', 'transitionTargetY', 'eventId',

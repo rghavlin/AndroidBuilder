@@ -3,6 +3,18 @@ import { isInsideCompound, isInsideTollGate, isInStartArea } from '../map/MapUti
 import { isFloor } from '../map/TerrainTypes.js';
 
 import { gameRandom } from './SeededRandom.js';
+import { PATIENT_ZERO_SUBTYPE } from '../entities/ZombieTypes.js';
+
+// ─── Patient Zero ───────────────────────────────────────────────────────
+// The only unique zombie in the game: exactly one, on map 5, and nowhere else.
+// It is a plain zombie in a fight (ZombieTypes.patient_zero); the point of it is
+// the Patient Zero Head the player knifes off its corpse. Nothing else spawns
+// it — ZombieReplenishmentSystem's subtype ladder deliberately omits it — so a
+// map generated once and saved carries the single copy for the whole run.
+export const PATIENT_ZERO_MAP = 5;
+// Far enough from the arrival tile that the player does not walk into the run's
+// one unique encounter before they can react to it.
+const PATIENT_ZERO_MIN_DISTANCE = 20;
 
 // ─── Corridor tuning ────────────────────────────────────────────────────
 // Corridor maps break the assumptions behind area-scaled spawn counts. A
@@ -190,6 +202,14 @@ export class ZombieSpawner {
     spawnHelper('swat', nSwat, 10);
     spawnHelper('firefighter', nFirefighter, 10);
     spawnHelper('soldier', nSoldier, 10);
+
+    // 4a. Patient Zero (map 5 only). Deliberately spawned outside the maxTotal
+    // budget and the per-type rescaling: it is a scripted one-off, and dropping
+    // it because the population cap filled up would make its head — the only one
+    // in the game — permanently unobtainable.
+    if ((gameMap.mapNumber || 1) === PATIENT_ZERO_MAP) {
+      ZombieSpawner.spawnPatientZero(gameMap, player);
+    }
 
     // 4. Map-progression Mutants (Starting from Map 11)
     if (mapNumber >= 11) {
@@ -461,5 +481,44 @@ export class ZombieSpawner {
     });
 
     return spawnedCount;
+  }
+
+  /**
+   * Place the run's single Patient Zero. Idempotent: if the map already carries
+   * one (a regenerated or re-populated map), it is left alone rather than
+   * doubled.
+   * @param {GameMap} gameMap
+   * @param {{x: number, y: number}} player - arrival position to keep clear of
+   * @returns {boolean} whether a Patient Zero now stands on this map
+   */
+  static spawnPatientZero(gameMap, player) {
+    const existing = gameMap.getEntitiesByType('zombie')
+      .some(z => z.subtype === PATIENT_ZERO_SUBTYPE);
+    if (existing) return true;
+
+    const compound = gameMap.metadata?.townSquareCompound;
+    const tollGate = gameMap.metadata?.tollGate;
+
+    for (let attempts = 0; attempts < 500; attempts++) {
+      const x = Math.floor(gameRandom.next() * gameMap.width);
+      const y = Math.floor(gameRandom.next() * gameMap.height);
+
+      const tile = gameMap.getTile(x, y);
+      if (!tile || !tile.isWalkable() || tile.contents.length > 0) continue;
+      if (isInsideCompound(compound, x, y) || isInsideTollGate(tollGate, x, y)) continue;
+      if (isInStartArea(gameMap, x, y)) continue;
+
+      const distToPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
+      if (distToPlayer < PATIENT_ZERO_MIN_DISTANCE) continue;
+
+      const zombie = EntityFactory.createZombie(x, y, PATIENT_ZERO_SUBTYPE, `zombie-patient-zero-${Date.now()}`);
+      if (gameMap.addEntity(zombie, x, y)) {
+        console.log(`[ZombieSpawner] Patient Zero placed at (${x}, ${y}) on map ${gameMap.mapNumber}`);
+        return true;
+      }
+    }
+
+    console.warn(`[ZombieSpawner] Could not place Patient Zero on map ${gameMap.mapNumber}`);
+    return false;
   }
 }

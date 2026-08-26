@@ -22,6 +22,10 @@ export class RpgStats {
 
     // Infection & Treatment
     this.isInfected = properties.isInfected !== undefined ? properties.isInfected : false;
+    // Permanent immunity to the zombie virus, conferred only by the Zombie
+    // Virus Cure (see applyVirusCure in SurvivalCascade). Once set, every path
+    // that would infect the player is refused at Entity.inflictInfection.
+    this.virusImmune = properties.virusImmune !== undefined ? properties.virusImmune : false;
     this.infectionTicksRemaining = properties.infectionTicksRemaining !== undefined ? properties.infectionTicksRemaining : 24;
     this.treatmentTicksRemaining = properties.treatmentTicksRemaining !== undefined ? properties.treatmentTicksRemaining : 0;
     this.treatmentSubtype = properties.treatmentSubtype !== undefined ? properties.treatmentSubtype : null;

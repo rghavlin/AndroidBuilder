@@ -1,10 +1,10 @@
 {
   "$comment": "Line budgets for the god-objects in AGENTS.md §6. Lowered by `npm run budget:update`; enforced by test/quality/godObjectBudget.test.js. Raising a number here should be a deliberate, reviewed decision.",
   "budgets": {
-    "client/src/game/entities/Entity.js": 1213,
+    "client/src/game/entities/Entity.js": 1164,
     "client/src/game/map/GameMap.js": 1633,
     "client/src/game/inventory/InventoryManager.js": 2981,
-    "client/src/game/inventory/Item.js": 1812,
+    "client/src/game/inventory/Item.js": 1801,
     "client/src/game/map/LootGenerator.js": 1783,
     "client/src/game/managers/SimulationManager.js": 333,
     "client/src/pages/editor.tsx": 5301

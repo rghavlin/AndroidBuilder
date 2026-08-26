@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useGame } from '@/contexts/GameContext';
-import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye, Heart, Dices, AlertTriangle, Shield, Swords, BookOpen } from 'lucide-react';
+import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye, Heart, Dices, AlertTriangle, Shield, ShieldCheck, Swords, BookOpen } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { CombatResolver } from '@/game/systems/CombatResolver';
@@ -369,6 +369,16 @@ export default function PlayerSkillsUI() {
                                 <AlertTriangle className="w-3 h-3 text-red-500 shrink-0" />
                                 <span className="text-[9px] font-mono font-black text-red-400 uppercase tracking-wider">
                                     Infected
+                                </span>
+                            </div>
+                        )}
+                        {/* The Zombie Virus Cure's only lasting sign: without it,
+                            taking the cure would look like it did nothing. */}
+                        {playerStats?.virusImmune && (
+                            <div className="ml-2 px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/50 flex items-center gap-1 select-none" title="Cured — the zombie virus can no longer take hold">
+                                <ShieldCheck className="w-3 h-3 text-emerald-500 shrink-0" />
+                                <span className="text-[9px] font-mono font-black text-emerald-400 uppercase tracking-wider">
+                                    Virus Immune
                                 </span>
                             </div>
                         )}

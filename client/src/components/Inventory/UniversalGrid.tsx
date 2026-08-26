@@ -1153,7 +1153,12 @@ export default function UniversalGrid({
                     objectFit: 'cover',
                     transform: transformStyle,
                     transformOrigin: 'top left',
-                    filter: themeRef.current === 'metallic' ? 'var(--metallic-icon-filter)' : themeRef.current === 'light2' ? 'invert(0.75)' : undefined,
+                    // fixedAppearance items (Patient Zero's corpse and head) look
+                    // the same in every theme: black art on the white field they
+                    // declare, so the theme icon filters are skipped for them.
+                    filter: item.fixedAppearance ? undefined
+                      : themeRef.current === 'metallic' ? 'var(--metallic-icon-filter)'
+                      : themeRef.current === 'light2' ? 'invert(0.75)' : undefined,
                   }}
                   alt={item.name}
                 />

@@ -18,6 +18,10 @@
  *   infection itself. Do not add it to other archetypes; a regular bite should
  *   never cause plain sickness, only Spitter's ranged attack should.
  */
+// The one unique zombie in the game. Named here because every other module that
+// has to recognise it (spawner, corpse config, harvest path) keys off this id.
+export const PATIENT_ZERO_SUBTYPE = 'patient_zero';
+
 export const ZombieTypes = {
   basic: {
     name: 'Zombie',
@@ -169,6 +173,22 @@ export const ZombieTypes = {
     defense: 0.0,
     combat: { damage: { min: 3, max: 7 }, bleedChance: 0.05 },
     lootTable: 'swat' // They carry heavy gear
+  },
+  // Patient Zero: the one unique zombie in the game (a single one spawns on
+  // map 5 — see PATIENT_ZERO_MAP in ZombieSpawner). Mechanically it is a plain
+  // zombie in every respect; the point of it is the head the player cuts off
+  // its corpse, not the fight. Corpse/head wiring lives in ZombieCorpseConfig.
+  patient_zero: {
+    name: 'Patient Zero',
+    hp: 10,
+    maxAP: 12,
+    sightRange: 15,
+    accuracy: 0.5,
+    moveCostMultiplier: 1.0,
+    spriteKey: 'patientZero',
+    defense: 0.05,
+    combat: { damage: { min: 1, max: 4 }, bleedChance: 0.05 },
+    lootTable: 'basic'
   },
   mutant: {
     name: 'Zombie Mutant',

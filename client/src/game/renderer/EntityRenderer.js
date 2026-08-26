@@ -562,16 +562,16 @@ export const EntityRenderer = {
             matchingDef = entity._def || ItemDefs[defId];
           }
 
-          if (isCrop) {
-            itemBgColor = '#006B18';
-          } else if (hasFurnitureOrVehicle) {
-            itemBgColor = '#36454F'; // Charcoal background
-          } else if (matchingDef && matchingDef.backgroundColor) {
+          if (matchingDef && matchingDef.backgroundColor) {
             itemBgColor = matchingDef.backgroundColor;
-          } else if (isFood) {
+          } else if (isCrop) {
             itemBgColor = '#006B18';
           } else if (isMedical) {
             itemBgColor = '#8a0303';
+          } else if (hasFurnitureOrVehicle) {
+            itemBgColor = '#36454F'; // Charcoal background
+          } else if (isFood) {
+            itemBgColor = '#006B18';
           } else {
             itemBgColor = '#0a0a0a';
           }
@@ -641,6 +641,18 @@ export const EntityRenderer = {
           ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
           ctx.stroke();
 
+          ctx.restore();
+        }
+
+        // Fixed-appearance items (Patient Zero's corpse) must read identically
+        // wherever they are drawn, so their declared backing is painted behind
+        // the sprite rather than letting the terrain show through the art. Only
+        // the full-tile path needs it — token items already sit on a filled circle.
+        if (entity.type === 'item' && isFullTileItem && !isExit
+            && entity.fixedAppearance && entity.backgroundColor) {
+          ctx.save();
+          ctx.fillStyle = entity.backgroundColor;
+          ctx.fillRect(drawX, drawY, drawSize, drawSize);
           ctx.restore();
         }
 
