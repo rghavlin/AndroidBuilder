@@ -100,7 +100,7 @@ export default function UniversalGrid({
   const themeRef = useRef(theme);
   themeRef.current = theme;
   const { scalableSlotSize, fixedSlotSize, isCalculated } = useGridSize();
-  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromSource, disassembleItem, pickSafeLock } = useInventory();
+  const { getContainer, canOpenContainer, openContainer, inventoryVersion, closeContainer, selectedItem, selectItem, rotateSelected, clearSelected, placeSelected, getPlacementPreview, depositSelectedInto, attachSelectedInto, loadAmmoInto, loadAmmoDirectly, fuelCampfire, fillFromSource, disassembleItem, pickSafeLock, synthesizeVirusCure } = useInventory();
   const { targetingItem, startTargetingItem, cancelTargetingItem, digHole, fillHole, bagLooseSoil, plantSeed, harvestPlant, siphonFuel, transferFuel, harvestBrainstem, harvestEarbucks, pulpBrainstem } = useAction();
   const { targetingWeapon, cancelTargeting } = useCombat();
   const { playSound } = useAudio();
@@ -622,6 +622,18 @@ export default function UniversalGrid({
         return;
       }
 
+      // SPECIALIZED ACTION: Synthesizing Zombie Virus Cure with Patient Zero Head
+      const isPatientZeroHeadSelected = selectedItem.item?.defId === 'zombie.patient_zero_head';
+      const isSynthesizerClicked = item?.defId === 'furniture.pharmaceutical_synthesizer';
+      if (isPatientZeroHeadSelected && isSynthesizerClicked) {
+        console.debug('[UniversalGrid] Synthesizing cure with Patient Zero Head on Synthesizer');
+        const result = synthesizeVirusCure(selectedItem.item, item);
+        if (result.success) {
+          clearSelected();
+        }
+        return;
+      }
+
       // SPECIAL CASE: Fueling a campfire
       const isFuel = selectedItem.item.hasCategory?.('fuel') || selectedItem.item.categories?.includes('fuel');
       const isCampfire = item?.defId === 'placeable.campfire';
@@ -802,7 +814,7 @@ export default function UniversalGrid({
 
     // Case 3: Clicking empty space with no selection
     onSlotClick?.(x, y);
-  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition, disassembleItem, targetingWeapon, cancelTargeting, pickSafeLock, fireDialogAtPlayerTile, fireItemEvent, isModalBlocking]);
+  }, [containerId, grid, width, height, targetingItem, selectedItem, items, playSound, digHole, plantSeed, harvestPlant, clearSelected, fuelCampfire, synthesizeVirusCure, placeSelected, loadAmmoDirectly, attachSelectedInto, depositSelectedInto, loadAmmoInto, selectItem, inventoryVersion, onBeforeDrop, setMapTransition, disassembleItem, targetingWeapon, cancelTargeting, pickSafeLock, fireDialogAtPlayerTile, fireItemEvent, isModalBlocking]);
 
   const handleItemContextMenu = useCallback((item: any, x: number, y: number, event: React.MouseEvent) => {
     if (isModalBlocking) return;

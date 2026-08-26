@@ -5,7 +5,7 @@
     "client/src/game/map/GameMap.js": 1633,
     "client/src/game/inventory/InventoryManager.js": 2981,
     "client/src/game/inventory/Item.js": 1801,
-    "client/src/game/map/LootGenerator.js": 1783,
+    "client/src/game/map/LootGenerator.js": 1724,
     "client/src/game/managers/SimulationManager.js": 333,
     "client/src/pages/editor.tsx": 5301
   }

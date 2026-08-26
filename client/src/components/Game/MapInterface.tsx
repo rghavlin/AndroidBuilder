@@ -100,7 +100,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
 
   // Get inventory context for floating containers and selection management
   // MUST BE DECLARED BEFORE isFlashlightOnActual
-  const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer, inventoryRef, inventoryVersion, forceRefresh } = useInventory();
+  const { openContainers, closeContainer, getContainer, selectedItem, clearSelected, groundContainer, inventoryRef, inventoryVersion, forceRefresh, synthesizeVirusCure } = useInventory();
   const { targetingWeapon, cancelTargeting, performMeleeAttack, performRangedAttack, performGrenadeThrow, performStoneThrow, performMolotovThrow } = useCombat();
   const { addEffect } = useVisualEffects();
   const { worldToScreen, cameraRef, centerOn } = useCamera();
@@ -256,8 +256,27 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     setNpcMenu(null);
     setWagonMenu(null);
 
-    // If an item is selected for movement, cancel it and don't process map click
+    // If an item is selected for movement, check if it's Patient Zero Head used on a Synthesizer
     if (selectedItem) {
+      if (selectedItem.item?.defId === 'zombie.patient_zero_head') {
+        const tileItems = engine.gameMap?.getItemsOnTile(x, y);
+        const synth = tileItems?.find((it: any) => it.defId === 'furniture.pharmaceutical_synthesizer');
+        if (synth) {
+          const p = engine.player;
+          const dist = p ? Math.hypot(p.x - x, p.y - y) : 0;
+          if (dist <= 2.5) {
+            const result = synthesizeVirusCure(selectedItem.item, synth);
+            if (result.success) {
+              clearSelected();
+              return true;
+            }
+          } else {
+            addLog("You need to be closer to the synthesizer.", 'error');
+            playSound('Fail');
+            return true;
+          }
+        }
+      }
       console.debug('[MapInterface] Map clicked while item selected - canceling selection');
       clearSelected();
       return true; // Click was handled (canceled selection)

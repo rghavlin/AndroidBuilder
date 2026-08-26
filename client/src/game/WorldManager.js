@@ -374,15 +374,9 @@ export class WorldManager extends SafeEventEmitter {
       rabbitRange: { min: 1, max: 2 }
     });
 
-    // SPAWN NPCs: Goal-directed travelers
-    const { NPCSpawner } = await import('./utils/NPCSpawner.js');
-    NPCSpawner.spawnNPCs(gameMap, {
-      count: 1, // Start with 1 NPC per map
-      mapNumber
-    });
-
     // Spawn the shopkeeper/town turrets BEFORE saving so they're in the snapshot
     if (templateToUse === 'branching_road') {
+      const { NPCSpawner } = await import('./utils/NPCSpawner.js');
       NPCSpawner.spawnShopkeeper(gameMap);
       NPCSpawner.spawnTownTurrets(gameMap);
       NPCSpawner.spawnTollGate(gameMap);
@@ -958,10 +952,8 @@ export class WorldManager extends SafeEventEmitter {
             rabbitRange: { min: 1, max: 2 }
           });
           
-          const { NPCSpawner } = await import('./utils/NPCSpawner.js');
-          NPCSpawner.spawnNPCs(gameMap, { count: 1, mapNumber });
-          
           if (templateToUse === 'branching_road') {
+            const { NPCSpawner } = await import('./utils/NPCSpawner.js');
             NPCSpawner.spawnShopkeeper(gameMap);
             NPCSpawner.spawnTownTurrets(gameMap);
             NPCSpawner.spawnTollGate(gameMap);

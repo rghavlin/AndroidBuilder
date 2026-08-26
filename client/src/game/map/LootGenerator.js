@@ -16,6 +16,7 @@ import { planFurniture } from './FurniturePlanner.js';
 import { planRoadVehicles } from './RoadVehiclePlanner.js';
 import { gameRandom } from '../utils/SeededRandom.js';
 import { CorridorLootGenerator } from './generators/CorridorLootGenerator.js';
+import { spawnLabBuildingLoot } from './generators/LabLootGenerator.js';
 const LOOT_CONSTANTS = {
     GENERATOR_SPAWN_FUEL_MAX: 6, // 0-5 units
     FUEL_COVER_OFFSET: 3,
@@ -975,67 +976,7 @@ export class LootGenerator {
         
         // --- LABORATORY SPECIAL CASE ---
         if (type === 'lab' && buildingRules.roomLayout) {
-            const layout = buildingRules.roomLayout;
-            const nvgRoomIndex = Math.floor(gameRandom.next() * layout.roomsCount);
-            const nvgDropIndex = Math.floor(gameRandom.next() * (buildingRules.dropsPerRoom?.min || 2));
-            
-            const wingWidth = layout.wingWidth;
-            const roomHeight = layout.roomHeight;
-            const leftX = x + 1;
-            const rightX = x + (width - wingWidth - 1); // Dynamic calculation
-            const rooms = [];
-
-            for (let ry = y + 1; ry < y + height - 1; ry += roomHeight) {
-                const segmentH = Math.min(roomHeight - 1, (y + height - 1) - ry);
-                if (segmentH < 3) break;
-                rooms.push({ x: leftX, y: ry, w: wingWidth, h: segmentH });
-                rooms.push({ x: rightX, y: ry, w: wingWidth, h: segmentH });
-            }
-
-            console.log(`[LootGenerator] Lab: Spawning loot for ${rooms.length} rooms using data-driven rules`);
-
-            rooms.forEach((room, rIdx) => {
-                const roomFloorTiles = [];
-                for (let ty = room.y; ty < room.y + room.h; ty++) {
-                    for (let tx = room.x; tx < room.x + room.w; tx++) {
-                        if (!this.isNearDoor(gameMap, tx, ty)) roomFloorTiles.push({ x: tx, y: ty });
-                    }
-                }
-                if (roomFloorTiles.length === 0) return;
-
-                const minD = buildingRules.dropsPerRoom?.min || 2;
-                const maxD = buildingRules.dropsPerRoom?.max || 3;
-                const roomDropCount = minD + Math.floor(gameRandom.next() * (maxD - minD + 1));
-                const roomSelectedTiles = this.getRandomSubarray(roomFloorTiles, roomDropCount);
-
-                roomSelectedTiles.forEach((tilePos, dIdx) => {
-                    const roomItems = [];
-                    // Weighted chances moved to config-driven logic if needed, but currently keeping inline rolls
-                    if (gameRandom.next() < 0.5) {
-                        const medPool = SPECIAL_BUILDING_LOOT[type].medical;
-                        const med = createItemFromDef(medPool[gameRandom.nextInt(0, medPool.length - 1)]);
-                        if (med) roomItems.push(med);
-                    }
-                    if (gameRandom.next() < 0.7) {
-                        const techPool = SPECIAL_BUILDING_LOOT[type].tech;
-                        const tech = createItemFromDef(techPool[gameRandom.nextInt(0, techPool.length - 1)]);
-                        if (tech) {
-                            LootGenerator.applySpawnDefaults(tech, false);
-                            roomItems.push(tech);
-                        }
-                    }
-                    
-                    // Uniques (NVGs etc)
-                    if (rIdx === nvgRoomIndex && dIdx === nvgDropIndex) {
-                        const unique = buildingRules.uniques?.[0]; // Current lab only has 1 unique
-                        if (unique) {
-                            const item = createItemFromDef(unique.defId);
-                            if (item) roomItems.push(item);
-                        }
-                    }
-                    if (roomItems.length > 0) gameMap.setItemsOnTile(tilePos.x, tilePos.y, roomItems);
-                });
-            });
+            spawnLabBuildingLoot(gameMap, building, buildingRules, this);
             return;
         }
         // --- END LABORATORY SPECIAL CASE ---

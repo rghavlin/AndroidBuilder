@@ -21,29 +21,8 @@ export class NPCSpawner {
    * @returns {number} - Number of successfully spawned NPCs
    */
   static spawnNPCs(gameMap, options = {}) {
-    const { count = 1, mapNumber = 1 } = options;
-    
-    // Never spawn on map 1 (no south exit)
-    if (mapNumber <= 1) return 0;
-    
-    const spawned = [];
-    const southExitTile = findSouthTransitionTile(gameMap);
-    if (!southExitTile) {
-      console.warn('[NPCSpawner] NPC spawning aborted: no south transition or walkable tile found at south edge.');
-      return 0; // No south exit = no NPCs
-    }
-    
-    for (let i = 0; i < count; i++) {
-      const spawnPos = this.findMiddleIndoorSpawnPosition(gameMap);
-      if (!spawnPos) continue;
-      
-      const npc = this.spawnNPCAt(gameMap, spawnPos.x, spawnPos.y, {
-        goalTarget: { x: southExitTile.x, y: southExitTile.y }
-      });
-      if (npc) spawned.push(npc);
-    }
-    
-    return spawned.length;
+    // Procedural NPC spawning is disabled across all maps.
+    return 0;
   }
 
   /**
@@ -372,22 +351,9 @@ export class NPCSpawner {
       turretCount++;
     }
 
-    // 3. Gate guard — stationary, blocking the only opening. Records where to
-    // sidestep so the pay-toll interaction can clear the path later.
-    let guard = null;
-    const { x: gx, y: gy } = layout.guard;
-    if (inBounds(gx, gy)) {
-      const id = `tollguard_${gameMap.id || 'map'}`;
-      guard = EntityFactory.createNPC(gx, gy, null, 'gatekeeper', null, id);
-      guard.isTollGuard = true;
-      guard.goalTarget = null;
-      guard.tollSidestep = layout.guard.sidestep;
-      gameMap.addEntity(guard, gx, gy);
-    }
-
     console.log(
       `[NPCSpawner] Tollgate at north exit (${exit.x},${exit.y}): ` +
-      `${barrierCount} barriers, ${turretCount} turrets, guard=${!!guard}`
+      `${barrierCount} barriers, ${turretCount} turrets`
     );
     return barrierCount > 0;
   }

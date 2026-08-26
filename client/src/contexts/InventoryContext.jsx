@@ -15,6 +15,7 @@ import { TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
 import * as RemoteDeviceRegistry from '../game/remote/RemoteDeviceRegistry.js';
 import { gameRandom } from '../game/utils/SeededRandom.js';
 import { recalcCharacter, applyVirusCure } from '../game/utils/SurvivalCascade.js';
+import { synthesizeZombieVirusCure } from '../game/inventory/PharmaceuticalSynthesizer.js';
 
 const logger = Logger.scope('InventoryContext');
 
@@ -1102,6 +1103,23 @@ export const InventoryProvider = ({ children }) => {
     return { success: true };
   }, [addLog, playSound]);
 
+  const synthesizeVirusCure = useCallback((headItem, synthesizerItem) => {
+    const turnCheck = checkPlayerTurn();
+    if (!turnCheck.success) return turnCheck;
+    if (!engine.player || !engine.inventoryManager) return { success: false };
+
+    const result = synthesizeZombieVirusCure(engine, headItem, synthesizerItem);
+    if (result.success) {
+      playSound('Craft');
+      playSound('Pills');
+      addLog("You feed Patient Zero's head into the pharmaceutical synthesizer. A dose of Zombie Virus Cure dispenses onto the ground!", 'item');
+    } else {
+      playSound('Fail');
+      if (result.reason) addLog(result.reason, 'error');
+    }
+    return result;
+  }, [addLog, playSound, checkPlayerTurn]);
+
   const readBook = useCallback((item, amount = 1) => {
     const turnCheck = checkPlayerTurn();
     if (!turnCheck.success) return turnCheck;
@@ -1987,6 +2005,7 @@ export const InventoryProvider = ({ children }) => {
     rollupBedroll,
     crankCharger,
     pickSafeLock,
+    synthesizeVirusCure,
     readBook,
     disassembleItem,
     selectedRecipeId,
@@ -2025,7 +2044,7 @@ export const InventoryProvider = ({ children }) => {
     inventoryRef: { current: engine.inventoryManager },
     forceRefresh: () => engine.notifyUpdate(),
     inventoryVersion: inventoryPulse
-  }), [inventoryPulse, openContainers, selectedItem, selectedRecipeId, startDrag, stopDrag, stopRiding, crankCharger, readBook, pickSafeLock, pendingHitchCart, startHitching, cancelHitching, confirmHitch, unhitchWagon]);
+  }), [inventoryPulse, openContainers, selectedItem, selectedRecipeId, startDrag, stopDrag, stopRiding, crankCharger, readBook, pickSafeLock, synthesizeVirusCure, pendingHitchCart, startHitching, cancelHitching, confirmHitch, unhitchWagon]);
 
   return (
     <InventoryContext.Provider value={contextValue}>
