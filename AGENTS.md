@@ -1,10 +1,10 @@
 # AGENTS.md
 
-This file is a quick-start guide for AI coding agents working on **Zombie Road**, a turn-based zombie survival game. It is a single-page reference covering the project's stack, structure, build/test commands, architecture, conventions, and security model. Read it before making non-trivial changes.
+This file is a quick-start guide for AI coding agents working on **Icon Zombie**, a turn-based zombie survival game. It is a single-page reference covering the project's stack, structure, build/test commands, architecture, conventions, and security model. Read it before making non-trivial changes.
 
 ## 1. Project Overview
 
-- **Name:** `zombie-road` (product name: *Zombie Road*)
+- **Name:** `icon-zombie` (product name: *Icon Zombie*)
 - **Version:** 1.0.0
 - **License:** MIT
 - **Genre:** Turn-based zombie survival / tactical RPG
@@ -136,7 +136,7 @@ npm run ap-economy       # node test/balance/apEconomy.mjs
 
 - **Electron packaging (`package.json` `build` block)**
   - Output dir: `dist-electron/`
-  - `appId`: `com.zombieroad.zombieroad`
+  - `appId`: `com.iconzombie.iconzombie`
   - Windows targets: `nsis` installer + `portable` x64.
   - Icon: `client/public/images/entities/zombie256.png`.
   - Extra files copied into the package: `dist/` → `app/`, `client/public/images` → `resources/images/`.

@@ -37,31 +37,36 @@ export default function ScreenScaler({ children }: ScreenScalerProps) {
     }
   }, []);
 
-  if (!scaleMode) {
-    return (
-      <div className="w-full h-full relative overflow-hidden bg-background">
-        {children}
-      </div>
-    );
-  }
-
-  const scale = Math.min(windowSize.width / DESIGN_WIDTH, windowSize.height / DESIGN_HEIGHT);
+  // NOTE: both modes must render the SAME element structure. Swapping between a
+  // one-div and a two-div tree makes React unmount/remount the entire game
+  // (destroying the engine + every provider), which strands the app on the
+  // "Loading game..." screen until a full restart.
+  const scale = scaleMode
+    ? Math.min(windowSize.width / DESIGN_WIDTH, windowSize.height / DESIGN_HEIGHT)
+    : 1;
   const scaledWidth = DESIGN_WIDTH * scale;
   const scaledHeight = DESIGN_HEIGHT * scale;
-  const left = (windowSize.width - scaledWidth) / 2;
-  const top = (windowSize.height - scaledHeight) / 2;
+  const left = scaleMode ? (windowSize.width - scaledWidth) / 2 : 0;
+  const top = scaleMode ? (windowSize.height - scaledHeight) / 2 : 0;
 
   return (
-    <div 
-      className="w-full h-full bg-black overflow-hidden relative select-none"
-      style={{ width: `${windowSize.width}px`, height: `${windowSize.height}px` }}
+    <div
+      className={`overflow-hidden relative ${scaleMode ? 'bg-black select-none' : 'bg-background'}`}
+      style={
+        scaleMode
+          ? { width: `${windowSize.width}px`, height: `${windowSize.height}px` }
+          : { width: '100%', height: '100%' }
+      }
     >
       <div
         className="origin-top-left absolute overflow-hidden bg-background"
         style={{
-          width: `${DESIGN_WIDTH}px`,
-          height: `${DESIGN_HEIGHT}px`,
-          transform: `scale(${scale})`,
+          width: scaleMode ? `${DESIGN_WIDTH}px` : '100%',
+          height: scaleMode ? `${DESIGN_HEIGHT}px` : '100%',
+          // Responsive mode must NOT set a transform: a transform (even scale(1))
+          // turns this div into the containing block for `position: fixed`
+          // descendants, which every modal/overlay in the game relies on.
+          transform: scaleMode ? `scale(${scale})` : undefined,
           left: `${left}px`,
           top: `${top}px`,
         }}

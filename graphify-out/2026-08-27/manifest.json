@@ -640,13 +640,13 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1787814663.9842377,
-    "ast_hash": "24da79c3248dacc2dc4e692b1cff4e79",
+    "mtime": 1787816249.7816217,
+    "ast_hash": "7507f44976e5a3bcab108c3f5d346ef5",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
-    "mtime": 1787815912.8947015,
-    "ast_hash": "63ebdb97df24c027f3807bb5a1cc1505",
+    "mtime": 1787816215.6814244,
+    "ast_hash": "36a1277f907cc954eee03b907c97540d",
     "semantic_hash": ""
   },
   "client/src/contexts/GridSizeContext.tsx": {
@@ -705,8 +705,8 @@
     "semantic_hash": ""
   },
   "client/src/game/GameEngine.js": {
-    "mtime": 1787815912.8927023,
-    "ast_hash": "f761c76b047523b16ebad25d044a26dc",
+    "mtime": 1787816200.8845305,
+    "ast_hash": "315adfc4bfaf6612f2c1b359df3550af",
     "semantic_hash": ""
   },
   "client/src/game/GameInitializationManager.js": {
@@ -715,8 +715,8 @@
     "semantic_hash": ""
   },
   "client/src/game/GameSaveSystem.js": {
-    "mtime": 1787815912.893705,
-    "ast_hash": "29b794e1a54fcba0d4c79c153342444d",
+    "mtime": 1787816200.8855302,
+    "ast_hash": "22721ccb6c7d95239291158e875bcf5b",
     "semantic_hash": ""
   },
   "client/src/game/ScenarioStorage.js": {
@@ -3485,8 +3485,8 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/WagonSystem.js": {
-    "mtime": 1785980821.3097506,
-    "ast_hash": "ba8aaf16cb2c08217e1a1bafe232c938",
+    "mtime": 1787816249.7796175,
+    "ast_hash": "b19e7213c82ab0aaaa753e6ee6c6d99b",
     "semantic_hash": ""
   },
   "test/remote/autoWagonSleep.test.js": {
@@ -3770,13 +3770,23 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteLink.js": {
-    "mtime": 1787815912.8947015,
-    "ast_hash": "24e45a95ec9532dc3de2edfb62c60ecb",
+    "mtime": 1787816249.7806187,
+    "ast_hash": "0e8c9d639b94fb8c7a9c71ecd61951fe",
     "semantic_hash": ""
   },
   "test/remote/remoteLink.test.js": {
-    "mtime": 1787815934.8907585,
-    "ast_hash": "415c40d89492b10e5244a57670784c05",
+    "mtime": 1787816269.019819,
+    "ast_hash": "4e5bbb9c0d6a6c483303209d1093c965",
+    "semantic_hash": ""
+  },
+  "client/src/game/remote/DeviceControlMode.js": {
+    "mtime": 1787816179.1486962,
+    "ast_hash": "07a2fd10f113b0732bfd9d3aaedffe0d",
+    "semantic_hash": ""
+  },
+  "test/remote/deviceControlMode.test.js": {
+    "mtime": 1787816296.8242216,
+    "ast_hash": "9e01c40ecf1c79d35187342688b42b54",
     "semantic_hash": ""
   }
 }

@@ -1,4 +1,4 @@
-# Testing Strategy Plan — Headless Verification for Zombie Road
+# Testing Strategy Plan — Headless Verification for Icon Zombie
 
 **Status:** Phase 1 in progress · **Created:** 2026-07-15 · **Owner:** rghavlin
 

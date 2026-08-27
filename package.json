@@ -1,8 +1,8 @@
 {
-  "name": "zombie-road",
+  "name": "icon-zombie",
   "version": "1.0.0",
   "description": "Turn-based zombie survival game",
-  "author": "Zombie Road Developers",
+  "author": "Icon Zombie Developers",
   "type": "module",
   "license": "MIT",
   "scripts": {
@@ -110,8 +110,8 @@
   },
   "main": "electron/main.js",
   "build": {
-    "appId": "com.zombieroad.zombieroad",
-    "productName": "Zombie Road",
+    "appId": "com.iconzombie.iconzombie",
+    "productName": "Icon Zombie",
     "directories": {
       "output": "dist-electron",
       "buildResources": "build"

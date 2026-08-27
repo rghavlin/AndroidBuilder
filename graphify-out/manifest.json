@@ -215,9 +215,9 @@
     "semantic_hash": "799fbf41dbd5f2c11fbe7441dbf6bc49"
   },
   "client/src/components/Game/ScreenScaler.tsx": {
-    "mtime": 1779874269.0167913,
-    "ast_hash": "ecfc5a8fce24dab83867ca7616641ff8",
-    "semantic_hash": "ecfc5a8fce24dab83867ca7616641ff8"
+    "mtime": 1787820006.7965152,
+    "ast_hash": "27b5ce6c9aa18f8bd9702a783e1825d3",
+    "semantic_hash": ""
   },
   "client/src/components/Game/SleepModal.tsx": {
     "mtime": 1783132720.0266635,
@@ -230,8 +230,8 @@
     "semantic_hash": "26537d0729e6327669a81edf23bf6c6e"
   },
   "client/src/components/Game/StartMenu.tsx": {
-    "mtime": 1784715553.9074342,
-    "ast_hash": "f639005952175b58ae62c3f5b958abcf",
+    "mtime": 1787817585.6503391,
+    "ast_hash": "db57a64e65db025e51a74d42aa5b99b8",
     "semantic_hash": ""
   },
   "client/src/components/Game/StartModeDialog.tsx": {
@@ -3105,18 +3105,18 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/StartMenuButtons.tsx": {
-    "mtime": 1785822784.6323233,
-    "ast_hash": "a7a2443e4a7286749df6de143e53069d",
+    "mtime": 1787817580.538422,
+    "ast_hash": "bbea98220c29086a53ff6dfebf241cef",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.editor.json": {
-    "mtime": 1785890020.068865,
-    "ast_hash": "c753eaa233b0987af74de79ff9b97e48",
+    "mtime": 1787818557.1147332,
+    "ast_hash": "6f8bcf0b6627607eee18b7d84f02048c",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.scenario.json": {
-    "mtime": 1785890014.367017,
-    "ast_hash": "ff3477216ad4a149416db650f35aa820",
+    "mtime": 1787818557.9059143,
+    "ast_hash": "bb4587870134301bdf3f886a9461330d",
     "semantic_hash": ""
   },
   "test/ai/aiStateTransitions.test.js": {

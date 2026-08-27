@@ -58,6 +58,19 @@ function hardenWindow(win) {
     const allowed = url.startsWith('http://localhost:5000') || url.startsWith('file://');
     if (!allowed) event.preventDefault();
   });
+
+  if (!isDev) {
+    // Prevent opening dev tools via keyboard shortcuts in production
+    win.webContents.on('before-input-event', (event, input) => {
+      if (
+        input.key === 'F12' ||
+        ((input.control || input.meta) && input.shift && (input.key.toLowerCase() === 'i' || input.key.toLowerCase() === 'j')) ||
+        ((input.control || input.meta) && input.key.toLowerCase() === 'u')
+      ) {
+        event.preventDefault();
+      }
+    });
+  }
 }
 
 function createWindow() {
@@ -75,7 +88,7 @@ function createWindow() {
     icon: isDev 
       ? path.join(__dirname, '../client/public/images/entities/zombie.png')
       : path.join(__dirname, '../dist/images/entities/zombie.png'),
-    title: 'Zombie Road',
+    title: 'Icon Zombie',
     show: false,
     titleBarStyle: 'default'
   });
@@ -148,11 +161,7 @@ function createWindow() {
   } else {
     // In production, load from the dist folder
     const htmlPath = path.join(__dirname, '..', 'dist', 'index.html');
-    if (isDev) console.log('Loading HTML from:', htmlPath);
     mainWindow.loadFile(htmlPath);
-    // [TEMP DIAGNOSTIC] kept for ONE verification build so any residual packaged
-    // error is visible. Remove this line once the packaged launch is confirmed working.
-    mainWindow.webContents.openDevTools();
   }
 
   hardenWindow(mainWindow);
@@ -331,7 +340,7 @@ ipcMain.handle('open-game-window', async () => {
       enableRemoteModule: false,
       preload: path.join(__dirname, 'preload.js')
     },
-    title: 'Zombie Road',
+    title: 'Icon Zombie',
     show: false,
   });
 
@@ -378,7 +387,7 @@ ipcMain.handle('open-editor-window', async () => {
       enableRemoteModule: false,
       preload: path.join(__dirname, 'preload.js')
     },
-    title: 'Zombie Road — Map Editor',
+    title: 'Icon Zombie — Map Editor',
     show: false,
   });
 
@@ -517,7 +526,5 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Remove default menu on Windows
-if (process.platform === 'win32') {
-  Menu.setApplicationMenu(null);
-}
+// Remove default menu
+Menu.setApplicationMenu(null);

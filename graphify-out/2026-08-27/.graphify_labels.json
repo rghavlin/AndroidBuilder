@@ -177,14 +177,8 @@
   "175": "verify_saveload.mjs",
   "176": "TestMapBuilder",
   "177": "Drone",
-  "178": "corridorGenerator.test.js",
-  "179": ".generateFromScenario",
   "181": ".addEntity",
   "182": "MapMetadata.js",
   "185": "npcLoadout.test.js",
-  "186": "stairsTransition.test.js",
-  "187": "verify_army_tent.js",
-  "188": "tmp_verify_fix.js",
-  "190": "scenarioFurniture.test.js",
   "194": "TileRenderer.js"
 }

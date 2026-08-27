@@ -1,6 +1,6 @@
 # Overview
 
-Zombie Road is a turn-based zombie survival game built as a React web application with Express.js backend. The project is currently in Phase 1, focusing on creating the main game screen layout with proper responsive design. The application features a tile-based map system and grid-based inventory management, designed to be deployed via Electron for Windows.
+Icon Zombie is a turn-based zombie survival game built as a React web application with Express.js backend. The project is currently in Phase 1, focusing on creating the main game screen layout with proper responsive design. The application features a tile-based map system and grid-based inventory management, designed to be deployed via Electron for Windows.
 
 The current implementation provides a complete UI framework with a 50/50 split layout between map interface and inventory management, along with game controls and player statistics. No game logic is implemented yet - this phase focuses purely on visual structure and responsive design.
 
