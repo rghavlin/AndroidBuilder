@@ -38,9 +38,9 @@ import GameEvents, { GAME_EVENT } from '../game/utils/GameEvents.js';
 import { getHourFromTurn } from '../game/utils/TimeUtils.js';
 import { TestEntity, Item as LegacyItem } from '../game/entities/TestEntity.js';
 import * as RemoteDeviceRegistry from '../game/remote/RemoteDeviceRegistry.js';
-import { consumePhoneChargeOncePerTurn } from '../game/remote/DronePower.js';
-import { setPhonePower, phoneBlockedReason } from '../game/phone/Phone.js';
-import { hasAutonomy } from '../game/remote/RemoteDeviceKinds.js';
+import { linkDevice } from '../game/remote/RemoteLink.js';
+import { getControlMode, setControlMode } from '../game/remote/DeviceControlMode.js';
+import { processPhoneTurn } from '../game/phone/PhoneTurn.js';
 
 const GameContext = createContext();
 
@@ -396,84 +396,27 @@ const GameContextInner = ({ children }) => {
   const activeDeviceId = engine.activeDeviceId;
   // Read through the context (rather than off the engine) so the phone's
   // context menu re-renders when the mode changes and its checkmark moves.
-  const deviceControlMode = engine.deviceControlMode;
+  const deviceControlMode = getControlMode(engine);
 
-  // "Remote control" / "Autonomous control" on the phone's context menu. The
-  // engine is the source of truth because GameMapContext's click handler reads
-  // it directly, outside React's render cycle.
+  // "Remote control" / "Autonomous control" on the phone's context menu, which
+  // sets the mode of the LINKED device — each one remembers its own. The engine
+  // is the source of truth because GameMapContext's click handler reads it
+  // directly, outside React's render cycle.
   const setDeviceControlMode = useCallback((mode) => {
-    engine.deviceControlMode = mode;
+    setControlMode(engine, mode);
     if (mode === 'auto') {
       addLog('Pick a destination for the wagon.', 'info');
     }
     engine.notifyUpdate();
   }, [addLog]);
 
-  // Link the phone to one remote device, by key. The phone's device list is
-  // the only caller: picking a device is what links it.
-  //
-  // Linking only VIEWS a device. A grounded drone is simply snapped to (it
-  // stays powered down and contributes no vision); putting it in the air is
-  // the separate, explicit "Launch drone" command. Camera target IS control
-  // target — GameMapContext's click-to-move reads engine.activeDeviceId.
-  //
-  // Pass null to hand control back to the player. That is always allowed and
-  // always free: a dead phone must never strand the camera on a device.
+  // The phone's device list and its hang-up button. The rules live in
+  // game/remote/RemoteLink.js; what belongs here is the log and the sound.
   const selectRemoteDevice = useCallback((key) => {
-    if (!engine.player || !engine.gameMap) return { success: false };
-
-    if (key === null) {
-      const wasLinked = engine.activeDeviceId !== null;
-      engine.activeDeviceId = null;
-      if (engine.camera) {
-        const focus = RemoteDeviceRegistry.focusPointOf(null, engine);
-        engine.camera.centerOn(focus.x, focus.y);
-      }
-      if (wasLinked) addLog('You take back control.', 'info');
-      engine.notifyUpdate();
-      return { success: true };
-    }
-
-    const blocked = phoneBlockedReason(engine);
-    if (blocked) {
-      addLog(blocked, 'error');
-      playSound('Fail');
-      return { success: false, reason: blocked };
-    }
-
-    const target = RemoteDeviceRegistry.listControllables(engine).find(d => d.key === key);
-    if (!target) {
-      addLog('That device no longer answers.', 'error');
-      playSound('Fail');
-      return { success: false, reason: 'Gone' };
-    }
-
-    consumePhoneChargeOncePerTurn(engine);
-    engine.activeDeviceId = key;
-    // Every link starts in plain remote control. Autonomous targeting is armed
-    // deliberately, one destination at a time, so it can never be the mode a
-    // stray click lands in.
-    engine.deviceControlMode = 'remote';
-
-    // focusPointOf, not the device's own x/y: a device at the player's feet is
-    // an Item in the ground container whose x/y are cells inside that container,
-    // not map tiles. Reading them directly sent the camera to (0, 0).
-    if (engine.camera) {
-      const focus = RemoteDeviceRegistry.focusPointOf(target, engine);
-      engine.camera.centerOn(focus.x, focus.y);
-    }
-
-    if (target.kind === 'rc-vehicle') {
-      const autonomous = hasAutonomy(target.item);
-      addLog(autonomous
-        ? `Linked to the ${target.item.name}. Click a tile to drive it, or right-click the phone to send it on its own.`
-        : `Linked to the ${target.item.name}. Click a tile to drive it.`, 'info');
-    } else if (target.kind === 'drone-ground') {
-      addLog('Linked to a grounded drone. Right-click the phone to launch it.', 'info');
-    }
-
-    engine.notifyUpdate();
-    return { success: true };
+    const result = linkDevice(engine, key);
+    if (result.message) addLog(result.message, result.tone);
+    if (!result.success) playSound('Fail');
+    return result;
   }, [addLog, playSound]);
 
   // "Launch drone" on the phone's context menu: puts the currently-viewed
@@ -818,23 +761,10 @@ const GameContextInner = ({ children }) => {
       }
     }
 
-    // Phone consumption — at most one charge per turn (consumePhoneChargeOncePerTurn's
-    // turn-stamp guard), and only while the phone is switched ON and the player
-    // has a device airborne or is actively linked to one. A phone in the pocket
-    // powered down costs nothing. If it dies, drones stay airborne on their own
-    // batteries and an RC wagon stays where it is, but control/vision through
-    // either is lost until the phone is recharged and switched back on.
-    if (engine.isPhoneOn &&
-        (RemoteDeviceRegistry.listDevices(engine.gameMap, player.id).length > 0 || engine.activeDeviceId)) {
-      const phoneCharged = consumePhoneChargeOncePerTurn(engine);
-      if (!phoneCharged) {
-        // A dead battery is the same event as pressing the power button off:
-        // the screen goes dark and every link with it.
-        const { linkDropped } = setPhonePower(engine, false);
-        if (linkDropped) engine.camera?.centerOn(player.x, player.y);
-        addLog('The phone has died. You lose contact with your remote devices.', 'warning');
-      }
-    }
+    // Phone upkeep. The rules live in game/phone/PhoneTurn.js so the headless
+    // harness runs the same step the game does; all that belongs here is the log.
+    const phoneTurn = processPhoneTurn(engine);
+    if (phoneTurn.message) addLog(phoneTurn.message, 'warning');
 
     // Survival penalties
     if (player.nutrition === 0) {

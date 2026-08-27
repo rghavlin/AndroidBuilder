@@ -4,6 +4,7 @@ import { CharacterRegistry } from './CharacterRegistry.js';
 import eventRunner from './quest/EventRunner.js';
 import { FactionRegistry } from './ai/FactionRegistry.js';
 import { serializeOrders } from './remote/AutoWagonOrders.js';
+import { serializeControlModes } from './remote/DeviceControlMode.js';
 import { ensurePhone } from './phone/Phone.js';
 
 export const DEFAULT_PLAYER_STATS = {
@@ -317,6 +318,7 @@ export class GameSaveSystem {
           isFlashlightOn: engine.isFlashlightOn,
           isPhoneOn: engine.isPhoneOn,
           activeDeviceId: engine.activeDeviceId,
+          deviceControlModes: serializeControlModes(engine),
           autoWagonOrders: serializeOrders(engine),
           phoneChargeTurn: engine._phoneChargeTurn,
           dragging: (engine.dragging && engine.dragging.item) ? {

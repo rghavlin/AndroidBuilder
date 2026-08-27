@@ -11,6 +11,7 @@ import { getSightRangeForHour, getEffectiveHour, getLightMode, isNightHour, MAX_
 import { getHourFromTurn } from './utils/TimeUtils.js';
 import * as DroneVision from './remote/DroneVision.js';
 import { restoreOrders } from './remote/AutoWagonOrders.js';
+import { restoreControlModes } from './remote/DeviceControlMode.js';
 import { phoneCharges } from './phone/Phone.js';
 
 
@@ -114,12 +115,11 @@ class GameEngine extends SafeEventEmitter {
     // How many remote-device tweens are in flight. Reference counted because
     // playback lanes run concurrently — see remote/RemoteTween.js.
     this._deviceTweenCount = 0;
-    // Which verb a click on the map issues to the linked device: 'remote' drives
-    // it here and now for player AP, 'auto' hands it a destination to reach on
-    // its own turns. Transient and never saved — a control mode outliving the
-    // session that set it would silently re-task a wagon on the next stray
-    // click. See remote/AutoWagonOrders.js.
-    this.deviceControlMode = 'remote';
+    // How each remote device is driven ('remote' by hand, 'auto' by standing
+    // order), keyed by device instanceId — the player's choice belongs to the
+    // wagon they made it for, and survives re-linking and reloading. Owned by
+    // remote/DeviceControlMode.js; never read this map directly.
+    this._deviceControlModes = new Map();
     // Standing orders for autonomous wagons, keyed by item instanceId. A side
     // table rather than a field on each wagon because the on-map save path
     // serializes items through a whitelist that would drop it — see the module
@@ -341,9 +341,11 @@ class GameEngine extends SafeEventEmitter {
           .some(it => it?.instanceId === savedDeviceId)
       );
       this.activeDeviceId = deviceExists ? savedDeviceId : null;
+      // Per-device control choices, restored as the player left them. Both this
+      // and restoreOrders below drop keys whose wagon no longer exists.
+      restoreControlModes(this, gameObjects.interactionState.deviceControlModes);
       // Same both-homes validation, applied per order: a marker for a wagon
       // that was scrapped three saves ago would sit on the map forever.
-      this.deviceControlMode = 'remote';
       restoreOrders(this, gameObjects.interactionState.autoWagonOrders);
       this._phoneChargeTurn = gameObjects.interactionState.phoneChargeTurn ?? null;
       // A phone can't be on with a dead battery — a save written before the

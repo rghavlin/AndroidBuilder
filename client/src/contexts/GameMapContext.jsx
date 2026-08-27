@@ -15,6 +15,7 @@ import * as RcVehicleMovement from '../game/remote/RcVehicleMovement.js';
 import { getActiveRcVehicle, getAutonomousVehicle } from '../game/remote/RcVehicle.js';
 import * as AutoWagonOrders from '../game/remote/AutoWagonOrders.js';
 import { findRcPath } from '../game/remote/RcPathing.js';
+import { getControlMode } from '../game/remote/DeviceControlMode.js';
 
 const GameMapContext = createContext();
 
@@ -86,13 +87,13 @@ export const GameMapProvider = ({ children }) => {
     if (engine.activeDeviceId) {
       if (getActiveDevice(engine)) {
         await DroneMovement.moveActiveDevice(x, y, engine);
-      } else if (engine.deviceControlMode === 'auto' && getAutonomousVehicle(engine)) {
-        // Autonomous mode: the click sets a destination rather than spending the
-        // player's AP now. One click, one order — drop straight back to remote
-        // so the next click doesn't silently re-task the wagon.
+      } else if (getControlMode(engine) === 'auto' && getAutonomousVehicle(engine)) {
+        // Autonomous mode: the click sets a destination rather than spending
+        // the player's AP now. The mode stays where the player put it, so
+        // every further click re-tasks the wagon until they switch back to
+        // remote from the phone's menu.
         const result = AutoWagonOrders.setDestination(x, y, engine);
         addLog(result.message, result.success ? 'info' : 'error');
-        if (result.success) engine.deviceControlMode = 'remote';
         engine.notifyUpdate?.();
       } else if (getActiveRcVehicle(engine)) {
         const result = await RcVehicleMovement.driveActiveVehicle(x, y, engine);
@@ -190,7 +191,7 @@ export const GameMapProvider = ({ children }) => {
 
     // Arming an autonomous destination: the wagon pays, not the player, so the
     // useful number is how long the trip takes rather than what it costs.
-    if (engine.activeDeviceId && engine.deviceControlMode === 'auto' && getAutonomousVehicle(engine)) {
+    if (engine.activeDeviceId && getControlMode(engine) === 'auto' && getAutonomousVehicle(engine)) {
       if (!targetTile) { setHoveredTile(null); return; }
       const device = getAutonomousVehicle(engine);
       const path = findRcPath(device.x, device.y, x, y, engine, device.item.instanceId);

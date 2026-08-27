@@ -170,9 +170,15 @@
   "168": "Vite Electron Configuration",
   "169": ".addEntity",
   "170": "test_noise_assert.js",
-  "171": "verify_saveload.mjs",
-  "172": "isIndoorFloor",
+  "171": "tmp_verify_loot.js",
+  "172": "tmp_verify_loot_summary.js",
+  "173": "test_noise.js",
+  "174": "test_noise_assert.js",
+  "175": "verify_saveload.mjs",
   "176": "TestMapBuilder",
-  "177": "index.js",
+  "177": "Drone",
+  "181": ".addEntity",
+  "182": "MapMetadata.js",
+  "185": "npcLoadout.test.js",
   "194": "TileRenderer.js"
 }

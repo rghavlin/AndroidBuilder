@@ -4,6 +4,7 @@ import { hasAutonomy } from '../remote/RemoteDeviceKinds.js';
 import { findRcPath, sliceLegByAp } from '../remote/RcPathing.js';
 import { relocateWagon } from '../remote/RcVehiclePlacement.js';
 import { getOrders, clearOrder } from '../remote/AutoWagonOrders.js';
+import { clearControlMode } from '../remote/DeviceControlMode.js';
 
 /**
  * The wagons' turn. Every wagon carrying an autonomous controller and holding a
@@ -57,6 +58,7 @@ export class WagonSystem {
     // Also covers a controller swapped back out for a plain receiver.
     if (!device || !hasAutonomy(device.item)) {
       clearOrder(engine, key);
+      clearControlMode(engine, key);
       return;
     }
 

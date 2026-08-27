@@ -23,6 +23,10 @@
 //               sling ammo, scope/laser sight and suppressor noise included.
 //   - endTurn -> SimulationManager.runTurn (authoritative enemy/AI turn) plus a
 //               distilled version of GameContext.simulateTurn's player upkeep.
+//               The phone's share of that upkeep is NOT distilled: it calls
+//               phone/PhoneTurn.processPhoneTurn, the same engine module the
+//               game calls. harness.turn IS engine.turn, so the once-per-turn
+//               charge stamp advances here exactly as it does in a real game.
 //
 // Melee and ranged used to be hand-written COPIES of the CombatContext logic, and
 // they had drifted badly (no burst, no sling, no attachments, no degradation, no
@@ -55,6 +59,7 @@ import { Item } from '../../client/src/game/inventory/Item.js';
 import { ItemTrait, ItemCategory } from '../../client/src/game/inventory/traits.js';
 import { LineOfSight } from '../../client/src/game/utils/LineOfSight.js';
 import engine from '../../client/src/game/GameEngine.js';
+import { processPhoneTurn } from '../../client/src/game/phone/PhoneTurn.js';
 
 // The UI's unarmed pseudo-weapon (ActionSlotButton.tsx). Used when the player
 // has nothing equipped in the melee slot.
@@ -84,6 +89,15 @@ export class GameHarness {
     this.gameMap = null;
     this.player = null;
   }
+
+  /**
+   * The turn number, which IS engine.turn — there is only one clock. Anything
+   * keyed to the turn (phone upkeep, FOV caching, the hour of day) reads the
+   * engine's, so a harness-local counter would drift away from the world the
+   * tests are driving.
+   */
+  get turn() { return engine.turn; }
+  set turn(value) { engine.turn = value; }
 
   /** Build a clean minimal world and wire up the engine singleton. */
   bootstrap() {
@@ -446,6 +460,11 @@ export class GameHarness {
     // Any entity killed during playback (e.g. the player is handled by callers;
     // a downed NPC) is cleaned up + drops loot, mirroring the sim's death checks.
     SimulationManager.checkAndProcessDeaths(map, [...map.entityMap.values()], new IntentQueue(), [], player);
+
+    // Phone upkeep, the same call GameContext.simulateTurn makes. Runs before
+    // the turn advances, so the once-per-turn charge stamp lands on the turn
+    // being ended.
+    processPhoneTurn(engine);
 
     // Distilled AP refill: same injury penalty the game applies (missing HP / 5).
     const injuryPenalty = Math.floor(Math.max(0, (player.maxHp ?? 0) - (player.hp ?? 0)) / 5);
