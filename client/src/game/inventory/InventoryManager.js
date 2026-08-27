@@ -84,7 +84,6 @@ export class InventoryManager extends SafeEventEmitter {
       long_gun: null,
       flashlight: null,
       belt: null,
-      armor: null,
       phone: null
     };
 
@@ -2860,6 +2859,7 @@ export class InventoryManager extends SafeEventEmitter {
     // Restore equipment
     if (data.equipment) {
       for (const [slot, itemData] of Object.entries(data.equipment)) {
+        if (!manager.equipment.hasOwnProperty(slot)) continue;
         if (itemData) {
           const item = Item.fromJSON(itemData);
           manager.equipment[slot] = item;

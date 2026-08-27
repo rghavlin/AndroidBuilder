@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { ItemDefs } from '../../client/src/game/inventory/ItemDefs.js';
 import { CraftingRecipes } from '../../client/src/game/inventory/CraftingRecipes.js';
-import { ItemCategory, ItemTrait } from '../../client/src/game/inventory/traits.js';
+import { ItemCategory, ItemTrait, EquipmentSlot } from '../../client/src/game/inventory/traits.js';
+import { InventoryManager } from '../../client/src/game/inventory/InventoryManager.js';
 
 describe('ItemDefs & CraftingRecipes Schema Audit', () => {
   describe('ItemDefs Structural Verification', () => {
@@ -120,4 +121,32 @@ describe('ItemDefs & CraftingRecipes Schema Audit', () => {
       }
     });
   });
+
+  describe('Armor Item & Equipment Slot Policy', () => {
+    it('retains armor item definitions in ItemDefs', () => {
+      const expectedArmorIds = ['armor.padded', 'armor.leather', 'armor.metal'];
+      for (const id of expectedArmorIds) {
+        expect(ItemDefs[id], `Armor item "${id}" must exist in ItemDefs`).toBeDefined();
+        expect(ItemDefs[id].armor, `Armor item "${id}" must have an armor property`).toBeDefined();
+        expect(ItemDefs[id].armor.maxAbsorption, `Armor item "${id}" must define maxAbsorption`).toBeGreaterThan(0);
+      }
+    });
+
+    it('does not define an armor equipment slot', () => {
+      expect(EquipmentSlot.ARMOR).toBeUndefined();
+      expect(Object.values(EquipmentSlot)).not.toContain('armor');
+
+      const inv = new InventoryManager();
+      expect(inv.equipment.armor).toBeUndefined();
+      expect(Object.keys(inv.equipment)).not.toContain('armor');
+    });
+
+    it('does not contain any armor recipes in CraftingRecipes', () => {
+      const armorRecipes = CraftingRecipes.filter(
+        r => r.id?.startsWith('armor.') || r.resultItem?.startsWith('armor.') || ItemDefs[r.resultItem]?.categories?.includes(ItemCategory.ARMOR)
+      );
+      expect(armorRecipes).toEqual([]);
+    });
+  });
 });
+

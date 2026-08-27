@@ -91,6 +91,7 @@ describe('remote/DronePower — phone, once per turn', () => {
   function equipPhone(charge) {
     const phone = harness.equipItemDef('tool.smartphone', 'phone');
     phone.attachItem('battery', freshBattery(charge));
+    engine.isPhoneOn = true;
     return phone;
   }
 

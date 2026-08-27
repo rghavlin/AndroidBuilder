@@ -4,6 +4,7 @@ import { CharacterRegistry } from './CharacterRegistry.js';
 import eventRunner from './quest/EventRunner.js';
 import { FactionRegistry } from './ai/FactionRegistry.js';
 import { serializeOrders } from './remote/AutoWagonOrders.js';
+import { ensurePhone } from './phone/Phone.js';
 
 export const DEFAULT_PLAYER_STATS = {
   hp: 100,
@@ -314,6 +315,7 @@ export class GameSaveSystem {
           sleepingInWagonInstanceId: engine.sleepingInWagonInstanceId,
           targetingItemInstanceId: engine.targetingItemInstanceId,
           isFlashlightOn: engine.isFlashlightOn,
+          isPhoneOn: engine.isPhoneOn,
           activeDeviceId: engine.activeDeviceId,
           autoWagonOrders: serializeOrders(engine),
           phoneChargeTurn: engine._phoneChargeTurn,
@@ -414,6 +416,10 @@ export class GameSaveSystem {
         console.log('[GameSaveSystem] Restoring InventoryManager...');
         const { InventoryManager } = await import('./inventory/InventoryManager.js');
         inventoryManager = InventoryManager.fromJSON(saveData.inventoryManager);
+        // The phone is standard issue, but saves written before it became so
+        // have an empty phone slot no UI can ever fill again — grant one on
+        // the way in. No-op for every save that already has one.
+        ensurePhone(inventoryManager);
         console.log('[GameSaveSystem] InventoryManager restored successfully');
       }
 

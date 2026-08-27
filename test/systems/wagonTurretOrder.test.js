@@ -57,6 +57,7 @@ function equipChargedPhone() {
   phone.attachments = { battery };
   engine.inventoryManager.equipment.phone = phone;
   engine._phoneChargeTurn = null;
+  engine.isPhoneOn = true;
 }
 
 describe('wagon turn order vs turrets', () => {

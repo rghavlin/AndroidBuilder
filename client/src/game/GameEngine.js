@@ -11,6 +11,7 @@ import { getSightRangeForHour, getEffectiveHour, getLightMode, isNightHour, MAX_
 import { getHourFromTurn } from './utils/TimeUtils.js';
 import * as DroneVision from './remote/DroneVision.js';
 import { restoreOrders } from './remote/AutoWagonOrders.js';
+import { phoneCharges } from './phone/Phone.js';
 
 
 import { gameRandom } from './utils/SeededRandom.js';
@@ -97,6 +98,11 @@ class GameEngine extends SafeEventEmitter {
     this.isAutosaving = false;
     this.turn = 1;
     this.isFlashlightOn = false;
+    // Whether the phone is switched on. Separate from "a phone exists": the
+    // player always carries one (see phone/Phone.js), but it only answers
+    // commands while powered, and powering it on costs a charge. Persisted,
+    // because a phone left running overnight is a decision the player made.
+    this.isPhoneOn = false;
     // Remote-device camera/control focus (recon drone, later others). null =
     // the player is in control; otherwise the id of the Drone entity the
     // phone button last cycled to. See remote/RemoteDeviceRegistry.js.
@@ -340,6 +346,11 @@ class GameEngine extends SafeEventEmitter {
       this.deviceControlMode = 'remote';
       restoreOrders(this, gameObjects.interactionState.autoWagonOrders);
       this._phoneChargeTurn = gameObjects.interactionState.phoneChargeTurn ?? null;
+      // A phone can't be on with a dead battery — a save written before the
+      // battery ran out (or before isPhoneOn existed) must not restore into
+      // that state, and a powered-down phone holds no device link.
+      this.isPhoneOn = (gameObjects.interactionState.isPhoneOn ?? false) && phoneCharges(this) > 0;
+      if (!this.isPhoneOn) this.activeDeviceId = null;
       this.isSleeping = gameObjects.interactionState.isSleeping ?? false;
       this.sleepProgress = gameObjects.interactionState.sleepProgress ?? 0;
       this.sleepingInWagonInstanceId = gameObjects.interactionState.sleepingInWagonInstanceId ?? null;

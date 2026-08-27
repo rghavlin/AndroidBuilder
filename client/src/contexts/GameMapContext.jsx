@@ -80,7 +80,7 @@ export const GameMapProvider = ({ children }) => {
     if (!isPlayerTurn || isAutosaving || isMoving || isAnimatingZombies || engine.movementLocked) return;
 
     // While a remote device has camera/control focus, clicks drive it instead of
-    // the player — camera target IS control target (see cycleRemoteDevice).
+    // the player — camera target IS control target (see selectRemoteDevice).
     // Viewing a GROUNDED drone stays look-only: the camera is somewhere else
     // entirely, so a click must not walk the player toward it.
     if (engine.activeDeviceId) {

@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { useOverlays } from '../../contexts/OverlayContext';
 import InventoryExtensionWindow from './InventoryExtensionWindow';
+import PhoneWindow from './PhoneWindow';
 import { useGame } from '../../contexts/GameContext.jsx';
 import { useInventory } from '../../contexts/InventoryContext';
 import { TradeDialog } from './TradeDialog';
@@ -36,7 +37,8 @@ export default function OverlayManager() {
     tollGuard, setTollGuard,
     logHistoryOpen, setLogHistoryOpen,
     showMainMenu, setShowMainMenu,
-    isExtensionOpen, setIsExtensionOpen
+    isExtensionOpen, setIsExtensionOpen,
+    isPhoneOpen, setIsPhoneOpen
   } = useOverlays();
 
   const {
@@ -65,10 +67,10 @@ export default function OverlayManager() {
   // equipment slots, weapons, or the crafting extension window. Opening one of
   // these modal overlays is an unrelated action, so a lingering selection would
   // be stale — clear it, mirroring the map-click deselect in MapInterface.
-  // (isExtensionOpen and isSkillsOpen are intentionally excluded: the crafting UI
-  // is a valid drop target for a selected item, and the skills window only covers
-  // the map half while the inventory stays live — matching the carve-out on
-  // isModalBlocking in GameContext.)
+  // (isExtensionOpen, isPhoneOpen and isSkillsOpen are intentionally excluded: the
+  // crafting UI and the phone's battery slot are both valid drop targets for a
+  // selected item, and the skills window only covers the map half while the
+  // inventory stays live — matching the carve-out on isModalBlocking in GameContext.)
   const anyBlockingOverlay =
     showMainMenu || !!activeTradeNpc || isBartering || isShopOpen ||
     !!tollGuard || logHistoryOpen || isJournalOpen ||
@@ -245,6 +247,12 @@ export default function OverlayManager() {
             <InventoryExtensionWindow
               isOpen={true}
               onClose={() => setIsExtensionOpen(false)}
+            />
+          )}
+          {isPhoneOpen && (
+            <PhoneWindow
+              isOpen={true}
+              onClose={() => setIsPhoneOpen(false)}
             />
           )}
         </>,

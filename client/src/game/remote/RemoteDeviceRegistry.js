@@ -6,6 +6,7 @@ import { DroneConfig } from '../config/DroneConfig.js';
 import { consumeDeployCharge, droneChargesRemaining } from './DronePower.js';
 import { asItemInstance } from './RemoteItem.js';
 import { listRcVehicles } from './RcVehicle.js';
+import { phoneBlockedReason } from '../phone/Phone.js';
 
 /**
  * Umbrella layer for player-operated remote devices (recon drone today,
@@ -231,9 +232,11 @@ export function launch(candidate, engine) {
     return { success: false, reason: 'Engine not ready' };
   }
 
-  const phone = inv.equipment.phone;
-  if (!phone || (phone.getCharges?.() ?? 0) <= 0) {
-    return { success: false, reason: 'Equip a charged phone first' };
+  // The phone is always present now — what gates a launch is whether it is
+  // switched on with charge left.
+  const blocked = phoneBlockedReason(engine);
+  if (blocked) {
+    return { success: false, reason: blocked };
   }
 
   // Capture the tile BEFORE removing it from the map — it launches from where

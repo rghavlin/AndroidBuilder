@@ -551,9 +551,9 @@ export const ItemDefs = {
 
 
 
-  // Armor (crafted; single absorption pool, drains before HP, breaks at 0 —
+  // Armor (single absorption pool, drains before HP, breaks at 0 —
   // deliberately separate from clothing, which has no combat stats). Not
-  // placed in loot tables — crafted only, spawnable via dev console for now.
+  // placed in loot tables — spawnable via dev console for now.
   'armor.padded': {
     id: 'armor.padded',
     name: 'Padded Armor',
@@ -562,8 +562,7 @@ export const ItemDefs = {
     imageId: 'paddedarmor',
     width: 1,
     height: 1,
-    traits: [ItemTrait.EQUIPPABLE],
-    equippableSlot: EquipmentSlot.ARMOR,
+    traits: [],
     categories: [ItemCategory.ARMOR],
     armor: { maxAbsorption: 7, weightRequirement: 10 }
   },
@@ -576,8 +575,7 @@ export const ItemDefs = {
     imageId: 'leatherarmor',
     width: 1,
     height: 1,
-    traits: [ItemTrait.EQUIPPABLE],
-    equippableSlot: EquipmentSlot.ARMOR,
+    traits: [],
     categories: [ItemCategory.ARMOR],
     armor: { maxAbsorption: 13, weightRequirement: 25 }
   },
@@ -590,8 +588,7 @@ export const ItemDefs = {
     imageId: 'metalarmor',
     width: 1,
     height: 1,
-    traits: [ItemTrait.EQUIPPABLE],
-    equippableSlot: EquipmentSlot.ARMOR,
+    traits: [],
     categories: [ItemCategory.ARMOR],
     armor: { maxAbsorption: 20, weightRequirement: 50 }
   },

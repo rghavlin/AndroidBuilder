@@ -6,6 +6,7 @@ import { createItemFromDef } from '../../client/src/game/inventory/ItemDefs.js';
 import * as RemoteDeviceRegistry from '../../client/src/game/remote/RemoteDeviceRegistry.js';
 import * as RcVehicle from '../../client/src/game/remote/RcVehicle.js';
 import engine from '../../client/src/game/GameEngine.js';
+import { ensurePhone } from '../../client/src/game/phone/Phone.js';
 
 /** A toy wagon with one powered motor pair and a receiver fitted. */
 function makeRcWagon({ charge = 42, receiver = 'tool.rc_receiver' } = {}) {
@@ -26,6 +27,9 @@ describe('Serialization / RC wagon round trip', () => {
     harness = new GameHarness({ seed: 4, width: 30, height: 30, terrain: 'grass' }).bootstrap();
     const p = harness.player;
     engine.inventoryManager.syncWithMap(p.x, p.y, p.x, p.y, harness.gameMap);
+    // Restoring a device link needs a phone with charge to hold it — the real
+    // load path grants one before it syncs (GameSaveSystem), so mirror that.
+    ensurePhone(engine.inventoryManager);
   });
 
   it('preserves the receiver and exact battery charge for an on-map wagon', async () => {
@@ -52,7 +56,7 @@ describe('Serialization / RC wagon round trip', () => {
     const restoredMap = await GameMap.fromJSON(harness.gameMap.toJSON());
     engine.sync({
       gameMap: restoredMap,
-      interactionState: { activeDeviceId: wagon.instanceId, isPlayerTurn: true }
+      interactionState: { activeDeviceId: wagon.instanceId, isPhoneOn: true, isPlayerTurn: true }
     });
 
     expect(engine.activeDeviceId).toBe(wagon.instanceId);
@@ -78,7 +82,7 @@ describe('Serialization / RC wagon round trip', () => {
 
     engine.sync({
       gameMap: restoredMap,
-      interactionState: { activeDeviceId: carried.instanceId, isPlayerTurn: true }
+      interactionState: { activeDeviceId: carried.instanceId, isPhoneOn: true, isPlayerTurn: true }
     });
 
     expect(engine.activeDeviceId).toBe(carried.instanceId);

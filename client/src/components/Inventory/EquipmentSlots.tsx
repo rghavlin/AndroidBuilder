@@ -18,10 +18,10 @@ export default function EquipmentSlots() {
   const { addLog } = useLog();
 
 
-  // Match exact slots from InventoryManager.js (canonical seven slots)
-  // TEMPORARY: 'armor' is parked here so it's equippable at all before the
-  // Phase 6 Stats-tab UI exists. It belongs in the Stats tab (not this always
-  // -visible bar) once that lands — move it there, don't leave it here.
+  // Match exact slots from InventoryManager.js
+  // No phone slot: the player always carries one and can never take it off,
+  // so it is not something this bar equips. Its battery is swapped inside the
+  // phone window instead (components/Game/PhoneWindow.tsx).
   const equipmentSlots = [
     { id: 'backpack', name: 'Backpack', icon: '🎒' },
     { id: 'upper_body', name: 'Upper Body', icon: '👕' },
@@ -31,8 +31,6 @@ export default function EquipmentSlots() {
     { id: 'handgun', name: 'Handgun', icon: '🔫' },
     { id: 'long_gun', name: 'Long Gun', icon: '🔫' },
     { id: 'flashlight', name: 'Flashlight', icon: '🔦' },
-    { id: 'phone', name: 'Phone', icon: '📱' },
-    { id: 'armor', name: 'Armor', icon: '🛡️' },
   ];
 
   const handleSlotClick = (slotId: string) => {

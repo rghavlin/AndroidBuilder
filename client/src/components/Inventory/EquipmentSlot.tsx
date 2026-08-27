@@ -37,9 +37,7 @@ const SLOT_INFO: Record<string, { name: string; icon: string; imageId: string }>
   melee: { name: 'Melee', icon: '🔪', imageId: 'knife' },
   handgun: { name: 'Handgun', icon: '🔫', imageId: '9mm pistol' },
   long_gun: { name: 'Long Gun', icon: '🔫', imageId: 'huntingrifle' },
-  flashlight: { name: 'Flashlight', icon: '🔦', imageId: 'flashlight' },
-  phone: { name: 'Phone', icon: '📱', imageId: 'smartphone' },
-  armor: { name: 'Armor', icon: '🛡️', imageId: 'paddedarmor' },
+  flashlight: { name: 'Flashlight', icon: '🔦', imageId: 'flashlight' }
 };
 
 const EquipmentSlot = memo(({

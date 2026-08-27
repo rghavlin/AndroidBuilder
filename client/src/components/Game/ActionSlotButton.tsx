@@ -7,20 +7,21 @@ import { useItemImage } from '../../hooks/useItemImage';
 import { cn, isLightTheme } from "@/lib/utils";
 import { ItemTrait } from "@/game/inventory/traits";
 import { useTheme } from '../../contexts/ThemeContext';
+import { useOverlays } from '../../contexts/OverlayContext';
 
 interface ActionSlotButtonProps {
   slot: string;
   isFlashlightOnActual: boolean;
   isDeviceActive?: boolean;
-  cycleRemoteDevice?: () => void;
 }
 
-export const ActionSlotButton = ({ slot, isFlashlightOnActual, isDeviceActive = false, cycleRemoteDevice }: ActionSlotButtonProps) => {
+export const ActionSlotButton = ({ slot, isFlashlightOnActual, isDeviceActive = false }: ActionSlotButtonProps) => {
   const { inventoryRef, selectedItem, clearSelected } = useInventory();
   const { theme } = useTheme();
   const isLight = isLightTheme(theme);
   const { targetingWeapon, toggleTargeting } = useCombat();
-  const { toggleFlashlight, igniteTorch } = useGame();
+  const { toggleFlashlight, igniteTorch, selectRemoteDevice } = useGame();
+  const { setIsPhoneOpen } = useOverlays();
 
   // Get item from inventory
   const equippedItem = inventoryRef.current?.equipment?.[slot];
@@ -48,8 +49,14 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual, isDeviceActive = 
 
   const handleClick = () => {
     if (slot === 'phone') {
-      console.log(`[ActionSlot] Clicked phone: cycling remote device focus`);
-      cycleRemoteDevice?.();
+      // While the phone is steering something, the button is the hang-up: one
+      // press hands control back to the player, and it takes a second press to
+      // open the handset. Releasing is always free (see selectRemoteDevice).
+      if (isDeviceActive) {
+        selectRemoteDevice(null);
+      } else {
+        setIsPhoneOpen(true);
+      }
     } else if (slot === 'flashlight') {
       const isIgniter = selectedItem?.item?.defId === 'tool.lighter' || selectedItem?.item?.defId === 'tool.matchbook' || selectedItem?.item?.defId === 'tool.bowdrill';
       if (isIgniter && item && item.hasTrait?.(ItemTrait.IGNITABLE) && !item.isLit) {

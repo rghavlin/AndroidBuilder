@@ -3748,15 +3748,5 @@
     "mtime": 1787813134.295244,
     "ast_hash": "abcb29611a736b3437822b50a7b0b4eb",
     "semantic_hash": ""
-  },
-  "test/phone/phoneGating.test.js": {
-    "mtime": 1787813952.6219318,
-    "ast_hash": "e132650a7cba60d5ac9dd449c3f8652a",
-    "semantic_hash": ""
-  },
-  "test/phone/phoneMessages.test.js": {
-    "mtime": 1787813970.052488,
-    "ast_hash": "7003b8e38e739096eca9f473dc5920c2",
-    "semantic_hash": ""
   }
 }

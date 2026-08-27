@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
 interface OverlayContextType {
   activeTradeNpc: any | null;
@@ -16,6 +16,10 @@ interface OverlayContextType {
   // New flag for Inventory Extension Window
   isExtensionOpen: boolean;
   setIsExtensionOpen: (open: boolean) => void;
+  // The phone window shares the same half-screen panel as the crafting one,
+  // so the two are mutually exclusive — opening either closes the other.
+  isPhoneOpen: boolean;
+  setIsPhoneOpen: (open: boolean) => void;
   // Clear all overlays/menus
   resetAll: () => void;
 }
@@ -29,7 +33,18 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
   const [tollGuard, setTollGuard] = useState<any | null>(null);
   const [logHistoryOpen, setLogHistoryOpen] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
-  const [isExtensionOpen, setIsExtensionOpen] = useState(false);
+  const [isExtensionOpen, showExtension] = useState(false);
+  const [isPhoneOpen, showPhone] = useState(false);
+
+  // Only one of the two panels can occupy the map half at a time.
+  const setIsExtensionOpen = useCallback((open: boolean) => {
+    showExtension(open);
+    if (open) showPhone(false);
+  }, []);
+  const setIsPhoneOpen = useCallback((open: boolean) => {
+    showPhone(open);
+    if (open) showExtension(false);
+  }, []);
 
   const resetAll = () => {
     setActiveTradeNpc(null);
@@ -38,7 +53,8 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
     setTollGuard(null);
     setLogHistoryOpen(false);
     setShowMainMenu(false);
-    setIsExtensionOpen(false);
+    showExtension(false);
+    showPhone(false);
   };
 
   return (
@@ -57,6 +73,8 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
       setShowMainMenu,
       isExtensionOpen,
       setIsExtensionOpen,
+      isPhoneOpen,
+      setIsPhoneOpen,
       resetAll
     }}>
       {children}

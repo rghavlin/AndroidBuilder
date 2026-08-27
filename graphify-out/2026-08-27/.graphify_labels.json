@@ -172,6 +172,9 @@
   "170": "test_noise_assert.js",
   "171": "verify_saveload.mjs",
   "172": "isIndoorFloor",
+  "173": "droneMovement.test.js",
+  "174": "verify_army_tent.js",
+  "175": "tmp_verify_fix.js",
   "176": "TestMapBuilder",
   "177": "index.js",
   "194": "TileRenderer.js"

@@ -12,6 +12,8 @@ import engine from './GameEngine.js';
 import tradingSystem from './systems/TradingSystem.js';
 
 import { gameRandom } from './utils/SeededRandom.js';
+import { ensurePhone } from './phone/Phone.js';
+
 const INIT_STATES = {
   IDLE: 'idle',
   PRELOADING: 'preloading',
@@ -408,6 +410,12 @@ class GameInitializationManager extends EventEmitter {
             }
           }
         }
+
+        // Standard issue on every path, authored loadout included: the phone
+        // is a permanent fixture rather than a slot the player fills, so it
+        // is granted here and never equipped or removed again.
+        const phone = ensurePhone(inventoryManager);
+        if (phone) console.log('[GameInitializationManager] Equipped starting phone:', phone.name);
       } catch (err) {
         console.error('[GameInitializationManager] Failed to provide starting equipment:', err);
       }

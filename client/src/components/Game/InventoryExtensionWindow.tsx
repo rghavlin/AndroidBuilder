@@ -1,5 +1,5 @@
-import { GridSizeProvider } from "@/contexts/GridSizeContext";
 import CraftingUI from "@/components/Inventory/CraftingUI";
+import LeftPanelWindow from "./LeftPanelWindow";
 
 interface InventoryExtensionWindowProps {
   isOpen: boolean;
@@ -13,31 +13,8 @@ export default function InventoryExtensionWindow({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none">
-      {/* Backdrop covers only map area */}
-      <div
-        className="absolute left-0 w-1/2 bg-black/50 pointer-events-auto"
-        style={{
-          top: 'var(--header-height)',
-          bottom: 'var(--controls-height)'
-        }}
-        onClick={onClose}
-      />
-
-      {/* Extension panel */}
-      <GridSizeProvider>
-        <div
-          className="absolute left-0 w-1/2 bg-card border-r border-border flex flex-col overflow-hidden pointer-events-auto"
-          style={{
-            top: 'var(--header-height)',
-            bottom: 'var(--controls-height)'
-          }}
-          data-testid="inventory-extension-window"
-          data-inventory-ui="true"
-        >
-          <CraftingUI />
-        </div>
-      </GridSizeProvider>
-    </div>
+    <LeftPanelWindow onClose={onClose} testId="inventory-extension-window">
+      <CraftingUI />
+    </LeftPanelWindow>
   );
 }

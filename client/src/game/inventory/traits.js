@@ -21,7 +21,6 @@ export const EquipmentSlot = {
   LONG_GUN: 'long_gun',
   FLASHLIGHT: 'flashlight',
   BELT: 'belt',
-  ARMOR: 'armor',
   PHONE: 'phone'
 };
 
@@ -139,8 +138,7 @@ export const SlotDisplayName = {
   [EquipmentSlot.UPPER_BODY]: 'armor',
   [EquipmentSlot.LOWER_BODY]: 'armor',
   [EquipmentSlot.BACKPACK]: 'containers',
-  [EquipmentSlot.BELT]: 'misc',
-  [EquipmentSlot.ARMOR]: 'armor'
+  [EquipmentSlot.BELT]: 'misc'
 };
 
 // Priority order for sorting categories (lower is higher priority)

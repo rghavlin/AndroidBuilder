@@ -19,6 +19,9 @@ function freshBattery(charge = 20) {
 function equipPhone(harness, charge = 20) {
   const phone = harness.equipItemDef('tool.smartphone', 'phone');
   phone.attachItem('battery', freshBattery(charge));
+  // The phone is standard issue and starts switched off; every command path
+  // gates on it being powered (see game/phone/Phone.js).
+  engine.isPhoneOn = true;
   return phone;
 }
 

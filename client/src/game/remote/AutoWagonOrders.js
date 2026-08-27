@@ -2,6 +2,7 @@ import { RcVehicleConfig } from '../config/RcVehicleConfig.js';
 import { getRcVehicle, getAutonomousVehicle, driveBlockedReason } from './RcVehicle.js';
 import { findRcPath, countTurnsForPath } from './RcPathing.js';
 import { consumePhoneChargeOncePerTurn } from './DronePower.js';
+import { phoneBlockedReason } from '../phone/Phone.js';
 
 /**
  * Standing orders for autonomous wagons: "go here, take as many turns as you
@@ -65,6 +66,9 @@ export function estimateTurns(path, item, gameMap) {
 export function setDestination(x, y, engine) {
   const device = getAutonomousVehicle(engine);
   if (!device) return { success: false, message: 'No autonomous wagon linked' };
+
+  const phoneBlocked = phoneBlockedReason(engine);
+  if (phoneBlocked) return { success: false, message: phoneBlocked };
 
   const blocked = driveBlockedReason(device.item, engine);
   if (blocked) return { success: false, message: blocked };

@@ -39,6 +39,7 @@ import { getHourFromTurn } from '../game/utils/TimeUtils.js';
 import { TestEntity, Item as LegacyItem } from '../game/entities/TestEntity.js';
 import * as RemoteDeviceRegistry from '../game/remote/RemoteDeviceRegistry.js';
 import { consumePhoneChargeOncePerTurn } from '../game/remote/DronePower.js';
+import { setPhonePower, phoneBlockedReason } from '../game/phone/Phone.js';
 import { hasAutonomy } from '../game/remote/RemoteDeviceKinds.js';
 
 const GameContext = createContext();
@@ -408,43 +409,52 @@ const GameContextInner = ({ children }) => {
     engine.notifyUpdate();
   }, [addLog]);
 
-  // Phone action button: cycles the camera/control focus through the player's
-  // remote devices, then back to the player once the list is exhausted. Camera
-  // target IS control target — GameMapContext's click-to-move reads
-  // engine.activeDeviceId directly.
+  // Link the phone to one remote device, by key. The phone's device list is
+  // the only caller: picking a device is what links it.
   //
-  // Cycling only VIEWS a device. A grounded one is simply snapped to (it stays
-  // powered down and contributes no vision); putting it in the air is the
-  // separate, explicit "Launch drone" command on the phone's context menu.
-  const cycleRemoteDevice = useCallback(() => {
-    if (!engine.player || !engine.gameMap) return;
+  // Linking only VIEWS a device. A grounded drone is simply snapped to (it
+  // stays powered down and contributes no vision); putting it in the air is
+  // the separate, explicit "Launch drone" command. Camera target IS control
+  // target — GameMapContext's click-to-move reads engine.activeDeviceId.
+  //
+  // Pass null to hand control back to the player. That is always allowed and
+  // always free: a dead phone must never strand the camera on a device.
+  const selectRemoteDevice = useCallback((key) => {
+    if (!engine.player || !engine.gameMap) return { success: false };
 
-    const devices = RemoteDeviceRegistry.listControllables(engine);
-    if (devices.length === 0) {
-      if (engine.activeDeviceId !== null) {
-        engine.activeDeviceId = null;
-        engine.camera?.centerOn(engine.player.x, engine.player.y);
-        engine.notifyUpdate();
-      } else {
-        addLog('No deployed devices to control.', 'info');
+    if (key === null) {
+      const wasLinked = engine.activeDeviceId !== null;
+      engine.activeDeviceId = null;
+      if (engine.camera) {
+        const focus = RemoteDeviceRegistry.focusPointOf(null, engine);
+        engine.camera.centerOn(focus.x, focus.y);
       }
-      return;
+      if (wasLinked) addLog('You take back control.', 'info');
+      engine.notifyUpdate();
+      return { success: true };
     }
 
-    if (!consumePhoneChargeOncePerTurn(engine)) {
-      addLog('The phone has no charge.', 'error');
+    const blocked = phoneBlockedReason(engine);
+    if (blocked) {
+      addLog(blocked, 'error');
       playSound('Fail');
-      return;
+      return { success: false, reason: blocked };
     }
 
-    const nextKey = RemoteDeviceRegistry.cycleTarget(engine.activeDeviceId, devices);
-    engine.activeDeviceId = nextKey;
+    const target = RemoteDeviceRegistry.listControllables(engine).find(d => d.key === key);
+    if (!target) {
+      addLog('That device no longer answers.', 'error');
+      playSound('Fail');
+      return { success: false, reason: 'Gone' };
+    }
+
+    consumePhoneChargeOncePerTurn(engine);
+    engine.activeDeviceId = key;
     // Every link starts in plain remote control. Autonomous targeting is armed
     // deliberately, one destination at a time, so it can never be the mode a
     // stray click lands in.
     engine.deviceControlMode = 'remote';
 
-    const target = nextKey ? devices.find(d => d.key === nextKey) : null;
     // focusPointOf, not the device's own x/y: a device at the player's feet is
     // an Item in the ground container whose x/y are cells inside that container,
     // not map tiles. Reading them directly sent the camera to (0, 0).
@@ -452,16 +462,18 @@ const GameContextInner = ({ children }) => {
       const focus = RemoteDeviceRegistry.focusPointOf(target, engine);
       engine.camera.centerOn(focus.x, focus.y);
     }
-    if (target?.kind === 'rc-vehicle') {
+
+    if (target.kind === 'rc-vehicle') {
       const autonomous = hasAutonomy(target.item);
       addLog(autonomous
         ? `Linked to the ${target.item.name}. Click a tile to drive it, or right-click the phone to send it on its own.`
         : `Linked to the ${target.item.name}. Click a tile to drive it.`, 'info');
-    } else if (target?.kind === 'drone-ground') {
+    } else if (target.kind === 'drone-ground') {
       addLog('Linked to a grounded drone. Right-click the phone to launch it.', 'info');
     }
 
     engine.notifyUpdate();
+    return { success: true };
   }, [addLog, playSound]);
 
   // "Launch drone" on the phone's context menu: puts the currently-viewed
@@ -807,15 +819,19 @@ const GameContextInner = ({ children }) => {
     }
 
     // Phone consumption — at most one charge per turn (consumePhoneChargeOncePerTurn's
-    // turn-stamp guard), and only while the player has a device airborne or is
-    // actively linked to one. If it dies, drones stay airborne on their own
+    // turn-stamp guard), and only while the phone is switched ON and the player
+    // has a device airborne or is actively linked to one. A phone in the pocket
+    // powered down costs nothing. If it dies, drones stay airborne on their own
     // batteries and an RC wagon stays where it is, but control/vision through
-    // either is lost until the phone is recharged.
-    if (RemoteDeviceRegistry.listDevices(engine.gameMap, player.id).length > 0 || engine.activeDeviceId) {
+    // either is lost until the phone is recharged and switched back on.
+    if (engine.isPhoneOn &&
+        (RemoteDeviceRegistry.listDevices(engine.gameMap, player.id).length > 0 || engine.activeDeviceId)) {
       const phoneCharged = consumePhoneChargeOncePerTurn(engine);
-      if (!phoneCharged && engine.activeDeviceId) {
-        engine.activeDeviceId = null;
-        engine.camera?.centerOn(player.x, player.y);
+      if (!phoneCharged) {
+        // A dead battery is the same event as pressing the power button off:
+        // the screen goes dark and every link with it.
+        const { linkDropped } = setPhonePower(engine, false);
+        if (linkDropped) engine.camera?.centerOn(player.x, player.y);
         addLog('The phone has died. You lose contact with your remote devices.', 'warning');
       }
     }
@@ -1127,9 +1143,14 @@ const GameContextInner = ({ children }) => {
 
     console.log(`[GameContext] 💸 EXTORTER: NPC ${npc.id} is taking everything from ${player.id}`);
 
-    // 1. Unequip everything except upper/lower body
-    const slotsToStrip = Object.keys(inventoryManager.equipment).filter(slot => 
-      slot !== EquipmentSlot.UPPER_BODY && slot !== EquipmentSlot.LOWER_BODY
+    // 1. Unequip everything except upper/lower body and the phone. The phone
+    // is a fixture, not a slot the player fills — there is no equipment slot
+    // left to put a replacement in, so taking it would strand the action
+    // button on a handset the player can never get back.
+    const slotsToStrip = Object.keys(inventoryManager.equipment).filter(slot =>
+      slot !== EquipmentSlot.UPPER_BODY &&
+      slot !== EquipmentSlot.LOWER_BODY &&
+      slot !== EquipmentSlot.PHONE
     );
 
     slotsToStrip.forEach(slot => {
@@ -2233,7 +2254,7 @@ const GameContextInner = ({ children }) => {
     activeDeviceId,
     deviceControlMode,
     setDeviceControlMode,
-    cycleRemoteDevice,
+    selectRemoteDevice,
     launchActiveDevice,
     isPlayerTurn,
     setIsPlayerTurn,
@@ -2328,7 +2349,7 @@ const GameContextInner = ({ children }) => {
     activeDeviceId,
     deviceControlMode,
     setDeviceControlMode,
-    cycleRemoteDevice,
+    selectRemoteDevice,
     launchActiveDevice,
     isPlayerTurn,
     setIsPlayerTurn,

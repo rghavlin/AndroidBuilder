@@ -73,7 +73,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     isFlashlightOn,
     setIsFlashlightOn,
     activeDeviceId,
-    cycleRemoteDevice,
     checkZombieAwareness,
     isAnimatingZombies,
     isSkillsOpen,
@@ -182,7 +181,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
     isBartering, setIsBartering,
     isShopOpen, setIsShopOpen,
     tollGuard, setTollGuard,
-    isExtensionOpen, setIsExtensionOpen
+    isExtensionOpen, setIsExtensionOpen, isPhoneOpen
   } = useOverlays();
   const [doorMenu, setDoorMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, door: any } | null>(null);
   const [windowMenu, setWindowMenu] = useState<{ x: number, y: number, screenX: number, screenY: number, window: any } | null>(null);
@@ -582,7 +581,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                   slot={slot}
                   isFlashlightOnActual={isFlashlightOnActual}
                   isDeviceActive={!!activeDeviceId}
-                  cycleRemoteDevice={cycleRemoteDevice}
                 />
               ))}
             </div>
@@ -612,7 +610,6 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
                     slot={slot}
                     isFlashlightOnActual={isFlashlightOnActual}
                     isDeviceActive={!!activeDeviceId}
-                    cycleRemoteDevice={cycleRemoteDevice}
                   />
                 ))}
               </div>
@@ -725,6 +722,7 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
           // Do not show map tooltips if any overlay window/modal is active
           if (
             isExtensionOpen ||
+            isPhoneOpen ||
             isLogHistoryOpen ||
             showMainMenu ||
             activeTradeNpc ||
