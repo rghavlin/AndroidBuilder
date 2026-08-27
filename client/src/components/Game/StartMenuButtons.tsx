@@ -63,7 +63,7 @@ export default function StartMenuButtons({ className = '', isTransparentGround =
     checkSave();
   }, []);
 
-  const handleFreePlay = () => {
+  const handleNewGame = () => {
     setRegistryMode('select');
     setShowRegistry(true);
   };
@@ -106,7 +106,7 @@ export default function StartMenuButtons({ className = '', isTransparentGround =
       }));
       setPendingScenarioData(null);
     } else {
-      console.log('[StartMenuButtons] Starting Free Play with character:', character.name);
+      console.log('[StartMenuButtons] Starting New Game with character:', character.name);
       await initializeGame({ customStats: character });
     }
   };
@@ -145,26 +145,22 @@ export default function StartMenuButtons({ className = '', isTransparentGround =
 
   const buttons: MenuButtonDef[] = [
     {
-      id: 'load-game', image: 'loadgame', col: 1, row: 1, w: 2, h: 2,
-      tooltip: hasSave ? 'Load a saved game' : 'No save games available',
-      action: () => setShowLoadGame(true), disabled: !hasSave,
+      id: 'new-game', image: 'newgame', col: 1, row: 1, w: 2, h: 2,
+      tooltip: 'Start a new game', action: handleNewGame,
     },
     {
-      id: 'campaign', image: 'campaign', col: 3, row: 1, w: 2, h: 1,
-      tooltip: 'Story Campaign mode', action: () => {},
-    },
-    {
-      id: 'create-character', image: 'createcharacter', col: 5, row: 1, w: 2, h: 1,
+      id: 'create-character', image: 'createcharacter', col: 3, row: 1, w: 2, h: 1,
       tooltip: 'Create & manage custom characters',
       action: () => { setRegistryMode('manage'); setShowRegistry(true); },
     },
     {
-      id: 'free-play', image: 'freeplay', col: 3, row: 2, w: 2, h: 1,
-      tooltip: 'Start a new survival game', action: handleFreePlay,
+      id: 'options', image: 'options', col: 3, row: 2, w: 2, h: 1,
+      tooltip: 'Game audio & display settings', action: () => setShowOptions(true),
     },
     {
-      id: 'options', image: 'options', col: 5, row: 2, w: 2, h: 1,
-      tooltip: 'Game audio & display settings', action: () => setShowOptions(true),
+      id: 'load-game', image: 'loadgame', col: 5, row: 1, w: 2, h: 2,
+      tooltip: hasSave ? 'Load a saved game' : 'No save games available',
+      action: () => setShowLoadGame(true), disabled: !hasSave,
     },
     {
       id: 'custom-map', image: 'custommap', col: 1, row: 3, w: 2, h: 1,

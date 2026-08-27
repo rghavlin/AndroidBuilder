@@ -164,7 +164,7 @@ export default function StartMenu({ onStartGame }: StartMenuProps) {
           className="menu-btn-stencil"
           data-testid="button-new-game"
         >
-          Free Play
+          New Game
         </button>
 
         <button
