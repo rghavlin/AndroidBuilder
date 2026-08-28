@@ -451,6 +451,23 @@ export const CraftingRecipes = [
         ]
     },
     {
+        id: 'crafting.vehicle_charger',
+        name: 'Vehicle charger',
+        resultItem: 'tool.vehicle_charger',
+        description: 'A charging rig that bolts into a wagon. Every battery stowed in the same vehicle gains 1 charge per turn.',
+        apCost: 20,
+        tab: 'crafting',
+        tools: [
+            { id: 'tool.pliers', label: 'Pliers' }
+        ],
+        ingredients: [
+            { id: 'crafting.solar_panel', count: 1 },
+            { id: 'tool.battery_charger', count: 1 },
+            { id: 'crafting.electronic_parts', count: 1 },
+            { id: 'crafting.wire', count: 2 }
+        ]
+    },
+    {
         id: 'crafting.lockpick',
         name: 'Lockpick',
         resultItem: 'tool.lockpick',

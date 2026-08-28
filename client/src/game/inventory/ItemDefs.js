@@ -3016,6 +3016,23 @@ export const ItemDefs = {
       allowedCategories: [ItemCategory.BATTERY, ItemCategory.LARGE_BATTERY] 
     }
   },
+  // Unlike the other chargers this one holds nothing: it rides loose in a
+  // vehicle's cargo grid and tops up the batteries stowed beside it.
+  // See TurnProcessingUtils.applyVehicleCharger.
+  'tool.vehicle_charger': {
+    id: 'tool.vehicle_charger',
+    name: 'Vehicle charger',
+    noLoot: true,
+    rarity: Rarity.RARE,
+    imageId: 'vehiclecharger',
+    width: 3,
+    height: 3,
+    traits: [ItemTrait.GROUND_ONLY, ItemTrait.DRAGGABLE],
+    categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
+    dragApPenalty: 1,
+    renderFullTile: true,
+    description: 'Stow it in a vehicle to charge every battery riding with it, 1 charge per turn'
+  },
   'tool.battery_powered_hotplate': {
     id: 'tool.battery_powered_hotplate',
     name: 'Battery-powered hotplate',

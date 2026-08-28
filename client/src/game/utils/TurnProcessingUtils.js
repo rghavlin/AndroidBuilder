@@ -2,6 +2,9 @@ import { ItemTrait, ItemCategory } from '../inventory/traits.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 import { gridItems } from '../inventory/gridUtils.js';
 
+/** Charger that charges its neighbours in a vehicle grid rather than its own contents. */
+export const VEHICLE_CHARGER_DEF_ID = 'tool.vehicle_charger';
+
 /**
  * Duck-typed trait check that works on both Item instances (which expose
  * hasTrait()) and raw serialized POJOs (which carry a traits[] array).
@@ -26,15 +29,54 @@ function isBattery(b) {
 }
 
 /**
- * Duck-typed accessor for a charger/container item's grid contents. Item
- * instances expose getContainerGrid(); POJOs carry a containerGrid property.
+ * Duck-typed accessor for a container item's grid. Item instances expose
+ * getContainerGrid(); POJOs carry a containerGrid property.
+ */
+function containerGridOf(itemData) {
+    return typeof itemData.getContainerGrid === 'function'
+        ? itemData.getContainerGrid()
+        : itemData.containerGrid;
+}
+
+/**
+ * Every battery riding inside an item. Not just its cargo grid: a wagon's
+ * Power Cells live in `attachments`, which is what the battery % chips in the
+ * container overlay read (Item.getBatteryStatuses), so a rule that only walked
+ * the grid would leave exactly the batteries the player is watching untouched.
+ * Recurses, so a turret parked in the wagon gets its power cell topped up too.
+ *
+ * Handles both shapes: Item instances (getContainerGrid / getPocketContainers)
+ * and the serialized POJOs an on-map entity carries (containerGrid /
+ * pocketGrids). `seen` guards against an item graph that loops back.
+ */
+function collectBatteries(itemData, out = [], seen = new Set()) {
+    if (!itemData || typeof itemData !== 'object' || seen.has(itemData)) return out;
+    seen.add(itemData);
+
+    if (isBattery(itemData)) out.push(itemData);
+
+    gridItems(containerGridOf(itemData)).forEach(nested => collectBatteries(nested, out, seen));
+
+    if (itemData.attachments) {
+        Object.values(itemData.attachments).forEach(att => collectBatteries(att, out, seen));
+    }
+
+    const pockets = typeof itemData.getPocketContainers === 'function'
+        ? itemData.getPocketContainers()
+        : itemData.pocketGrids;
+    if (Array.isArray(pockets)) {
+        pockets.forEach(pocket => gridItems(pocket).forEach(n => collectBatteries(n, out, seen)));
+    }
+
+    return out;
+}
+
+/**
+ * Duck-typed accessor for a charger/container item's grid contents.
  * gridItems() normalizes the Map/array/object shapes.
  */
 function chargerContents(itemData) {
-    const grid = typeof itemData.getContainerGrid === 'function'
-        ? itemData.getContainerGrid()
-        : itemData.containerGrid;
-    return gridItems(grid);
+    return gridItems(containerGridOf(itemData));
 }
 
 /**
@@ -76,7 +118,7 @@ export const TurnProcessingUtils = {
 
     /**
      * Single source of truth for per-item power *generation* effects: fuel-burning
-     * power sources, wired battery chargers, and solar chargers. Both turn engines
+     * power sources, wired/solar chargers, and vehicle chargers. Both turn engines
      * (InventoryManager for the player's tile over Item instances, GameMap for
      * every other tile over POJOs) call this so a new power rule is written once.
      *
@@ -116,7 +158,44 @@ export const TurnProcessingUtils = {
             modified = true;
         }
 
+        // Vehicle charger — see applyVehicleCharger: the only charger whose rule
+        // is evaluated on the host vehicle rather than on the charger itself.
+        if (this.applyVehicleCharger(itemData)) {
+            modified = true;
+        }
+
         return modified;
+    },
+
+    /**
+     * Vehicle charger — the one charger that doesn't hold its own batteries. It
+     * rides loose in a vehicle's cargo grid and tops up every battery riding in
+     * that vehicle by 1 per turn, wherever it sits: loose cargo, the wagon's own
+     * Power Cell attachment slots, or a nested item's battery (see
+     * collectBatteries). The charger can't see any of that from itself, so the
+     * rule runs on the *host vehicle* instead: applyPowerGeneration is called on
+     * every item both turn engines walk, the vehicle included, and anything that
+     * isn't a vehicle carrying a charger falls straight out.
+     *
+     * @param {Object|Item} itemData the container item that may be a vehicle
+     * @returns {boolean} whether any battery was charged
+     */
+    applyVehicleCharger(itemData) {
+        if (!itemData) return false;
+
+        const grid = containerGridOf(itemData);
+        if (!grid) return false;
+        // Older serialized grids can lack the flag; the host's VEHICLE trait
+        // is the same answer from the other direction.
+        if (!grid.isVehicle && !hasTraitDuck(itemData, ItemTrait.VEHICLE)) return false;
+
+        if (!gridItems(grid).some(it => it && it.defId === VEHICLE_CHARGER_DEF_ID)) return false;
+
+        const batteries = collectBatteries(itemData);
+        if (batteries.length === 0) return false;
+
+        this.chargeBatteries(batteries, 1);
+        return true;
     },
 
     /**

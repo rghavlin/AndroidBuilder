@@ -1345,8 +1345,8 @@
     "semantic_hash": "d862c67d25b7c90cc47cc8a4c18cf493"
   },
   "client/src/game/utils/TurnProcessingUtils.js": {
-    "mtime": 1787906926.2948933,
-    "ast_hash": "6a060686ffb9e13d115daaabf9cd3bea",
+    "mtime": 1787905666.7804174,
+    "ast_hash": "438e856c0f970a0221e4604628d483fb",
     "semantic_hash": ""
   },
   "client/src/game/utils/VehicleUtils.js": {
@@ -3790,8 +3790,8 @@
     "semantic_hash": ""
   },
   "test/systems/vehicleCharger.test.js": {
-    "mtime": 1787906953.4521115,
-    "ast_hash": "0d8236e4acd1d1a30f48a120de783865",
+    "mtime": 1787905509.831074,
+    "ast_hash": "f592000f2a9473d0eeadc426d01e930c",
     "semantic_hash": ""
   }
 }
