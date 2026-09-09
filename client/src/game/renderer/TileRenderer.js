@@ -4,6 +4,7 @@
 import { imageLoader } from '../../game/utils/ImageLoader.js';
 import { configManager } from '../../game/utils/ConfigManager.js';
 import { isFloor } from '../map/TerrainTypes.js';
+import { isRetiredDecoration } from '../map/DecorationPlanner.js';
 
 // garagefloor renders identically to floor — normalise it before any
 // color/atlas/sprite lookup keyed on terrain.
@@ -289,11 +290,9 @@ export const TileRenderer = {
         }
 
         // Step B.5: Draw Decoration Layer (on top of terrain, below walls/fog)
-        if (tile.decoration && !engine.renderDebugColors) {
+        if (tile.decoration && !isRetiredDecoration(tile.decoration) && !engine.renderDebugColors) {
             let decorType = 'outdoor';
-            if (['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(tile.decoration)) {
-                decorType = 'indoor';
-            } else if (['road1', 'road2', 'road3'].includes(tile.decoration)) {
+            if (['road1', 'road2', 'road3'].includes(tile.decoration)) {
                 decorType = 'roadandsidewalk';
             }
             const decorKey = `decor_${decorType}_${tile.decoration}`;
@@ -562,11 +561,9 @@ export const TileRenderer = {
     }
 
     // Decoration layer
-    if (tile.decoration && !engine.renderDebugColors) {
+    if (tile.decoration && !isRetiredDecoration(tile.decoration) && !engine.renderDebugColors) {
       let decorType = 'outdoor';
-      if (['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(tile.decoration)) {
-        decorType = 'indoor';
-      } else if (['road1', 'road2', 'road3'].includes(tile.decoration)) {
+      if (['road1', 'road2', 'road3'].includes(tile.decoration)) {
         decorType = 'roadandsidewalk';
       }
       const decorSprite = sprites?.[`decor_${decorType}_${tile.decoration}`];

@@ -21,6 +21,7 @@ import { ZombieGeneratorModal } from '@/components/MapEditor/ZombieGeneratorModa
 import { TileRenderer } from '@/game/renderer/TileRenderer';
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { FURNITURE_FOOTPRINTS } from '@/game/map/FurniturePlanner';
+import { RETIRED_INDOOR_DECORATIONS } from '@/game/map/DecorationPlanner';
 import { EDITOR_TEMPLATE_CHOICES, EDITOR_GENERATOR_CHOICES } from '@/game/config/TemplateConfig';
 import { computeMinimapSize } from '@/game/editor/minimapLayout';
 
@@ -313,7 +314,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
         const st = scenario.tiles[y]?.[x];
         if (!st) continue;
         tiles[y][x].terrain = st.terrain || 'grass';
-        if (st.decoration) tiles[y][x].decoration = st.decoration;
+        if (st.decoration && !RETIRED_INDOOR_DECORATIONS.includes(st.decoration)) tiles[y][x].decoration = st.decoration;
 
         // Scenario edgeWalls are booleans; reconstruct as wall flags
         if (st.edgeWalls) {
@@ -532,7 +533,7 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
         const st = mapData.tiles[y]?.[x];
         if (!st) continue;
         tiles[y][x].terrain = st.terrain || 'grass';
-        if (st.decoration) tiles[y][x].decoration = st.decoration;
+        if (st.decoration && !RETIRED_INDOOR_DECORATIONS.includes(st.decoration)) tiles[y][x].decoration = st.decoration;
 
         // Reconstruct edge booleans as walls initially
         if (st.edgeWalls) {
@@ -2153,10 +2154,9 @@ export default function MapEditor() {
           ctx.strokeRect(sx, sy, CELL, CELL);
         }
 
-        if (t.decoration) {
+        if (t.decoration && !RETIRED_INDOOR_DECORATIONS.includes(t.decoration)) {
           let decorType = 'outdoor';
-          if (['brokenchair', 'crack', 'debris', 'paper', 'tabledebris'].includes(t.decoration)) decorType = 'indoor';
-          else if (['road1', 'road2', 'road3'].includes(t.decoration)) decorType = 'roadandsidewalk';
+          if (['road1', 'road2', 'road3'].includes(t.decoration)) decorType = 'roadandsidewalk';
           const decorImg = (imageLoader as any).images?.[`decor_${decorType}_${t.decoration}`];
           if (decorImg) ctx.drawImage(decorImg, sx, sy, CELL, CELL);
           else (imageLoader as any).getDecorationImage?.(t.decoration, decorType);
@@ -2832,7 +2832,6 @@ export default function MapEditor() {
       const nextTiles = tiles.map(row => row.map(t => ({ ...t })));
       const res = planDecorations(nextTiles, {
         outdoor: config.outdoor,
-        indoor: config.indoor,
         road: config.road,
         density: config.density,
         clearExisting: config.clearExisting,
@@ -2840,7 +2839,7 @@ export default function MapEditor() {
       });
       pushUndo(tiles, buildings, furniture);
       setTiles(nextTiles);
-      setStatusMsg(`Decorations generated: ${res.total} (🌿 ${res.outdoor}, 🏠 ${res.indoor}, 🛣️ ${res.road}) with seed ${config.seed}`);
+      setStatusMsg(`Decorations generated: ${res.total} (🌿 ${res.outdoor}, 🛣️ ${res.road}) with seed ${config.seed}`);
       setShowDecorModal(false);
     } catch (err: any) {
       setStatusMsg(`Decoration generation failed: ${err.message}`);

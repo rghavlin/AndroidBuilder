@@ -1,6 +1,6 @@
 import { createItemFromDef } from '../inventory/ItemDefs.js';
 import { validateConnectivity } from './MapConnectivityValidator.js';
-import { isFloor, isIndoorFloor } from './TerrainTypes.js';
+import { isFloor } from './TerrainTypes.js';
 import { MapBuilder } from './MapBuilder.js';
 import { RoadGenerator } from './generators/RoadGenerator.js';
 import { SplitRoadGenerator } from './generators/SplitRoadGenerator.js';
@@ -311,7 +311,6 @@ export class TemplateMapGenerator {
 
     this.placeWildCrops(mapData);
     this.placeOutdoorDecorations(mapData);
-    // this.placeIndoorDecorations(mapData);
     this.placeRoadAndSidewalkDecorations(mapData);
 
     console.log(`[TemplateMapGenerator] Generated '${templateName}' map using ${generator ? 'Strategy' : 'Legacy'} engine`);
@@ -414,7 +413,6 @@ export class TemplateMapGenerator {
   placeOutdoorDecorations(mapData) {
     planDecorations(mapData.tiles, {
       outdoor: true,
-      indoor: false,
       road: false,
       density: MAP_GEN_CONFIG.decorationProbability,
       compound: mapData.metadata?.townSquareCompound,
@@ -423,26 +421,11 @@ export class TemplateMapGenerator {
   }
 
   /**
-   * Place indoor decorations on indoor floor tiles
-   */
-  placeIndoorDecorations(mapData) {
-    planDecorations(mapData.tiles, {
-      outdoor: false,
-      indoor: true,
-      road: false,
-      density: MAP_GEN_CONFIG.decorationProbability,
-      compound: mapData.metadata?.townSquareCompound,
-    });
-    console.log(`[TemplateMapGenerator] Placed indoor decorations`);
-  }
-
-  /**
    * Place road and sidewalk decorations on road and sidewalk tiles
    */
   placeRoadAndSidewalkDecorations(mapData) {
     planDecorations(mapData.tiles, {
       outdoor: false,
-      indoor: false,
       road: true,
       density: MAP_GEN_CONFIG.decorationProbability,
       compound: mapData.metadata?.townSquareCompound,

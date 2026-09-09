@@ -1165,8 +1165,8 @@
     "semantic_hash": "8227401cf12e62741245570c60d4640d"
   },
   "client/src/game/renderer/EntityRenderer.js": {
-    "mtime": 1788995741.3141549,
-    "ast_hash": "8e0d223837d0ef0d8bdc3711be50368e",
+    "mtime": 1787728286.755541,
+    "ast_hash": "6034f4188123bac254ce65a8871b88cd",
     "semantic_hash": ""
   },
   "client/src/game/renderer/TileChunkCache.js": {
@@ -3110,13 +3110,13 @@
     "semantic_hash": ""
   },
   "customMaps/StartMenu.editor.json": {
-    "mtime": 1788995184.795743,
-    "ast_hash": "48f1824e0245b078936234a840d0d235",
+    "mtime": 1788913679.1999419,
+    "ast_hash": "5d0ef4d05dd4b907c3afc3dda7f7822c",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.scenario.json": {
-    "mtime": 1788995185.729805,
-    "ast_hash": "afcda93ef76dff7e9673a604649a09b0",
+    "mtime": 1788913679.2270565,
+    "ast_hash": "6b3cd64bdd1e48158989fd0b6c714702",
     "semantic_hash": ""
   },
   "test/ai/aiStateTransitions.test.js": {
@@ -3792,11 +3792,6 @@
   "test/systems/vehicleCharger.test.js": {
     "mtime": 1787906953.4521115,
     "ast_hash": "0d8236e4acd1d1a30f48a120de783865",
-    "semantic_hash": ""
-  },
-  "test/renderer/cropIconPriority.test.js": {
-    "mtime": 1788995770.9155903,
-    "ast_hash": "a74b9ac8c2f4d4d5f88e38909b75119e",
     "semantic_hash": ""
   }
 }

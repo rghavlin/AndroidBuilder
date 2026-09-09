@@ -4,6 +4,7 @@
 import { EntityType } from '../entities/Entity.js';
 import { isTurretPassableBy, TURRET_DEF_ID } from '../ai/TurretCombat.js';
 import { isTerrainWalkable } from './TerrainTypes.js';
+import { isRetiredDecoration } from './DecorationPlanner.js';
 import engine from '../GameEngine.js';
 
 
@@ -309,7 +310,8 @@ export class Tile {
     // be refilled to the terrain default.
     tile.waterAmount = data.waterAmount !== undefined ? data.waterAmount : (data.terrain === 'water' ? 100 : 0);
     tile.edgeWalls = data.edgeWalls ? { ...data.edgeWalls } : { n: false, e: false, s: false, w: false };
-    tile.decoration = data.decoration ?? null;
+    // Retired indoor decorations (furniture outlines replaced them) never load back.
+    tile.decoration = isRetiredDecoration(data.decoration) ? null : (data.decoration ?? null);
     tile.fireTurns = data.fireTurns ?? 0;
     // Note: contents are restored by GameMap.fromJSON
     return tile;

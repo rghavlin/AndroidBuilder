@@ -4685,8 +4685,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -7181,8 +7180,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "grass",
@@ -9896,8 +9894,34 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
       },
       {
         "terrain": "floor",
@@ -9962,7 +9986,7 @@
             "window": false
           },
           "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -9973,6 +9997,33 @@
           },
           "w": {
             "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
             "door": false,
             "window": false
           }
@@ -10033,61 +10084,6 @@
         },
         "entities": [],
         "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": true,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [],
-        "decoration": "paper"
       },
       {
         "terrain": "floor",
@@ -11337,8 +11333,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -12450,61 +12445,6 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": true,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
         "items": []
       },
       {
@@ -12543,6 +12483,60 @@
             "window": false
           },
           "e": {
+            "wall": true,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
             "wall": false,
             "door": false,
             "window": false
@@ -12640,8 +12634,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "brokenchair"
+        "items": []
       },
       {
         "terrain": "grass",
@@ -13100,8 +13093,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -15027,8 +15019,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -15433,8 +15424,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -16142,8 +16132,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -16792,8 +16781,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -22355,8 +22343,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -23330,8 +23317,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -26687,8 +26673,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -27692,8 +27677,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -32171,8 +32155,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -33802,8 +33785,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "brokenchair"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -34645,8 +34627,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "grass",
@@ -35132,8 +35113,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -35160,8 +35140,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -37006,8 +36985,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -37061,8 +37039,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -37985,8 +37962,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -38204,8 +38180,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -39371,8 +39346,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -40455,34 +40429,6 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
         "items": []
       },
       {
@@ -40521,6 +40467,33 @@
             "window": false
           },
           "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": true,
+            "door": false,
+            "window": false
+          },
+          "e": {
             "wall": true,
             "door": false,
             "window": false
@@ -40564,8 +40537,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -44958,8 +44930,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -45561,8 +45532,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -46102,8 +46072,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -46564,8 +46533,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "brokenchair"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -47294,8 +47262,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -47893,8 +47860,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -48628,8 +48594,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -54103,8 +54068,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -54158,8 +54122,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -54807,8 +54770,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "grass",
@@ -60014,34 +59976,6 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "brokenchair"
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
         "items": []
       },
       {
@@ -60080,6 +60014,33 @@
             "window": false
           },
           "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": true,
+            "door": false,
+            "window": false
+          },
+          "e": {
             "wall": true,
             "door": false,
             "window": false
@@ -60150,8 +60111,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -63778,8 +63738,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -66984,8 +66943,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -69318,8 +69276,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -69373,8 +69330,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -70488,8 +70444,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -71764,8 +71719,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -72983,8 +72937,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -73011,8 +72964,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -75343,8 +75295,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -76676,8 +76627,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -77221,34 +77171,6 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
         "items": []
       },
       {
@@ -77330,8 +77252,34 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": true,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
       },
       {
         "terrain": "floor",
@@ -77709,8 +77657,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -80852,34 +80799,6 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
         "items": []
       },
       {
@@ -81015,8 +80934,34 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
       },
       {
         "terrain": "floor",
@@ -85047,8 +84992,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "brokenchair"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -85833,8 +85777,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "brokenchair"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -87054,8 +86997,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "brokenchair"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -89519,8 +89461,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -90142,8 +90083,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -90767,8 +90707,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -91202,8 +91141,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -91799,8 +91737,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -92341,8 +92278,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -92996,8 +92932,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -96082,8 +96017,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "paper"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -100258,8 +100192,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -100286,8 +100219,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -101640,34 +101572,6 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
         "items": []
       },
       {
@@ -101722,8 +101626,34 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
       },
       {
         "terrain": "floor",
@@ -102781,8 +102711,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -104055,8 +103984,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -104166,8 +104094,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -104600,8 +104527,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -106391,8 +106317,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -108371,8 +108296,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "brokenchair"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -109592,8 +109516,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -113740,8 +113663,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -113768,8 +113690,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -116244,8 +116165,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -116922,36 +116842,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "brokenchair"
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -117005,8 +116896,34 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
       },
       {
         "terrain": "floor",
@@ -118578,8 +118495,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -122645,7 +122561,23 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "provision.harvestable_carrot"
+          },
+          {
+            "defId": "provision.harvestable_carrot"
+          },
+          {
+            "defId": "weapon.shovel"
+          },
+          {
+            "defId": "food.carrotseeds"
+          },
+          {
+            "defId": "food.carrotseeds"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -124971,34 +124903,6 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
         "items": []
       },
       {
@@ -125053,8 +124957,34 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "debris"
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": true,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
       },
       {
         "terrain": "floor",
@@ -126424,7 +126354,11 @@
             "type": "player"
           }
         ],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.hammer"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -127372,8 +127306,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -130111,8 +130044,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -133670,8 +133602,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "crack"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -134809,8 +134740,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",
@@ -135897,8 +135827,7 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "tabledebris"
+        "items": []
       },
       {
         "terrain": "floor",

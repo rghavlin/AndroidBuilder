@@ -1,4 +1,5 @@
 import { BaseMapGenerator } from './BaseMapGenerator.js';
+import { isRetiredDecoration } from '../DecorationPlanner.js';
 
 export class ScenarioMapGenerator extends BaseMapGenerator {
   constructor(scenarioData) {
@@ -21,7 +22,9 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
         if (t.inventoryItems) {
           builder.layout[y][x].inventoryItems = t.inventoryItems;
         }
-        if (t.decoration) {
+        // Legacy maps may still carry retired indoor decorations; interiors are
+        // furniture-only now, so they are dropped rather than loaded.
+        if (t.decoration && !isRetiredDecoration(t.decoration)) {
           builder.layout[y][x].decoration = t.decoration;
         }
       }

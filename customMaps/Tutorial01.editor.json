@@ -569,7 +569,12 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [],
+        "mapTransition": {
+          "targetType": "tutorial_end",
+          "targetId": "BranchingRoadGenerator",
+          "level": 1
+        }
       },
       {
         "terrain": "grass",
@@ -3821,7 +3826,21 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "npc",
+            "typeId": "gatekeeper",
+            "name": "Gatekeeper",
+            "factionId": "town",
+            "aiDisabled": true,
+            "isTollGuard": true,
+            "tollTarget": 15,
+            "tollSidestep": {
+              "x": 21,
+              "y": 4
+            }
+          }
+        ],
         "items": []
       },
       {
@@ -24015,7 +24034,33 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "npc",
+            "typeId": "shopkeeper",
+            "name": "Trader",
+            "factionId": "town",
+            "aiDisabled": true,
+            "inventory": [
+              {
+                "defId": "food.waterbottle",
+                "count": 2
+              },
+              {
+                "defId": "food.cannedcorn",
+                "count": 2
+              },
+              {
+                "defId": "crafting.rope",
+                "count": 1
+              },
+              {
+                "defId": "tool.lockpick",
+                "count": 1
+              }
+            ]
+          }
+        ],
         "items": []
       },
       {
@@ -32714,5 +32759,787 @@
       "height": 6
     }
   ],
-  "noAutosave": true
+  "noAutosave": true,
+  "lightMode": "time_dependent",
+  "lowSpots": [],
+  "bubbleEvents": [],
+  "chainDialogEvents": [],
+  "events": [
+    {
+      "id": "tut_s1_move",
+      "label": "S1 · Movement and AP",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onMapEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "startQuest",
+          "questId": "tut_basics"
+        },
+        {
+          "type": "startQuest",
+          "questId": "tut_optional"
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Every step costs one Action Point. Spend them all and you stand still until you end the turn.\n\nEnding a turn also moves the clock on by an hour — and everything else on this map moves while it does. Head north up the path."
+        }
+      ]
+    },
+    {
+      "id": "tut_s1_ap_hint",
+      "label": "S1 · Low-AP hint",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [
+        {
+          "kind": "ap",
+          "op": "<=",
+          "value": 2
+        },
+        {
+          "kind": "flag",
+          "flag": "tut_ap_taught",
+          "value": false
+        }
+      ],
+      "repeat": "oncePerTurn",
+      "steps": [
+        {
+          "type": "speech",
+          "anchorX": 8,
+          "anchorY": 37,
+          "text": "Almost out of AP. End the turn to get it back."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_ap_taught",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "tut_s2_loot",
+      "label": "S2 · Loot and the grid",
+      "placement": {
+        "kind": "tile",
+        "x": 8,
+        "y": 37
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Anything lying on the tile you are standing on shows up in the Ground panel. That is where dropped gear goes, and where anything you are handed lands.\n\nThere is a stick at your feet. Drag it into the backpack grid — long items rotate, and a stick lying flat wastes a whole row."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_looted",
+          "value": true
+        },
+        {
+          "type": "chain",
+          "eventId": "tut_s3_equip"
+        }
+      ]
+    },
+    {
+      "id": "tut_s3_equip",
+      "label": "S3 · Equip a weapon",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Carrying a weapon is not the same as holding one. Put the stick in a hand slot before you go any further north — there is something on the path ahead."
+        },
+        {
+          "type": "lockActions",
+          "until": [
+            {
+              "kind": "itemEquipped",
+              "defId": "weapon.stick"
+            }
+          ]
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_armed",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "tut_s3_kill",
+      "label": "S3 · First kill",
+      "placement": {
+        "kind": "proximity",
+        "x": 8,
+        "y": 36,
+        "radius": 1
+      },
+      "trigger": "onEnter",
+      "preconditions": [
+        {
+          "kind": "flag",
+          "flag": "tut_armed",
+          "value": true
+        }
+      ],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "One swing costs 1 AP. Click it to attack.\n\nYour hits resolve when the turn plays back, so a kill you earned this turn lands a moment after you commit to it. That pause is the game working, not the game hanging."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_fought",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "tut_sl_bed",
+      "label": "SL · Sleep and energy",
+      "placement": {
+        "kind": "tile",
+        "x": 3,
+        "y": 29
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "give",
+          "defId": "placeable.bed",
+          "count": 1,
+          "x": 3,
+          "y": 29
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Drop this bed and sleep in it. A bed gives back roughly two and a half energy an hour, and eats food and water while you rest.\n\nEnergy is a hard ceiling on your Action Points. Run it down and it will not matter how strong you are — you will get three or four moves a turn and no more. Sleep somewhere you have already cleared."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_slept",
+          "value": true
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.help"
+      }
+    },
+    {
+      "id": "tut_md_kit",
+      "label": "MD · Bleeding and infection",
+      "placement": {
+        "kind": "tile",
+        "x": 12,
+        "y": 30
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "give",
+          "defId": "crafting.rag",
+          "count": 2,
+          "x": 12,
+          "y": 30
+        },
+        {
+          "type": "give",
+          "defId": "medical.antiseptic",
+          "count": 1,
+          "x": 12,
+          "y": 30
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Bleeding costs a hit point every hour until it is bound. Bind it fast.\n\nBind it with a filthy rag, though, and the wound goes bad — and a wound infection does not tick down on a timer the way an illness does. It sits on your Constitution until your body beats it or you find antibiotics. Antiseptic first, then the rag."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_medical",
+          "value": true
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.help"
+      }
+    },
+    {
+      "id": "tut_tr_trader",
+      "label": "TR · Trader",
+      "placement": {
+        "kind": "proximity",
+        "x": 11,
+        "y": 29,
+        "radius": 2
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "Trader",
+          "text": "Stand next to me and talk if you want to deal. I take goods, not promises."
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Every item carries a value, and it is the same number whether you are haggling or paying your way past a gate. Scrap that looks like rubbish is how you buy your way up the road — do not leave it lying in a house because your bag is untidy."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_traded",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "tut_ph_phone",
+      "label": "PH · The phone",
+      "placement": {
+        "kind": "tile",
+        "x": 6,
+        "y": 26
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Your phone survived. The network did not.\n\nIt still holds what was on it when the towers went down, and it still runs a battery that drains whenever it is switched on. Open it and read the CDC alert — everything you need to survive a bite is in that message, and so is the reason you are walking south."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_phone_read",
+          "value": true
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.help"
+      }
+    },
+    {
+      "id": "tut_ck_fire",
+      "label": "CK · Campfire and clean water",
+      "placement": {
+        "kind": "tile",
+        "x": 6,
+        "y": 25
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "give",
+          "defId": "tool.lighter",
+          "count": 1,
+          "x": 6,
+          "y": 25
+        },
+        {
+          "type": "give",
+          "defId": "weapon.stick",
+          "count": 3,
+          "x": 6,
+          "y": 25
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "There is a cooking pot at your feet. Craft a campfire from sticks, light it, and the cooking recipes open up.\n\nThere is a puddle further up the path. Water out of it will make you ill. Boiled in that pot, it will not. Remember the trick — clean water is the thing you will run out of first."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_cooked",
+          "value": true
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.help"
+      }
+    },
+    {
+      "id": "tut_cr_bench",
+      "label": "CR · Crafting",
+      "placement": {
+        "kind": "tile",
+        "x": 6,
+        "y": 23
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "give",
+          "defId": "crafting.glass_shard",
+          "count": 1,
+          "x": 6,
+          "y": 23
+        },
+        {
+          "type": "give",
+          "defId": "crafting.rag",
+          "count": 1,
+          "x": 6,
+          "y": 23
+        },
+        {
+          "type": "give",
+          "defId": "crafting.tape",
+          "count": 1,
+          "x": 6,
+          "y": 23
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Open Crafting. A recipe lights up once you are carrying everything it asks for.\n\nMakeshift Knife: a glass shard, a rag, and tape. Four AP. Almost every tool and weapon you will own comes out of this screen rather than off a shelf."
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.help"
+      }
+    },
+    {
+      "id": "tut_cr_done",
+      "label": "CR · Craft confirmed",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [
+        {
+          "kind": "itemInInventory",
+          "defId": "weapon.makeshift_knife",
+          "count": 1
+        },
+        {
+          "kind": "flag",
+          "flag": "tut_crafted",
+          "value": false
+        }
+      ],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "speech",
+          "anchorX": 6,
+          "anchorY": 23,
+          "text": "A knife out of rubbish. Most of your kit will come from here."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_crafted",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "tut_fm_plot",
+      "label": "FM · Farming signpost",
+      "placement": {
+        "kind": "tile",
+        "x": 6,
+        "y": 22
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "give",
+          "defId": "weapon.makeshift_shovel",
+          "count": 1,
+          "x": 6,
+          "y": 22
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Corn, and seed to grow more of it. A shovel turns soil, and turned soil takes seed.\n\nNothing you plant today will feed you today. Plant it anyway — a plot you come back to is the only food supply that does not run out."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_farmed",
+          "value": true
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.help"
+      }
+    },
+    {
+      "id": "tut_s4_needs",
+      "label": "S4 · Eat, drink, and the cascade",
+      "placement": {
+        "kind": "tile",
+        "x": 6,
+        "y": 20
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Food, water and rest each drop by one every hour.\n\nThey are not a countdown to damage. Long before they empty they drag your Strength, Agility, Perception and Constitution down — and those set your max health and how many Action Points you get each turn. A hungry survivor is a slow one, and a slow one gets cornered.\n\nThere is water at your feet. Drink."
+        },
+        {
+          "type": "lockActions",
+          "until": [
+            {
+              "kind": "itemConsumed",
+              "defId": "food.waterbottle",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_ate",
+          "value": true
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.help"
+      }
+    },
+    {
+      "id": "tut_st_alley",
+      "label": "ST · Line of sight and noise",
+      "placement": {
+        "kind": "proximity",
+        "x": 6,
+        "y": 18,
+        "radius": 2
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "There is something in the house ahead, and the only way north runs through it.\n\nA zombie that loses sight of you does not stop — it walks to the tile it last saw you on and searches there. Break the line and it commits to a memory. Noise works the same way: fire that pistol and you buy yourself a crowd walking to the wrong place."
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "That one is an Acid Zombie. It hits harder than anything else you will meet down here, and it cannot hear you. Doors and walls are cover. Use them."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_stealth",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "tut_s5_toll",
+      "label": "S5 · The gatekeeper",
+      "placement": {
+        "kind": "proximity",
+        "x": 20,
+        "y": 4,
+        "radius": 3
+      },
+      "trigger": "onEnter",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "Gatekeeper",
+          "text": "Road north is mine. Most days I'd have you fill a box before I stepped aside. Today the road's open — consider it a favour you won't get twice."
+        },
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Out there, every map ends at a gate like this one, and gatekeepers take goods rather than coin. The box is weighed by what your loot is worth. He will show you how close you are. He will not tell you the number.\n\nThe barrier maze behind him is longer than any turn's worth of AP, and the turrets see the whole of it. Running it is not an option. This is why you strip a map before you leave it."
+        },
+        {
+          "type": "setFlag",
+          "flag": "tut_spine_done",
+          "value": true
+        }
+      ]
+    }
+  ],
+  "questRegistry": {
+    "flags": [
+      {
+        "name": "tut_ap_taught",
+        "initialValue": false
+      },
+      {
+        "name": "tut_looted",
+        "initialValue": false
+      },
+      {
+        "name": "tut_armed",
+        "initialValue": false
+      },
+      {
+        "name": "tut_fought",
+        "initialValue": false
+      },
+      {
+        "name": "tut_ate",
+        "initialValue": false
+      },
+      {
+        "name": "tut_spine_done",
+        "initialValue": false
+      },
+      {
+        "name": "tut_slept",
+        "initialValue": false
+      },
+      {
+        "name": "tut_medical",
+        "initialValue": false
+      },
+      {
+        "name": "tut_traded",
+        "initialValue": false
+      },
+      {
+        "name": "tut_phone_read",
+        "initialValue": false
+      },
+      {
+        "name": "tut_cooked",
+        "initialValue": false
+      },
+      {
+        "name": "tut_crafted",
+        "initialValue": false
+      },
+      {
+        "name": "tut_farmed",
+        "initialValue": false
+      },
+      {
+        "name": "tut_stealth",
+        "initialValue": false
+      }
+    ],
+    "vars": [],
+    "quests": [
+      {
+        "id": "tut_basics",
+        "title": "Getting Your Bearings",
+        "tasks": [
+          {
+            "text": "Pick up the stick",
+            "complete": [
+              {
+                "kind": "flag",
+                "flag": "tut_looted",
+                "value": true
+              }
+            ]
+          },
+          {
+            "text": "Equip a weapon",
+            "complete": [
+              {
+                "kind": "itemEquipped",
+                "defId": "weapon.stick"
+              }
+            ]
+          },
+          {
+            "text": "Deal with the zombie on the path",
+            "complete": [
+              {
+                "kind": "flag",
+                "flag": "tut_fought",
+                "value": true
+              }
+            ]
+          },
+          {
+            "text": "Drink something",
+            "complete": [
+              {
+                "kind": "itemConsumed",
+                "defId": "food.waterbottle",
+                "count": 1
+              }
+            ]
+          },
+          {
+            "text": "Reach the gatekeeper on the north road",
+            "complete": [
+              {
+                "kind": "flag",
+                "flag": "tut_spine_done",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tut_optional",
+        "title": "Worth Knowing",
+        "tasks": [
+          {
+            "text": "Read the message on your phone",
+            "complete": [
+              {
+                "kind": "flag",
+                "flag": "tut_phone_read",
+                "value": true
+              }
+            ]
+          },
+          {
+            "text": "Craft a makeshift knife",
+            "complete": [
+              {
+                "kind": "flag",
+                "flag": "tut_crafted",
+                "value": true
+              }
+            ]
+          },
+          {
+            "text": "Find the cooking pot and the puddle",
+            "complete": [
+              {
+                "kind": "flag",
+                "flag": "tut_cooked",
+                "value": true
+              }
+            ]
+          },
+          {
+            "text": "Learn how a bleeding wound goes bad",
+            "complete": [
+              {
+                "kind": "flag",
+                "flag": "tut_medical",
+                "value": true
+              }
+            ]
+          },
+          {
+            "text": "Find somewhere to sleep",
+            "complete": [
+              {
+                "kind": "flag",
+                "flag": "tut_slept",
+                "value": true
+              }
+            ]
+          },
+          {
+            "text": "Trade with the survivor",
+            "complete": [
+              {
+                "kind": "flag",
+                "flag": "tut_traded",
+                "value": true
+              }
+            ]
+          },
+          {
+            "text": "Plant something",
+            "complete": [
+              {
+                "kind": "flag",
+                "flag": "tut_farmed",
+                "value": true
+              }
+            ]
+          },
+          {
+            "text": "Learn how zombies hunt",
+            "complete": [
+              {
+                "kind": "flag",
+                "flag": "tut_stealth",
+                "value": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "factions": [],
+    "factionStances": {}
+  },
+  "entityRegistry": {
+    "entries": [
+      {
+        "tag": "tut_first_zombie",
+        "type": "zombie",
+        "x": 8,
+        "y": 36,
+        "description": "One-HP basic zombie — the first kill (S3)."
+      },
+      {
+        "tag": "tut_acid",
+        "type": "zombie",
+        "x": 6,
+        "y": 15,
+        "description": "Deaf acid zombie in the small house — the stealth lesson (ST)."
+      },
+      {
+        "tag": "tut_house_door",
+        "type": "door",
+        "x": 6,
+        "y": 17,
+        "description": "South door of the small house."
+      },
+      {
+        "tag": "tut_trader",
+        "type": "npc",
+        "x": 11,
+        "y": 29,
+        "description": "Trader in the big house east room (TR)."
+      },
+      {
+        "tag": "tut_gatekeeper",
+        "type": "npc",
+        "x": 20,
+        "y": 4,
+        "description": "Gatekeeper beside the north exit lane (S5)."
+      }
+    ]
+  },
+  "furniture": []
 }

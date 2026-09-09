@@ -3,7 +3,8 @@ import {
   planDecorations,
   getDecorationCategory,
   OUTDOOR_DECORATIONS,
-  INDOOR_DECORATIONS,
+  RETIRED_INDOOR_DECORATIONS,
+  isRetiredDecoration,
   ROAD_DECORATIONS,
 } from '../../client/src/game/map/DecorationPlanner.js';
 import { TemplateMapGenerator } from '../../client/src/game/map/TemplateMapGenerator.js';
@@ -25,9 +26,6 @@ describe('DecorationPlanner', () => {
     for (const d of OUTDOOR_DECORATIONS) {
       expect(getDecorationCategory(d)).toBe('outdoor');
     }
-    for (const d of INDOOR_DECORATIONS) {
-      expect(getDecorationCategory(d)).toBe('indoor');
-    }
     for (const d of ROAD_DECORATIONS) {
       expect(getDecorationCategory(d)).toBe('roadandsidewalk');
     }
@@ -37,14 +35,12 @@ describe('DecorationPlanner', () => {
     const grid = createGrid(20, 20, 'grass');
     const res = planDecorations(grid, {
       outdoor: true,
-      indoor: false,
       road: false,
       density: 'dense',
       seedOrRandom: 12345,
     });
 
     expect(res.outdoor).toBeGreaterThan(0);
-    expect(res.indoor).toBe(0);
     expect(res.road).toBe(0);
     expect(res.total).toBe(res.outdoor);
 
@@ -59,27 +55,39 @@ describe('DecorationPlanner', () => {
     }
   });
 
-  it('places indoor decorations on floor tiles only', () => {
+  it('never decorates indoor floors (furniture outlines own interiors)', () => {
     const grid = createGrid(20, 20, 'floor');
     const res = planDecorations(grid, {
-      outdoor: false,
-      indoor: true,
-      road: false,
       density: 'dense',
       seedOrRandom: 54321,
     });
 
-    expect(res.indoor).toBeGreaterThan(0);
+    expect(res.total).toBe(0);
     expect(res.outdoor).toBe(0);
     expect(res.road).toBe(0);
 
     for (let y = 0; y < 20; y++) {
       for (let x = 0; x < 20; x++) {
-        if (grid[y][x].decoration) {
-          expect(INDOOR_DECORATIONS).toContain(grid[y][x].decoration);
-        }
+        expect(grid[y][x].decoration).toBeUndefined();
       }
     }
+  });
+
+  it('strips retired indoor decorations left over on legacy maps', () => {
+    const grid = createGrid(4, 4, 'floor');
+    for (const [i, name] of RETIRED_INDOOR_DECORATIONS.entries()) {
+      expect(isRetiredDecoration(name)).toBe(true);
+      grid[0][i % 4].decoration = name;
+    }
+    grid[3][3].decoration = 'outdoordecor1';
+
+    planDecorations(grid, { density: 'dense', seedOrRandom: 11 });
+
+    for (let x = 0; x < 4; x++) {
+      expect(grid[0][x].decoration).toBeUndefined();
+    }
+    // live decorations already on the map are left alone
+    expect(grid[3][3].decoration).toBe('outdoordecor1');
   });
 
   it('places road decorations on road & sidewalk tiles only', () => {
@@ -90,14 +98,12 @@ describe('DecorationPlanner', () => {
 
     const res = planDecorations(grid, {
       outdoor: false,
-      indoor: false,
       road: true,
       density: 0.20,
       seedOrRandom: 9999,
     });
 
     expect(res.road).toBeGreaterThan(0);
-    expect(res.indoor).toBe(0);
     expect(res.outdoor).toBe(0);
 
     for (let y = 0; y < 20; y++) {
@@ -131,7 +137,6 @@ describe('DecorationPlanner', () => {
 
     planDecorations(grid, {
       outdoor: false,
-      indoor: false,
       road: false,
       clearExisting: true,
     });
@@ -199,6 +204,7 @@ describe('DecorationPlanner', () => {
         [
           { x: 0, y: 0, terrain: 'grass', decoration: 'outdoordecor1' },
           { x: 1, y: 0, terrain: 'road', decoration: 'road1' },
+          // retired indoor decoration: must be dropped on the way in
           { x: 2, y: 0, terrain: 'floor', decoration: 'brokenchair' },
         ]
       ]
@@ -219,14 +225,14 @@ describe('DecorationPlanner', () => {
 
     expect(mapData.tiles[0][0].decoration).toBe('outdoordecor1');
     expect(mapData.tiles[0][1].decoration).toBe('road1');
-    expect(mapData.tiles[0][2].decoration).toBe('brokenchair');
+    expect(mapData.tiles[0][2].decoration).toBeFalsy();
 
     const gameMap = new GameMap(mapData.width, mapData.height);
     await tmg.applyToGameMap(gameMap, mapData);
 
     expect(gameMap.getTile(0, 0).decoration).toBe('outdoordecor1');
     expect(gameMap.getTile(1, 0).decoration).toBe('road1');
-    expect(gameMap.getTile(2, 0).decoration).toBe('brokenchair');
+    expect(gameMap.getTile(2, 0).decoration).toBeFalsy();
 
     // Test serialization round-trip
     const serialized = gameMap.toJSON();
@@ -234,6 +240,6 @@ describe('DecorationPlanner', () => {
 
     expect(restored.getTile(0, 0).decoration).toBe('outdoordecor1');
     expect(restored.getTile(1, 0).decoration).toBe('road1');
-    expect(restored.getTile(2, 0).decoration).toBe('brokenchair');
+    expect(restored.getTile(2, 0).decoration).toBeFalsy();
   });
 });

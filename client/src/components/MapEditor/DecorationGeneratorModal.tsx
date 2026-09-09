@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 
 export interface DecorationGeneratorConfig {
   outdoor: boolean;
-  indoor: boolean;
   road: boolean;
   density: 'sparse' | 'normal' | 'dense';
   clearExisting: boolean;
@@ -43,7 +42,6 @@ export const DecorationGeneratorModal: React.FC<DecorationGeneratorModalProps> =
   onClose,
 }) => {
   const [outdoor, setOutdoor] = useState(true);
-  const [indoor, setIndoor] = useState(true);
   const [road, setRoad] = useState(true);
   const [density, setDensity] = useState<'sparse' | 'normal' | 'dense'>('normal');
   const [clearExisting, setClearExisting] = useState(true);
@@ -58,7 +56,6 @@ export const DecorationGeneratorModal: React.FC<DecorationGeneratorModalProps> =
     }
     onGenerate({
       outdoor,
-      indoor,
       road,
       density,
       clearExisting,
@@ -96,7 +93,7 @@ export const DecorationGeneratorModal: React.FC<DecorationGeneratorModalProps> =
           🎨 Generate Ambient Decorations
         </h3>
         <p style={{ fontSize: 12, color: '#aaa', marginBottom: 16, lineHeight: 1.4 }}>
-          Populate outdoor grass, indoor floors, and roads with random atmospheric details (debris, cracks, foliage, and marks).
+          Populate outdoor grass and roads with random atmospheric details (foliage, stones, cracks, and stains). Building interiors are left to furniture outlines.
         </p>
 
         {/* Decoration Categories */}
@@ -106,10 +103,6 @@ export const DecorationGeneratorModal: React.FC<DecorationGeneratorModalProps> =
             <label style={{ fontSize: 12, color: '#ddd', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
               <input type="checkbox" checked={outdoor} onChange={e => setOutdoor(e.target.checked)} />
               🌿 Outdoor Grass (Foliage, stones & weeds)
-            </label>
-            <label style={{ fontSize: 12, color: '#ddd', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-              <input type="checkbox" checked={indoor} onChange={e => setIndoor(e.target.checked)} />
-              🏠 Indoor Floors (Cracks, debris & broken furniture)
             </label>
             <label style={{ fontSize: 12, color: '#ddd', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
               <input type="checkbox" checked={road} onChange={e => setRoad(e.target.checked)} />
@@ -186,8 +179,8 @@ export const DecorationGeneratorModal: React.FC<DecorationGeneratorModalProps> =
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={handleGenerate}
-            disabled={isGenerating || (!outdoor && !indoor && !road)}
-            style={{ ...btnStyle('#b8860b', isGenerating || (!outdoor && !indoor && !road)), flex: 1, padding: '10px', fontWeight: 'bold' }}
+            disabled={isGenerating || (!outdoor && !road)}
+            style={{ ...btnStyle('#b8860b', isGenerating || (!outdoor && !road)), flex: 1, padding: '10px', fontWeight: 'bold' }}
           >
             {isGenerating ? 'Generating...' : 'Generate'}
           </button>

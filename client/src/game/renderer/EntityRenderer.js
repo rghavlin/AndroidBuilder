@@ -118,8 +118,8 @@ export function showsAsPoweredTurret(entity, engine, poweredTurret = undefined) 
 // single icon — the "dominant" item. We pick by category tier first (lower
 // rank = shown on top), then by footprint area within a tier. Tiers below mirror
 // the design: interactive markers > remote devices > vehicles > backpacks >
-// food > guns > medical > containers > lighters/matches > (everything else, by
-// size).
+// food > crops > guns > medical > containers > lighters/matches > (everything
+// else, by size).
 const TILE_ICON_RANK = {
   // Interactive world markers (help "?", authored event switches) outrank
   // everything: they exist to be seen and clicked, and they're 1x1, so without
@@ -134,11 +134,18 @@ const TILE_ICON_RANK = {
   VEHICLE: 0,
   BACKPACK: 1,
   FOOD: 2,
-  GUN: 3,
-  MEDICAL: 4,
-  CONTAINER: 5,
-  FIRESTARTER: 6,
-  OTHER: 7,
+  // A growing or harvestable crop. Its def carries no FOOD category — that
+  // belongs to the produce it yields (provision.harvestable_carrot -> food.carrot)
+  // — so without a tier of its own a crop falls to OTHER and loses its tile to
+  // any larger junk dropped on it: a 5x2 shovel would hide a carrot patch while
+  // the tile still painted itself crop-green. Sits just under FOOD, since a can
+  // you can eat right now is a more urgent read than one you have to harvest.
+  CROP: 3,
+  GUN: 4,
+  MEDICAL: 5,
+  CONTAINER: 6,
+  FIRESTARTER: 7,
+  OTHER: 8,
 };
 
 const FIRESTARTER_DEF_IDS = new Set(['tool.lighter', 'tool.matchbook', 'tool.bowdrill']);
@@ -157,6 +164,14 @@ function resolveItemMeta(item) {
   return { defId, def, traits, categories, equippableSlot, groundPriority };
 }
 
+// Crop-ness for icon ranking. Mirrors the rule Entity/Item/GameMap use to set
+// the isCrop flag, so a plain-data ground-pile entry (which may carry no flag of
+// its own) ranks the same as a live Item instance.
+function isCropItem(item, defId) {
+  if (item.isCrop || item.isWild || item.isHarvestable) return true;
+  return !!defId && (defId.endsWith('_plant') || defId.startsWith('provision.harvestable_'));
+}
+
 /**
  * Priority tier for a single item's ground-pile icon. Lower = higher priority.
  */
@@ -173,6 +188,7 @@ function getTileIconRank(item) {
   }
   if (equippableSlot === EquipmentSlot.BACKPACK) return TILE_ICON_RANK.BACKPACK;
   if (hasCategory(ItemCategory.FOOD)) return TILE_ICON_RANK.FOOD;
+  if (isCropItem(item, defId)) return TILE_ICON_RANK.CROP;
   if (hasCategory(ItemCategory.GUN)) return TILE_ICON_RANK.GUN;
   if (hasCategory(ItemCategory.MEDICAL) || hasTrait(ItemTrait.MEDICAL)) {
     return TILE_ICON_RANK.MEDICAL;
@@ -187,7 +203,7 @@ function getTileIconRank(item) {
 /**
  * The dominant item among items sharing a ground tile, used to decide which item
  * a ground pile renders as. Selection is by category priority (interactive
- * markers > vehicles > backpacks > food > guns > medical > containers >
+ * markers > vehicles > backpacks > food > crops > guns > medical > containers >
  * lighters/matches), and within a tier by footprint area (largest wins).
  * Width/height fall back to the item definition, then to 1. Returns null for an
  * empty/missing list.
@@ -501,12 +517,29 @@ export const EntityRenderer = {
         let drawY = screenY;
         let drawSize = tileSize;
 
-        // Check if the item on the tile is a crop (growing or harvestable, wild or player-planted)
-        const tileItems = getTileItemsCached(engine, Math.round(entity.x), Math.round(entity.y));
-        const isCrop = tileItems.some(item => item.isCrop || false);
+        // Everything the token's appearance is derived from — crop/furniture
+        // framing, background colour, border colour — comes from ONE item: the
+        // one this entity actually draws. For a ground pile that's the dominant
+        // item that won the tile; otherwise the entity itself. These used to be
+        // .some() scans over every item on the tile, which let a pile advertise
+        // something it wasn't showing: carrots under a 5x2 shovel painted the
+        // ring crop-green while the icon stayed a shovel.
+        const dominantForTile = (subtype === 'ground_pile' && engine && engine.gameMap)
+          ? getDominantItemCached(engine, Math.round(entity.x), Math.round(entity.y))
+          : null;
+        const bgSource = dominantForTile || entity;
+        // Pile entries may key their definition off id rather than defId.
+        const bgDefId = dominantForTile
+          ? (dominantForTile.defId || dominantForTile.id)
+          : (entity.defId || subtype);
 
-        // Check if the item on the tile is a piece of furniture or a vehicle
-        const hasFurnitureOrVehicle = tileItems.some(item => item.isFurnitureOrVehicle || false);
+        // Is the drawn item a crop (growing or harvestable, wild or player-planted)?
+        // Same helper the icon ranking uses, so the tier that won the tile and
+        // the colour that frames it can never disagree about what a crop is.
+        const isCrop = isCropItem(bgSource, bgDefId);
+
+        // Is the drawn item a piece of furniture or a vehicle?
+        const hasFurnitureOrVehicle = !!bgSource.isFurnitureOrVehicle;
 
         // Metadata driven: check if the item is marked as full-tile
         // We check the entity property (set by GameMap for ground items) or the definition
@@ -543,24 +576,9 @@ export const EntityRenderer = {
         // Draw background token circle for items
         if (entity.type === 'item' && !isFullTileItem && !isExit) {
           let itemBgColor = '#0a0a0a';
-          let isFood = false;
-          let isMedical = false;
-          let matchingDef = null;
-          
-          if (subtype === 'ground_pile' && engine && engine.gameMap) {
-            const dominantItem = getDominantItemCached(engine, Math.round(entity.x), Math.round(entity.y));
-            if (dominantItem) {
-              isFood = dominantItem.isFood || false;
-              isMedical = dominantItem.isMedical || false;
-              const defId = dominantItem.defId || dominantItem.id;
-              matchingDef = dominantItem._def || ItemDefs[defId];
-            }
-          } else {
-            isFood = entity.isFood || false;
-            isMedical = entity.isMedical || false;
-            const defId = entity.defId || subtype;
-            matchingDef = entity._def || ItemDefs[defId];
-          }
+          const isFood = !!bgSource.isFood;
+          const isMedical = !!bgSource.isMedical;
+          const matchingDef = bgSource._def || ItemDefs[bgDefId] || null;
 
           if (matchingDef && matchingDef.backgroundColor) {
             itemBgColor = matchingDef.backgroundColor;
