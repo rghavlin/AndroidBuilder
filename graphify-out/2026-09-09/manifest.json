@@ -3740,8 +3740,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/PhoneWindow.tsx": {
-    "mtime": 1787813194.6554985,
-    "ast_hash": "8343b8c41d812a806c2a41743b8157cd",
+    "mtime": 1789001040.858009,
+    "ast_hash": "1d340e35804f698ef892c354fcfe45c3",
     "semantic_hash": ""
   },
   "client/src/game/phone/PhoneMessages.js": {
@@ -3807,6 +3807,16 @@
   "test/remote/remoteTweenClock.test.js": {
     "mtime": 1788999530.1545153,
     "ast_hash": "48cf39fe0bba452d2409f4451e396c85",
+    "semantic_hash": ""
+  },
+  "client/src/game/remote/DeviceCharge.js": {
+    "mtime": 1789001020.1444128,
+    "ast_hash": "e8150fc0c4ae46a853f79407f0434420",
+    "semantic_hash": ""
+  },
+  "test/remote/deviceCharge.test.js": {
+    "mtime": 1789001095.8056016,
+    "ast_hash": "2a0b1d70f74ede0b8200fb26692ea066",
     "semantic_hash": ""
   }
 }

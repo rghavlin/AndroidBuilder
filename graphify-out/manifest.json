@@ -645,8 +645,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
-    "mtime": 1787816215.6814244,
-    "ast_hash": "36a1277f907cc954eee03b907c97540d",
+    "mtime": 1789009118.0955057,
+    "ast_hash": "15e4c68efce954cab6b3c5b877c8dad8",
     "semantic_hash": ""
   },
   "client/src/contexts/GridSizeContext.tsx": {
@@ -970,8 +970,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/CraftingRecipes.js": {
-    "mtime": 1787905666.7783234,
-    "ast_hash": "db1ec199ded46f65f8622f8904fdb1a0",
+    "mtime": 1789001713.3192086,
+    "ast_hash": "f092e781bc5aeba68046c39b3f16da97",
     "semantic_hash": ""
   },
   "client/src/game/inventory/GroundManager.js": {
@@ -990,8 +990,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
-    "mtime": 1787905666.7793515,
-    "ast_hash": "3a81fd9a4ecb5f1c88a2aff78e2bb078",
+    "mtime": 1789001467.4346197,
+    "ast_hash": "b53c3153c0721da9dc5182f01c05a804",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemPricing.js": {
@@ -3817,6 +3817,16 @@
   "test/remote/deviceCharge.test.js": {
     "mtime": 1789001095.8056016,
     "ast_hash": "2a0b1d70f74ede0b8200fb26692ea066",
+    "semantic_hash": ""
+  },
+  "client/src/game/map/TileDescription.js": {
+    "mtime": 1789009092.089232,
+    "ast_hash": "899e26b96f738f332b4d5e83818cde17",
+    "semantic_hash": ""
+  },
+  "test/map/tileDescription.test.js": {
+    "mtime": 1789009143.714238,
+    "ast_hash": "68014f011168372f10a6fafac0dcd3bb",
     "semantic_hash": ""
   }
 }

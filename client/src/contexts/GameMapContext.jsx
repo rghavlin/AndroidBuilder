@@ -5,7 +5,6 @@ import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import engine from '../game/GameEngine.js';
 import { EntityType } from '../game/entities/Entity.js';
-import { findEdgeStructure } from '../game/utils/EdgeStructure.js';
 import { VehicleUtils } from '../game/utils/VehicleUtils.js';
 import { isTurretPassableBy, TURRET_DEF_ID } from '../game/ai/TurretCombat.js';
 import { isTerrainWalkable } from '../game/map/TerrainTypes.js';
@@ -16,6 +15,7 @@ import { getActiveRcVehicle, getAutonomousVehicle } from '../game/remote/RcVehic
 import * as AutoWagonOrders from '../game/remote/AutoWagonOrders.js';
 import { findRcPath } from '../game/remote/RcPathing.js';
 import { getControlMode } from '../game/remote/DeviceControlMode.js';
+import { describeTile, describeIfExplored } from '../game/map/TileDescription.js';
 
 const GameMapContext = createContext();
 
@@ -183,9 +183,15 @@ export const GameMapProvider = ({ children }) => {
     if (engine.activeDeviceId && getActiveDevice(engine)) {
       if (!targetTile) { setHoveredTile(null); return; }
       const preview = DroneMovement.previewMoveCost(x, y, engine);
+      const contents = describeIfExplored(engine.gameMap, targetTile, x, y, data, hoveredDrone);
       setHoveredTile(preview?.possible
-        ? { x, y, apCost: preview.apCost, canAfford: preview.canAfford, isDroneTarget: true, drone: hoveredDrone }
-        : null);
+        ? { x, y, apCost: preview.apCost, canAfford: preview.canAfford, isDroneTarget: true, ...contents }
+        // Nowhere to fly, but still somewhere to LOOK — and the tiles a drone
+        // can't reach (a zombie indoors, loot behind a wall) are the ones most
+        // worth reading. isRemoteView keeps MapCanvas from drawing a movement
+        // cursor over a tile the drone can't actually get to.
+        : { x, y, apCost: 0, canAfford: false, isDroneTarget: true, isRemoteView: true,
+            reason: preview?.reason || 'No route there', ...contents });
       return;
     }
 
@@ -195,14 +201,16 @@ export const GameMapProvider = ({ children }) => {
       if (!targetTile) { setHoveredTile(null); return; }
       const device = getAutonomousVehicle(engine);
       const path = findRcPath(device.x, device.y, x, y, engine, device.item.instanceId);
+      // Steering a wagon is looking around too — see describeTile.
+      const contents = describeIfExplored(engine.gameMap, targetTile, x, y, data, hoveredDrone);
       if (path.length <= 1) {
-        setHoveredTile({ x, y, apCost: 0, canAfford: false, isRcTarget: true, reason: 'No route there' });
+        setHoveredTile({ x, y, apCost: 0, canAfford: false, isRcTarget: true, reason: 'No route there', ...contents });
         return;
       }
       const turns = AutoWagonOrders.estimateTurns(path, device.item, engine.gameMap);
       setHoveredTile(Number.isFinite(turns)
-        ? { x, y, apCost: 0, canAfford: true, isRcTarget: true, label: `${turns}t` }
-        : { x, y, apCost: 0, canAfford: false, isRcTarget: true, reason: 'No power to move' });
+        ? { x, y, apCost: 0, canAfford: true, isRcTarget: true, label: `${turns}t`, ...contents }
+        : { x, y, apCost: 0, canAfford: false, isRcTarget: true, reason: 'No power to move', ...contents });
       return;
     }
 
@@ -212,11 +220,12 @@ export const GameMapProvider = ({ children }) => {
       if (!targetTile) { setHoveredTile(null); return; }
       const preview = RcVehicleMovement.previewDriveCost(x, y, engine);
       if (!preview) { setHoveredTile(null); return; }
+      const contents = describeIfExplored(engine.gameMap, targetTile, x, y, data, hoveredDrone);
       setHoveredTile(preview.possible
-        ? { x, y, apCost: preview.apCost, canAfford: preview.canAfford, isRcTarget: true }
+        ? { x, y, apCost: preview.apCost, canAfford: preview.canAfford, isRcTarget: true, ...contents }
         // Still show the tile when the drive is refused, so the player sees the
         // cursor react rather than nothing at all.
-        : { x, y, apCost: 0, canAfford: false, isRcTarget: true, reason: preview.reason });
+        : { x, y, apCost: 0, canAfford: false, isRcTarget: true, reason: preview.reason, ...contents });
       return;
     }
 
@@ -269,24 +278,11 @@ export const GameMapProvider = ({ children }) => {
         });
       }
       
-      const { structure: door } = findEdgeStructure(engine.gameMap, x, y, { type: 'door' });
-      const { structure: windowEntity } = findEdgeStructure(engine.gameMap, x, y, { type: 'window' });
-
-      const zombie = targetTile.contents.find(e => e.type === EntityType.ZOMBIE);
-      const rabbit = targetTile.contents.find(e => e.type === EntityType.RABBIT);
       setHoveredTile({
         x, y, apCost: isRemoteView ? 0 : apCost,
         isRemoteView,
         canAfford: !isRemoteView && isPossible && !engine.movementLocked && player.ap >= apCost,
-        zombie: zombie ? { subtype: zombie.subtype, hp: zombie.hp, maxHp: zombie.maxHp, currentAP: zombie.currentAP, maxAP: zombie.maxAP } : (data?.zombie || null),
-        rabbit: rabbit ? { id: rabbit.id, type: rabbit.type, hp: rabbit.hp, maxHp: rabbit.maxHp, currentAP: rabbit.currentAP, maxAP: rabbit.maxAP } : (data?.rabbit || null),
-        cropInfo: targetTile.cropInfo || data?.cropInfo || null,
-        lootItems: targetTile.inventoryItems || null,
-        specialBuilding: targetTile.contents.find(e => e.type === EntityType.PLACE_ICON)?.subtype || null,
-        door: door,
-        window: windowEntity,
-        npc: targetTile.contents.find(e => e.type === EntityType.NPC),
-        drone: hoveredDrone
+        ...describeTile(engine.gameMap, targetTile, x, y, data, hoveredDrone)
       });
     } catch (error) {
       setHoveredTile(null);
