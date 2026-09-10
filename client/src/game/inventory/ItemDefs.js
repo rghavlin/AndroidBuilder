@@ -3031,7 +3031,7 @@ export const ItemDefs = {
     categories: [ItemCategory.TOOL, ItemCategory.ELECTRIC],
     dragApPenalty: 1,
     renderFullTile: true,
-    description: 'Stow it in a vehicle to charge every battery riding with it, 1 charge per turn'
+    description: "Place this on a wagon to charge the wagon's batteries as well as any other batteries on the wagon."
   },
   'tool.battery_powered_hotplate': {
     id: 'tool.battery_powered_hotplate',

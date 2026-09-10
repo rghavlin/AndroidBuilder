@@ -10,6 +10,7 @@ import { useAudio } from "@/contexts/AudioContext";
 import { getPhone, phoneCharges, setPhonePower, canTogglePhonePower } from '@/game/phone/Phone';
 import * as RemoteDeviceRegistry from '@/game/remote/RemoteDeviceRegistry';
 import { hasAutonomy } from '@/game/remote/RemoteDeviceKinds';
+import { deviceCharge } from '@/game/remote/DeviceCharge';
 import { PHONE_MESSAGES, getPhoneMessage } from '@/game/phone/PhoneMessages';
 import engine from '../../game/GameEngine.js';
 
@@ -356,6 +357,52 @@ function deviceStatus(target: any): string {
 }
 
 /**
+ * Power remaining in one listed device: a gauge plus the raw charge count.
+ *
+ * Both, deliberately. The bar answers "can this thing still do a job" at a
+ * glance, but the count is what the player actually budgets against — a drone
+ * spends half a charge per tile and one per turn aloft, and "38" tells you how
+ * far you can go out and still get back where "62%" does not.
+ *
+ * A wagon's cells are summed (see DeviceCharge), so a Cargo Wagon reads as one
+ * fuel tank rather than three numbers the player has to add up.
+ */
+function DeviceChargeGauge({ target }: { target: any }) {
+  const charge = deviceCharge(target);
+
+  // Below a quarter is the warning band; empty and unfitted are the same
+  // colour but not the same message — "0" is a battery to recharge, "no cell"
+  // is a socket to fill, and confusing them wastes a trip.
+  const level = !charge.present || charge.charges <= 0
+    ? 'dead'
+    : charge.percent <= 25 ? 'low' : 'ok';
+
+  return (
+    <span className="mt-1 flex items-center gap-1.5" data-testid="phone-device-charge">
+      <span className="relative flex-1 h-1.5 rounded-full bg-cyan-400/10 overflow-hidden">
+        <span
+          className={cn(
+            "absolute inset-y-0 left-0 rounded-full transition-[width] duration-300",
+            level === 'ok' && "bg-cyan-300/80",
+            level === 'low' && "bg-amber-300/80",
+            level === 'dead' && "bg-red-400/60"
+          )}
+          style={{ width: `${charge.present ? Math.max(charge.percent, charge.charges > 0 ? 4 : 0) : 0}%` }}
+        />
+      </span>
+      <span className={cn(
+        "text-[0.55rem] font-mono tabular-nums shrink-0",
+        level === 'ok' && "text-cyan-100/60",
+        level === 'low' && "text-amber-200/80",
+        level === 'dead' && "text-red-300/80"
+      )}>
+        {charge.present ? `${Math.round(charge.charges)}` : 'no cell'}
+      </span>
+    </span>
+  );
+}
+
+/**
  * Everything the phone can reach right now. The registry answers that question
  * for the whole game (the map renderer and the FOV layer read the same list),
  * so this screen is a view of it and nothing more.
@@ -394,6 +441,7 @@ function DeviceList({ onSelect }: { onSelect: (key: string | null) => void }) {
             <span className="block text-[0.6rem] font-mono text-cyan-100/40">
               {deviceStatus(target)}{isLinked ? ' — linked' : ''}
             </span>
+            <DeviceChargeGauge target={target} />
           </button>
         );
       })}

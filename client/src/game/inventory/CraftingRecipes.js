@@ -454,7 +454,7 @@ export const CraftingRecipes = [
         id: 'crafting.vehicle_charger',
         name: 'Vehicle charger',
         resultItem: 'tool.vehicle_charger',
-        description: 'A charging rig that bolts into a wagon. Every battery stowed in the same vehicle gains 1 charge per turn.',
+        description: "Place this on a wagon to charge the wagon's batteries as well as any other batteries on the wagon.",
         apCost: 20,
         tab: 'crafting',
         tools: [

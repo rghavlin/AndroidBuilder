@@ -3435,8 +3435,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteTween.js": {
-    "mtime": 1785996290.8201036,
-    "ast_hash": "90774c8faf6d5dfdbf20c2385b407f2d",
+    "mtime": 1788999520.4406216,
+    "ast_hash": "997eb6c2c93c9e3ece12541db37cc2ac",
     "semantic_hash": ""
   },
   "test/remote/rcVehicle.test.js": {
@@ -3802,6 +3802,11 @@
   "test/remote/droneFenceFlight.test.js": {
     "mtime": 1788997584.0339115,
     "ast_hash": "90746191e161882cfeadbd8b511c1273",
+    "semantic_hash": ""
+  },
+  "test/remote/remoteTweenClock.test.js": {
+    "mtime": 1788999530.1545153,
+    "ast_hash": "48cf39fe0bba452d2409f4451e396c85",
     "semantic_hash": ""
   }
 }
