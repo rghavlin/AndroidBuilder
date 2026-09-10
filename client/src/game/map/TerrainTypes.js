@@ -27,6 +27,11 @@ export const isIndoorFloor = (terrain) =>
  *                   (drives LineOfSight / VisionSystem)
  *   destructible  - can explosions breach this terrain
  *                   (drives ExplosionSystem wall breaching)
+ *   blocksFlight  - does this terrain stop a flying device (recon drone)
+ *                   passing over or hovering on it. Full-height obstacles
+ *                   (walls, buildings, tree canopy) do; low ones a drone
+ *                   clears — a fence, open water — do not. Every walkable
+ *                   terrain is flyable by definition.
  *
  * Entity-level blocking (doors, windows, furniture, turrets) is NOT here —
  * those live on the entities and in LineOfSight/Pathfinding structure checks.
@@ -34,30 +39,31 @@ export const isIndoorFloor = (terrain) =>
  */
 export const TERRAIN_PROPS = {
   // Open ground
-  grass:       { walkable: true,  blocksSight: false, destructible: false },
-  road:        { walkable: true,  blocksSight: false, destructible: false },
-  sidewalk:    { walkable: true,  blocksSight: false, destructible: false },
-  transition:  { walkable: true,  blocksSight: false, destructible: false },
+  grass:       { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
+  road:        { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
+  sidewalk:    { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
+  transition:  { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
   // Interior surfaces
-  floor:       { walkable: true,  blocksSight: false, destructible: false },
-  garagefloor: { walkable: true,  blocksSight: false, destructible: false },
-  tent_floor:  { walkable: true,  blocksSight: false, destructible: false },
-  // Solid structures
-  wall:        { walkable: false, blocksSight: true,  destructible: true  },
-  building:    { walkable: false, blocksSight: true,  destructible: true  },
-  fence:       { walkable: false, blocksSight: true,  destructible: false },
-  tree:        { walkable: false, blocksSight: true,  destructible: false },
-  tent_wall:   { walkable: false, blocksSight: true,  destructible: false },
-  brick:       { walkable: false, blocksSight: true,  destructible: false },
-  metal_wall:  { walkable: false, blocksSight: true,  destructible: false },
+  floor:       { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
+  garagefloor: { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
+  tent_floor:  { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
+  // Solid structures — full height, so they stop a drone as well as a walker
+  wall:        { walkable: false, blocksSight: true,  destructible: true,  blocksFlight: true  },
+  building:    { walkable: false, blocksSight: true,  destructible: true,  blocksFlight: true  },
+  tree:        { walkable: false, blocksSight: true,  destructible: false, blocksFlight: true  },
+  tent_wall:   { walkable: false, blocksSight: true,  destructible: false, blocksFlight: true  },
+  brick:       { walkable: false, blocksSight: true,  destructible: false, blocksFlight: true  },
+  metal_wall:  { walkable: false, blocksSight: true,  destructible: false, blocksFlight: true  },
+  // Low obstacles — impassable on foot, but a drone flies straight over them
+  fence:       { walkable: false, blocksSight: true,  destructible: false, blocksFlight: false },
   // Water blocks movement but not sight
-  water:       { walkable: false, blocksSight: false, destructible: false },
-  deep_water:  { walkable: false, blocksSight: false, destructible: false },
+  water:       { walkable: false, blocksSight: false, destructible: false, blocksFlight: false },
+  deep_water:  { walkable: false, blocksSight: false, destructible: false, blocksFlight: false },
   // Legacy full-tile window terrain (see GameMap sheltered checks)
-  window:      { walkable: false, blocksSight: false, destructible: false }
+  window:      { walkable: false, blocksSight: false, destructible: false, blocksFlight: true  }
 };
 
-const DEFAULT_TERRAIN_PROPS = { walkable: true, blocksSight: false, destructible: false };
+const DEFAULT_TERRAIN_PROPS = { walkable: true, blocksSight: false, destructible: false, blocksFlight: false };
 
 /** Property lookup for any terrain string; unknown terrains are open ground. */
 export const getTerrainProps = (terrain) => TERRAIN_PROPS[terrain] || DEFAULT_TERRAIN_PROPS;
@@ -70,4 +76,11 @@ export const terrainBlocksSight = (terrain) => getTerrainProps(terrain).blocksSi
 
 /** Can explosions breach this terrain? */
 export const isTerrainDestructible = (terrain) => getTerrainProps(terrain).destructible;
+
+/**
+ * Can a flying device (recon drone) pass over / hover on this terrain? Every
+ * walkable terrain is flyable; on top of those, the low obstacles a drone
+ * clears — a fence, open water — are flyable while a walker is still stopped.
+ */
+export const isTerrainFlyable = (terrain) => !getTerrainProps(terrain).blocksFlight;
 

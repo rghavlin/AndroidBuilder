@@ -7,6 +7,7 @@ import { consumeDeployCharge, droneChargesRemaining } from './DronePower.js';
 import { asItemInstance } from './RemoteItem.js';
 import { listRcVehicles } from './RcVehicle.js';
 import { phoneBlockedReason } from '../phone/Phone.js';
+import { isTerrainWalkable } from '../map/TerrainTypes.js';
 
 /**
  * Umbrella layer for player-operated remote devices (recon drone today,
@@ -276,6 +277,51 @@ export function launch(candidate, engine) {
 }
 
 /**
+ * Where a drone hovering at (x, y) should actually put itself down.
+ *
+ * A drone can hover over terrain no one can stand on — a fence, open water
+ * (see TERRAIN_PROPS.blocksFlight). Dropping the item straight down there
+ * strands it on a tile the player can never reach to stow it, so it settles on
+ * the nearest walkable tile instead: a ring search outward, nearest-first
+ * within each ring. Beyond the search radius it gives up and drops in place —
+ * better a hard-to-reach drone than one deleted from the world.
+ *
+ * The test is TERRAIN walkability, not Tile.isWalkable: whoever is standing on
+ * a tile right now says nothing about whether a drone may come down there, and
+ * the overwhelmingly common case — landing at the player's own feet — is a
+ * tile the full check calls blocked because the player is on it.
+ */
+const MAX_LANDING_NUDGE = 3;
+
+function canLandOn(tile) {
+  return !!tile && isTerrainWalkable(tile.terrain);
+}
+
+function findLandingTile(gameMap, x, y) {
+  if (canLandOn(gameMap.getTile(x, y))) return { x, y };
+
+  for (let r = 1; r <= MAX_LANDING_NUDGE; r++) {
+    let best = null;
+    let bestDist = Infinity;
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        // Ring only — the interior was covered by a smaller radius already.
+        if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
+        if (!canLandOn(gameMap.getTile(x + dx, y + dy))) continue;
+        const dist = dx * dx + dy * dy;
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = { x: x + dx, y: y + dy };
+        }
+      }
+    }
+    if (best) return best;
+  }
+
+  return { x, y };
+}
+
+/**
  * Bring an airborne drone down at its current tile as a landed (2x2) ground
  * item. Used both for a manual "land" command and DroneSystem's auto-land
  * when the battery runs dry.
@@ -295,8 +341,10 @@ export function land(drone, engine, { chargeAp = true } = {}) {
     engine.player.useAP(DroneConfig.LAND_AP);
   }
 
-  const x = Math.round(drone.logicalX ?? drone.x);
-  const y = Math.round(drone.logicalY ?? drone.y);
+  // Where it is hovering, then where it can actually come down.
+  const hoverX = Math.round(drone.logicalX ?? drone.x);
+  const hoverY = Math.round(drone.logicalY ?? drone.y);
+  const { x, y } = findLandingTile(gameMap, hoverX, hoverY);
   const landedItem = drone.sourceItem || new Item(createItemFromDef(DEPLOYED_DEF_ID));
 
   gameMap.removeEntity(drone.id);

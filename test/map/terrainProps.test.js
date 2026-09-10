@@ -8,30 +8,33 @@ import {
   getTerrainProps,
   isTerrainWalkable,
   terrainBlocksSight,
-  isTerrainDestructible
+  isTerrainDestructible,
+  isTerrainFlyable
 } from '../../client/src/game/map/TerrainTypes.js';
 import { Tile } from '../../client/src/game/map/Tile.js';
 import { LineOfSight } from '../../client/src/game/utils/LineOfSight.js';
 
-// The expected matrix: [walkable, blocksSight, destructible]
+// The expected matrix: [walkable, blocksSight, destructible, blocksFlight].
+// blocksFlight is only ever true for full-height obstacles — the low ones a
+// recon drone clears (fence, water) are walkable=false but flyable.
 const EXPECTED = {
-  grass:       [true,  false, false],
-  road:        [true,  false, false],
-  sidewalk:    [true,  false, false],
-  transition:  [true,  false, false],
-  floor:       [true,  false, false],
-  garagefloor: [true,  false, false],
-  tent_floor:  [true,  false, false],
-  wall:        [false, true,  true ],
-  building:    [false, true,  true ],
-  fence:       [false, true,  false],
-  tree:        [false, true,  false],
-  tent_wall:   [false, true,  false],
-  brick:       [false, true,  false],
-  metal_wall:  [false, true,  false],
-  water:       [false, false, false],
-  deep_water:  [false, false, false],
-  window:      [false, false, false]
+  grass:       [true,  false, false, false],
+  road:        [true,  false, false, false],
+  sidewalk:    [true,  false, false, false],
+  transition:  [true,  false, false, false],
+  floor:       [true,  false, false, false],
+  garagefloor: [true,  false, false, false],
+  tent_floor:  [true,  false, false, false],
+  wall:        [false, true,  true,  true ],
+  building:    [false, true,  true,  true ],
+  fence:       [false, true,  false, false],
+  tree:        [false, true,  false, true ],
+  tent_wall:   [false, true,  false, true ],
+  brick:       [false, true,  false, true ],
+  metal_wall:  [false, true,  false, true ],
+  water:       [false, false, false, false],
+  deep_water:  [false, false, false, false],
+  window:      [false, false, false, true ]
 };
 
 describe('T2 terrain property matrix', () => {
@@ -39,18 +42,22 @@ describe('T2 terrain property matrix', () => {
     expect(Object.keys(TERRAIN_PROPS).sort()).toEqual(Object.keys(EXPECTED).sort());
   });
 
-  for (const [terrain, [walkable, blocksSight, destructible]] of Object.entries(EXPECTED)) {
-    it(`${terrain}: walkable=${walkable}, blocksSight=${blocksSight}, destructible=${destructible}`, () => {
+  for (const [terrain, [walkable, blocksSight, destructible, blocksFlight]] of Object.entries(EXPECTED)) {
+    it(`${terrain}: walkable=${walkable}, blocksSight=${blocksSight}, destructible=${destructible}, blocksFlight=${blocksFlight}`, () => {
       const props = getTerrainProps(terrain);
       expect(props.walkable).toBe(walkable);
       expect(props.blocksSight).toBe(blocksSight);
       expect(props.destructible).toBe(destructible);
+      expect(props.blocksFlight).toBe(blocksFlight);
 
       // The routed consumers must agree with the table (the drift this test pins):
       expect(isTerrainWalkable(terrain)).toBe(walkable);
       expect(terrainBlocksSight(terrain)).toBe(blocksSight);
       expect(isTerrainDestructible(terrain)).toBe(destructible);
+      expect(isTerrainFlyable(terrain)).toBe(!blocksFlight);
       expect(new Tile(0, 0, terrain).isWalkable()).toBe(walkable);
+      // A flying device gets the flight gate, everything else the walk gate.
+      expect(new Tile(0, 0, terrain).isWalkable(null, { flying: true })).toBe(!blocksFlight);
       expect(LineOfSight.isTerrainBlocking(terrain)).toBe(blocksSight);
     });
   }
@@ -59,7 +66,8 @@ describe('T2 terrain property matrix', () => {
     expect(getTerrainProps('nonexistent_terrain')).toEqual({
       walkable: true,
       blocksSight: false,
-      destructible: false
+      destructible: false,
+      blocksFlight: false
     });
     expect(isTerrainWalkable('nonexistent_terrain')).toBe(true);
     expect(terrainBlocksSight('nonexistent_terrain')).toBe(false);

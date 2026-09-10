@@ -3,7 +3,7 @@
  */
 import { EntityType } from '../entities/Entity.js';
 import { isTurretPassableBy, TURRET_DEF_ID } from '../ai/TurretCombat.js';
-import { isTerrainWalkable } from './TerrainTypes.js';
+import { isTerrainWalkable, isTerrainFlyable } from './TerrainTypes.js';
 import { isRetiredDecoration } from './DecorationPlanner.js';
 import engine from '../GameEngine.js';
 
@@ -87,7 +87,16 @@ export class Tile {
     }
 
     // 2. Terrain Check (Static obstacles) — single source: TERRAIN_PROPS (T2)
-    if (!isTerrainWalkable(this.terrain) && !hasEntry) {
+    // A flying device (recon drone) gets the flight gate instead of the walk
+    // gate: it clears low terrain — a fence, open water — but a wall, building
+    // or tree canopy is full height and stops it just the same. Without this a
+    // drone could PATH onto a fence (Pathfinding lets any target tile through)
+    // but moveEntity would refuse the placement, stranding its logical position
+    // one tile behind its rendered one.
+    const terrainPassable = options.flying
+      ? isTerrainFlyable(this.terrain)
+      : isTerrainWalkable(this.terrain);
+    if (!terrainPassable && !hasEntry) {
       // PATHFINDING EXCEPTION: Zombies can path "to" buildings to attack them
       // ONLY if the tile actually contains a door or window to breach.
       const hasBreachable = this.contents.some(e => e.type === EntityType.DOOR || e.type === EntityType.WINDOW || e.type === EntityType.GARAGE_DOOR);
@@ -112,8 +121,8 @@ export class Tile {
 
       // Flying remote devices (recon drone) pass over every entity and
       // ground-based obstacle — "high ceilings everywhere" (see
-      // remote/DroneMovement.js). Terrain above is NOT bypassed: a drone
-      // still can't fly through a wall/building tile.
+      // remote/DroneMovement.js). Terrain above is not bypassed wholesale: a
+      // drone clears a fence but still can't fly through a wall/building tile.
       if (options.flying) continue;
 
       // Powered-on turrets block movement for everyone except their own faction

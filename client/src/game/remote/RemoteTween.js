@@ -15,6 +15,10 @@ const MAX_TRAVEL_MS = 1200;
 
 // Same ease-in/ease-out curve the player's movement uses, so a remote device
 // reads as the same "thing moving" motion.
+//
+// Defined ONLY on [0, 1]. Outside it the curve turns around and climbs again —
+// the t < 0.5 branch is 2t*t, so ease(-1) is 2 and ease(-2) is 8 — which is why
+// every caller must clamp before calling in.
 function ease(t) {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
@@ -89,6 +93,22 @@ export function tweenAlongPath(entity, path, engine, { msPerTile, followCamera =
     return Promise.resolve();
   }
 
+  // Nothing to animate. Every caller already guards this, but a zero-length
+  // path here would make `tiles` -1 and index off the FRONT of the array, so
+  // fail the same way the headless branch does: run the authoritative
+  // placement, resolve, and never start a frame loop. onFinish is called
+  // directly rather than through settleTween because no beginTween has run —
+  // endTween would take a count belonging to a concurrent tween.
+  if (!Array.isArray(path) || path.length === 0) {
+    console.warn('[RemoteTween] tweenAlongPath called with an empty path; nothing to animate');
+    try {
+      onFinish();
+    } catch (err) {
+      console.error('[RemoteTween] onFinish threw; the device may be left mid-placement:', err);
+    }
+    return Promise.resolve();
+  }
+
   const tiles = path.length - 1;
   const duration = Math.min(MAX_TRAVEL_MS, Math.max(MIN_TRAVEL_MS, tiles * msPerTile));
   const startTime = performance.now();
@@ -102,20 +122,45 @@ export function tweenAlongPath(entity, path, engine, { msPerTile, followCamera =
 
   return new Promise((resolve) => {
     const animate = (now) => {
-      const progress = Math.min((now - startTime) / duration, 1);
-      const p = ease(progress) * tiles;
-      const idx = Math.floor(p);
-      const frac = p - idx;
-      const curr = path[idx];
-      const next = path[Math.min(idx + 1, path.length - 1)];
+      let progress;
+      try {
+        // `now` is the frame's BEGIN time, which can predate the startTime
+        // sampled when the tween was created — the main thread having been busy
+        // in between (finishing a turn simulation, say) is exactly when that
+        // happens, and an autonomous wagon starts its tween the instant the
+        // simulation ends. The raw ratio therefore goes negative, so clamp both
+        // ends: ease() climbs again below 0 (see its definition) and would walk
+        // the index clean off the end of the path. A non-finite timestamp
+        // collapses to 0 for the same reason.
+        const elapsed = (now - startTime) / duration;
+        progress = Number.isFinite(elapsed) ? Math.min(Math.max(elapsed, 0), 1) : 0;
 
-      const smoothX = curr.x + (next.x - curr.x) * frac;
-      const smoothY = curr.y + (next.y - curr.y) * frac;
+        const p = ease(progress) * tiles;
+        // Belt and braces: the clamp above already keeps this in range, and a
+        // path index is not something to leave to a curve staying well behaved.
+        const idx = Math.min(Math.max(Math.floor(p), 0), tiles);
+        const frac = p - idx;
+        const curr = path[idx];
+        const next = path[Math.min(idx + 1, tiles)];
 
-      entity.renderX = smoothX;
-      entity.renderY = smoothY;
-      if (followCamera) engine.camera?.centerOn(smoothX, smoothY);
-      engine.recalculateFOV?.();
+        const smoothX = curr.x + (next.x - curr.x) * frac;
+        const smoothY = curr.y + (next.y - curr.y) * frac;
+
+        entity.renderX = smoothX;
+        entity.renderY = smoothY;
+        if (followCamera) engine.camera?.centerOn(smoothX, smoothY);
+        engine.recalculateFOV?.();
+      } catch (err) {
+        // A throw inside a frame callback escapes into the event loop where
+        // nothing can catch it: this promise would never settle, and
+        // TurnManager.processQueue would sit at isProcessing = true forever,
+        // aborting every later turn with "Already processing" — the game stuck
+        // on "PROCESSING TURNS...". End the tween honestly instead.
+        console.error('[RemoteTween] frame failed; ending the tween early:', err);
+        settleTween(engine, onFinish);
+        resolve();
+        return;
+      }
 
       if (progress < 1) {
         requestAnimationFrame(animate);

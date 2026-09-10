@@ -1095,8 +1095,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/Tile.js": {
-    "mtime": 1788913596.690693,
-    "ast_hash": "6058107fa2c73832eb057092cfc01778",
+    "mtime": 1788997478.0468519,
+    "ast_hash": "72e85024bb252be7e4d4d69386950050",
     "semantic_hash": ""
   },
   "client/src/game/map/TollGate.js": {
@@ -3010,8 +3010,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/TerrainTypes.js": {
-    "mtime": 1784682428.6749558,
-    "ast_hash": "31c39ee9a2d14927e209b7718e6942c8",
+    "mtime": 1788997431.4951885,
+    "ast_hash": "00b08b680c1c4a39a9e3d40740a6e017",
     "semantic_hash": ""
   },
   "test/systems/keylocked_doors.test.js": {
@@ -3055,8 +3055,8 @@
     "semantic_hash": ""
   },
   "test/map/terrainProps.test.js": {
-    "mtime": 1784682816.7979033,
-    "ast_hash": "9471316e93d8423caa52bee6496b01a5",
+    "mtime": 1788997846.5268817,
+    "ast_hash": "f108ace2d2b7feb82a23823aaf1a8633",
     "semantic_hash": ""
   },
   "test/renderer/tileChunkCache.test.js": {
@@ -3290,8 +3290,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/DroneMovement.js": {
-    "mtime": 1785996120.4214232,
-    "ast_hash": "f0e39878bf96f10d0849dc960c72b4be",
+    "mtime": 1788997478.0488527,
+    "ast_hash": "f8fc6458fa97cf766c412b0cc34ecdca",
     "semantic_hash": ""
   },
   "client/src/game/remote/DronePower.js": {
@@ -3305,8 +3305,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteDeviceRegistry.js": {
-    "mtime": 1787811411.782817,
-    "ast_hash": "e1eafc48fe4a72d6b6be0b4c248813c0",
+    "mtime": 1788997826.390943,
+    "ast_hash": "a6b3820025f8404304edc5ec2189320a",
     "semantic_hash": ""
   },
   "client/src/game/systems/DroneSystem.js": {
@@ -3435,8 +3435,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteTween.js": {
-    "mtime": 1785996290.8201036,
-    "ast_hash": "90774c8faf6d5dfdbf20c2385b407f2d",
+    "mtime": 1788999520.4406216,
+    "ast_hash": "997eb6c2c93c9e3ece12541db37cc2ac",
     "semantic_hash": ""
   },
   "test/remote/rcVehicle.test.js": {
@@ -3797,6 +3797,16 @@
   "test/renderer/cropIconPriority.test.js": {
     "mtime": 1788995770.9155903,
     "ast_hash": "a74b9ac8c2f4d4d5f88e38909b75119e",
+    "semantic_hash": ""
+  },
+  "test/remote/droneFenceFlight.test.js": {
+    "mtime": 1788997584.0339115,
+    "ast_hash": "90746191e161882cfeadbd8b511c1273",
+    "semantic_hash": ""
+  },
+  "test/remote/remoteTweenClock.test.js": {
+    "mtime": 1788999530.1545153,
+    "ast_hash": "48cf39fe0bba452d2409f4451e396c85",
     "semantic_hash": ""
   }
 }

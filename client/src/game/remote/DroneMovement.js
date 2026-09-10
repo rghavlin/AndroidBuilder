@@ -1,5 +1,5 @@
 import { Pathfinding } from '../utils/Pathfinding.js';
-import { isTerrainWalkable } from '../map/TerrainTypes.js';
+import { isTerrainFlyable } from '../map/TerrainTypes.js';
 import { DroneConfig } from '../config/DroneConfig.js';
 import { canAffordFlight, consumeFlightCharge } from './DronePower.js';
 import { getActiveDevice } from './RemoteDeviceRegistry.js';
@@ -11,12 +11,19 @@ import { tweenAlongPath } from './RemoteTween.js';
  * called directly from GameMapContext, not through TurnManager.
  *
  * The drone flies over every entity (zombies, NPCs, the player); only
- * terrain and edge structures (walls, closed doors/windows — the latter
- * already enforced inside Pathfinding.findPath itself) block it. This is
- * the "high ceilings everywhere" rule: normal terrain/LOS pathing, no
+ * full-height terrain and edge structures (walls, closed doors/windows — the
+ * latter already enforced inside Pathfinding.findPath itself) block it. This
+ * is the "high ceilings everywhere" rule: normal terrain/LOS pathing, no
  * entity-blocking at all.
+ *
+ * The gate is isTerrainFlyable, NOT isTerrainWalkable: a drone crosses and
+ * hovers over low terrain a walker can't (a fence, open water). It must stay
+ * in lockstep with the options.flying branch of Tile.isWalkable — a tile the
+ * path can reach but moveEntity then refuses leaves the drone's logical
+ * position behind its rendered one, which reads in-game as the drone
+ * teleporting back to where it was before every subsequent move.
  */
-const droneEntityFilter = (tile) => !!tile && isTerrainWalkable(tile.terrain);
+const droneEntityFilter = (tile) => !!tile && isTerrainFlyable(tile.terrain);
 
 function findDronePath(drone, x, y, engine) {
   return Pathfinding.findPath(
@@ -56,7 +63,18 @@ const MS_PER_TILE = 110;
 /** Snap the drone to the end of the path — the authoritative placement. */
 function finishFlight(drone, path, engine) {
   const final = path[path.length - 1];
-  engine.gameMap.moveEntity(drone.id, final.x, final.y, { flying: true, skipEdgeCheck: true });
+  const placed = engine.gameMap.moveEntity(drone.id, final.x, final.y, { flying: true, skipEdgeCheck: true });
+  if (!placed) {
+    // The tween has already dragged the render coords onto the target. If the
+    // placement is refused anyway, snap them back to where the drone actually
+    // is rather than leaving it drawn a tile (or ten) from its logical
+    // position: that silent desync is what surfaced as the drone teleporting
+    // back to its old tile at the start of its next flight, and as it landing
+    // somewhere it was never shown to be.
+    console.warn(`[DroneMovement] placement at (${final.x}, ${final.y}) refused; drone stays at (${drone.logicalX}, ${drone.logicalY})`);
+    drone.renderX = drone.logicalX;
+    drone.renderY = drone.logicalY;
+  }
   drone.movementPath = [];
   drone.isAnimating = false;
   // engine.isDeviceAnimating is owned by RemoteTween's reference count — do not
