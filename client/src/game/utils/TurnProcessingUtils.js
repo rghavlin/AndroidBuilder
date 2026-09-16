@@ -1,6 +1,7 @@
 import { ItemTrait, ItemCategory } from '../inventory/traits.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 import { gridItems } from '../inventory/gridUtils.js';
+import { ItemDefs } from '../inventory/ItemDefs.js';
 
 /** Charger that charges its neighbours in a vehicle grid rather than its own contents. */
 export const VEHICLE_CHARGER_DEF_ID = 'tool.vehicle_charger';
@@ -86,16 +87,17 @@ function chargerContents(itemData) {
 export const TurnProcessingUtils = {
     /**
      * Single source of truth for a battery's maximum charge. Prefers the
-     * instance/def `capacity` field and falls back by defId for legacy saves
-     * that predate the capacity field. Callers (chargeBatteries here and
-     * crankCharger in InventoryContext) must share this so they can never
-     * disagree about when a battery is "full".
+     * instance `capacity` field and falls back to the item def for legacy saves
+     * that predate the field — read from ItemDefs rather than hardcoded so a
+     * capacity tuned there can never leave the fallback behind. Callers
+     * (chargeBatteries here and crankCharger in InventoryContext) must
+     * share this so they can never disagree about when a battery is "full".
      */
     getMaxCharge(battery) {
         if (battery.capacity) return battery.capacity;
-        if (battery.defId === 'tool.high_capacity_battery') return 400;
-        if (battery.defId === 'tool.large_battery') return 100;
-        return 10;
+        const defCapacity = ItemDefs[battery.defId]?.capacity;
+        if (defCapacity) return defCapacity;
+        return 20;
     },
 
     /**

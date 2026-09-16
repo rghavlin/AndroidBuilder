@@ -1670,7 +1670,7 @@ export class Item extends SafeEventEmitter {
     'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit', 'isLocked',
     'zombieSubtype', 'earbucksValue', 'brainstemColors',
     'transitionTargetId', 'transitionTargetX', 'transitionTargetY', 'eventId',
-    'groundPriority', 'isEventMarker'
+    'groundPriority', 'isEventMarker', 'hitchedItemInstanceId', 'hitchedToInstanceId'
   ];
 
   // Serialization

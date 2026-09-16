@@ -272,12 +272,11 @@ describe('systems/WagonSystem', () => {
     // driveBlockedReason is reused verbatim from the player-driven path, so
     // remote and autonomous always agree on what "can't move" means.
     //
-    // The hitch case deliberately uses the REVERSE link (a tow-cart naming the
-    // wagon) rather than the wagon's own hitchedToInstanceId: for an on-map
-    // wagon `device.item` is rebuilt through Entity.toJSON's field whitelist,
-    // which does not carry that flag. The reverse check scans the ground
-    // container directly and is the path that actually fires in play, since
-    // hitching happens at the player's feet.
+    // The hitch case uses the REVERSE link (a tow-cart naming the wagon). Both
+    // links now survive the on-map round trip (hitch fields are in Entity's
+    // ITEM_SERIALIZED_FIELDS), but the reverse check scans the ground container
+    // directly and is the path that fires in play, since hitching happens at the
+    // player's feet.
     it.each([
       ['dragging', (d) => { engine.dragging = { item: d.item, tileX: 5, tileY: 5 }; }],
       ['riding', (d) => { engine.riding = { item: d.item, tileX: 5, tileY: 5 }; }],

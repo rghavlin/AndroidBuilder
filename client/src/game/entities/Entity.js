@@ -53,7 +53,7 @@ export const ITEM_SERIALIZED_FIELDS = [
   'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
   'availableFireModes', 'isCrop', 'isFurnitureOrVehicle', 'isFood', 'isMedical', 'zombieSubtype',
   'earbucksValue', 'transitionTargetId', 'transitionTargetX', 'transitionTargetY', 'eventId',
-  'groundPriority', 'isEventMarker', 'fixedAppearance'
+  'groundPriority', 'isEventMarker', 'fixedAppearance', 'hitchedItemInstanceId', 'hitchedToInstanceId'
 ];
 
 export const EntityType = {
