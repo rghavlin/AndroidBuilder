@@ -1,7 +1,7 @@
 # Graph Report - AndroidBuilder  (2026-09-16)
 
 ## Corpus Check
-- 573 files · ~7,289,364 words
+- 573 files · ~7,289,420 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ec51a809`
+- Built from commit: `89f0f6a1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -202,9 +202,9 @@
 - 3-file cycle: `client/src/game/inventory/Item.js -> client/src/game/utils/TurnProcessingUtils.js -> client/src/game/inventory/gridUtils.js -> client/src/game/inventory/Item.js`
 - 4-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/entities/Entity.js -> client/src/game/GameEngine.js`
 - 4-file cycle: `client/src/game/ai/TurretCombat.js -> client/src/game/inventory/gridUtils.js -> client/src/game/inventory/Item.js -> client/src/game/utils/TurnProcessingUtils.js -> client/src/game/ai/TurretCombat.js`
+- 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/utils/Pathfinding.js -> client/src/game/entities/Entity.js -> client/src/game/GameEngine.js`
 - 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/entities/Entity.js -> client/src/game/systems/AttributeProgressionManager.js -> client/src/game/GameEngine.js`
 - 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/entities/Entity.js -> client/src/game/systems/CombatResolver.js -> client/src/game/GameEngine.js`
-- 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/utils/Pathfinding.js -> client/src/game/entities/Entity.js -> client/src/game/GameEngine.js`
 
 ## Communities (169 total, 53 thin omitted)
 
@@ -222,7 +222,7 @@ Nodes (15): CombatProvider(), removeDestroyedTurret(), applyHitProgression(), lx
 
 ### Community 4 - "AI and Inventory Systems"
 Cohesion: 0.07
-Nodes (44): BarterWindow(), BarterWindowProps, InventoryPanel(), LeftPanelWindowProps, PlayerSkillsWindowProps, TollWindow(), TollWindowProps, BackpackGrid() (+36 more)
+Nodes (43): BarterWindow(), BarterWindowProps, InventoryPanel(), PlayerSkillsWindowProps, TollWindow(), TollWindowProps, BackpackGrid(), BeltContainerPanel() (+35 more)
 
 ### Community 5 - "NPC AI Behavior"
 Cohesion: 0.06
@@ -233,8 +233,8 @@ Cohesion: 0.20
 Nodes (14): RcVehicleConfig, clearOrder(), estimateTurns(), getOrder(), getOrders(), restoreOrders(), serializeOrders(), countTurnsForPath() (+6 more)
 
 ### Community 7 - "CombatResolver"
-Cohesion: 0.19
-Nodes (12): BATTERY_SLOT, DeviceList(), deviceName(), deviceStatus(), MessageReader(), PhoneAppIcon(), PhoneScreen, PhoneScreenContent() (+4 more)
+Cohesion: 0.15
+Nodes (13): LeftPanelWindowProps, BATTERY_SLOT, DeviceList(), deviceName(), deviceStatus(), MessageReader(), PhoneAppIcon(), PhoneScreen (+5 more)
 
 ### Community 8 - "Tooltip Components"
 Cohesion: 0.06
@@ -637,4 +637,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `Item Interaction Logic` be split into smaller, more focused modules?**
   _Cohesion score 0.05370843989769821 - nodes in this community are weakly interconnected._
 - **Should `AI and Inventory Systems` be split into smaller, more focused modules?**
-  _Cohesion score 0.06832298136645963 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07281772953414745 - nodes in this community are weakly interconnected._

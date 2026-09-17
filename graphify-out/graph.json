@@ -980,7 +980,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_game_leftpanelwindow",
-      "community": 4,
+      "community": 7,
       "norm_label": "leftpanelwindow.tsx"
     },
     {
@@ -990,7 +990,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "client_src_components_game_leftpanelwindow_leftpanelwindowprops",
-      "community": 4,
+      "community": 7,
       "norm_label": "leftpanelwindowprops"
     },
     {
@@ -1000,7 +1000,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "client_src_components_game_leftpanelwindow_leftpanelwindow",
-      "community": 4,
+      "community": 7,
       "norm_label": "leftpanelwindow()"
     },
     {
@@ -47924,7 +47924,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/FloatingContainerOverlay.tsx",
-      "source_location": "L173",
+      "source_location": "L177",
       "weight": 1.0,
       "source": "client_src_components_inventory_floatingcontaineroverlay_floatingcontaineroverlay",
       "target": "client_src_game_utils_vehicleutils_vehicleutils"
@@ -47935,7 +47935,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/FloatingContainerOverlay.tsx",
-      "source_location": "L94",
+      "source_location": "L98",
       "weight": 1.0,
       "source": "client_src_components_inventory_floatingcontaineroverlay_floatingcontaineroverlay",
       "target": "client_src_hooks_usewindowsize_getscalefactor"
@@ -47946,7 +47946,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/components/Inventory/FloatingContainerOverlay.tsx",
-      "source_location": "L182",
+      "source_location": "L186",
       "weight": 1.0,
       "source": "client_src_components_inventory_floatingcontaineroverlay_floatingcontaineroverlay",
       "target": "client_src_lib_utils_cn"
@@ -136295,5 +136295,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "ec51a8090cfa01a40810b5bad99d66ae9e75129a"
+  "built_at_commit": "89f0f6a1d240fa11ae365eb09edb98e4fa4695d6"
 }

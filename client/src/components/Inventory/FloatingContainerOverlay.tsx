@@ -57,6 +57,10 @@ export default function FloatingContainerOverlay({
    // Hand-pulling = dragging a wagon that is NOT hitched (a hitched wagon dragged is auto-tow, driven by the cart)
    const isHandPulling = !!draggingItem && !draggingItem.hitchedToInstanceId;
    const isRidingVehicle = !!ridingItem;
+   // Riding a different vehicle (e.g. the golf cart) or moving any wagon (hand-pulled
+   // or towed as a trailer) blocks mounting this one
+   const isRidingOtherVehicle = isRidingVehicle && !isRidden;
+   const isMovingOtherWagon = !!draggingItem && !isDragging;
    const isAnyHitchPending = !!pendingHitchCart;
    const groundItems = engine?.inventoryManager?.groundContainer?.getAllItems() || [];
    // An active hitch exists on this tile if any tow-capable cart has a wagon attached
@@ -278,7 +282,7 @@ export default function FloatingContainerOverlay({
                   variant={isRidden ? "destructive" : "secondary"}
                   className="h-6 text-[9px] px-1.5 py-0 font-bold uppercase tracking-tighter shadow-[0_0_10px_rgba(0,0,0,0.5)]"
                   onClick={handleToggleRide}
-                  disabled={(batteryPercent <= 0 && !isRidden) || containerId !== 'ground' || (isHandPulling && !isRidden)}
+                  disabled={!isRidden && (batteryPercent <= 0 || containerId !== 'ground' || isRidingOtherVehicle || isMovingOtherWagon)}
                 >
                   {isRidden ? "Stop" : "Ride"}
                 </Button>
@@ -301,7 +305,12 @@ export default function FloatingContainerOverlay({
                         Must be on ground to ride
                       </div>
                     )}
-                    {isHandPulling && !isRidden && (
+                    {isRidingOtherVehicle && (
+                      <div className="text-[8px] text-yellow-400 font-bold uppercase mt-1">
+                        Stop riding {ridingItem?.name || 'your vehicle'} first
+                      </div>
+                    )}
+                    {!isRidingOtherVehicle && isMovingOtherWagon && !isRidden && (
                       <div className="text-[8px] text-yellow-400 font-bold uppercase mt-1">
                         Drop the wagon before riding
                       </div>

@@ -325,8 +325,8 @@
     "semantic_hash": "57f25a74206bfda7dfa086cc9406f585"
   },
   "client/src/components/Inventory/FloatingContainerOverlay.tsx": {
-    "mtime": 1785992698.8017247,
-    "ast_hash": "234f581ead80cf177a7c1210e2d767e5",
+    "mtime": 1789605609.3203552,
+    "ast_hash": "22f4d6b9cc009e3014c20edb84b79305",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/GridSlot.tsx": {
