@@ -12,6 +12,9 @@ import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 // STEP is a provisional magnitude, expected to be retuned from playtesting.
 const ATTR_MOD_BASELINE = 20;
 const ATTR_MOD_STEP = 0.0015;
+/** Decimal places a roll's damage total is quantized to — see CombatResolver.roundDamage. */
+const DAMAGE_PRECISION = 2;
+const DAMAGE_ROUNDING_FACTOR = 10 ** DAMAGE_PRECISION;
 
 // Melee no longer reads a per-weapon accuracy stat (removed design decision:
 // weapon-level hitChance stacked unclamped on top of skill/attribute and, per
@@ -103,6 +106,22 @@ export class CombatResolver {
   /** Strength's flat melee damage bonus, capped at +5. Provisional magnitude, tune later. */
   static strengthDamageBonus(currentStrength = 0) {
     return Math.min(5, Math.max(0, (currentStrength - ATTR_MOD_BASELINE) * 0.05));
+  }
+
+  /**
+   * Quantizes a roll's final damage to DAMAGE_PRECISION decimals. Fractional
+   * damage is deliberate — strengthDamageBonus moves in 0.05 steps so a single
+   * attribute point still registers — but summing it onto an integer weapon roll
+   * surfaces binary float error (STR 34 gave `1 + 0.7000000000000001` =
+   * 1.7000000000000002 in the combat log, and leaked the same dust into entity HP).
+   * Applied once per roll on the total, after every modifier, so the rounding can't
+   * compound; 2 decimals is lossless for all current contributors, since the
+   * Strength bonus is a multiple of 0.05 and every other term is already an integer.
+   * Any new fractional damage modifier belongs upstream of this call, not after it.
+   */
+  static roundDamage(damage) {
+    if (!Number.isFinite(damage)) return damage;
+    return Math.round(damage * DAMAGE_ROUNDING_FACTOR) / DAMAGE_ROUNDING_FACTOR;
   }
 
   /** Fraction (0-1) of an inflicted sickness duration that Constitution shrugs off, capped. */
@@ -263,7 +282,7 @@ export class CombatResolver {
       }
     }
 
-    return { hit, isCrit, damage, extraDamageApplied, stunDuration, dodged };
+    return { hit, isCrit, damage: CombatResolver.roundDamage(damage), extraDamageApplied, stunDuration, dodged };
   }
 
   /** Player ranged single-shot roll. */
@@ -385,7 +404,7 @@ export class CombatResolver {
       }
     }
 
-    return { hit, isCrit, damage, dodged };
+    return { hit, isCrit, damage: CombatResolver.roundDamage(damage), dodged };
   }
 
   /**

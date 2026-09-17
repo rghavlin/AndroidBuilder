@@ -32,6 +32,17 @@ describe('CombatResolver Pure Math Unit Tests', () => {
       expect(CombatResolver.strengthDamageBonus(200)).toBe(5); // capped
     });
 
+    it('roundDamage strips float dust without quantizing the 0.05 Strength step', () => {
+      // The exact artifact from the combat log: STR 34 -> 14 * 0.05 is not 0.7 in binary.
+      expect(1 + CombatResolver.strengthDamageBonus(34)).not.toBe(1.7);
+      expect(CombatResolver.roundDamage(1 + CombatResolver.strengthDamageBonus(34))).toBe(1.7);
+
+      // 2 decimals keeps every reachable Strength bonus intact rather than rounding it away.
+      expect(CombatResolver.roundDamage(9.75)).toBe(9.75);
+      expect(CombatResolver.roundDamage(5)).toBe(5);
+      expect(CombatResolver.roundDamage(0)).toBe(0);
+    });
+
     it('sicknessResistFraction caps at 0.6 and applySicknessResistance leaves at least 1 turn', () => {
       expect(CombatResolver.sicknessResistFraction(20)).toBe(0);
       expect(CombatResolver.sicknessResistFraction(100)).toBe(0.6); // capped
@@ -99,6 +110,23 @@ describe('CombatResolver Pure Math Unit Tests', () => {
       });
 
       expect(result.hit).toBe(true);
+    });
+
+    it('returns a damage total free of float error', () => {
+      // min === max === 1 pins the weapon roll at 1 whether or not it crits
+      // (Math.floor(1 * 1.5) === 1), so the only variable left is the Strength
+      // bonus — no seeding needed. isWindowTarget forces the hit, and a
+      // structure defender can't evade it away.
+      const result = CombatResolver.rollPlayerMelee({
+        weaponStats: { damage: { min: 1, max: 1 } },
+        skillLvl: 0,
+        isWindowTarget: true,
+        hasTargetEntity: true,
+        currentStrength: 34,
+        defenderType: 'structure'
+      });
+
+      expect(result.damage).toBe(1.7); // not 1.7000000000000002
     });
   });
 
