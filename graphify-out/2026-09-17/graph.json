@@ -980,7 +980,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_game_leftpanelwindow",
-      "community": 4,
+      "community": 7,
       "norm_label": "leftpanelwindow.tsx"
     },
     {
@@ -990,7 +990,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "client_src_components_game_leftpanelwindow_leftpanelwindowprops",
-      "community": 4,
+      "community": 7,
       "norm_label": "leftpanelwindowprops"
     },
     {
@@ -1000,7 +1000,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "client_src_components_game_leftpanelwindow_leftpanelwindow",
-      "community": 4,
+      "community": 7,
       "norm_label": "leftpanelwindow()"
     },
     {
@@ -7590,7 +7590,7 @@
       "source_location": "L132",
       "_origin": "ast",
       "id": "client_src_game_gamesavesystem_indexeddbstore_getitem",
-      "community": 46,
+      "community": 32,
       "norm_label": ".getitem()"
     },
     {
@@ -7700,7 +7700,7 @@
       "source_location": "L723",
       "_origin": "ast",
       "id": "client_src_game_gamesavesystem_gamesavesystem_deletesaveslot",
-      "community": 46,
+      "community": 32,
       "norm_label": ".deletesaveslot()"
     },
     {
@@ -8180,7 +8180,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_ai_aitargeting",
-      "community": 97,
+      "community": 132,
       "norm_label": "aitargeting.js"
     },
     {
@@ -8190,7 +8190,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "client_src_game_ai_aitargeting_aitargeting",
-      "community": 97,
+      "community": 132,
       "norm_label": "aitargeting"
     },
     {
@@ -8490,7 +8490,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_ai_rabbitai",
-      "community": 33,
+      "community": 41,
       "norm_label": "rabbitai.js"
     },
     {
@@ -8550,7 +8550,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_ai_turretai",
-      "community": 97,
+      "community": 132,
       "norm_label": "turretai.js"
     },
     {
@@ -8560,7 +8560,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "client_src_game_ai_turretai_turretai",
-      "community": 97,
+      "community": 132,
       "norm_label": "turretai"
     },
     {
@@ -8570,7 +8570,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "client_src_game_ai_turretai_turretai_executeturretturn",
-      "community": 97,
+      "community": 132,
       "norm_label": ".executeturretturn()"
     },
     {
@@ -8790,7 +8790,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_actionpoints",
-      "community": 41,
+      "community": 111,
       "norm_label": "actionpoints.js"
     },
     {
@@ -8800,7 +8800,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_actionpoints_actionpoints",
-      "community": 41,
+      "community": 111,
       "norm_label": "actionpoints"
     },
     {
@@ -8810,7 +8810,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_actionpoints_actionpoints_constructor",
-      "community": 41,
+      "community": 111,
       "norm_label": ".constructor()"
     },
     {
@@ -8820,7 +8820,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "client_src_game_components_actionpoints_actionpoints_tojson",
-      "community": 41,
+      "community": 111,
       "norm_label": ".tojson()"
     },
     {
@@ -8870,7 +8870,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_consumable",
-      "community": 41,
+      "community": 111,
       "norm_label": "consumable.js"
     },
     {
@@ -8880,7 +8880,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_consumable_consumable",
-      "community": 41,
+      "community": 111,
       "norm_label": "consumable"
     },
     {
@@ -8890,7 +8890,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_consumable_consumable_constructor",
-      "community": 41,
+      "community": 111,
       "norm_label": ".constructor()"
     },
     {
@@ -8900,7 +8900,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "client_src_game_components_consumable_consumable_tojson",
-      "community": 41,
+      "community": 111,
       "norm_label": ".tojson()"
     },
     {
@@ -8990,7 +8990,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_equippedarmor",
-      "community": 41,
+      "community": 33,
       "norm_label": "equippedarmor.js"
     },
     {
@@ -9000,7 +9000,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_equippedarmor_equippedarmor",
-      "community": 41,
+      "community": 33,
       "norm_label": "equippedarmor"
     },
     {
@@ -9010,7 +9010,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_equippedarmor_equippedarmor_constructor",
-      "community": 41,
+      "community": 33,
       "norm_label": ".constructor()"
     },
     {
@@ -9020,7 +9020,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "client_src_game_components_equippedarmor_equippedarmor_tojson",
-      "community": 41,
+      "community": 33,
       "norm_label": ".tojson()"
     },
     {
@@ -9110,7 +9110,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_inventory",
-      "community": 41,
+      "community": 111,
       "norm_label": "inventory.js"
     },
     {
@@ -9120,7 +9120,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_inventory_inventory",
-      "community": 41,
+      "community": 111,
       "norm_label": "inventory"
     },
     {
@@ -9130,7 +9130,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_inventory_inventory_constructor",
-      "community": 41,
+      "community": 111,
       "norm_label": ".constructor()"
     },
     {
@@ -9140,7 +9140,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "client_src_game_components_inventory_inventory_tojson",
-      "community": 41,
+      "community": 111,
       "norm_label": ".tojson()"
     },
     {
@@ -9190,7 +9190,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_item",
-      "community": 41,
+      "community": 111,
       "norm_label": "item.js"
     },
     {
@@ -9200,7 +9200,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_item_item",
-      "community": 41,
+      "community": 111,
       "norm_label": "item"
     },
     {
@@ -9210,7 +9210,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_item_item_constructor",
-      "community": 41,
+      "community": 111,
       "norm_label": ".constructor()"
     },
     {
@@ -9220,7 +9220,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "client_src_game_components_item_item_tojson",
-      "community": 41,
+      "community": 111,
       "norm_label": ".tojson()"
     },
     {
@@ -9230,7 +9230,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_lightemitter",
-      "community": 41,
+      "community": 111,
       "norm_label": "lightemitter.js"
     },
     {
@@ -9240,7 +9240,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_lightemitter_lightemitter",
-      "community": 41,
+      "community": 111,
       "norm_label": "lightemitter"
     },
     {
@@ -9250,7 +9250,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_lightemitter_lightemitter_constructor",
-      "community": 41,
+      "community": 111,
       "norm_label": ".constructor()"
     },
     {
@@ -9260,7 +9260,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "client_src_game_components_lightemitter_lightemitter_tojson",
-      "community": 41,
+      "community": 111,
       "norm_label": ".tojson()"
     },
     {
@@ -9490,7 +9490,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_playerwallet",
-      "community": 41,
+      "community": 111,
       "norm_label": "playerwallet.js"
     },
     {
@@ -9500,7 +9500,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_playerwallet_playerwallet",
-      "community": 41,
+      "community": 111,
       "norm_label": "playerwallet"
     },
     {
@@ -9510,7 +9510,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_playerwallet_playerwallet_constructor",
-      "community": 41,
+      "community": 111,
       "norm_label": ".constructor()"
     },
     {
@@ -9520,7 +9520,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "client_src_game_components_playerwallet_playerwallet_tojson",
-      "community": 41,
+      "community": 111,
       "norm_label": ".tojson()"
     },
     {
@@ -9610,7 +9610,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_rpgstats",
-      "community": 41,
+      "community": 33,
       "norm_label": "rpgstats.js"
     },
     {
@@ -9620,7 +9620,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_rpgstats_rpgstats",
-      "community": 41,
+      "community": 33,
       "norm_label": "rpgstats"
     },
     {
@@ -9630,7 +9630,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_rpgstats_rpgstats_constructor",
-      "community": 41,
+      "community": 33,
       "norm_label": ".constructor()"
     },
     {
@@ -9640,7 +9640,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "client_src_game_components_rpgstats_rpgstats_tojson",
-      "community": 41,
+      "community": 33,
       "norm_label": ".tojson()"
     },
     {
@@ -9650,7 +9650,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_survivalstats",
-      "community": 41,
+      "community": 111,
       "norm_label": "survivalstats.js"
     },
     {
@@ -9660,7 +9660,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_survivalstats_survivalstats",
-      "community": 41,
+      "community": 111,
       "norm_label": "survivalstats"
     },
     {
@@ -9670,7 +9670,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_survivalstats_survivalstats_constructor",
-      "community": 41,
+      "community": 111,
       "norm_label": ".constructor()"
     },
     {
@@ -9680,7 +9680,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "client_src_game_components_survivalstats_survivalstats_tojson",
-      "community": 41,
+      "community": 111,
       "norm_label": ".tojson()"
     },
     {
@@ -9690,7 +9690,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_vision",
-      "community": 41,
+      "community": 111,
       "norm_label": "vision.js"
     },
     {
@@ -9700,7 +9700,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_vision_vision",
-      "community": 41,
+      "community": 111,
       "norm_label": "vision"
     },
     {
@@ -9710,7 +9710,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "client_src_game_components_vision_vision_constructor",
-      "community": 41,
+      "community": 111,
       "norm_label": ".constructor()"
     },
     {
@@ -9720,7 +9720,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "client_src_game_components_vision_vision_tojson",
-      "community": 41,
+      "community": 111,
       "norm_label": ".tojson()"
     },
     {
@@ -9730,7 +9730,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_components_registry",
-      "community": 41,
+      "community": 111,
       "norm_label": "registry.js"
     },
     {
@@ -9740,7 +9740,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "client_src_game_components_registry_defineaccessors",
-      "community": 41,
+      "community": 111,
       "norm_label": "defineaccessors()"
     },
     {
@@ -9750,7 +9750,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "client_src_game_components_registry_component_classes",
-      "community": 41,
+      "community": 111,
       "norm_label": "component_classes"
     },
     {
@@ -9760,7 +9760,7 @@
       "source_location": "L100",
       "_origin": "ast",
       "id": "client_src_game_components_registry_component_name_by_ctor",
-      "community": 41,
+      "community": 111,
       "norm_label": "component_name_by_ctor"
     },
     {
@@ -9790,7 +9790,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_config_mapgenconfig",
-      "community": 24,
+      "community": 134,
       "norm_label": "mapgenconfig.js"
     },
     {
@@ -9800,7 +9800,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_config_mapgenconfig_map_gen_config",
-      "community": 24,
+      "community": 134,
       "norm_label": "map_gen_config"
     },
     {
@@ -9920,7 +9920,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "client_src_game_config_templateconfig_template_metadata",
-      "community": 24,
+      "community": 134,
       "norm_label": "template_metadata"
     },
     {
@@ -10050,7 +10050,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_entities_door",
-      "community": 135,
+      "community": 33,
       "norm_label": "door.js"
     },
     {
@@ -10290,7 +10290,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_entities_entity",
-      "community": 41,
+      "community": 33,
       "norm_label": "entity.js"
     },
     {
@@ -10300,7 +10300,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "client_src_game_entities_entity_serialized_fields",
-      "community": 41,
+      "community": 33,
       "norm_label": "serialized_fields"
     },
     {
@@ -10310,7 +10310,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "client_src_game_entities_entity_item_serialized_fields",
-      "community": 41,
+      "community": 33,
       "norm_label": "item_serialized_fields"
     },
     {
@@ -10320,7 +10320,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "client_src_game_entities_entity_entitytype",
-      "community": 8,
+      "community": 33,
       "norm_label": "entitytype"
     },
     {
@@ -10990,7 +10990,7 @@
       "source_location": "L117",
       "_origin": "ast",
       "id": "client_src_game_entities_entity_rationale_117",
-      "community": 41,
+      "community": 33,
       "norm_label": "note: noiseblacklist/recentthreats are aistate-backed accessors (see"
     },
     {
@@ -11000,7 +11000,7 @@
       "source_location": "L1006",
       "_origin": "ast",
       "id": "client_src_game_entities_entity_rationale_1006",
-      "community": 41,
+      "community": 33,
       "norm_label": "note: serialized_fields lists hp before maxhp, and the hp setter clamps to"
     },
     {
@@ -11010,7 +11010,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_entities_garagedoor",
-      "community": 135,
+      "community": 33,
       "norm_label": "garagedoor.js"
     },
     {
@@ -11180,7 +11180,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_entities_placeicon",
-      "community": 135,
+      "community": 33,
       "norm_label": "placeicon.js"
     },
     {
@@ -11190,7 +11190,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "client_src_game_entities_placeicon_placeicon",
-      "community": 135,
+      "community": 33,
       "norm_label": "placeicon"
     },
     {
@@ -11200,7 +11200,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "client_src_game_entities_placeicon_placeicon_constructor",
-      "community": 135,
+      "community": 33,
       "norm_label": ".constructor()"
     },
     {
@@ -11210,7 +11210,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "client_src_game_entities_placeicon_placeicon_tojson",
-      "community": 135,
+      "community": 33,
       "norm_label": ".tojson()"
     },
     {
@@ -11220,7 +11220,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "client_src_game_entities_placeicon_placeicon_fromjson",
-      "community": 135,
+      "community": 33,
       "norm_label": ".fromjson()"
     },
     {
@@ -11240,7 +11240,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "client_src_game_entities_rabbit_rabbit",
-      "community": 132,
+      "community": 41,
       "norm_label": "rabbit"
     },
     {
@@ -11250,7 +11250,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "client_src_game_entities_rabbit_rabbit_constructor",
-      "community": 132,
+      "community": 41,
       "norm_label": ".constructor()"
     },
     {
@@ -11260,7 +11260,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "client_src_game_entities_rabbit_rabbit_takedamage",
-      "community": 132,
+      "community": 41,
       "norm_label": ".takedamage()"
     },
     {
@@ -11270,7 +11270,7 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "client_src_game_entities_rabbit_rabbit_isdead",
-      "community": 132,
+      "community": 41,
       "norm_label": ".isdead()"
     },
     {
@@ -11280,7 +11280,7 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "client_src_game_entities_rabbit_rabbit_startturn",
-      "community": 132,
+      "community": 41,
       "norm_label": ".startturn()"
     },
     {
@@ -11290,7 +11290,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "client_src_game_entities_rabbit_rabbit_endturn",
-      "community": 132,
+      "community": 41,
       "norm_label": ".endturn()"
     },
     {
@@ -11300,7 +11300,7 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "client_src_game_entities_rabbit_rabbit_playaction",
-      "community": 132,
+      "community": 41,
       "norm_label": ".playaction()"
     },
     {
@@ -11310,7 +11310,7 @@
       "source_location": "L149",
       "_origin": "ast",
       "id": "client_src_game_entities_rabbit_rabbit_useap",
-      "community": 132,
+      "community": 41,
       "norm_label": ".useap()"
     },
     {
@@ -11320,7 +11320,7 @@
       "source_location": "L164",
       "_origin": "ast",
       "id": "client_src_game_entities_rabbit_rabbit_tojson",
-      "community": 132,
+      "community": 41,
       "norm_label": ".tojson()"
     },
     {
@@ -11330,7 +11330,7 @@
       "source_location": "L181",
       "_origin": "ast",
       "id": "client_src_game_entities_rabbit_rabbit_fromjson",
-      "community": 132,
+      "community": 41,
       "norm_label": ".fromjson()"
     },
     {
@@ -11340,7 +11340,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_entities_testentity",
-      "community": 135,
+      "community": 33,
       "norm_label": "testentity.js"
     },
     {
@@ -11350,7 +11350,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "client_src_game_entities_testentity_testentity",
-      "community": 135,
+      "community": 33,
       "norm_label": "testentity"
     },
     {
@@ -11360,7 +11360,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "client_src_game_entities_testentity_testentity_constructor",
-      "community": 135,
+      "community": 33,
       "norm_label": ".constructor()"
     },
     {
@@ -11370,7 +11370,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "client_src_game_entities_testentity_testentity_tojson",
-      "community": 135,
+      "community": 33,
       "norm_label": ".tojson()"
     },
     {
@@ -11380,7 +11380,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "client_src_game_entities_testentity_testentity_fromjson",
-      "community": 135,
+      "community": 33,
       "norm_label": ".fromjson()"
     },
     {
@@ -11390,7 +11390,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "client_src_game_entities_testentity_item",
-      "community": 135,
+      "community": 33,
       "norm_label": "item"
     },
     {
@@ -11400,7 +11400,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "client_src_game_entities_testentity_item_constructor",
-      "community": 135,
+      "community": 33,
       "norm_label": ".constructor()"
     },
     {
@@ -11410,7 +11410,7 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "client_src_game_entities_testentity_item_tojson",
-      "community": 135,
+      "community": 33,
       "norm_label": ".tojson()"
     },
     {
@@ -11420,7 +11420,7 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "client_src_game_entities_testentity_item_fromjson",
-      "community": 135,
+      "community": 33,
       "norm_label": ".fromjson()"
     },
     {
@@ -14910,7 +14910,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "client_src_game_map_buildingtypes_isspecialbuilding",
-      "community": 24,
+      "community": 134,
       "norm_label": "isspecialbuilding()"
     },
     {
@@ -16007,7 +16007,7 @@
       "label": "._chargeBatteries()",
       "file_type": "code",
       "source_file": "client/src/game/map/GameMap.js",
-      "source_location": "L1626",
+      "source_location": "L1629",
       "_origin": "ast",
       "id": "client_src_game_map_gamemap_gamemap_chargebatteries",
       "community": 87,
@@ -16030,7 +16030,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_gamemaprestore",
-      "community": 135,
+      "community": 33,
       "norm_label": "gamemaprestore.js"
     },
     {
@@ -16040,7 +16040,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "client_src_game_map_gamemaprestore_entity_restorers",
-      "community": 135,
+      "community": 33,
       "norm_label": "entity_restorers"
     },
     {
@@ -16050,7 +16050,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "client_src_game_map_gamemaprestore_restoreentity",
-      "community": 135,
+      "community": 33,
       "norm_label": "restoreentity()"
     },
     {
@@ -16390,7 +16390,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_mapbuilder",
-      "community": 24,
+      "community": 134,
       "norm_label": "mapbuilder.js"
     },
     {
@@ -17130,7 +17130,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_templatemapgenerator",
-      "community": 24,
+      "community": 134,
       "norm_label": "templatemapgenerator.js"
     },
     {
@@ -17270,7 +17270,7 @@
       "source_location": "L564",
       "_origin": "ast",
       "id": "client_src_game_map_templatemapgenerator_templatemapgenerator_registerbuilding",
-      "community": 24,
+      "community": 134,
       "norm_label": "._registerbuilding()"
     },
     {
@@ -17350,7 +17350,7 @@
       "source_location": "L1014",
       "_origin": "ast",
       "id": "client_src_game_map_templatemapgenerator_rationale_1014",
-      "community": 24,
+      "community": 134,
       "norm_label": "note: previously spawned a 'placeable.help' (\"?\") item on every legacy"
     },
     {
@@ -17460,7 +17460,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_tile",
-      "community": 41,
+      "community": 33,
       "norm_label": "tile.js"
     },
     {
@@ -17900,7 +17900,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_generators_corridorgenerator",
-      "community": 24,
+      "community": 134,
       "norm_label": "corridorgenerator.js"
     },
     {
@@ -17910,7 +17910,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "client_src_game_map_generators_corridorgenerator_corridorgenerator",
-      "community": 24,
+      "community": 134,
       "norm_label": "corridorgenerator"
     },
     {
@@ -17920,7 +17920,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "client_src_game_map_generators_corridorgenerator_corridorgenerator_generate",
-      "community": 24,
+      "community": 134,
       "norm_label": ".generate()"
     },
     {
@@ -17930,7 +17930,7 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "client_src_game_map_generators_corridorgenerator_corridorgenerator_getstartposition",
-      "community": 24,
+      "community": 134,
       "norm_label": ".getstartposition()"
     },
     {
@@ -18240,7 +18240,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_generators_roadgenerator",
-      "community": 24,
+      "community": 134,
       "norm_label": "roadgenerator.js"
     },
     {
@@ -21520,7 +21520,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_systems_attributeprogressionmanager",
-      "community": 134,
+      "community": 33,
       "norm_label": "attributeprogressionmanager.js"
     },
     {
@@ -22830,7 +22830,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "client_src_game_systems_turretsystem_turretsystem",
-      "community": 9,
+      "community": 132,
       "norm_label": "turretsystem"
     },
     {
@@ -22840,7 +22840,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "client_src_game_systems_turretsystem_turretsystem_process",
-      "community": 9,
+      "community": 132,
       "norm_label": ".process()"
     },
     {
@@ -22850,7 +22850,7 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "client_src_game_systems_turretsystem_turretsystem_cleanupdestroyed",
-      "community": 9,
+      "community": 132,
       "norm_label": ".cleanupdestroyed()"
     },
     {
@@ -24530,7 +24530,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_utils_safeeventemitter",
-      "community": 37,
+      "community": 33,
       "norm_label": "safeeventemitter.js"
     },
     {
@@ -24540,7 +24540,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "client_src_game_utils_safeeventemitter_safeeventemitter",
-      "community": 37,
+      "community": 33,
       "norm_label": "safeeventemitter"
     },
     {
@@ -29570,7 +29570,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_map_corridorgenerator_test",
-      "community": 24,
+      "community": 134,
       "norm_label": "corridorgenerator.test.js"
     },
     {
@@ -29580,7 +29580,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "test_map_corridorgenerator_test_profile",
-      "community": 24,
+      "community": 134,
       "norm_label": "profile"
     },
     {
@@ -29820,7 +29820,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_map_pathfinding_test",
-      "community": 135,
+      "community": 37,
       "norm_label": "pathfinding.test.js"
     },
     {
@@ -29830,7 +29830,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "test_map_pathfinding_test_floormap",
-      "community": 135,
+      "community": 37,
       "norm_label": "floormap()"
     },
     {
@@ -30120,7 +30120,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_quest_activateevent_test",
-      "community": 8,
+      "community": 33,
       "norm_label": "activateevent.test.js"
     },
     {
@@ -30130,7 +30130,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "test_quest_activateevent_test_lightswitch",
-      "community": 8,
+      "community": 33,
       "norm_label": "lightswitch()"
     },
     {
@@ -30140,7 +30140,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_quest_attackentitystep_test",
-      "community": 134,
+      "community": 111,
       "norm_label": "attackentitystep.test.js"
     },
     {
@@ -30150,7 +30150,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "test_quest_attackentitystep_test_worstroll",
-      "community": 134,
+      "community": 111,
       "norm_label": "worstroll()"
     },
     {
@@ -30160,7 +30160,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "test_quest_attackentitystep_test_settle",
-      "community": 134,
+      "community": 111,
       "norm_label": "settle()"
     },
     {
@@ -30170,7 +30170,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "test_quest_attackentitystep_test_arm",
-      "community": 134,
+      "community": 111,
       "norm_label": "arm()"
     },
     {
@@ -30320,7 +30320,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_quest_mapenterevents_test",
-      "community": 8,
+      "community": 33,
       "norm_label": "mapenterevents.test.js"
     },
     {
@@ -30330,7 +30330,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "test_quest_mapenterevents_test_resetvar",
-      "community": 8,
+      "community": 33,
       "norm_label": "resetvar()"
     },
     {
@@ -31300,7 +31300,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_serialization_falsydefaults_test",
-      "community": 41,
+      "community": 33,
       "norm_label": "falsydefaults.test.js"
     },
     {
@@ -31310,7 +31310,7 @@
       "source_location": "L136",
       "_origin": "ast",
       "id": "test_serialization_falsydefaults_test_useap",
-      "community": 41,
+      "community": 33,
       "norm_label": "useap()"
     },
     {
@@ -31320,7 +31320,7 @@
       "source_location": "L137",
       "_origin": "ast",
       "id": "test_serialization_falsydefaults_test_getequippedweapon",
-      "community": 41,
+      "community": 33,
       "norm_label": "getequippedweapon()"
     },
     {
@@ -31330,7 +31330,7 @@
       "source_location": "L138",
       "_origin": "ast",
       "id": "test_serialization_falsydefaults_test_getdistanceto",
-      "community": 41,
+      "community": 33,
       "norm_label": "getdistanceto()"
     },
     {
@@ -31340,7 +31340,7 @@
       "source_location": "L153",
       "_origin": "ast",
       "id": "test_serialization_falsydefaults_test_emitnoise",
-      "community": 41,
+      "community": 33,
       "norm_label": "emitnoise()"
     },
     {
@@ -31350,7 +31350,7 @@
       "source_location": "L154",
       "_origin": "ast",
       "id": "test_serialization_falsydefaults_test_pushaction",
-      "community": 41,
+      "community": 33,
       "norm_label": "pushaction()"
     },
     {
@@ -31670,7 +31670,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_systems_npcloadout_test",
-      "community": 111,
+      "community": 152,
       "norm_label": "npcloadout.test.js"
     },
     {
@@ -31680,7 +31680,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "test_systems_npcloadout_test_emptytiles",
-      "community": 111,
+      "community": 152,
       "norm_label": "emptytiles()"
     },
     {
@@ -31690,7 +31690,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "test_systems_npcloadout_test_loadscenario",
-      "community": 111,
+      "community": 152,
       "norm_label": "loadscenario()"
     },
     {
@@ -31700,7 +31700,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "test_systems_npcloadout_test_npcwith",
-      "community": 111,
+      "community": 152,
       "norm_label": "npcwith()"
     },
     {
@@ -31710,7 +31710,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "test_systems_npcloadout_test_findnpc",
-      "community": 111,
+      "community": 152,
       "norm_label": "findnpc()"
     },
     {
@@ -32010,7 +32010,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_systems_window_combat_redirection_test",
-      "community": 111,
+      "community": 33,
       "norm_label": "window_combat_redirection.test.js"
     },
     {
@@ -32070,7 +32070,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_los_from_22_123",
-      "community": 24,
+      "community": 134,
       "norm_label": "test_los_from_22_123.js"
     },
     {
@@ -32320,7 +32320,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tmp_test_wall_gap_fix",
-      "community": 24,
+      "community": 134,
       "norm_label": "test_wall_gap_fix.js"
     },
     {
@@ -32510,7 +32510,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tmp_debug_los_initial",
-      "community": 41,
+      "community": 37,
       "norm_label": "tmp_debug_los_initial.js"
     },
     {
@@ -32520,7 +32520,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "tmp_debug_los_initial_get",
-      "community": 41,
+      "community": 37,
       "norm_label": "get()"
     },
     {
@@ -32530,7 +32530,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "tmp_debug_los_initial_set",
-      "community": 41,
+      "community": 37,
       "norm_label": "set()"
     },
     {
@@ -33460,7 +33460,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tmp_window_test",
-      "community": 24,
+      "community": 134,
       "norm_label": "tmp_window_test.js"
     },
     {
@@ -34010,7 +34010,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "verify_phase_3",
-      "community": 132,
+      "community": 41,
       "norm_label": "verify_phase_3.mjs"
     },
     {
@@ -34020,7 +34020,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "verify_phase_3_assert",
-      "community": 132,
+      "community": 41,
       "norm_label": "assert()"
     },
     {
@@ -34030,7 +34030,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "verify_phase_3_player",
-      "community": 132,
+      "community": 41,
       "norm_label": "player"
     },
     {
@@ -34040,7 +34040,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "verify_phase_3_zombie",
-      "community": 132,
+      "community": 41,
       "norm_label": "zombie"
     },
     {
@@ -34050,7 +34050,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "verify_phase_3_rabbit",
-      "community": 132,
+      "community": 41,
       "norm_label": "rabbit"
     },
     {
@@ -34060,7 +34060,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "verify_phase_3_mocktile",
-      "community": 132,
+      "community": 41,
       "norm_label": "mocktile"
     },
     {
@@ -34070,7 +34070,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "verify_phase_3_map",
-      "community": 132,
+      "community": 41,
       "norm_label": "map"
     },
     {
@@ -34080,7 +34080,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "verify_phase_3_npc",
-      "community": 132,
+      "community": 41,
       "norm_label": "npc"
     },
     {
@@ -34320,7 +34320,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "verify_rabbit_sight",
-      "community": 33,
+      "community": 41,
       "norm_label": "verify_rabbit_sight.js"
     },
     {
@@ -34330,7 +34330,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "verify_rabbit_sight_testcases",
-      "community": 33,
+      "community": 41,
       "norm_label": "testcases"
     },
     {
@@ -77562,7 +77562,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/game/map/GameMap.js",
-      "source_location": "L1621",
+      "source_location": "L1624",
       "weight": 1.0,
       "source": "client_src_game_map_gamemap_gamemap_convertlegacyitemtoecs",
       "target": "client_src_game_entities_entity_entity_precomputeitemflags"
@@ -92176,7 +92176,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/game/map/GameMap.js",
-      "source_location": "L1628",
+      "source_location": "L1631",
       "weight": 1.0,
       "source": "client_src_game_map_gamemap_gamemap_chargebatteries",
       "target": "client_src_game_inventory_gridutils_griditems"
@@ -98091,7 +98091,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/map/GameMap.js",
-      "source_location": "L1626",
+      "source_location": "L1629",
       "weight": 1.0,
       "source": "client_src_game_map_gamemap_gamemap",
       "target": "client_src_game_map_gamemap_gamemap_chargebatteries",
@@ -99938,7 +99938,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "client/src/game/map/GameMap.js",
-      "source_location": "L1628",
+      "source_location": "L1631",
       "weight": 1.0,
       "source": "client_src_game_map_gamemap_gamemap_chargebatteries",
       "target": "client_src_game_utils_turnprocessingutils_turnprocessingutils"
@@ -136295,5 +136295,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "dcc18f8e9f6c10c5d79584a92afb278dfc400e8b"
+  "built_at_commit": "89f0f6a1d240fa11ae365eb09edb98e4fa4695d6"
 }

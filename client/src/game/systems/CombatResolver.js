@@ -1,5 +1,6 @@
 import { gameRandom } from '../utils/SeededRandom.js';
 import { getZombieType } from '../entities/ZombieTypes.js';
+import { ItemCategory } from '../inventory/traits.js';
 import engine from '../GameEngine.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 
@@ -285,11 +286,20 @@ export class CombatResolver {
     return { hit, isCrit, damage: CombatResolver.roundDamage(damage), extraDamageApplied, stunDuration, dodged };
   }
 
-  /** Player ranged single-shot roll. */
-  static rollPlayerRanged({ stats, skillLvl, drunkenness = 0, squaresAway, isWindowTarget, hasScope, hasLaserSight, currentAgility = 20, currentPerception = 20, defenderType, defenderSubtype, defender }) {
-    const accuracyBonus = (skillLvl - drunkenness) * 0.01;
-    const isSling = stats.isSling;
+  /** Which sight (if any) is mounted in a gun's 'sight' attachment slot. */
+  static rangedSightFlags(weapon) {
+    const sightSlot = weapon?.attachmentSlots?.find(s => s.id === 'sight');
+    const categories = (sightSlot && weapon.attachments?.[sightSlot.id]?.categories) || [];
+    return { hasScope: categories.includes(ItemCategory.RIFLE_SCOPE), hasLaserSight: categories.includes(ItemCategory.LASER_SIGHT) };
+  }
 
+  /** Player ranged skill as used by the roll — level 0 counts as 1. */
+  static playerRangedSkill(rangedLvl) {
+    return rangedLvl || 1;
+  }
+
+  /** Weapon-only hit curve for a player shot, before skill/attribute bonuses. */
+  static playerRangedBaseChance({ stats, squaresAway, hasScope, hasLaserSight }) {
     // R20#5: guard the falloff/floor stats so a weapon whose rangedStats omit
     // them can't produce NaN hitChance (every shot silently misses past range).
     // Only the shotgun branch had a fallback; scope/laser/default did not.
@@ -297,24 +307,40 @@ export class CombatResolver {
     const minAccuracy = stats.minAccuracy ?? 0.1;
     const accuracyFalloff = stats.accuracyFalloff ?? 0.2;
 
-    let baseHitChance = 1.0;
-    if (isSling) {
-      baseHitChance = Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
+    if (stats.isSling) {
+      return Math.max(0, 0.9 - (squaresAway - 2) * 0.1);
     } else if (stats.isShotgun) {
-      baseHitChance = squaresAway <= (stats.accuracyMaxRange || 5) ? 1.0
+      return squaresAway <= (stats.accuracyMaxRange || 5) ? 1.0
         : Math.max(minAccuracy, 1.0 - (squaresAway - 5) * accuracyFalloff);
     } else if (hasScope) {
-      baseHitChance = squaresAway <= 15 ? 1.0
+      return squaresAway <= 15 ? 1.0
         : Math.max(minAccuracy, 1.0 - (squaresAway - 15) * accuracyFalloff);
     } else if (hasLaserSight) {
-      baseHitChance = squaresAway <= 10 ? 1.0
+      return squaresAway <= 10 ? 1.0
         : Math.max(minAccuracy, 1.0 - (squaresAway - 10) * accuracyFalloff);
-    } else {
-      baseHitChance = Math.max(minAccuracy, 1.0 - (squaresAway - 1) * accuracyFalloff);
     }
+    return Math.max(minAccuracy, 1.0 - (squaresAway - 1) * accuracyFalloff);
+  }
 
-    const attributeAim = CombatResolver.perceptionAimBonus(currentAgility, currentPerception);
-    const hitChance = baseHitChance + accuracyBonus + attributeAim;
+  /**
+   * Player ranged hit chance before the roll. Uncapped: values above 1 still
+   * raise crit odds (crit = roll <= hitChance / CRIT_DIVISOR). Shared by the
+   * roll and the item tooltip so the displayed number is the real one.
+   */
+  static playerRangedHitChance({ stats, skillLvl, drunkenness = 0, squaresAway, hasScope, hasLaserSight, currentAgility = 20, currentPerception = 20 }) {
+    const baseHitChance = CombatResolver.playerRangedBaseChance({ stats, squaresAway, hasScope, hasLaserSight });
+    const accuracyBonus = (skillLvl - drunkenness) * 0.01;
+    return baseHitChance + accuracyBonus + CombatResolver.perceptionAimBonus(currentAgility, currentPerception);
+  }
+
+  /** Crit chance implied by a hit chance, clamped to a displayable probability. */
+  static critChanceFor(hitChance) {
+    return Math.max(0, Math.min(1, hitChance / CRIT_DIVISOR));
+  }
+
+  /** Player ranged single-shot roll. */
+  static rollPlayerRanged({ stats, skillLvl, drunkenness = 0, squaresAway, isWindowTarget, hasScope, hasLaserSight, currentAgility = 20, currentPerception = 20, defenderType, defenderSubtype, defender }) {
+    const hitChance = CombatResolver.playerRangedHitChance({ stats, skillLvl, drunkenness, squaresAway, hasScope, hasLaserSight, currentAgility, currentPerception });
     const roll = gameRandom.next();
     let hit = isWindowTarget ? true : roll <= hitChance;
     let isCrit = hit && roll <= hitChance / CRIT_DIVISOR;

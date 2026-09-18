@@ -18,6 +18,9 @@ const logger = Logger.scope('PlayerContext');
 
 const PlayerContext = createContext();
 
+/** Like usePlayer, but returns null outside a PlayerProvider instead of throwing (for shared UI such as item tooltips). */
+export const useOptionalPlayer = () => useContext(PlayerContext) || null;
+
 export const usePlayer = () => {
   const context = useContext(PlayerContext);
   if (!context) {

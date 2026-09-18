@@ -2,12 +2,25 @@ import React from 'react';
 import { cn } from "@/lib/utils";
 import { ItemTrait, ItemCategory } from '@/game/inventory/traits';
 import { ItemDefs } from '@/game/inventory/ItemDefs';
+import { CombatResolver } from '@/game/systems/CombatResolver.js';
+import { useOptionalPlayer } from '@/contexts/PlayerContext';
 
 interface ItemTooltipProps {
     item: any;
 }
 
+// Distances (tiles) the ranged hit-chance table samples.
+const HIT_TABLE_DISTANCES = [2, 5, 10, 15, 20];
+// Search limit for the effective 100%-hit range; reaching it shows as "N+".
+const MAX_RANGE_SEARCH = 60;
+
+// Gun mods listed on the tooltip (ammo/magazine slots are deliberately excluded).
+const SHOWN_MOD_CATEGORIES: string[] = [ItemCategory.SUPPRESSOR, ItemCategory.LASER_SIGHT, ItemCategory.RIFLE_SCOPE];
+
+const pct = (chance: number) => `${Math.round(Math.max(0, Math.min(1, chance)) * 100)}%`;
+
 export function ItemTooltip({ item }: ItemTooltipProps) {
+    const playerStats = useOptionalPlayer()?.playerStats;
     if (!item) return null;
 
     const isTorch = item.defId === 'tool.torch' || item.id === 'tool.torch' || item.categories?.includes('torch');
@@ -17,6 +30,33 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
     // Combat stats
     const combat = item.combat || (item.defId && item.defId.startsWith('weapon.') ? item.combat : null);
     const rangedStats = item.rangedStats;
+
+    // Mod slots this gun has, and what (if anything) is mounted in them.
+    const modSlots: any[] = (item.attachmentSlots || [])
+        .filter((slot: any) => slot.allowedCategories?.some((c: string) => SHOWN_MOD_CATEGORIES.includes(c)));
+    const mountedMods: string[] = modSlots
+        .map((slot: any) => item.attachments?.[slot.id])
+        .filter((mod: any) => mod && mod.categories?.some((c: string) => SHOWN_MOD_CATEGORIES.includes(c)))
+        .map((mod: any) => mod.name);
+
+    // Real player hit chance, from the same formula the shot roll uses.
+    let rangedAim: { skillLvl: number; fullRange: number; rows: { d: number; hit: number; crit: number }[] } | null = null;
+    if (rangedStats) {
+        const { hasScope, hasLaserSight } = CombatResolver.rangedSightFlags(item);
+        const skillLvl = CombatResolver.playerRangedSkill(playerStats?.rangedLvl);
+        const hitAt = (squaresAway: number) => CombatResolver.playerRangedHitChance({
+            stats: rangedStats, skillLvl, squaresAway, hasScope, hasLaserSight,
+            drunkenness: playerStats?.drunkenness || 0,
+            currentAgility: playerStats?.currentAgility ?? 20,
+            currentPerception: playerStats?.currentPerception ?? 20
+        });
+        let fullRange = 0;
+        while (fullRange < MAX_RANGE_SEARCH && hitAt(fullRange + 1) >= 1) fullRange++;
+        const rows = HIT_TABLE_DISTANCES
+            .filter(d => !rangedStats.minRange || d >= rangedStats.minRange)
+            .map(d => ({ d, hit: hitAt(d), crit: CombatResolver.critChanceFor(hitAt(d)) }));
+        rangedAim = { skillLvl, fullRange, rows };
+    }
 
     let displayName = item.name;
     if (item.defId === 'zombie.corpse') {
@@ -91,17 +131,19 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                             }
                         </span>
                     </div>
-                    {/* 100% hit range Info */}
+                    {modSlots.length > 0 && (
+                        <div className="flex justify-between gap-3">
+                            <span className="text-muted-foreground">Attachments</span>
+                            <span className={cn("text-right", mountedMods.length ? "text-foreground" : "text-muted-foreground italic")}>
+                                {mountedMods.length ? mountedMods.join(', ') : 'none'}
+                            </span>
+                        </div>
+                    )}
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">100% hit range</span>
                         <span className="text-foreground">
-                            {rangedStats.isShotgun 
-                                ? (rangedStats.accuracyMaxRange || 5) 
-                                : (item.attachments && Object.values(item.attachments).some((a: any) => a?.categories?.includes('rifle_scope')) 
-                                    ? 15 
-                                    : (item.attachments && Object.values(item.attachments).some((a: any) => a?.categories?.includes('laser_sight')) ? 10 : 1)
-                                  )
-                            } tiles
+                            {rangedAim!.fullRange === 0 ? 'none'
+                                : `${rangedAim!.fullRange}${rangedAim!.fullRange >= MAX_RANGE_SEARCH ? '+' : ''} tiles`}
                         </span>
                     </div>
                     <div className="flex justify-between">
@@ -111,6 +153,21 @@ export function ItemTooltip({ item }: ItemTooltipProps) {
                         <span className="text-foreground">
                             -{Math.round((rangedStats.isShotgun ? (rangedStats.damageFalloff || 0.1) : rangedStats.accuracyFalloff) * 100)}%/tile
                         </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-x-3 pt-1">
+                        <span className="text-muted-foreground">Range</span>
+                        <span className="text-muted-foreground text-right">Hit</span>
+                        <span className="text-muted-foreground text-right">Crit</span>
+                        {rangedAim!.rows.map(({ d, hit, crit }) => (
+                            <React.Fragment key={d}>
+                                <span className="text-foreground">{d} tiles</span>
+                                <span className="text-foreground text-right">{pct(hit)}</span>
+                                <span className="text-foreground text-right">{pct(crit)}</span>
+                            </React.Fragment>
+                        ))}
+                    </div>
+                    <div className="text-muted-foreground italic">
+                        With your Ranged skill ({rangedAim!.skillLvl}), before the target's dodge
                     </div>
                 </div>
             )}

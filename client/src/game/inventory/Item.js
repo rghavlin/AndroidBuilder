@@ -264,7 +264,7 @@ export class Item extends SafeEventEmitter {
       if (def.ammoDefId && !this.ammoDefId) this.ammoDefId = def.ammoDefId;
       if (def.equippableSlot && !this.equippableSlot) this.equippableSlot = def.equippableSlot;
       if (def.rarity && !this.rarity) this.rarity = def.rarity;
-      if (def.combat && !this.combat) this.combat = def.combat;
+      this.combat = def.combat; // def-authoritative: drops stale {damage:{max}} stubs from old map round-trips
       if (def.rangedStats && !this.rangedStats) this.rangedStats = def.rangedStats;
       if (def.armor) {
         this.armor = def.armor;

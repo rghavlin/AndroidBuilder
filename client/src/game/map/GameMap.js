@@ -1577,13 +1577,10 @@ export class GameMap extends SafeEventEmitter {
       isVisible: true
     }));
 
-    // If it's a melee weapon, attach MeleeWeapon component
-    if (defId && defId.startsWith('weapon.')) {
-      let damage = 5;
-      if (ItemDefs[defId]?.combat?.damage?.max) {
-        damage = ItemDefs[defId].combat.damage.max;
-      }
-      entity.addComponent(new MeleeWeapon({ damage }));
+    // Only true melee weapons (def has combat stats) get a MeleeWeapon component — guns use rangedStats
+    const meleeDamage = defId && ItemDefs[defId]?.combat?.damage?.max;
+    if (meleeDamage) {
+      entity.addComponent(new MeleeWeapon({ damage: meleeDamage }));
     }
 
     // Set other properties for backwards compatibility with UI/renderer

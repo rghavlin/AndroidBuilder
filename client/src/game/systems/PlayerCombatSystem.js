@@ -616,11 +616,9 @@ export function performRangedAttack({
         ProjectileManager.processProjectilePath(gameMap, lx(player), ly(player), targetX, targetY);
 
         // Outcome Calculation
-        const rangedLvl = playerStats.rangedLvl || 1;
+        const rangedLvl = CombatResolver.playerRangedSkill(playerStats.rangedLvl);
         const squaresAway = Math.floor(distance);
-        const sightSlot = weapon.attachmentSlots?.find(s => s.id === 'sight');
-        const hasScope = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.RIFLE_SCOPE);
-        const hasLaserSight = sightSlot && weapon.attachments[sightSlot.id]?.categories?.includes(ItemCategory.LASER_SIGHT);
+        const { hasScope, hasLaserSight } = CombatResolver.rangedSightFlags(weapon);
 
         const isWindowTarget = structure && (structure.type === EntityType.WINDOW);
         const { hit, isCrit, damage, dodged } = CombatResolver.rollPlayerRanged({

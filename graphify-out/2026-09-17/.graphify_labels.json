@@ -151,6 +151,7 @@
   "149": "markerInteraction.test.js",
   "150": "migrateEvents.js",
   "151": "NPM Configuration Testing",
+  "152": "npcLoadout.test.js",
   "153": "bench_houses.mjs",
   "154": "Electron Preload Script",
   "158": "Firestation Layout Verification",
