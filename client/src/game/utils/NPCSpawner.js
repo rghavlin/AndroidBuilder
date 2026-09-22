@@ -1,7 +1,7 @@
 import { EntityFactory } from '../EntityFactory.js';
 import { Item } from '../inventory/Item.js';
 import { createItemFromDef } from '../inventory/ItemDefs.js';
-import { findSouthTransitionTile } from '../map/MapUtils.js';
+import { findSouthTransitionTile, getTownTurretPositions } from '../map/MapUtils.js';
 import { isFloor } from '../map/TerrainTypes.js';
 import { getNPCType } from '../entities/NPCTypes.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
@@ -286,15 +286,8 @@ export class NPCSpawner {
       return 0;
     }
 
-    const y = compound.fenceBounds.y2;
-    const centerX = Math.floor(gameMap.width / 2);
-    // Barriers sit at centerX +/- 1 (flanking the gate); turrets sit one tile
-    // further out, on the fence tiles flanking those barriers.
-    const positions = [centerX - 2, centerX + 2];
-
     let count = 0;
-    for (const x of positions) {
-      if (x < 0 || x >= gameMap.width) continue;
+    for (const { x, y } of getTownTurretPositions(gameMap)) {
       const turret = NPCSpawner.createTownTurret();
       if (!turret) continue;
       gameMap.addItemsToTile(x, y, [turret]);

@@ -350,8 +350,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Inventory/ItemTooltip.tsx": {
-    "mtime": 1789634770.7306085,
-    "ast_hash": "4f470f6f4d3556fa425ea26e3d0f1079",
+    "mtime": 1785370719.183951,
+    "ast_hash": "c6dfdf7e1c7e4e14d2f0b06c023e29ae",
     "semantic_hash": ""
   },
   "client/src/components/Inventory/SplitDialog.tsx": {
@@ -670,8 +670,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/PlayerContext.jsx": {
-    "mtime": 1789633827.4508698,
-    "ast_hash": "58b96e3b6b4e92d71d1870850f073f8e",
+    "mtime": 1787729683.6297047,
+    "ast_hash": "771ffa696473f5fcd47a93d0c5322220",
     "semantic_hash": ""
   },
   "client/src/contexts/SleepContext.jsx": {
@@ -1080,8 +1080,8 @@
     "semantic_hash": "f0e983b1e4af56e1551281422a3f3332"
   },
   "client/src/game/map/MapUtils.js": {
-    "mtime": 1790060144.695079,
-    "ast_hash": "5c2263c986d216023881f064ea1b7b6e",
+    "mtime": 1784190632.8692448,
+    "ast_hash": "d01222db452502aa214dd2640b0bed7d",
     "semantic_hash": ""
   },
   "client/src/game/map/RoadNetwork.js": {
@@ -1180,8 +1180,8 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/AISystem.js": {
-    "mtime": 1790060194.9304752,
-    "ast_hash": "9d76ea6e952e93959df0a32279b5823b",
+    "mtime": 1786003392.4839256,
+    "ast_hash": "b4f96d4f3480e05ae34bdadab871983a",
     "semantic_hash": ""
   },
   "client/src/game/systems/AttributeProgressionManager.js": {
@@ -1195,8 +1195,8 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/CombatResolver.js": {
-    "mtime": 1789633823.3631048,
-    "ast_hash": "a291147cb90125117306aab44583b247",
+    "mtime": 1789535473.8466156,
+    "ast_hash": "ba3d0eb06a5b552d40f0b3a9d5f2629d",
     "semantic_hash": ""
   },
   "client/src/game/systems/CombatSystem.js": {
@@ -1300,8 +1300,8 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/NPCSpawner.js": {
-    "mtime": 1790060147.7243235,
-    "ast_hash": "c5388392e176e4f04cf7901e6b5a95af",
+    "mtime": 1787737951.6544652,
+    "ast_hash": "62926ce42eb3ba4088b624087aed5b45",
     "semantic_hash": ""
   },
   "client/src/game/utils/Pathfinding.js": {
@@ -1360,8 +1360,8 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/ZombieSpawner.js": {
-    "mtime": 1790060199.42023,
-    "ast_hash": "2a523054470fe03165ed5dcd4a571472",
+    "mtime": 1787728286.7560723,
+    "ast_hash": "050ebfb152f45ab81501f52faf0f98d5",
     "semantic_hash": ""
   },
   "client/src/hooks/use-mobile.tsx": {
@@ -3540,8 +3540,8 @@
     "semantic_hash": ""
   },
   "client/src/game/systems/PlayerCombatSystem.js": {
-    "mtime": 1789633816.42929,
-    "ast_hash": "0231ef152517c6130cbbda2a39eb8cef",
+    "mtime": 1785998627.1674716,
+    "ast_hash": "4cdbf4521c891d8cb393609154c80a3b",
     "semantic_hash": ""
   },
   "test/systems/playerCombat.test.js": {
@@ -3685,8 +3685,8 @@
     "semantic_hash": ""
   },
   "test/entities/patientZero.test.js": {
-    "mtime": 1790060230.55556,
-    "ast_hash": "fcd473df122044cc0b60b187d8d32b55",
+    "mtime": 1787727989.5102527,
+    "ast_hash": "ae6606842600ed71cdb05619c0002eec",
     "semantic_hash": ""
   },
   "test/inventory/pharmaceuticalSynthesizer.test.js": {
@@ -3832,11 +3832,6 @@
   "test/inventory/hitchPersistence.test.js": {
     "mtime": 1789457670.6549907,
     "ast_hash": "dfa4aea1949e3b387297d5f90ad430cb",
-    "semantic_hash": ""
-  },
-  "client/src/game/systems/PatientZeroGuard.js": {
-    "mtime": 1790060165.718311,
-    "ast_hash": "5859435edf1f8a8ed2ce7005d68aa4f4",
     "semantic_hash": ""
   }
 }

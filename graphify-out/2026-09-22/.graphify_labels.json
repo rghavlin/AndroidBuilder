@@ -151,12 +151,8 @@
   "149": "markerInteraction.test.js",
   "150": "migrateEvents.js",
   "151": "NPM Configuration Testing",
-  "152": "ExplosionIntent",
   "153": "bench_houses.mjs",
   "154": "Electron Preload Script",
-  "155": "itemMeters.js",
-  "156": "Row",
-  "157": "Quadrant",
   "158": "Firestation Layout Verification",
   "159": "Special Window Layouts",
   "160": "Book System Verification",
@@ -168,8 +164,7 @@
   "166": "Simple Utility Script",
   "167": "Tailwind CSS Configuration",
   "168": "Vite Electron Configuration",
-  "169": "tmp_verify_loot.js",
-  "170": "tmp_verify_loot_summary.js",
   "176": "TestMapBuilder",
+  "181": ".addEntity",
   "194": "TileRenderer.js"
 }

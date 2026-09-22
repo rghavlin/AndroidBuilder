@@ -7,6 +7,7 @@ import { ZOMBIE_INFECTION_CHANCE } from './CombatResolver.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
 import { getMeleeReach } from './AIHelpers.js';
+import { getTurretKeepOutZone, isPatientZero, isPatientZeroStepAllowed } from './PatientZeroGuard.js';
 /**
  * Attempt to lock a zombie onto the freshest nearby scent breadcrumb.
  * On success the breadcrumb is set as a sighted target (a temporary LKP), so the
@@ -243,7 +244,8 @@ function wander(ctx) {
     if (!tile || !tile.isWalkable(entity, { ignoreZombies: false })) return false;
     // A tile can be walkable yet separated by a thin edge wall; such a move
     // is silently rejected by moveEntity, leaving the zombie stuck retrying it.
-    return !Pathfinding.isEdgeBlocked(gameMap, x, y, pos.x, pos.y, entity, { isZombie: true });
+    if (Pathfinding.isEdgeBlocked(gameMap, x, y, pos.x, pos.y, entity, { isZombie: true })) return false;
+    return ctx.canStepTo(pos.x, pos.y);
   });
   if (walkable.length > 0) {
     const chosen = walkable[gameRandom.nextInt(0, walkable.length - 1)];
@@ -619,6 +621,9 @@ export class AISystem {
     const gameMap = engine ? engine.gameMap : null;
     if (!gameMap) return intentsGenerated;
 
+    // Patient Zero's turret keep-out zone, built lazily on the first PZ step check.
+    let turretKeepOut = null;
+
     for (const entity of entityList) {
       if (entity.type !== 'zombie' || entity.hp <= 0 || !entity.hasComponent('AIBehavior') || !entity.hasComponent('Position')) {
         continue;
@@ -643,7 +648,26 @@ export class AISystem {
       // Decision context shared with the named behaviour functions.
       const ctx = {
         entity, zombiePos, gameMap, player, playerPos, aiBehavior, currentAP, moveCost,
+        // Every zombie may step anywhere walkable except Patient Zero, which must
+        // never enter turret range (the town's turrets would kill the run's only
+        // copy before the player finds it). See PatientZeroGuard.
+        canStepTo(nx, ny) {
+          if (!isPatientZero(entity)) return true;
+          if (!turretKeepOut) turretKeepOut = getTurretKeepOutZone(gameMap);
+          return isPatientZeroStepAllowed(turretKeepOut, zombiePos.x, zombiePos.y, nx, ny);
+        },
         enqueue(intentType, intent) {
+          if (intentType === 'MoveIntent' && !this.canStepTo(zombiePos.x + intent.dx, zombiePos.y + intent.dy)) {
+            // Refused step: drop whatever lured Patient Zero toward the turrets so
+            // it stops pathing at the boundary; it holds this cycle and wanders
+            // (never into the zone) from then on.
+            aiBehavior.lastSeenPlayerCoords = null;
+            aiBehavior.heardNoiseCoords = null;
+            aiBehavior.currentPath = [];
+            entity.clearLastSeen();
+            entity.clearNoiseHeard();
+            return;
+          }
           if (intentType === 'MoveIntent') {
             // Remember the tile we're leaving so the greedy hunting fallback can
             // avoid immediately stepping back onto it (anti-oscillation). Captured

@@ -4,6 +4,7 @@ import { isFloor } from '../map/TerrainTypes.js';
 
 import { gameRandom } from './SeededRandom.js';
 import { PATIENT_ZERO_SUBTYPE } from '../entities/ZombieTypes.js';
+import { getTurretKeepOutZone, isInTurretKeepOut } from '../systems/PatientZeroGuard.js';
 
 // ─── Patient Zero ───────────────────────────────────────────────────────
 // The only unique zombie in the game: exactly one, on map 5, and nowhere else.
@@ -498,6 +499,10 @@ export class ZombieSpawner {
 
     const compound = gameMap.metadata?.townSquareCompound;
     const tollGate = gameMap.metadata?.tollGate;
+    // Never within range of the town/tollgate turrets — they would shoot it
+    // before the player finds it. Derived from metadata, so it holds even though
+    // the turrets themselves are placed after zombie population.
+    const turretKeepOut = getTurretKeepOutZone(gameMap);
 
     for (let attempts = 0; attempts < 500; attempts++) {
       const x = Math.floor(gameRandom.next() * gameMap.width);
@@ -507,6 +512,7 @@ export class ZombieSpawner {
       if (!tile || !tile.isWalkable() || tile.contents.length > 0) continue;
       if (isInsideCompound(compound, x, y) || isInsideTollGate(tollGate, x, y)) continue;
       if (isInStartArea(gameMap, x, y)) continue;
+      if (isInTurretKeepOut(turretKeepOut, x, y)) continue;
 
       const distToPlayer = player ? Math.abs(x - player.x) + Math.abs(y - player.y) : 100;
       if (distToPlayer < PATIENT_ZERO_MIN_DISTANCE) continue;

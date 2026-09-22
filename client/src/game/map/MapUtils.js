@@ -12,6 +12,23 @@ export function isInsideCompound(compound, x, y) {
 }
 
 /**
+ * Tiles the town-square compound's two defensive turrets stand on: the fence
+ * tiles flanking the gate barriers (centerX +/- 1), one tile further out on the
+ * compound's south fence row. Single source for NPCSpawner.spawnTownTurrets and
+ * for anything that must plan around those turrets before they are placed.
+ * @param {GameMap} gameMap
+ * @returns {{x: number, y: number}[]} empty when the map has no compound
+ */
+export function getTownTurretPositions(gameMap) {
+  const fence = gameMap?.metadata?.townSquareCompound?.fenceBounds;
+  if (!fence || fence.y2 === undefined) return [];
+  const centerX = Math.floor(gameMap.width / 2);
+  return [centerX - 2, centerX + 2]
+    .filter(x => x >= 0 && x < gameMap.width)
+    .map(x => ({ x, y: fence.y2 }));
+}
+
+/**
  * Check if coordinates (x, y) lie inside the map-exit tollgate footprint.
  * @param {Object} tollGate - The tollgate metadata rect (gameMap.metadata.tollGate)
  * @param {number} x - The x-coordinate

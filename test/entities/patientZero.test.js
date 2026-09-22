@@ -17,6 +17,15 @@ import { ZombieSpawner, PATIENT_ZERO_MAP } from '../../client/src/game/utils/Zom
 import { getTemplateForMapNumber } from '../../client/src/game/config/TemplateConfig.js';
 import { getProgressionForMap, BASELINE_MAP_AREA } from '../../client/src/game/config/ProgressionConfig.js';
 import { gameRandom } from '../../client/src/game/utils/SeededRandom.js';
+import { EntityFactory } from '../../client/src/game/EntityFactory.js';
+import { AISystem } from '../../client/src/game/systems/AISystem.js';
+import { MovementSystem } from '../../client/src/game/systems/MovementSystem.js';
+import engine from '../../client/src/game/GameEngine.js';
+import {
+  getTurretKeepOutZone,
+  isInTurretKeepOut,
+  isPatientZeroStepAllowed
+} from '../../client/src/game/systems/PatientZeroGuard.js';
 
 /** Populate a map exactly the way WorldManager does for that map number. */
 async function populate(mapNumber, seed = 1234) {
@@ -92,6 +101,71 @@ describe('Patient Zero spawning', () => {
     const [pz] = patientZeroes(map5);
     const dist = Math.abs((pz.gridX ?? pz.x) - spawn.x) + Math.abs((pz.gridY ?? pz.y) - spawn.y);
     expect(dist).toBeGreaterThanOrEqual(20);
+  });
+});
+
+describe('Patient Zero stays out of turret range', () => {
+  it('spawns outside the town turrets\' keep-out zone on map 5 (several seeds)', async () => {
+    for (const seed of [1234, 7, 42, 999]) {
+      const gm = await populate(PATIENT_ZERO_MAP, seed);
+      const zone = getTurretKeepOutZone(gm);
+      expect(zone.turrets.length, `seed ${seed}: turrets planned`).toBeGreaterThanOrEqual(2);
+      const [pz] = patientZeroes(gm);
+      expect(pz, `seed ${seed}`).toBeDefined();
+      expect(isInTurretKeepOut(zone, pz.gridX, pz.gridY), `seed ${seed}`).toBe(false);
+    }
+  });
+
+  /**
+   * Open floor with a town compound whose turrets sit at (28,30) and (32,30).
+   * The player stands between them, in full view, while the zombie starts
+   * south of the keep-out edge and hunts for many turns.
+   */
+  function chaseIntoTown(subtype) {
+    gameRandom.seed(3);
+    engine.reset();
+    const gm = new GameMap(60, 70);
+    for (let y = 0; y < 70; y++) for (let x = 0; x < 60; x++) gm.setTerrain(x, y, 'floor');
+    gm.metadata = { ...(gm.metadata || {}), townSquareCompound: { fenceBounds: { x1: 20, y1: 20, x2: 40, y2: 30 } } };
+    engine.gameMap = gm;
+
+    const player = EntityFactory.createPlayer(30, 31);
+    const zombie = EntityFactory.createZombie(30, 52, subtype, `z-${subtype}`);
+    gm.addEntity(player, 30, 31);
+    gm.addEntity(zombie, 30, 52);
+
+    const zone = getTurretKeepOutZone(gm);
+    let enteredZone = false;
+    for (let turn = 0; turn < 20; turn++) {
+      zombie.currentAP = 12;
+      for (let cycle = 0; cycle < 12; cycle++) {
+        const vision = zombie.getComponent('Vision');
+        if (vision) vision.visibleEntities = [player.id];
+        if (AISystem.process([player, zombie], null, engine, []) === 0) break;
+        MovementSystem.process([zombie], null, engine, []);
+        zombie.removeComponent('DamageIntent');
+        if (isInTurretKeepOut(zone, zombie.gridX, zombie.gridY)) enteredZone = true;
+      }
+    }
+    return { enteredZone, zombie };
+  }
+
+  it('an ordinary zombie walks right into turret range (control)', () => {
+    expect(chaseIntoTown('basic').enteredZone).toBe(true);
+  });
+
+  it('Patient Zero never steps into turret range, even chasing a visible player', () => {
+    const { enteredZone, zombie } = chaseIntoTown(PATIENT_ZERO_SUBTYPE);
+    expect(enteredZone).toBe(false);
+    // It did advance to the edge rather than freezing at its start tile.
+    expect(zombie.gridY).toBeLessThan(52);
+  });
+
+  it('a Patient Zero already inside the zone may still walk back out', () => {
+    const zone = { turrets: [{ x: 0, y: 0 }], radius: 10 };
+    expect(isPatientZeroStepAllowed(zone, 5, 0, 6, 0)).toBe(true);  // outward
+    expect(isPatientZeroStepAllowed(zone, 5, 0, 4, 0)).toBe(false); // inward
+    expect(isPatientZeroStepAllowed(zone, 11, 0, 10, 0)).toBe(false); // crossing in
   });
 });
 
