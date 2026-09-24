@@ -21,6 +21,7 @@ import {
 } from './containerSearch.js';
 import audioManager from '../utils/AudioManager.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
+import { isDroneInReach } from '../remote/RemoteDeviceKinds.js';
 
 // T5: do NOT statically import the GameEngine singleton here. GameEngine
 // imports THIS module (GameEngine.reset() does `new InventoryManager()`), so a
@@ -1229,16 +1230,12 @@ export class InventoryManager extends SafeEventEmitter {
    */
   attachItemToWeapon(weapon, slotId, item, sourceContainerId = null) {
     if (!weapon || !item) return { success: false, reason: 'Invalid weapon or item' };
+    // A flying drone, or one landed on another tile, can't be opened up.
+    if (!isDroneInReach(weapon, this.groundContainer)) return { success: false, reason: 'The drone is out of reach' };
 
     const itemId = item.instanceId;
 
-    console.debug('[InventoryManager] attachItemToWeapon:', {
-      weapon: weapon.name,
-      slotId,
-      item: item.name,
-      itemId,
-      source: sourceContainerId || 'anywhere'
-    });
+    console.debug('[InventoryManager] attachItemToWeapon:', { weapon: weapon.name, slotId, item: item.name, itemId, source: sourceContainerId || 'anywhere' });
     
     // Preliminary compatibility check to avoid stack splitting on failure
     if (weapon.attachmentSlots) {
@@ -1567,7 +1564,7 @@ export class InventoryManager extends SafeEventEmitter {
   }
 
   detachItemFromWeapon(weapon, slotId) {
-    if (!weapon) return null;
+    if (!weapon || !isDroneInReach(weapon, this.groundContainer)) return null;
     const detached = weapon.detachItem(slotId);
     if (detached) {
       // Attempt to add it back to inventory

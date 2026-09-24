@@ -51,6 +51,21 @@ export function isRemoteDevice(candidate) {
 }
 
 /**
+ * Whether the player can physically handle a deployed drone right now — open
+ * it, swap its battery. Only a drone in the ground container is at their feet:
+ * an airborne drone's item lives on its Drone entity (sourceItem), and one
+ * landed on another tile is an on-map entity. Everything else passes, so this
+ * is safe to call on any item.
+ *
+ * @param {Item} item
+ * @param {Container} groundContainer - inventoryManager.groundContainer
+ */
+export function isDroneInReach(item, groundContainer) {
+  if (item?.defId !== 'tool.recon_drone') return true;
+  return !!groundContainer?.items?.has?.(item.instanceId);
+}
+
+/**
  * Whether the phone currently has a radio link to this device.
  * Null/absent activeDeviceId means the player is in control of themselves.
  */

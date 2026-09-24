@@ -9,6 +9,7 @@ import ContainerGrid from "./ContainerGrid";
 import UniversalGrid from "./UniversalGrid";
 import WeaponModPanel from "./WeaponModPanel";
 import CampfireUI from "./CampfireUI";
+import { isDroneInReach } from "../../game/remote/RemoteDeviceKinds.js";
 
 export default function InventoryPanel() {
   console.log('[InventoryPanel] ===== COMPONENT MOUNT/RENDER =====');
@@ -18,9 +19,19 @@ export default function InventoryPanel() {
   // Clean up containers that no longer exist
   useEffect(() => {
     openContainers.forEach(containerId => {
+      // A mod panel closes once its item is gone or out of reach — e.g. a drone
+      // launched from the player's tile — so its battery can't be swapped from
+      // a distance through a window left open.
+      if (containerId.startsWith('mod:')) {
+        const item = inventoryManager?.findItem(containerId.split(':')[1])?.item;
+        if (!item || !isDroneInReach(item, inventoryManager?.groundContainer)) {
+          closeContainer(containerId);
+        }
+        return;
+      }
+
       // Skip cleanup for virtual containers
-      if (containerId.startsWith('clothing:') || 
-          containerId.startsWith('mod:') || 
+      if (containerId.startsWith('clothing:') ||
           containerId.startsWith('item-mod-') || 
           containerId.startsWith('mod-overlay:')) return;
 
@@ -99,7 +110,7 @@ export default function InventoryPanel() {
             const found = inventoryManager?.findItem(itemId);
             const item = found?.item;
 
-            if (!item || !item.attachmentSlots) return null;
+            if (!item || !item.attachmentSlots || !isDroneInReach(item, inventoryManager?.groundContainer)) return null;
 
             return (
               <FloatingContainer

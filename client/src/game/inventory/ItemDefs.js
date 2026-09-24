@@ -620,6 +620,7 @@ export const ItemDefs = {
     imageId: 'screwdriver',
     width: 2,
     height: 1,
+    noLoot: true,
     traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE],
     equippableSlot: EquipmentSlot.MELEE,
     categories: [ItemCategory.WEAPON, ItemCategory.TOOL],
