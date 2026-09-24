@@ -13,6 +13,7 @@ import tradingSystem from './systems/TradingSystem.js';
 
 import { gameRandom } from './utils/SeededRandom.js';
 import { ensurePhone } from './phone/Phone.js';
+import { DEFAULT_PLAYER_CLOTHING } from './inventory/StartingLoadout.js';
 
 const INIT_STATES = {
   IDLE: 'idle',
@@ -304,8 +305,10 @@ class GameInitializationManager extends EventEmitter {
         const playerEntityData = (mapData?.entities || []).find(e => e.type === 'player')
           || (this.customConfig?.scenarioData?.entities || []).find(e => e.type === 'player');
 
+        // An authored inventory — even an empty one — replaces the default
+        // clothing, so a scenario can start the player with nothing on.
         let hasAuthoredPlayerInventory = false;
-        if (playerEntityData && Array.isArray(playerEntityData.inventory) && playerEntityData.inventory.length > 0) {
+        if (playerEntityData && Array.isArray(playerEntityData.inventory)) {
           console.log(`[GameInitializationManager] 🎒 Applying ${playerEntityData.inventory.length} authored starting item(s) to player`);
           const items = [];
           for (const itemData of playerEntityData.inventory) {
@@ -364,10 +367,10 @@ class GameInitializationManager extends EventEmitter {
           };
 
           // Both difficulties start dressed in a Pocket T-shirt + Sweatpants.
-          const shirt = equip('clothing.pocket_t');
-          if (shirt) console.log('[GameInitializationManager] Equipped starting shirt:', shirt.name);
-          const pants = equip('clothing.sweatpants');
-          if (pants) console.log('[GameInitializationManager] Equipped starting pants:', pants.name);
+          for (const defId of DEFAULT_PLAYER_CLOTHING) {
+            const clothing = equip(defId);
+            if (clothing) console.log('[GameInitializationManager] Equipped starting clothing:', clothing.name);
+          }
 
           if (isEasyStart) {
             // Easy Start adds a stocked school backpack and a crowbar.

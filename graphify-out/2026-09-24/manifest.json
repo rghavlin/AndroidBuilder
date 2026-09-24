@@ -710,8 +710,8 @@
     "semantic_hash": ""
   },
   "client/src/game/GameInitializationManager.js": {
-    "mtime": 1790227443.4706564,
-    "ast_hash": "c7b0cba324faa6d2c699e321c95d003a",
+    "mtime": 1787811411.775816,
+    "ast_hash": "4f8c989b5231db2bd92d5057bbe2644c",
     "semantic_hash": ""
   },
   "client/src/game/GameSaveSystem.js": {
@@ -1405,8 +1405,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1790227488.429094,
-    "ast_hash": "63dd7a42edacae0ba93efd7f154f3841",
+    "mtime": 1788913596.6944246,
+    "ast_hash": "a7371f2cf2358c585695b2f457150b2b",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -3110,13 +3110,13 @@
     "semantic_hash": ""
   },
   "customMaps/StartMenu.editor.json": {
-    "mtime": 1790227081.5717976,
-    "ast_hash": "62f7f6bff99a29109f4ac33b01c9178a",
+    "mtime": 1788995184.795743,
+    "ast_hash": "48f1824e0245b078936234a840d0d235",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.scenario.json": {
-    "mtime": 1790227082.3084393,
-    "ast_hash": "d872093f728f213d935a0798038745a4",
+    "mtime": 1788995185.729805,
+    "ast_hash": "afcda93ef76dff7e9673a604649a09b0",
     "semantic_hash": ""
   },
   "test/ai/aiStateTransitions.test.js": {
@@ -3847,11 +3847,6 @@
   "test/remote/droneReach.test.js": {
     "mtime": 1790209736.4079146,
     "ast_hash": "a3fcd6d411aac2dce52f14f9f4068e62",
-    "semantic_hash": ""
-  },
-  "client/src/game/inventory/StartingLoadout.js": {
-    "mtime": 1790227482.907731,
-    "ast_hash": "d6f80a797e6543a3c8665a0b5e5bc541",
     "semantic_hash": ""
   }
 }

@@ -54555,7 +54555,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_carrot-1788995185700-w1vd5",
+            "instanceId": "provision.harvestable_carrot-1790230097667-f1ey2",
             "defId": "provision.harvestable_carrot",
             "id": "provision.harvestable_carrot",
             "name": "Harvestable carrot",
@@ -54575,7 +54575,7 @@
             "produceMax": 7
           },
           {
-            "instanceId": "provision.harvestable_carrot-1788995185700-y66hl",
+            "instanceId": "provision.harvestable_carrot-1790230097667-2xr2o",
             "defId": "provision.harvestable_carrot",
             "id": "provision.harvestable_carrot",
             "name": "Harvestable carrot",
@@ -54595,7 +54595,7 @@
             "produceMax": 7
           },
           {
-            "instanceId": "weapon.shovel-1788995185700-39hij",
+            "instanceId": "weapon.shovel-1790230097667-q31bd",
             "defId": "weapon.shovel",
             "id": "weapon.shovel",
             "name": "Shovel",
@@ -54624,7 +54624,7 @@
             "description": "Right click to dig a hole in the ground (grid)."
           },
           {
-            "instanceId": "food.carrotseeds-1788995185700-a60h5",
+            "instanceId": "food.carrotseeds-1790230097667-heabf",
             "defId": "food.carrotseeds",
             "id": "food.carrotseeds",
             "name": "Carrot seeds",
@@ -54642,7 +54642,7 @@
             "plantsAs": "provision.carrot_plant"
           },
           {
-            "instanceId": "food.carrotseeds-1788995185700-clrvw",
+            "instanceId": "food.carrotseeds-1790230097667-wyx9e",
             "defId": "food.carrotseeds",
             "id": "food.carrotseeds",
             "name": "Carrot seeds",
@@ -55243,7 +55243,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.hammer-1788995185700-itcj0",
+            "instanceId": "weapon.hammer-1790230097667-ibhdl",
             "defId": "weapon.hammer",
             "id": "weapon.hammer",
             "name": "Hammer",
@@ -56361,32 +56361,63 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.hammer-1788995185700-2t5wf",
-            "defId": "weapon.hammer",
-            "id": "weapon.hammer",
-            "name": "Hammer",
-            "rarity": "uncommon",
-            "imageId": "hammer",
-            "width": 3,
-            "height": 2,
+            "instanceId": "clothing.pocket_t-1790230097667-3dqjm",
+            "defId": "clothing.pocket_t",
+            "id": "clothing.pocket_t",
+            "name": "Pocket T-Shirt",
+            "rarity": "common",
+            "imageId": "pocket-t",
+            "width": 1,
+            "height": 1,
             "traits": [
               "equippable",
-              "degradable"
+              "container"
             ],
-            "equippableSlot": "melee",
+            "equippableSlot": "upper_body",
             "categories": [
-              "weapon",
-              "tool",
-              "hammer"
+              "clothing",
+              "fuel"
             ],
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.7,
-              "damage": {
-                "min": 2,
-                "max": 8
-              }
-            }
+            "pocketLayoutId": "pocket_tee",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "clothing.sweatpants-1790230097667-2i37l",
+            "defId": "clothing.sweatpants",
+            "id": "clothing.sweatpants",
+            "name": "Sweatpants",
+            "rarity": "common",
+            "imageId": "sweatpants",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "lower_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "sweatpants",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "placeable.help-1790230097667-9xrg0",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Starting tile"
           }
         ]
       },
@@ -58803,7 +58834,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_corn-1788995185700-2781b",
+            "instanceId": "provision.harvestable_corn-1790230097667-c2iuy",
             "defId": "provision.harvestable_corn",
             "id": "provision.harvestable_corn",
             "name": "Harvestable corn",
@@ -66347,7 +66378,9 @@
       "type": "player",
       "x": 23,
       "y": 103,
-      "subtype": null
+      "subtype": null,
+      "inventory": [],
+      "equippedIndex": -1
     }
   ],
   "eventTriggers": [
@@ -66371,6 +66404,17 @@
         {
           "speaker": "",
           "text": "Go outside. If you dare. (right-click on the door)"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Starting tile",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "You should put some clothes on before going outside."
         }
       ],
       "oneShot": false
@@ -66419,6 +66463,22 @@
       "appearance": {
         "defId": "placeable.help"
       }
+    },
+    {
+      "id": "Starting tile",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "You should put some clothes on before going outside."
+        }
+      ]
     }
   ]
 }

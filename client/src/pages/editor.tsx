@@ -8,6 +8,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { ScenarioStorage } from '@/game/ScenarioStorage';
 import { ItemDefs, createItemFromDef } from '@/game/inventory/ItemDefs';
+import { defaultPlayerLoadout } from '@/game/inventory/StartingLoadout';
 import { ItemCategory, ItemTrait } from '@/game/inventory/traits';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 import { migrateLegacyEvents, downconvertEvents, resolveMapEvents } from '@/game/quest/migrateEvents';
@@ -433,7 +434,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
         attackOnSight: e.attackOnSight || undefined,
         iconId: e.iconId || undefined,
         aiDisabled: e.aiDisabled || undefined,
-        inventory: e.inventory?.length ? e.inventory.map(itemToEditorEntry) : undefined,
+        inventory: e.inventory?.length || (e.type === 'player' && e.inventory) ? e.inventory.map(itemToEditorEntry) : undefined,
         equippedIndex: e.equippedIndex,
       });
     }
@@ -1006,9 +1007,9 @@ function exportScenario(scenario: ScenarioData) {
           ...(e.attackOnSight ? { attackOnSight: true } : {}),
           ...(e.iconId ? { iconId: e.iconId } : {}),
           ...(e.aiDisabled ? { aiDisabled: true } : {}),
-          // NPC loadout: full item JSON (same shape as tile items) plus which
-          // slot is equipped. This is also what the NPC drops when killed.
-          ...(e.inventory?.length ? {
+          // Loadout: full item JSON plus equipped slot (an NPC drops it when killed).
+          // A player's EMPTY loadout is kept: it overrides the default clothing.
+          ...(e.inventory?.length || (e.type === 'player' && e.inventory) ? {
             inventory: e.inventory.map(buildFullItem),
             equippedIndex: e.equippedIndex ?? -1,
           } : {}),
@@ -1128,7 +1129,7 @@ export default function MapEditor() {
   const [turretIsOn, setTurretIsOn] = useState(true);
   const [npcLoadout, setNpcLoadout] = useState<EditorItem[]>([]);
   const [npcEquippedIndex, setNpcEquippedIndex] = useState(-1);
-  const [playerLoadout, setPlayerLoadout] = useState<EditorItem[]>([]);
+  const [playerLoadout, setPlayerLoadout] = useState<EditorItem[]>(defaultPlayerLoadout);
   const [playerEquippedIndex, setPlayerEquippedIndex] = useState(-1);
   // Open loadout editor. target === null edits the brush default above;
   // otherwise it edits entity `idx` on tile (x, y).
@@ -1954,10 +1955,8 @@ export default function MapEditor() {
           {
             const ent: EntityData = { type: selectedEntity };
             if (selectedEntity === 'player') {
-              if (playerLoadout.length > 0) {
-                ent.inventory = playerLoadout.map(it => ({ ...it }));
-                ent.equippedIndex = playerEquippedIndex;
-              }
+              ent.inventory = playerLoadout.map(it => ({ ...it }));
+              ent.equippedIndex = playerEquippedIndex;
             } else if (selectedEntity === 'zombie') {
               ent.subtype = zombieSubtype;
               if (zombieHp !== '') ent.hp = zombieHp as number;
@@ -3009,7 +3008,7 @@ export default function MapEditor() {
     if (target) {
       const ent = tilesRef.current[target.y]?.[target.x]?.entities[target.idx];
       setLoadoutModal({
-        items: (ent?.inventory || []).map(it => ({ ...it })),
+        items: (ent?.inventory ?? (ent?.type === 'player' ? defaultPlayerLoadout() : [])).map(it => ({ ...it })),
         equippedIndex: ent?.equippedIndex ?? -1,
         target,
       });
@@ -3048,11 +3047,11 @@ export default function MapEditor() {
       pushUndo(tilesRef.current, buildingsRef.current, furnitureRef.current);
       setTiles(prev => prev.map((row, y) => row.map((t, x) => {
         if (x !== target.x || y !== target.y) return t;
-        const entities = t.entities.map((e, i) =>
-          i === target.idx
-            ? { ...e, inventory: items.length ? items : undefined, equippedIndex: items.length ? equippedIndex : undefined }
-            : e
-        );
+        const entities = t.entities.map((e, i) => {
+          if (i !== target.idx) return e;
+          const keep = items.length > 0 || e.type === 'player';
+          return { ...e, inventory: keep ? items : undefined, equippedIndex: keep ? equippedIndex : undefined };
+        });
         return { ...t, entities };
       })));
       setStatusMsg(`Loadout updated (${items.length} item(s))`);

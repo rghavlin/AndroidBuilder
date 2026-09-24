@@ -177,6 +177,5 @@
   "175": "computeMinimapSize",
   "176": "TestMapBuilder",
   "177": "verify_saveload.mjs",
-  "178": "markerInteraction.test.js",
   "194": "TileRenderer.js"
 }

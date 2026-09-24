@@ -126351,12 +126351,21 @@
         },
         "entities": [
           {
-            "type": "player"
+            "type": "player",
+            "inventory": [],
+            "equippedIndex": -1
           }
         ],
         "items": [
           {
-            "defId": "weapon.hammer"
+            "defId": "clothing.pocket_t"
+          },
+          {
+            "defId": "clothing.sweatpants"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Starting tile"
           }
         ]
       },
@@ -144353,7 +144362,18 @@
   "seed": 673896,
   "lowSpots": [],
   "bubbleEvents": [],
-  "chainDialogEvents": [],
+  "chainDialogEvents": [
+    {
+      "id": "Starting tile",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "You should put some clothes on before going outside."
+        }
+      ],
+      "oneShot": false
+    }
+  ],
   "events": [
     {
       "id": "FrontDoorHome",
@@ -144396,6 +144416,22 @@
       "appearance": {
         "defId": "placeable.help"
       }
+    },
+    {
+      "id": "Starting tile",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "You should put some clothes on before going outside."
+        }
+      ]
     }
   ],
   "questRegistry": {
