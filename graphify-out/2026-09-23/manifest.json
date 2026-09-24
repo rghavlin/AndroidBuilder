@@ -340,9 +340,9 @@
     "semantic_hash": ""
   },
   "client/src/components/Inventory/InventoryPanel.tsx": {
-    "mtime": 1779703370.3436255,
-    "ast_hash": "18fa86d376fe5e2c825e585a7ede892d",
-    "semantic_hash": "18fa86d376fe5e2c825e585a7ede892d"
+    "mtime": 1790209692.6185875,
+    "ast_hash": "7a92ae6309ac96490f0db8b952a3bd98",
+    "semantic_hash": ""
   },
   "client/src/components/Inventory/ItemContextMenu.tsx": {
     "mtime": 1786003966.5149293,
@@ -980,8 +980,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/InventoryManager.js": {
-    "mtime": 1787811411.7798169,
-    "ast_hash": "f7d5be52d4e422108fa2f3316dedc2f0",
+    "mtime": 1790209676.9856238,
+    "ast_hash": "52660e52a5bac4c6216e72dfbe49b0bf",
     "semantic_hash": ""
   },
   "client/src/game/inventory/Item.js": {
@@ -990,8 +990,8 @@
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemDefs.js": {
-    "mtime": 1789001467.4346197,
-    "ast_hash": "b53c3153c0721da9dc5182f01c05a804",
+    "mtime": 1790208759.5555592,
+    "ast_hash": "39448d4683bc2d5c93a7d9c37b432543",
     "semantic_hash": ""
   },
   "client/src/game/inventory/ItemPricing.js": {
@@ -1065,8 +1065,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/LootTables.js": {
-    "mtime": 1785804818.6633794,
-    "ast_hash": "6137d0e8b8af5b2fc4c0b645d04006e4",
+    "mtime": 1790208755.459896,
+    "ast_hash": "b13a97d57ede26a982f33cd6308680a5",
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
@@ -3460,8 +3460,8 @@
     "semantic_hash": ""
   },
   "client/src/game/remote/RemoteDeviceKinds.js": {
-    "mtime": 1785980544.4832897,
-    "ast_hash": "dc2c3fa19720f27295075aec4f03eca4",
+    "mtime": 1790209661.0669978,
+    "ast_hash": "33804749f9a2f78b3a2da67bba4330a9",
     "semantic_hash": ""
   },
   "test/renderer/remoteDeviceDisplay.test.js": {
@@ -3837,6 +3837,16 @@
   "client/src/game/systems/PatientZeroGuard.js": {
     "mtime": 1790060165.718311,
     "ast_hash": "5859435edf1f8a8ed2ce7005d68aa4f4",
+    "semantic_hash": ""
+  },
+  "test/loot/screwdriver.test.js": {
+    "mtime": 1790208832.963361,
+    "ast_hash": "a6102fa90a9505dbd489c216132af1fd",
+    "semantic_hash": ""
+  },
+  "test/remote/droneReach.test.js": {
+    "mtime": 1790209736.4079146,
+    "ast_hash": "a3fcd6d411aac2dce52f14f9f4068e62",
     "semantic_hash": ""
   }
 }

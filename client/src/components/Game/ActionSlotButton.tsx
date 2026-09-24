@@ -80,6 +80,7 @@ export const ActionSlotButton = ({ slot, isFlashlightOnActual, isDeviceActive = 
   return (
     <ItemContextMenu
       item={item}
+      hideOpen={slot === 'phone'}
       tooltipContent={item ? <ItemTooltip item={item} /> : <p className="font-medium text-xs">Empty {slot} slot</p>}
     >
       <button

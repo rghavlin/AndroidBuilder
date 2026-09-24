@@ -28,6 +28,8 @@ interface ItemContextMenuProps {
     item?: any;
     tooltipContent?: React.ReactNode;
     isDisabled?: boolean;
+    /** Suppress the "Open" verb, e.g. for the phone action slot, whose battery is managed in the phone window. */
+    hideOpen?: boolean;
 }
 
 /**
@@ -39,7 +41,8 @@ export function ItemContextMenu({
     children,
     item,
     tooltipContent = null,
-    isDisabled = false
+    isDisabled = false,
+    hideOpen = false
 }: ItemContextMenuProps) {
     const { openContainer, canOpenContainer, unloadWeapon, unloadMagazine, deploySnare, retrieveSnare, deployDrone, landDrone, stowDrone, toggleGenerator, toggleFireMode, consumeItem, bindWound, drinkWater, unrollBedroll, rollupBedroll, crankCharger, readBook, disassembleItem, startDrag, stopDrag, pickSafeLock } = useInventory();
     // activeDeviceId is read off GameContext (not the engine directly) so this
@@ -62,6 +65,7 @@ export function ItemContextMenu({
     }
 
     const canSplit = item?.hasTrait?.(ItemTrait.STACKABLE) && item?.stackCount > 1;
+    const showOpen = !hideOpen && canOpenContainer(item);
 
     const isSeed = item?.defId?.endsWith('seeds');
     const shouldDisable = isDisabled || item?.hasTrait?.(ItemTrait.PLANTER) || isSeed;
@@ -186,7 +190,7 @@ export function ItemContextMenu({
                             </ContextMenuItem>
                         )}
 
-                        {canOpenContainer(item) && item.defId !== 'vehicle.wagon' && item.defId !== 'vehicle.cargo_wagon' && (
+                        {showOpen && item.defId !== 'vehicle.wagon' && item.defId !== 'vehicle.cargo_wagon' && (
                             <ContextMenuItem
                                 onClick={() => {
                                     console.log('[ItemContextMenu] Open container requested for:', item.name, 'instanceId:', item.instanceId);
@@ -505,7 +509,7 @@ export function ItemContextMenu({
                                 Split Stack
                             </ContextMenuItem>
                         )}
-                        {!canSplit && !canOpenContainer(item) && !item?.hasTrait?.(ItemTrait.WATER_CONTAINER) && item?.defId !== 'bedroll.closed' && item?.defId !== 'bedroll.open' && !item?.hasTrait?.(ItemTrait.DRAGGABLE) && !(item?.defId === 'crafting.rag' && engine.player?.isBleeding) && (
+                        {!canSplit && !showOpen && !item?.hasTrait?.(ItemTrait.WATER_CONTAINER) && item?.defId !== 'bedroll.closed' && item?.defId !== 'bedroll.open' && !item?.hasTrait?.(ItemTrait.DRAGGABLE) && !(item?.defId === 'crafting.rag' && engine.player?.isBleeding) && (
                             <ContextMenuItem disabled className="text-zinc-500">
                                 No actions available
                             </ContextMenuItem>

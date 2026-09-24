@@ -1120,10 +1120,9 @@ export const ItemDefs = {
     imageId: 'flashlight',
     width: 2,
     height: 1,
-    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE, ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED],
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED],
     equippableSlot: EquipmentSlot.FLASHLIGHT,
     categories: [ItemCategory.TOOL],
-    condition: 100,
     lightRange: 8,
     lightType: 'beam',
     attachmentSlots: [
@@ -1197,10 +1196,9 @@ export const ItemDefs = {
     imageId: 'nightvision',
     width: 2,
     height: 1,
-    traits: [ItemTrait.EQUIPPABLE, ItemTrait.DEGRADABLE, ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED],
+    traits: [ItemTrait.EQUIPPABLE, ItemTrait.BATTERY_POWERED, ItemTrait.OPENABLE_WHEN_NESTED],
     equippableSlot: EquipmentSlot.FLASHLIGHT,
     categories: [ItemCategory.TOOL],
-    condition: 100,
     lightRange: 15,
     lightType: 'nightvision',
     attachmentSlots: [

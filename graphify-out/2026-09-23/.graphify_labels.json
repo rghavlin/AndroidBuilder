@@ -170,6 +170,12 @@
   "168": "Vite Electron Configuration",
   "169": "tmp_verify_loot.js",
   "170": "tmp_verify_loot_summary.js",
+  "171": "accordion.tsx",
+  "172": "Position",
+  "173": "Renderable",
+  "174": "Vision",
+  "175": "computeMinimapSize",
   "176": "TestMapBuilder",
+  "177": "verify_saveload.mjs",
   "194": "TileRenderer.js"
 }
