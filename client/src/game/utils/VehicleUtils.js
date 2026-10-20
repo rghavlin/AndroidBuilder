@@ -183,19 +183,25 @@ export const VehicleUtils = {
   /**
    * Terrain discount for one step, applied once to the whole group rather than
    * once per vehicle — a cart plus its towed wagon used to claim -0.5 each.
-   * An item's own `terrainModifiers` (specialised tires) wins over the general
-   * road/sidewalk discount.
+   * An item's own `terrainModifiers` (specialised tires, sled runners, no
+   * wheels at all) wins over the general road/sidewalk discount. A mixed group
+   * moves at the pace of its worst member: a wheeled wagon doesn't let you
+   * glide an unwheeled bed down the road, and a positive modifier (a sled on
+   * asphalt) is a surcharge.
    */
   getTerrainDiscount(items, tile) {
     if (!tile) return 0;
 
+    const fallback = (tile.terrain === 'road' || tile.terrain === 'sidewalk') ? -0.5 : 0;
+
+    let worst = null;
     for (const item of items) {
-      const mod = item?.terrainModifiers?.[tile.terrain];
-      if (mod !== undefined) return mod;
+      if (!item) continue;
+      const mod = item.terrainModifiers?.[tile.terrain] ?? fallback;
+      if (worst === null || mod > worst) worst = mod;
     }
 
-    if (tile.terrain === 'road' || tile.terrain === 'sidewalk') return -0.5;
-    return 0;
+    return worst ?? fallback;
   },
 
   /**

@@ -102059,7 +102059,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "furniture.electric_mower"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -104418,7 +104422,19 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "environment.water_puddle"
+          },
+          {
+            "defId": "food.waterbottle",
+            "ammoCount": 0
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Water puddle"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -105288,7 +105304,21 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.knife"
+          },
+          {
+            "defId": "clothing.pocket_t"
+          },
+          {
+            "defId": "clothing.workshirt"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Rags"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -105326,9 +105356,10 @@
             "window": false
           },
           "e": {
-            "wall": true,
+            "wall": false,
             "door": false,
-            "window": false
+            "window": true,
+            "locked": false
           },
           "s": {
             "wall": false,
@@ -105990,7 +106021,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "backpack.school"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -106751,7 +106786,15 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.lighter"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Fire cook"
+          }
+        ]
       },
       {
         "terrain": "road",
@@ -106940,7 +106983,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "clothing.blue_jeans"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -109570,7 +109617,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.hammer"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -113254,7 +113305,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "placeable.bed"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -114798,7 +114853,7 @@
             "wall": false,
             "door": true,
             "window": false,
-            "locked": false,
+            "locked": true,
             "keylocked": false
           }
         },
@@ -115294,7 +115349,18 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "vehicle.toy_wagon"
+          },
+          {
+            "defId": "weapon.frying_pan"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Wagon and pan"
+          }
+        ]
       },
       {
         "terrain": "road",
@@ -115511,7 +115577,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.honey"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -120311,7 +120381,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.stick"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -122576,6 +122650,10 @@
           },
           {
             "defId": "food.carrotseeds"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Farming"
           }
         ]
       },
@@ -123888,7 +123966,7 @@
         "entities": [],
         "items": [
           {
-            "defId": "weapon.hammer"
+            "defId": "weapon.crowbar"
           }
         ],
         "eventTrigger": {
@@ -123896,7 +123974,7 @@
           "steps": [
             {
               "speaker": "",
-              "text": "Click once on the hammer, then click once on the melee slot"
+              "text": "Click once on the hammer, then click once on the melee slot. When you run out of ACTION POINTS, end your turn."
             }
           ],
           "oneShot": false
@@ -128671,7 +128749,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.knife"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -134830,7 +134912,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "medical.bandage"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -135836,7 +135922,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.tape"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -144364,11 +144454,61 @@
   "bubbleEvents": [],
   "chainDialogEvents": [
     {
+      "id": "Farming",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "Wagon and pan",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "Fire cook",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Craft a campfire to cook food and boil dirty water."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "Rags",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "Water puddle",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use an empty water bottle on a water puddle to collect dirty water"
+        }
+      ],
+      "oneShot": false
+    },
+    {
       "id": "Starting tile",
       "steps": [
         {
           "speaker": "",
-          "text": "You should put some clothes on before going outside."
+          "text": "You should put some clothes on before going outside. When you run out of ACTION POINTS, end your turn."
         }
       ],
       "oneShot": false
@@ -144397,11 +144537,9 @@
       }
     },
     {
-      "id": "OutsideHome",
+      "id": "Farming",
       "placement": {
-        "kind": "tile",
-        "x": 23,
-        "y": 101
+        "kind": "chainOnly"
       },
       "trigger": "onInteract",
       "preconditions": [],
@@ -144410,12 +144548,73 @@
         {
           "type": "dialog",
           "speaker": "",
-          "text": "Click once on the hammer, then click once on the melee slot"
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant"
         }
-      ],
-      "appearance": {
-        "defId": "placeable.help"
-      }
+      ]
+    },
+    {
+      "id": "Wagon and pan",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement."
+        }
+      ]
+    },
+    {
+      "id": "Fire cook",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Craft a campfire to cook food and boil dirty water."
+        }
+      ]
+    },
+    {
+      "id": "Rags",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires."
+        }
+      ]
+    },
+    {
+      "id": "Water puddle",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use an empty water bottle on a water puddle to collect dirty water"
+        }
+      ]
     },
     {
       "id": "Starting tile",
@@ -144429,9 +144628,30 @@
         {
           "type": "dialog",
           "speaker": "",
-          "text": "You should put some clothes on before going outside."
+          "text": "You should put some clothes on before going outside. When you run out of ACTION POINTS, end your turn."
         }
       ]
+    },
+    {
+      "id": "OutsideHome",
+      "placement": {
+        "kind": "tile",
+        "x": 23,
+        "y": 101
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Click once on the hammer, then click once on the melee slot. When you run out of ACTION POINTS, end your turn."
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.help"
+      }
     }
   ],
   "questRegistry": {

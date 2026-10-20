@@ -328,3 +328,35 @@ describe('Golf-cart towing', () => {
     expect(towed).toBeGreaterThanOrEqual(handPulled);
   });
 });
+
+describe('Terrain and unwheeled furniture', () => {
+  const item = (defId) => new Item(createItemFromDef(defId));
+  const drag = (items, terrain, strength = 20) =>
+    VehicleUtils.calculateDragCost(items, straightPath(4), mapOf(terrain), 4, { playerStrength: strength });
+
+  it('gives unwheeled furniture no road discount', () => {
+    for (const defId of ['placeable.bed', 'furniture.planter_box', 'crafting.loose_soil']) {
+      expect(drag(item(defId), 'road'), defId).toBe(drag(item(defId), 'grass'));
+    }
+  });
+
+  it('keeps a bed harder to drag than a toy wagon and costly at mid Strength', () => {
+    expect(penalty(item('placeable.bed'), 20)).toBeGreaterThan(penalty(item('vehicle.toy_wagon'), 20));
+    expect(penalty(item('placeable.bed'), 40)).toBe(2);
+    expect(penalty(item('placeable.bed'), 80)).toBe(0);
+  });
+
+  it('makes a sled cheaper on grass than on pavement', () => {
+    const sled = makeVehicle('vehicle.small_sled', 0);
+    expect(drag(sled, 'grass')).toBeLessThan(drag(sled, 'road'));
+  });
+
+  it('prices a mixed group at its worst member, independent of order', () => {
+    const wagon = makeVehicle('vehicle.wagon', 0);
+    const bed = item('placeable.bed');
+    const tile = { terrain: 'road' };
+    expect(VehicleUtils.getTerrainDiscount([wagon, bed], tile)).toBe(0);
+    expect(VehicleUtils.getTerrainDiscount([bed, wagon], tile)).toBe(0);
+    expect(VehicleUtils.getTerrainDiscount([wagon], tile)).toBe(-0.5);
+  });
+});

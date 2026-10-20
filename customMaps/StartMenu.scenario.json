@@ -45427,7 +45427,72 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "furniture.electric_mower-1792459964613-73jzc",
+            "defId": "furniture.electric_mower",
+            "id": "furniture.electric_mower",
+            "name": "Electric mower",
+            "noLoot": true,
+            "noPickup": true,
+            "rarity": "rare",
+            "imageId": "electricmower",
+            "categories": [
+              "furniture"
+            ],
+            "width": 4,
+            "height": 5,
+            "traits": [
+              "draggable",
+              "groundOnly",
+              "openable-when-nested",
+              "furniture"
+            ],
+            "dragApPenalty": 1,
+            "renderFullTile": true,
+            "description": "Dissasemble: Wrench",
+            "attachmentSlots": [
+              {
+                "id": "battery",
+                "name": "Power Cell",
+                "allowedCategories": [
+                  "large_battery"
+                ],
+                "allowedItems": [
+                  "tool.large_battery",
+                  "tool.high_capacity_battery"
+                ]
+              }
+            ],
+            "disassembleData": {
+              "toolId": "weapon.wrench",
+              "apCost": 15,
+              "components": [
+                {
+                  "id": "crafting.wheel",
+                  "count": 4
+                },
+                {
+                  "id": "electric_motor",
+                  "count": 1
+                },
+                {
+                  "id": "crafting.mower_blade",
+                  "count": 1
+                },
+                {
+                  "id": "weapon.metal_rod",
+                  "count": 2
+                },
+                {
+                  "id": "crafting.metal_plate",
+                  "count": 1
+                }
+              ]
+            }
+          }
+        ]
       },
       {
         "x": 30,
@@ -46477,7 +46542,79 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "environment.water_puddle-1792459964614-8bler",
+            "defId": "environment.water_puddle",
+            "id": "environment.water_puddle",
+            "name": "Water puddle",
+            "rarity": "common",
+            "imageId": "waterpuddle",
+            "width": 5,
+            "height": 5,
+            "isPickable": false,
+            "noDrag": true,
+            "traits": [
+              "water_bottle",
+              "consumable",
+              "water_source"
+            ],
+            "maxWater": 50,
+            "ammoCount": 50,
+            "capacity": 50,
+            "waterQuality": "dirty",
+            "categories": [
+              "environment"
+            ],
+            "noLoot": true,
+            "renderFullTile": false,
+            "backgroundColor": "#0a2e5c",
+            "description": "Use empty bottle or jug to collect dirty water"
+          },
+          {
+            "instanceId": "food.waterbottle-1792459964614-taitl",
+            "defId": "food.waterbottle",
+            "id": "food.waterbottle",
+            "name": "Water Bottle",
+            "rarity": "common",
+            "imageId": "waterbottle",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable",
+              "water_bottle"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "capacity": 20,
+            "ammoCount": 0,
+            "spawnAmmoPercent": 1,
+            "consumptionEffects": {
+              "hydration": 1
+            }
+          },
+          {
+            "instanceId": "placeable.help-1792459964614-fv08s",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Water puddle"
+          }
+        ]
       },
       {
         "x": 27,
@@ -46864,7 +47001,96 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.knife-1792459964614-pmaiy",
+            "defId": "weapon.knife",
+            "id": "weapon.knife",
+            "name": "Knife",
+            "rarity": "common",
+            "imageId": "knife",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool",
+              "knife"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 4
+              }
+            }
+          },
+          {
+            "instanceId": "clothing.pocket_t-1792459964614-txjla",
+            "defId": "clothing.pocket_t",
+            "id": "clothing.pocket_t",
+            "name": "Pocket T-Shirt",
+            "rarity": "common",
+            "imageId": "pocket-t",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "upper_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "pocket_tee",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "clothing.workshirt-1792459964614-41cfy",
+            "defId": "clothing.workshirt",
+            "id": "clothing.workshirt",
+            "name": "Work Shirt",
+            "rarity": "uncommon",
+            "imageId": "workshirt",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "upper_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "work_shirt",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "placeable.help-1792459964614-av49t",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Rags"
+          }
+        ]
       },
       {
         "x": 14,
@@ -47176,7 +47402,32 @@
           "s": true,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "backpack.school-1792459964614-x93xl",
+            "defId": "backpack.school",
+            "id": "backpack.school",
+            "name": "Book Bag",
+            "rarity": "uncommon",
+            "imageId": "bookBag",
+            "width": 3,
+            "height": 3,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "categories": [
+              "container"
+            ],
+            "equippableSlot": "backpack",
+            "containerGrid": {
+              "width": 4,
+              "height": 5
+            },
+            "description": "When on the ground, right-click to open"
+          }
+        ]
       },
       {
         "x": 40,
@@ -47515,7 +47766,46 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "tool.lighter-1792459964614-rmvzc",
+            "defId": "tool.lighter",
+            "id": "tool.lighter",
+            "name": "Lighter",
+            "rarity": "uncommon",
+            "imageId": "lighter",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "charge-based"
+            ],
+            "categories": [
+              "tool"
+            ],
+            "stackMax": 1,
+            "capacity": 10,
+            "ammoCount": 10,
+            "spawnAmmoPercent": 1
+          },
+          {
+            "instanceId": "placeable.help-1792459964614-oka16",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Fire cook"
+          }
+        ]
       },
       {
         "x": 23,
@@ -47599,7 +47889,30 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "clothing.blue_jeans-1792459964614-89ka5",
+            "defId": "clothing.blue_jeans",
+            "id": "clothing.blue_jeans",
+            "name": "Blue Jeans",
+            "rarity": "common",
+            "imageId": "jeans",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "lower_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "blue_jeans",
+            "description": "When on the ground, right-click to open pockets"
+          }
+        ]
       },
       {
         "x": 30,
@@ -48768,7 +49081,37 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.hammer-1792459964614-t2tb1",
+            "defId": "weapon.hammer",
+            "id": "weapon.hammer",
+            "name": "Hammer",
+            "rarity": "uncommon",
+            "imageId": "hammer",
+            "width": 3,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool",
+              "hammer"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.7,
+              "damage": {
+                "min": 2,
+                "max": 8
+              }
+            }
+          }
+        ]
       },
       {
         "x": 37,
@@ -50408,7 +50751,56 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "placeable.bed-1792459964614-pjhdh",
+            "defId": "placeable.bed",
+            "id": "placeable.bed",
+            "name": "Bed",
+            "rarity": "rare",
+            "noLoot": true,
+            "noPickup": true,
+            "renderFullTile": true,
+            "traits": [
+              "groundOnly",
+              "draggable",
+              "furniture"
+            ],
+            "dragApPenalty": 2,
+            "imageId": "bed",
+            "width": 4,
+            "height": 6,
+            "categories": [
+              "furniture",
+              "tool"
+            ],
+            "disassembleData": {
+              "toolId": {
+                "either": [
+                  "weapon.hammer",
+                  "weapon.makeshift_hammer"
+                ]
+              },
+              "apCost": 10,
+              "components": [
+                {
+                  "id": "crafting.feather_padding",
+                  "count": 1
+                },
+                {
+                  "id": "weapon.plank",
+                  "count": 4
+                },
+                {
+                  "id": "crafting.nail",
+                  "count": 4
+                }
+              ]
+            },
+            "description": "Dissasemble: Hammer"
+          }
+        ]
       },
       {
         "x": 38,
@@ -51314,7 +51706,135 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "vehicle.toy_wagon-1792459964614-3bynf",
+            "defId": "vehicle.toy_wagon",
+            "id": "vehicle.toy_wagon",
+            "name": "Toy Wagon",
+            "noLoot": true,
+            "rarity": "uncommon",
+            "imageId": "toywagon",
+            "width": 4,
+            "height": 6,
+            "traits": [
+              "draggable",
+              "groundOnly",
+              "container",
+              "vehicle",
+              "wagon"
+            ],
+            "categories": [
+              "furniture",
+              "vehicle"
+            ],
+            "dragApPenalty": 2,
+            "motorAssistBonus": 1,
+            "terrainModifiers": {
+              "road": -0.5,
+              "sidewalk": -0.5
+            },
+            "renderFullTile": true,
+            "description": "Used to move items",
+            "containerGrid": {
+              "width": 4,
+              "height": 5,
+              "isVehicle": true
+            },
+            "attachmentSlots": [
+              {
+                "id": "motor",
+                "name": "Electric Motor",
+                "allowedItems": [
+                  "electric_motor"
+                ]
+              },
+              {
+                "id": "battery",
+                "name": "Power Cell",
+                "allowedCategories": [
+                  "large_battery"
+                ],
+                "allowedItems": [
+                  "tool.large_battery",
+                  "tool.high_capacity_battery"
+                ]
+              },
+              {
+                "id": "rc_receiver",
+                "name": "Receiver",
+                "allowedItems": [
+                  "tool.rc_receiver",
+                  "tool.autonomous_controller"
+                ]
+              }
+            ],
+            "disassembleData": {
+              "toolId": "weapon.wrench",
+              "apCost": 10,
+              "components": [
+                {
+                  "id": "crafting.wheel",
+                  "count": 4
+                },
+                {
+                  "id": "weapon.metal_rod",
+                  "count": 2
+                },
+                {
+                  "id": "crafting.metal_plate",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          {
+            "instanceId": "weapon.frying_pan-1792459964614-jegjl",
+            "defId": "weapon.frying_pan",
+            "id": "weapon.frying_pan",
+            "name": "Frying pan",
+            "rarity": "common",
+            "imageId": "fryingpan",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool",
+              "cooking_pot"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          },
+          {
+            "instanceId": "placeable.help-1792459964614-m4ah5",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Wagon and pan"
+          }
+        ]
       },
       {
         "x": 23,
@@ -51410,7 +51930,30 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "food.honey-1792459964614-0cba7",
+            "defId": "food.honey",
+            "id": "food.honey",
+            "name": "Honey",
+            "rarity": "uncommon",
+            "imageId": "honey",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "consumptionEffects": {
+              "nutrition": 4
+            }
+          }
+        ]
       },
       {
         "x": 31,
@@ -53547,7 +54090,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1792459964614-07nu4",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 28,
@@ -54555,7 +55132,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_carrot-1790230097667-f1ey2",
+            "instanceId": "provision.harvestable_carrot-1792459964614-omur2",
             "defId": "provision.harvestable_carrot",
             "id": "provision.harvestable_carrot",
             "name": "Harvestable carrot",
@@ -54575,7 +55152,7 @@
             "produceMax": 7
           },
           {
-            "instanceId": "provision.harvestable_carrot-1790230097667-2xr2o",
+            "instanceId": "provision.harvestable_carrot-1792459964614-8pmvr",
             "defId": "provision.harvestable_carrot",
             "id": "provision.harvestable_carrot",
             "name": "Harvestable carrot",
@@ -54595,7 +55172,7 @@
             "produceMax": 7
           },
           {
-            "instanceId": "weapon.shovel-1790230097667-q31bd",
+            "instanceId": "weapon.shovel-1792459964614-cegxz",
             "defId": "weapon.shovel",
             "id": "weapon.shovel",
             "name": "Shovel",
@@ -54624,7 +55201,7 @@
             "description": "Right click to dig a hole in the ground (grid)."
           },
           {
-            "instanceId": "food.carrotseeds-1790230097667-heabf",
+            "instanceId": "food.carrotseeds-1792459964614-rsdte",
             "defId": "food.carrotseeds",
             "id": "food.carrotseeds",
             "name": "Carrot seeds",
@@ -54642,7 +55219,7 @@
             "plantsAs": "provision.carrot_plant"
           },
           {
-            "instanceId": "food.carrotseeds-1790230097667-wyx9e",
+            "instanceId": "food.carrotseeds-1792459964614-l3om9",
             "defId": "food.carrotseeds",
             "id": "food.carrotseeds",
             "name": "Carrot seeds",
@@ -54658,6 +55235,23 @@
             "spawnStackMin": 2,
             "spawnStackMax": 3,
             "plantsAs": "provision.carrot_plant"
+          },
+          {
+            "instanceId": "placeable.help-1792459964614-hx4ou",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Farming"
           }
         ]
       },
@@ -55243,23 +55837,23 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.hammer-1790230097667-ibhdl",
-            "defId": "weapon.hammer",
-            "id": "weapon.hammer",
-            "name": "Hammer",
+            "instanceId": "weapon.crowbar-1792459964614-w18bp",
+            "defId": "weapon.crowbar",
+            "id": "weapon.crowbar",
+            "name": "Crowbar",
             "rarity": "uncommon",
-            "imageId": "hammer",
+            "imageId": "crowbar",
             "width": 3,
             "height": 2,
             "traits": [
               "equippable",
-              "degradable"
+              "degradable",
+              "canBreakDoors"
             ],
             "equippableSlot": "melee",
             "categories": [
               "weapon",
-              "tool",
-              "hammer"
+              "tool"
             ],
             "condition": 100,
             "combat": {
@@ -55268,7 +55862,8 @@
                 "min": 2,
                 "max": 8
               }
-            }
+            },
+            "description": "Right click to use on doors and windows"
           }
         ]
       },
@@ -56361,7 +56956,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.pocket_t-1790230097667-3dqjm",
+            "instanceId": "clothing.pocket_t-1792459964614-vzgyf",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -56382,7 +56977,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1790230097667-2i37l",
+            "instanceId": "clothing.sweatpants-1792459964614-eyma7",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -56403,7 +56998,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "placeable.help-1790230097667-9xrg0",
+            "instanceId": "placeable.help-1792459964614-psz5k",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -57445,7 +58040,37 @@
           "s": true,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.knife-1792459964614-1qx0b",
+            "defId": "weapon.knife",
+            "id": "weapon.knife",
+            "name": "Knife",
+            "rarity": "common",
+            "imageId": "knife",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool",
+              "knife"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 4
+              }
+            }
+          }
+        ]
       },
       {
         "x": 19,
@@ -58834,7 +59459,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_corn-1790230097667-c2iuy",
+            "instanceId": "provision.harvestable_corn-1792459964614-dzghv",
             "defId": "provision.harvestable_corn",
             "id": "provision.harvestable_corn",
             "name": "Harvestable corn",
@@ -60205,7 +60830,36 @@
           "s": false,
           "w": true
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "medical.bandage-1792459964614-3gykc",
+            "defId": "medical.bandage",
+            "id": "medical.bandage",
+            "name": "Bandage",
+            "rarity": "common",
+            "imageId": "bandage",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "consumable",
+              "stackable"
+            ],
+            "categories": [
+              "medical"
+            ],
+            "consumptionSound": "Bandage",
+            "pileLimitOne": true,
+            "stackMax": 10,
+            "consumptionEffects": {
+              "heal": {
+                "min": 4,
+                "max": 7
+              },
+              "stop_bleeding": true
+            }
+          }
+        ]
       },
       {
         "x": 21,
@@ -60655,7 +61309,27 @@
           "s": true,
           "w": true
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.tape-1792459964614-3mhz1",
+            "defId": "crafting.tape",
+            "id": "crafting.tape",
+            "name": "Tape",
+            "rarity": "common",
+            "imageId": "tape",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "tool",
+              "crafting_material"
+            ],
+            "stackMax": 20
+          }
+        ]
       },
       {
         "x": 13,
@@ -65905,7 +66579,7 @@
       {
         "x": 4,
         "y": 94,
-        "isLocked": false,
+        "isLocked": true,
         "isKeylocked": false,
         "isOpen": false,
         "edge": "w"
@@ -66293,6 +66967,13 @@
       },
       {
         "x": 15,
+        "y": 86,
+        "isLocked": false,
+        "isOpen": false,
+        "edge": "e"
+      },
+      {
+        "x": 15,
         "y": 94,
         "isLocked": true,
         "isOpen": false,
@@ -66391,7 +67072,7 @@
       "steps": [
         {
           "speaker": "",
-          "text": "Click once on the hammer, then click once on the melee slot"
+          "text": "Click once on the hammer, then click once on the melee slot. When you run out of ACTION POINTS, end your turn."
         }
       ],
       "oneShot": false
@@ -66410,11 +67091,66 @@
     },
     {
       "chainOnly": true,
+      "id": "Farming",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Wagon and pan",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Fire cook",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Craft a campfire to cook food and boil dirty water."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Rags",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Water puddle",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use an empty water bottle on a water puddle to collect dirty water"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
       "id": "Starting tile",
       "steps": [
         {
           "speaker": "",
-          "text": "You should put some clothes on before going outside."
+          "text": "You should put some clothes on before going outside. When you run out of ACTION POINTS, end your turn."
         }
       ],
       "oneShot": false
@@ -66444,11 +67180,9 @@
       }
     },
     {
-      "id": "OutsideHome",
+      "id": "Farming",
       "placement": {
-        "kind": "tile",
-        "x": 23,
-        "y": 101
+        "kind": "chainOnly"
       },
       "trigger": "onInteract",
       "preconditions": [],
@@ -66457,12 +67191,73 @@
         {
           "type": "dialog",
           "speaker": "",
-          "text": "Click once on the hammer, then click once on the melee slot"
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant"
         }
-      ],
-      "appearance": {
-        "defId": "placeable.help"
-      }
+      ]
+    },
+    {
+      "id": "Wagon and pan",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement."
+        }
+      ]
+    },
+    {
+      "id": "Fire cook",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Craft a campfire to cook food and boil dirty water."
+        }
+      ]
+    },
+    {
+      "id": "Rags",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires."
+        }
+      ]
+    },
+    {
+      "id": "Water puddle",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use an empty water bottle on a water puddle to collect dirty water"
+        }
+      ]
     },
     {
       "id": "Starting tile",
@@ -66476,9 +67271,30 @@
         {
           "type": "dialog",
           "speaker": "",
-          "text": "You should put some clothes on before going outside."
+          "text": "You should put some clothes on before going outside. When you run out of ACTION POINTS, end your turn."
         }
       ]
+    },
+    {
+      "id": "OutsideHome",
+      "placement": {
+        "kind": "tile",
+        "x": 23,
+        "y": 101
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Click once on the hammer, then click once on the melee slot. When you run out of ACTION POINTS, end your turn."
+        }
+      ],
+      "appearance": {
+        "defId": "placeable.help"
+      }
     }
   ]
 }

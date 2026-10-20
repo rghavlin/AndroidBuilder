@@ -10,7 +10,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agent_skills_cheap_inspector_index",
-      "community": 148,
+      "community": 46,
       "norm_label": "index.js"
     },
     {
@@ -20,7 +20,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "agent_skills_cheap_inspector_index_inputcontent",
-      "community": 148,
+      "community": 46,
       "norm_label": "inputcontent"
     },
     {
@@ -30,7 +30,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "agent_skills_cheap_inspector_index_runinspector",
-      "community": 148,
+      "community": 46,
       "norm_label": "runinspector()"
     },
     {
@@ -2610,7 +2610,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_inventory_itemcontextmenu",
-      "community": 106,
+      "community": 148,
       "norm_label": "itemcontextmenu.tsx"
     },
     {
@@ -2620,7 +2620,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "client_src_components_inventory_itemcontextmenu_itemcontextmenuprops",
-      "community": 106,
+      "community": 148,
       "norm_label": "itemcontextmenuprops"
     },
     {
@@ -2710,7 +2710,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "client_src_components_inventory_splitdialog_splitdialog",
-      "community": 106,
+      "community": 148,
       "norm_label": "splitdialog()"
     },
     {
@@ -4120,7 +4120,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu",
-      "community": 106,
+      "community": 148,
       "norm_label": "context-menu.tsx"
     },
     {
@@ -4130,7 +4130,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenusubtrigger",
-      "community": 106,
+      "community": 148,
       "norm_label": "contextmenusubtrigger"
     },
     {
@@ -4140,7 +4140,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenusubcontent",
-      "community": 106,
+      "community": 148,
       "norm_label": "contextmenusubcontent"
     },
     {
@@ -4150,7 +4150,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenucontent",
-      "community": 106,
+      "community": 148,
       "norm_label": "contextmenucontent"
     },
     {
@@ -4160,7 +4160,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenuitem",
-      "community": 106,
+      "community": 148,
       "norm_label": "contextmenuitem"
     },
     {
@@ -4170,7 +4170,7 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenucheckboxitem",
-      "community": 106,
+      "community": 148,
       "norm_label": "contextmenucheckboxitem"
     },
     {
@@ -4180,7 +4180,7 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenuradioitem",
-      "community": 106,
+      "community": 148,
       "norm_label": "contextmenuradioitem"
     },
     {
@@ -4190,7 +4190,7 @@
       "source_location": "L136",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenulabel",
-      "community": 106,
+      "community": 148,
       "norm_label": "contextmenulabel"
     },
     {
@@ -4200,7 +4200,7 @@
       "source_location": "L154",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenuseparator",
-      "community": 106,
+      "community": 148,
       "norm_label": "contextmenuseparator"
     },
     {
@@ -4210,7 +4210,7 @@
       "source_location": "L166",
       "_origin": "ast",
       "id": "client_src_components_ui_context_menu_contextmenushortcut",
-      "community": 106,
+      "community": 148,
       "norm_label": "contextmenushortcut()"
     },
     {
@@ -13977,7 +13977,7 @@
       "label": "createItemFromDef()",
       "file_type": "code",
       "source_file": "client/src/game/inventory/ItemDefs.js",
-      "source_location": "L3170",
+      "source_location": "L3175",
       "_origin": "ast",
       "id": "client_src_game_inventory_itemdefs_createitemfromdef",
       "community": 57,
@@ -13987,7 +13987,7 @@
       "label": "getItemName()",
       "file_type": "code",
       "source_file": "client/src/game/inventory/ItemDefs.js",
-      "source_location": "L3192",
+      "source_location": "L3197",
       "_origin": "ast",
       "id": "client_src_game_inventory_itemdefs_getitemname",
       "community": 71,
@@ -13997,9 +13997,9 @@
       "label": "TODO: art \u2014 shares rcreceiver.png until autonomouscontroller.png exists.",
       "file_type": "rationale",
       "source_file": "client/src/game/inventory/ItemDefs.js",
-      "source_location": "L1324",
+      "source_location": "L1328",
       "_origin": "ast",
-      "id": "client_src_game_inventory_itemdefs_rationale_1324",
+      "id": "client_src_game_inventory_itemdefs_rationale_1328",
       "community": 71,
       "norm_label": "todo: art \u2014 shares rcreceiver.png until autonomouscontroller.png exists."
     },
@@ -16720,7 +16720,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "client_src_game_map_mapconnectivityvalidator",
-      "community": 21,
+      "community": 179,
       "norm_label": "mapconnectivityvalidator.js"
     },
     {
@@ -16730,7 +16730,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "client_src_game_map_mapconnectivityvalidator_player_flood_opts",
-      "community": 21,
+      "community": 179,
       "norm_label": "player_flood_opts"
     },
     {
@@ -16750,7 +16750,7 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "client_src_game_map_mapconnectivityvalidator_doorsforbuilding",
-      "community": 21,
+      "community": 179,
       "norm_label": "doorsforbuilding()"
     },
     {
@@ -16760,7 +16760,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "client_src_game_map_mapconnectivityvalidator_validateconnectivity",
-      "community": 21,
+      "community": 179,
       "norm_label": "validateconnectivity()"
     },
     {
@@ -20830,7 +20830,7 @@
       "source_location": "L111",
       "_origin": "ast",
       "id": "client_src_game_remote_remotedeviceregistry_getactivegroundeddevice",
-      "community": 106,
+      "community": 148,
       "norm_label": "getactivegroundeddevice()"
     },
     {
@@ -24720,7 +24720,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "client_src_game_utils_playerhearing_computehearingzone",
-      "community": 141,
+      "community": 75,
       "norm_label": "computehearingzone()"
     },
     {
@@ -32090,7 +32090,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "test_systems_vehiclecharger_test",
-      "community": 57,
+      "community": 60,
       "norm_label": "vehiclecharger.test.js"
     },
     {
@@ -32130,7 +32130,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "test_systems_vehiclecharger_test_powercellcharge",
-      "community": 57,
+      "community": 60,
       "norm_label": "powercellcharge()"
     },
     {
@@ -32140,7 +32140,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "test_systems_vehiclecharger_test_makewagonwithpowercells",
-      "community": 57,
+      "community": 60,
       "norm_label": "makewagonwithpowercells()"
     },
     {
@@ -88630,7 +88630,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/inventory/ItemDefs.js",
-      "source_location": "L3170",
+      "source_location": "L3175",
       "weight": 1.0,
       "source": "client_src_game_inventory_itemdefs",
       "target": "client_src_game_inventory_itemdefs_createitemfromdef",
@@ -88640,7 +88640,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/inventory/ItemDefs.js",
-      "source_location": "L3192",
+      "source_location": "L3197",
       "weight": 1.0,
       "source": "client_src_game_inventory_itemdefs",
       "target": "client_src_game_inventory_itemdefs_getitemname",
@@ -88726,9 +88726,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "client/src/game/inventory/ItemDefs.js",
-      "source_location": "L1324",
+      "source_location": "L1328",
       "weight": 1.0,
-      "source": "client_src_game_inventory_itemdefs_rationale_1324",
+      "source": "client_src_game_inventory_itemdefs_rationale_1328",
       "target": "client_src_game_inventory_itemdefs",
       "confidence_score": 1.0
     },
@@ -137871,5 +137871,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "3a7fd62946ef10bead5c09bc79afe2e2be8dbcfb"
+  "built_at_commit": "71335c951b739d276938220ddf82cc8107958686"
 }

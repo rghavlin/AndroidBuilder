@@ -252,6 +252,8 @@ export const ItemDefs = {
     width: 3,
     height: 3,
     traits: [ItemTrait.DRAGGABLE, ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.OPENABLE_WHEN_NESTED, ItemTrait.FURNITURE, ItemTrait.PLANTER],
+    dragApPenalty: 3,          // A box of soil with no wheels
+    terrainModifiers: { road: 0, sidewalk: 0 }, // No wheels: pavement doesn't help
     containerGrid: { width: 2, height: 2, isPlanter: true },
   },
   'electric_motor': {
@@ -402,6 +404,8 @@ export const ItemDefs = {
     width: 2,
     height: 2,
     traits: [ItemTrait.GROUND_ONLY, ItemTrait.DRAGGABLE],
+    dragApPenalty: 2,
+    terrainModifiers: { road: 0, sidewalk: 0 }, // No wheels: pavement doesn't help
     categories: [ItemCategory.CRAFTING_MATERIAL]
   },
 
@@ -2619,7 +2623,8 @@ export const ItemDefs = {
     noPickup: true,
     renderFullTile: true,
     traits: [ItemTrait.GROUND_ONLY, ItemTrait.DRAGGABLE, ItemTrait.FURNITURE],
-    dragApPenalty: 2,
+    dragApPenalty: 4,          // Unwheeled and awkward: still +2 AP/tile at Str 40, zeroed at Str 80
+    terrainModifiers: { road: 0, sidewalk: 0 }, // No wheels: pavement doesn't help
     imageId: 'bed',
     width: 4,
     height: 6,
@@ -2647,7 +2652,7 @@ export const ItemDefs = {
     categories: [ItemCategory.FURNITURE, ItemCategory.TOOL, ItemCategory.VEHICLE],
     noLoot: true,
     dragApPenalty: 3,
-    terrainModifiers: { road: -0.5, sidewalk: -0.5 },
+    terrainModifiers: { road: 0.5, sidewalk: 0.5, grass: -0.5 }, // Runners grind on pavement, glide on grass
     renderFullTile: true,
     containerGrid: { width: 4, height: 5, isVehicle: true },
     disassembleData: {
