@@ -1,4 +1,5 @@
 import { isSpecialBuilding, SPECIAL_BUILDING_SPECS } from './BuildingTypes.js';
+import { hasSpecialFurnitureLayout, planSpecialFurniture } from './SpecialFurnitureLayouts.js';
 import { MAP_GEN_CONFIG } from '../config/MapGenConfig.js';
 import { makeLayoutGrid, findRooms, assignRoles, toSlimRoom } from './RoomGraph.js';
 import { pickFloorplan, orientFloorplan, FLOORPLAN_FOOTPRINTS } from './FloorplanRegistry.js';
@@ -506,6 +507,10 @@ export class MapBuilder {
 
     // 3. Register Building
     this.registerBuilding(type, x, y, width, height, { frontage, entranceX, entranceY });
+    if (hasSpecialFurnitureLayout(type)) {
+      const building = this.metadata.buildings[this.metadata.buildings.length - 1];
+      building.furniturePlan = planSpecialFurniture(building);
+    }
 
     // 4. Place Icons
     if (type === 'gas_station') {

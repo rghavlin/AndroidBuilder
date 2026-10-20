@@ -23,6 +23,8 @@ export const FURNITURE_FOOTPRINTS = {
   couch: { w: 3, h: 1 },
   desk: { w: 2, h: 1 },
   counter: { w: 2, h: 1 },
+  shelf: { w: 3, h: 1 },
+  bench: { w: 3, h: 1 },
   bathtub: { w: 1, h: 2 },
   toilet: { w: 1, h: 1 },
   chair: { w: 1, h: 1 },
@@ -292,8 +294,10 @@ function resolveRoles(building, rooms) {
 export function planFurniture(gameMap) {
   gameMap.furniture = [];
   const grid = makeGameMapGrid(gameMap);
+  // Houses, plus any building with a baked plan (special buildings get theirs
+  // from SpecialFurnitureLayouts at draw time).
   const buildings = (gameMap.buildings || []).filter(
-    b => b.type === 'residential' || b.type === 'starting_home'
+    b => b.type === 'residential' || b.type === 'starting_home' || b.furniturePlan?.length
   );
 
   for (const building of buildings) {
@@ -338,5 +342,5 @@ export function planFurniture(gameMap) {
     }
   }
 
-  console.log(`[FurniturePlanner] Placed ${gameMap.furniture.length} furniture outlines across ${buildings.length} residential buildings`);
+  console.log(`[FurniturePlanner] Placed ${gameMap.furniture.length} furniture outlines across ${buildings.length} buildings`);
 }

@@ -144664,5 +144664,38 @@
   "entityRegistry": {
     "entries": []
   },
-  "furniture": []
+  "furniture": [
+    {
+      "type": "shelf",
+      "x": 11,
+      "y": 73,
+      "w": 3,
+      "h": 1,
+      "rot": 2
+    },
+    {
+      "type": "shelf",
+      "x": 6,
+      "y": 73,
+      "w": 3,
+      "h": 1,
+      "rot": 2
+    },
+    {
+      "type": "shelf",
+      "x": 6,
+      "y": 67,
+      "w": 3,
+      "h": 1,
+      "rot": 2
+    },
+    {
+      "type": "shelf",
+      "x": 11,
+      "y": 67,
+      "w": 3,
+      "h": 1,
+      "rot": 2
+    }
+  ]
 }

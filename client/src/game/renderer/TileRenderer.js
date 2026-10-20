@@ -918,6 +918,68 @@ export const TileRenderer = {
         ctx.arc(cx + ox, cy + oy, burnR, 0, Math.PI * 2);
         ctx.stroke();
       }
+    } else if (type === 'shelf') {
+      // Store shelving unit (3x1): back panel on the head side, three bays of
+      // stocked goods facing the aisle. Gondolas are two of these back to back.
+      const w = tileSize * 3 - pad * 2;
+      const h = tileSize * 1 - pad * 2;
+      const x0 = x + pad;
+      const y0 = y + pad;
+      ctx.fillRect(x0, y0, w, h);
+      ctx.strokeRect(x0, y0, w, h);
+      // Back panel
+      const backY = y0 + h * 0.22;
+      ctx.beginPath();
+      ctx.moveTo(x0, backY);
+      ctx.lineTo(x0 + w, backY);
+      ctx.stroke();
+      // Bay uprights
+      const bayW = w / 3;
+      ctx.beginPath();
+      for (let i = 1; i < 3; i++) {
+        ctx.moveTo(x0 + bayW * i, y0);
+        ctx.lineTo(x0 + bayW * i, y0 + h);
+      }
+      ctx.stroke();
+      // Goods: a row of boxes in each bay
+      const boxGap = tileSize * 0.06;
+      const boxW = (bayW - boxGap * 4) / 3;
+      const boxH = (y0 + h - backY) * 0.55;
+      const boxY = backY + ((y0 + h - backY) - boxH) / 2;
+      for (let b = 0; b < 3; b++) {
+        for (let i = 0; i < 3; i++) {
+          ctx.strokeRect(x0 + bayW * b + boxGap + i * (boxW + boxGap), boxY, boxW, boxH);
+        }
+      }
+    } else if (type === 'bench') {
+      // Waiting-room bench (3x1): slatted seat, backrest on the head side,
+      // slim end supports instead of a couch's armrests.
+      const w = tileSize * 3 - pad * 2;
+      const h = tileSize * 1 - pad * 2;
+      const x0 = x + pad;
+      const y0 = y + pad;
+      ctx.fillRect(x0, y0 + h * 0.15, w, h * 0.7);
+      ctx.strokeRect(x0, y0 + h * 0.15, w, h * 0.7);
+      // Backrest
+      const backY = y0 + h * 0.32;
+      ctx.beginPath();
+      ctx.moveTo(x0, backY);
+      ctx.lineTo(x0 + w, backY);
+      ctx.stroke();
+      // Seat slats
+      ctx.beginPath();
+      for (const f of [0.52, 0.68]) {
+        ctx.moveTo(x0 + tileSize * 0.15, y0 + h * f);
+        ctx.lineTo(x0 + w - tileSize * 0.15, y0 + h * f);
+      }
+      ctx.stroke();
+      // End supports
+      ctx.beginPath();
+      for (const sx of [x0 + tileSize * 0.15, x0 + w - tileSize * 0.15]) {
+        ctx.moveTo(sx, y0);
+        ctx.lineTo(sx, y0 + h);
+      }
+      ctx.stroke();
     } else if (type === 'car') {
       // Passenger car (2x4): aerodynamic chassis, hood, windshield, cabin, trunk, 4 wheels
       const w = tileSize * 2 - pad * 2;

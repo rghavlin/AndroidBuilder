@@ -45430,7 +45430,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.electric_mower-1792459964613-73jzc",
+            "instanceId": "furniture.electric_mower-1792483834730-a4e53",
             "defId": "furniture.electric_mower",
             "id": "furniture.electric_mower",
             "name": "Electric mower",
@@ -46545,7 +46545,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "environment.water_puddle-1792459964614-8bler",
+            "instanceId": "environment.water_puddle-1792483834731-8n5k2",
             "defId": "environment.water_puddle",
             "id": "environment.water_puddle",
             "name": "Water puddle",
@@ -46573,7 +46573,7 @@
             "description": "Use empty bottle or jug to collect dirty water"
           },
           {
-            "instanceId": "food.waterbottle-1792459964614-taitl",
+            "instanceId": "food.waterbottle-1792483834731-zim0h",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -46598,7 +46598,7 @@
             }
           },
           {
-            "instanceId": "placeable.help-1792459964614-fv08s",
+            "instanceId": "placeable.help-1792483834731-82bg5",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -47004,7 +47004,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.knife-1792459964614-pmaiy",
+            "instanceId": "weapon.knife-1792483834731-1no7s",
             "defId": "weapon.knife",
             "id": "weapon.knife",
             "name": "Knife",
@@ -47032,7 +47032,7 @@
             }
           },
           {
-            "instanceId": "clothing.pocket_t-1792459964614-txjla",
+            "instanceId": "clothing.pocket_t-1792483834731-xxeox",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -47053,7 +47053,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.workshirt-1792459964614-41cfy",
+            "instanceId": "clothing.workshirt-1792483834731-a2gsd",
             "defId": "clothing.workshirt",
             "id": "clothing.workshirt",
             "name": "Work Shirt",
@@ -47074,7 +47074,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "placeable.help-1792459964614-av49t",
+            "instanceId": "placeable.help-1792483834731-wh5r2",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -47405,7 +47405,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "backpack.school-1792459964614-x93xl",
+            "instanceId": "backpack.school-1792483834731-6ctoz",
             "defId": "backpack.school",
             "id": "backpack.school",
             "name": "Book Bag",
@@ -47769,7 +47769,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.lighter-1792459964614-rmvzc",
+            "instanceId": "tool.lighter-1792483834731-3wggv",
             "defId": "tool.lighter",
             "id": "tool.lighter",
             "name": "Lighter",
@@ -47789,7 +47789,7 @@
             "spawnAmmoPercent": 1
           },
           {
-            "instanceId": "placeable.help-1792459964614-oka16",
+            "instanceId": "placeable.help-1792483834731-4vkt2",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -47892,7 +47892,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.blue_jeans-1792459964614-89ka5",
+            "instanceId": "clothing.blue_jeans-1792483834731-fgy9s",
             "defId": "clothing.blue_jeans",
             "id": "clothing.blue_jeans",
             "name": "Blue Jeans",
@@ -49084,7 +49084,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.hammer-1792459964614-t2tb1",
+            "instanceId": "weapon.hammer-1792483834731-6x092",
             "defId": "weapon.hammer",
             "id": "weapon.hammer",
             "name": "Hammer",
@@ -50754,7 +50754,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.bed-1792459964614-pjhdh",
+            "instanceId": "placeable.bed-1792483834731-ozfvq",
             "defId": "placeable.bed",
             "id": "placeable.bed",
             "name": "Bed",
@@ -50767,7 +50767,11 @@
               "draggable",
               "furniture"
             ],
-            "dragApPenalty": 2,
+            "dragApPenalty": 4,
+            "terrainModifiers": {
+              "road": 0,
+              "sidewalk": 0
+            },
             "imageId": "bed",
             "width": 4,
             "height": 6,
@@ -51709,7 +51713,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.toy_wagon-1792459964614-3bynf",
+            "instanceId": "vehicle.toy_wagon-1792483834731-p0b1f",
             "defId": "vehicle.toy_wagon",
             "id": "vehicle.toy_wagon",
             "name": "Toy Wagon",
@@ -51790,7 +51794,7 @@
             }
           },
           {
-            "instanceId": "weapon.frying_pan-1792459964614-jegjl",
+            "instanceId": "weapon.frying_pan-1792483834731-2oyt5",
             "defId": "weapon.frying_pan",
             "id": "weapon.frying_pan",
             "name": "Frying pan",
@@ -51818,7 +51822,7 @@
             }
           },
           {
-            "instanceId": "placeable.help-1792459964614-m4ah5",
+            "instanceId": "placeable.help-1792483834731-svn1y",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -51933,7 +51937,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.honey-1792459964614-0cba7",
+            "instanceId": "food.honey-1792483834731-4hea2",
             "defId": "food.honey",
             "id": "food.honey",
             "name": "Honey",
@@ -54093,7 +54097,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.stick-1792459964614-07nu4",
+            "instanceId": "weapon.stick-1792483834731-e71ny",
             "defId": "weapon.stick",
             "id": "weapon.stick",
             "name": "Stick",
@@ -55132,7 +55136,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_carrot-1792459964614-omur2",
+            "instanceId": "provision.harvestable_carrot-1792483834731-75in2",
             "defId": "provision.harvestable_carrot",
             "id": "provision.harvestable_carrot",
             "name": "Harvestable carrot",
@@ -55152,7 +55156,7 @@
             "produceMax": 7
           },
           {
-            "instanceId": "provision.harvestable_carrot-1792459964614-8pmvr",
+            "instanceId": "provision.harvestable_carrot-1792483834731-xx8cu",
             "defId": "provision.harvestable_carrot",
             "id": "provision.harvestable_carrot",
             "name": "Harvestable carrot",
@@ -55172,7 +55176,7 @@
             "produceMax": 7
           },
           {
-            "instanceId": "weapon.shovel-1792459964614-cegxz",
+            "instanceId": "weapon.shovel-1792483834731-ttmdd",
             "defId": "weapon.shovel",
             "id": "weapon.shovel",
             "name": "Shovel",
@@ -55201,7 +55205,7 @@
             "description": "Right click to dig a hole in the ground (grid)."
           },
           {
-            "instanceId": "food.carrotseeds-1792459964614-rsdte",
+            "instanceId": "food.carrotseeds-1792483834731-jkb2u",
             "defId": "food.carrotseeds",
             "id": "food.carrotseeds",
             "name": "Carrot seeds",
@@ -55219,7 +55223,7 @@
             "plantsAs": "provision.carrot_plant"
           },
           {
-            "instanceId": "food.carrotseeds-1792459964614-l3om9",
+            "instanceId": "food.carrotseeds-1792483834731-9c954",
             "defId": "food.carrotseeds",
             "id": "food.carrotseeds",
             "name": "Carrot seeds",
@@ -55237,7 +55241,7 @@
             "plantsAs": "provision.carrot_plant"
           },
           {
-            "instanceId": "placeable.help-1792459964614-hx4ou",
+            "instanceId": "placeable.help-1792483834731-3nvv5",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -55837,7 +55841,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.crowbar-1792459964614-w18bp",
+            "instanceId": "weapon.crowbar-1792483834731-j7yyu",
             "defId": "weapon.crowbar",
             "id": "weapon.crowbar",
             "name": "Crowbar",
@@ -56956,7 +56960,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.pocket_t-1792459964614-vzgyf",
+            "instanceId": "clothing.pocket_t-1792483834731-0p34l",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -56977,7 +56981,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1792459964614-eyma7",
+            "instanceId": "clothing.sweatpants-1792483834731-pa7lq",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -56998,7 +57002,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "placeable.help-1792459964614-psz5k",
+            "instanceId": "placeable.help-1792483834731-38tlh",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -58043,7 +58047,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.knife-1792459964614-1qx0b",
+            "instanceId": "weapon.knife-1792483834731-c6fv2",
             "defId": "weapon.knife",
             "id": "weapon.knife",
             "name": "Knife",
@@ -59459,7 +59463,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_corn-1792459964614-dzghv",
+            "instanceId": "provision.harvestable_corn-1792483834731-0vr42",
             "defId": "provision.harvestable_corn",
             "id": "provision.harvestable_corn",
             "name": "Harvestable corn",
@@ -60833,7 +60837,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.bandage-1792459964614-3gykc",
+            "instanceId": "medical.bandage-1792483834731-9zbiu",
             "defId": "medical.bandage",
             "id": "medical.bandage",
             "name": "Bandage",
@@ -61312,7 +61316,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.tape-1792459964614-3mhz1",
+            "instanceId": "crafting.tape-1792483834731-ep7el",
             "defId": "crafting.tape",
             "id": "crafting.tape",
             "name": "Tape",
@@ -65994,7 +65998,40 @@
       }
     ],
     "seed": 673896,
-    "furniture": [],
+    "furniture": [
+      {
+        "type": "shelf",
+        "x": 11,
+        "y": 73,
+        "w": 3,
+        "h": 1,
+        "rot": 2
+      },
+      {
+        "type": "shelf",
+        "x": 6,
+        "y": 73,
+        "w": 3,
+        "h": 1,
+        "rot": 2
+      },
+      {
+        "type": "shelf",
+        "x": 6,
+        "y": 67,
+        "w": 3,
+        "h": 1,
+        "rot": 2
+      },
+      {
+        "type": "shelf",
+        "x": 11,
+        "y": 67,
+        "w": 3,
+        "h": 1,
+        "rot": 2
+      }
+    ],
     "specialBuildings": [
       {
         "type": "grocer",

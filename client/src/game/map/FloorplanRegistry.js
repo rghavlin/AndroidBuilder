@@ -116,6 +116,8 @@ export const FLOORPLAN_FOOTPRINTS = {
   couch: { w: 3, h: 1 },
   desk: { w: 2, h: 1 },
   counter: { w: 2, h: 1 },
+  shelf: { w: 3, h: 1 },
+  bench: { w: 3, h: 1 },
   bathtub: { w: 1, h: 2 },
   toilet: { w: 1, h: 1 },
   chair: { w: 1, h: 1 },
