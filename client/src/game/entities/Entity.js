@@ -52,8 +52,8 @@ export const ITEM_SERIALIZED_FIELDS = [
   'rideApBonus', 'isLocked', 'renderFullTile', 'dragApPenalty', 'noDrag', 'consumptionEffects',
   'waterQuality', 'shelfLife', 'transformInto', 'produce', 'providesElectricity', 'fireMode',
   'availableFireModes', 'isCrop', 'isFurnitureOrVehicle', 'isFood', 'isMedical', 'zombieSubtype',
-  'earbucksValue', 'transitionTargetId', 'transitionTargetX', 'transitionTargetY', 'eventId',
-  'groundPriority', 'isEventMarker', 'fixedAppearance', 'hitchedItemInstanceId', 'hitchedToInstanceId'
+  'earbucksValue', 'transitionTargetType', 'transitionTargetId', 'transitionTargetX', 'transitionTargetY', 'transitionLevel',
+  'eventId', 'groundPriority', 'isEventMarker', 'fixedAppearance', 'hitchedItemInstanceId', 'hitchedToInstanceId'
 ];
 
 export const EntityType = {

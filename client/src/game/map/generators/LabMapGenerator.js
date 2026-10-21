@@ -144,9 +144,8 @@ export class LabMapGenerator extends BaseMapGenerator {
     const { width, height } = builder;
     const startX = 35;
 
-    // Transition points
-    builder.setTerrain(startX, 0, 'transition');
-    builder.setTerrain(startX, height - 1, 'transition');
+    // Exits: TemplateMapGenerator puts the exit arrows at metadata.exits.
+    builder.metadata.exits = { north: { x: startX }, south: { x: startX } };
 
     // Metadata
     builder.metadata.spawnZones = {

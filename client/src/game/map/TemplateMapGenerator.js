@@ -16,6 +16,7 @@ import { TEMPLATE_METADATA } from '../config/TemplateConfig.js';
 import { MAP_GEN_CONFIG } from '../config/MapGenConfig.js';
 import { getLightMode } from '../config/VisionConfig.js';
 import { planDecorations } from './DecorationPlanner.js';
+import { addExitToCell } from './mapExits.js';
 
 import { gameRandom } from '../utils/SeededRandom.js';
 /**
@@ -286,17 +287,20 @@ export class TemplateMapGenerator {
       mapData.tiles = this.layoutToTileData(builder.layout);
     }
 
-    // Set transition tiles at road exits. Generators that know their road
+    // Put exit arrows at the road exits. Generators that know their road
     // geometry record exit positions in metadata.exits (the single source of
-    // truth); templates without one exit at the horizontal center.
+    // truth); templates without one exit at the horizontal center. The arrow
+    // carries its destination (see mapExits.js); the tile is plain road.
     const centerX = Math.floor(mapData.width / 2);
     const exits = mapData.metadata?.exits;
     const northExitX = exits?.north?.x ?? centerX;
     const southExitX = exits?.south?.x ?? centerX;
 
-    this.setTileData(mapData, northExitX, 0, 'transition');
+    this.setTileData(mapData, northExitX, 0, 'road');
+    addExitToCell(mapData.tiles[0][northExitX], { transitionTargetType: 'next' });
     if (templateName !== 'starting_road') {
-      this.setTileData(mapData, southExitX, mapData.height - 1, 'transition');
+      this.setTileData(mapData, southExitX, mapData.height - 1, 'road');
+      addExitToCell(mapData.tiles[mapData.height - 1][southExitX], { transitionTargetType: 'previous' });
     }
 
     // Add spawn zones metadata
@@ -662,7 +666,6 @@ export class TemplateMapGenerator {
     // load to seed initial flag/var values (see QuestState.seedFromRegistry).
     mapData.metadata.questRegistry = scenarioData.questRegistry || { flags: [], vars: [], factions: [], factionStances: {} };
     mapData.metadata.entityRegistry = scenarioData.entityRegistry || { entries: [] };
-    mapData.metadata.mapTransitions = scenarioData.mapTransitions || [];
     // Scenario files carry lightMode at the top level, under metadata, or (for
     // maps authored before lightMode existed) only as the legacy alwaysDark flag.
     const lightMode = getLightMode({

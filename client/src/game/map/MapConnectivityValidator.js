@@ -1,10 +1,11 @@
 import { Pathfinding } from '../utils/Pathfinding.js';
+import { hasExitAt } from './mapExits.js';
 
 /**
  * MapConnectivityValidator - Post-generation reachability gate.
  *
  * Confirms a generated map is actually playable before it ships to the player:
- *   1. the two road exits (transition tiles) connect to each other, and
+ *   1. the two road exits (exit arrows) connect to each other, and
  *   2. every building can be walked up to (its door is reachable).
  *
  * Movement is evaluated with the SAME rules the game uses (Pathfinding's
@@ -75,9 +76,9 @@ export function validateConnectivity(gameMap, mapData) {
   const reasons = [];
 
   // A listed transition point only counts as a real exit if the map actually
-  // placed a transition tile there. Some templates (e.g. starting_road) list a
+  // placed an exit arrow there. Some templates (e.g. starting_road) list a
   // south point but intentionally seal that edge, so it must not be required.
-  const isExitTile = (p) => p && gameMap.getTile(p.x, p.y)?.terrain === 'transition';
+  const isExitTile = (p) => p && hasExitAt(gameMap, p.x, p.y);
   const north = isExitTile(transitions?.north) ? transitions.north : null;
   const south = isExitTile(transitions?.south) ? transitions.south : null;
   const source = north || south || { x: Math.floor(gameMap.width / 2), y: Math.floor(gameMap.height / 2) };

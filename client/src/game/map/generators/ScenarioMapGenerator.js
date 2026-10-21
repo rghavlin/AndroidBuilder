@@ -1,5 +1,6 @@
 import { BaseMapGenerator } from './BaseMapGenerator.js';
 import { isRetiredDecoration } from '../DecorationPlanner.js';
+import { migrateLegacyTransitionCells } from '../mapExits.js';
 
 export class ScenarioMapGenerator extends BaseMapGenerator {
   constructor(scenarioData) {
@@ -54,12 +55,9 @@ export class ScenarioMapGenerator extends BaseMapGenerator {
     if (questRegistry) builder.metadata.questRegistry = questRegistry;
     if (entityRegistry) builder.metadata.entityRegistry = entityRegistry;
 
-    if (this.scenario.mapTransitions) {
-      builder.metadata.mapTransitions = this.scenario.mapTransitions;
-      for (const tr of this.scenario.mapTransitions) {
-        builder.setTerrain(tr.x, tr.y, 'transition');
-      }
-    }
+    // Older scenarios mark exits with 'transition' terrain and/or a top-level
+    // mapTransitions list; both become exit arrow items (see mapExits.js).
+    migrateLegacyTransitionCells(builder.layout, this.scenario.mapTransitions || []);
   }
 
   getStartPosition(width, height) {

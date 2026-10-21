@@ -15,6 +15,7 @@ import { ZombieReplenishmentSystem } from '../systems/ZombieReplenishmentSystem.
 import { Entity, EntityType } from '../entities/Entity.js';
 import { ENTITY_RESTORERS, restoreEntity } from './GameMapRestore.js';
 import { pickPersistedMetadata, restoreMapMetadata } from './MapMetadata.js';
+import { migrateLegacyTransitionsOnMap } from './mapExits.js';
 import { Pathfinding } from '../utils/Pathfinding.js';
 import GameEvents, { GAME_EVENT } from '../utils/GameEvents.js';
 import { Item as ECSItem } from '../components/Item.js';
@@ -174,7 +175,7 @@ export class GameMap extends SafeEventEmitter {
     }
 
     const startTile = gameMap.getTile(x, y);
-    // PHASE 15: Support tent_floor and transition (doorways) as sheltered terrain
+    // PHASE 15: Support tent_floor as sheltered terrain
     const isIndoorTerrain = startTile && isIndoorFloor(startTile.terrain);
     if (!isIndoorTerrain) {
       gameMap._shelteredCache.set(`${x},${y}`, false);
@@ -529,32 +530,6 @@ export class GameMap extends SafeEventEmitter {
         tile.waterAmount = 100;
       } else {
         tile.waterAmount = 0;
-      }
-
-      if (terrain === 'transition') {
-        const hasExit = tile.inventoryItems?.some(i => i.defId === 'placeable.exit');
-        if (!hasExit) {
-          const exitDef = createItemFromDef('placeable.exit');
-          if (exitDef) {
-            const exitItem = new Item(exitDef);
-            exitItem.x = x;
-            exitItem.y = y;
-            if (!tile.inventoryItems) tile.inventoryItems = [];
-            if (!tile.inventoryItems.some(i => i.defId === 'placeable.exit')) {
-              tile.inventoryItems.push(exitItem);
-              this.setItemsOnTile(x, y, tile.inventoryItems);
-              console.debug(`[GameMap] Created placeable.exit on transition tile at (${x}, ${y})`);
-            }
-          }
-        }
-      } else {
-        if (tile.inventoryItems) {
-          const originalLength = tile.inventoryItems.length;
-          tile.inventoryItems = tile.inventoryItems.filter(i => i.defId !== 'placeable.exit');
-          if (tile.inventoryItems.length !== originalLength) {
-            this.setItemsOnTile(x, y, tile.inventoryItems);
-          }
-        }
       }
 
       this.emit('terrainChanged', {
@@ -1501,13 +1476,14 @@ export class GameMap extends SafeEventEmitter {
     restoreMapMetadata(gameMap, data);
   }
 
-  /** Rebuild crop metadata for every tile (used by both restore paths). */
+  /** Rebuild crop metadata for every tile, and convert old saves' exits (both restore paths). */
   static _restoreAllCropMetadata(gameMap) {
     for (let y = 0; y < gameMap.height; y++) {
       for (let x = 0; x < gameMap.width; x++) {
         gameMap.updateCropMetadata(x, y);
       }
     }
+    migrateLegacyTransitionsOnMap(gameMap);
   }
 
   static async fromJSONSelective(data, options = {}) {

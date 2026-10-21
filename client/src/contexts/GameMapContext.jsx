@@ -154,15 +154,6 @@ export const GameMapProvider = ({ children }) => {
 
       // Start movement
       await startAnimatedMovement(engine.gameMap, camera, path, movementCost, isNight, isFlashlightOn, flashlightRange);
-
-      // Transition check disabled for Exit item/manual transitions
-      // const finalTile = engine.gameMap.getTile(x, y);
-      // if (finalTile && finalTile.terrain === 'transition' && engine.worldManager) {
-      //   const transitionInfo = engine.worldManager.checkTransitionPoint({ x, y }, engine.gameMap);
-      //   if (transitionInfo) {
-      //     setMapTransition(transitionInfo);
-      //   }
-      // }
     } catch (error) {
       console.error('[GameMapContext] Error handling tile click:', error);
     }

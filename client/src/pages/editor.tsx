@@ -28,6 +28,9 @@ import { GenerateTemplateModal } from '@/components/MapEditor/GenerateTemplateMo
 import { FurnitureStampPanel } from '@/components/MapEditor/FurnitureStampPanel';
 import { BuildingStampPanel, drawStampGhost, rotateStamp, type StampSelection } from '@/components/MapEditor/BuildingStampPanel';
 import { measureStamp, buildStampMap, stampBlockedReason, mergeStampTiles } from '@/game/editor/buildingStamp';
+import { copyTransitionFields, isTransitionItem, describeTransition } from '@/game/inventory/transitionFields';
+import { addLegacyTransitionItem, migrateEditorTransitionTiles } from '@/game/editor/editorExits';
+import { TransitionTargetPanel, type TransitionTarget } from '@/components/MapEditor/TransitionTargetPanel';
 import { carryOverAuthoredTiles } from '@/components/MapEditor/carryOverAuthoredTiles';
 import { computeMinimapSize } from '@/game/editor/minimapLayout';
 
@@ -196,9 +199,11 @@ interface EditorItem {
   gunMagDefId?: string;
   gunAttachments?: Record<string, string>;
   vehicleAttachments?: Record<string, { defId: string; charges?: number }>;
+  transitionTargetType?: string;
   transitionTargetId?: string;
   transitionTargetX?: number;
   transitionTargetY?: number;
+  transitionLevel?: number;
   eventId?: string;
   // auto_turret only: which faction owns the turret, and whether it starts powered.
   factionId?: string;
@@ -231,7 +236,6 @@ interface TileData {
   entities: EntityData[];
   items: EditorItem[];
   eventTrigger?: { id: string; steps: { speaker: string; text: string; video?: string }[]; oneShot: boolean; grants?: ItemGrant[]; next?: string };
-  mapTransition?: { targetType: 'scenario' | 'generator' | 'tutorial_end'; targetId: string; level?: number };
   placeIcon?: string;
   decoration?: string;
 }
@@ -288,7 +292,8 @@ function createEmptyGrid(w: number, h: number): TileData[][] {
 }
 
 function sanitizeTiles(tiles: any[][]): TileData[][] {
-  return tiles.map(row =>
+  // Legacy exit markers (transition terrain, tile.mapTransition) become exit items.
+  return migrateEditorTransitionTiles(tiles.map(row =>
     row.map(t => {
       const empty = createEmptyTile(t.terrain || 'grass');
       return {
@@ -301,11 +306,10 @@ function sanitizeTiles(tiles: any[][]): TileData[][] {
           w: { ...empty.edgeWalls.w, ...t.edgeWalls?.w },
         },
         entities: t.entities || [],
-        items: t.items || [],
-        mapTransition: t.mapTransition,
+        items: [...(t.items || [])],
       };
     })
-  );
+  ));
 }
 
 function scenarioToEditorState(scenario: any): { name: string; width: number; height: number; tiles: TileData[][]; buildings: any[]; noAutosave: boolean; alwaysDark?: boolean; lightMode?: 'always_dark' | 'always_light' | 'time_dependent'; seed?: number; lowSpots?: { x: number; y: number }[]; bubbleEvents?: BubbleEvent[]; chainDialogEvents?: DialogEventDef[]; events: GameEvent[]; questRegistry: QuestRegistry; entityRegistry: EntityRegistry; furniture?: FurniturePiece[] } {
@@ -337,9 +341,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
             .map((it: any) => {
               const entry: any = { defId: it.defId || it.id };
               if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
-              if (it.transitionTargetId !== undefined) entry.transitionTargetId = it.transitionTargetId;
-              if (it.transitionTargetX !== undefined) entry.transitionTargetX = it.transitionTargetX;
-              if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
+              copyTransitionFields(it, entry);
               if (it.eventId !== undefined) entry.eventId = it.eventId;
               if (it.condition !== undefined) entry.condition = it.condition;
               if (it.attachments) {
@@ -487,15 +489,10 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     }
   }
 
-  // Map transitions
-  const transitions = scenario.mapTransitions || scenario.metadata?.mapTransitions;
-  if (transitions) {
-    for (const tr of transitions) {
-      const t = tiles[tr.y]?.[tr.x];
-      if (t) {
-        t.mapTransition = { targetType: tr.targetType, targetId: tr.targetId, level: tr.level };
-      }
-    }
+  // Legacy tile-level map transitions -> exit arrow items
+  for (const tr of scenario.mapTransitions || scenario.metadata?.mapTransitions || []) {
+    const t = tiles[tr.y]?.[tr.x];
+    if (t) addLegacyTransitionItem(t, tr);
   }
 
   // Place icons
@@ -572,9 +569,7 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
           .map((it: any) => {
             const entry: any = { defId: it.defId || it.id };
             if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
-            if (it.transitionTargetId !== undefined) entry.transitionTargetId = it.transitionTargetId;
-            if (it.transitionTargetX !== undefined) entry.transitionTargetX = it.transitionTargetX;
-            if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
+            copyTransitionFields(it, entry);
             if (it.eventId !== undefined) entry.eventId = it.eventId;
             if (it.condition !== undefined) entry.condition = it.condition;
             if (it.attachments) {
@@ -707,13 +702,9 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
       }
     }
   }
-  if (metadata?.mapTransitions) {
-    for (const tr of metadata.mapTransitions) {
-      const t = tiles[tr.y]?.[tr.x];
-      if (t) {
-        t.mapTransition = { targetType: tr.targetType, targetId: tr.targetId, level: tr.level };
-      }
-    }
+  for (const tr of metadata?.mapTransitions || []) {
+    const t = tiles[tr.y]?.[tr.x];
+    if (t) addLegacyTransitionItem(t, tr);
   }
 
   return {
@@ -780,9 +771,7 @@ function buildFullItem(item: EditorItem): any {
 
   if (item.ammoCount !== undefined) full.ammoCount = item.ammoCount;
   if (item.condition !== undefined) full.condition = item.condition;
-  if (item.transitionTargetId !== undefined) full.transitionTargetId = item.transitionTargetId;
-  if (item.transitionTargetX !== undefined) full.transitionTargetX = item.transitionTargetX;
-  if (item.transitionTargetY !== undefined) full.transitionTargetY = item.transitionTargetY;
+  copyTransitionFields(item, full);
   if (item.eventId !== undefined) full.eventId = item.eventId;
 
   if (item.batteryCharges !== undefined) {
@@ -863,9 +852,7 @@ function buildFullItem(item: EditorItem): any {
 function itemToEditorEntry(it: any): EditorItem {
   const entry: EditorItem = { defId: it.defId || it.id };
   if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
-  if (it.transitionTargetId !== undefined) entry.transitionTargetId = it.transitionTargetId;
-  if (it.transitionTargetX !== undefined) entry.transitionTargetX = it.transitionTargetX;
-  if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
+  copyTransitionFields(it, entry);
   if (it.eventId !== undefined) entry.eventId = it.eventId;
   if (it.condition !== undefined) entry.condition = it.condition;
   if ((it.defId || it.id) === TURRET_DEF_ID) {
@@ -1036,15 +1023,6 @@ function exportScenario(scenario: ScenarioData) {
     eventTriggers.push({ chainOnly: true, id: ev.id, steps: ev.steps, oneShot: ev.oneShot, ...(ev.grants ? { grants: ev.grants } : {}), ...(ev.next ? { next: ev.next } : {}) });
   });
 
-  const mapTransitions: any[] = [];
-  scenario.tiles.forEach((row, y) =>
-    row.forEach((t, x) => {
-      if (t.mapTransition) {
-        mapTransitions.push({ x, y, ...t.mapTransition });
-      }
-    })
-  );
-
 // Dual-write the unified GameEvent model alongside the legacy eventTriggers/
   // bubbleEvents arrays: `scenario.events` (the editor's lossless authored list —
   // see allEditorEvents) is the canonical source and is what Phase 3's runtime
@@ -1085,7 +1063,6 @@ function exportScenario(scenario: ScenarioData) {
     },
     entities,
     eventTriggers,
-    mapTransitions,
     ...(scenario.bubbleEvents && scenario.bubbleEvents.length ? { bubbleEvents: scenario.bubbleEvents } : {}),
     ...(events.length ? { events } : {}),
     ...(scenario.questRegistry && (scenario.questRegistry.flags.length || scenario.questRegistry.vars.length || (scenario.questRegistry.quests && scenario.questRegistry.quests.length) || (scenario.questRegistry.factions && scenario.questRegistry.factions.length) || (scenario.questRegistry.factionStances && Object.keys(scenario.questRegistry.factionStances).length)) ? { questRegistry: scenario.questRegistry } : {}),
@@ -1663,11 +1640,8 @@ export default function MapEditor() {
     setEventEditorPick(null);
   }, [eventEditorPick]);
 
-  const [transitionTargetType, setTransitionTargetType] = useState<'scenario' | 'generator' | 'tutorial_end'>('scenario');
-  const [transitionTargetId, setTransitionTargetId] = useState('');
-  const [transitionLevel, setTransitionLevel] = useState(1);
-  const [transitionTargetX, setTransitionTargetX] = useState<number | ''>('');
-  const [transitionTargetY, setTransitionTargetY] = useState<number | ''>('');
+  // Destination given to exit arrows / stairs placed by the Item and Transition tools.
+  const [transitionTarget, setTransitionTarget] = useState<TransitionTarget>({ transitionTargetType: 'scenario' });
   // Authored event fired when the placed "?" help item is clicked in-game.
   const [helpEventId, setHelpEventId] = useState('');
   const [availableScenarios, setAvailableScenarios] = useState<{ name: string; width: number; height: number; fileName?: string }[]>([]);
@@ -1771,10 +1745,8 @@ export default function MapEditor() {
   const [decorModalSeed, setDecorModalSeed] = useState<string>('');
   const [isGeneratingDecor, setIsGeneratingDecor] = useState(false);
   const [inspectTile, setInspectTile] = useState<{ x: number; y: number; screenX: number; screenY: number } | null>(null);
-  const [editStairsItem, setEditStairsItem] = useState<{ x: number; y: number; itemIndex: number } | null>(null);
-  const [editStairsId, setEditStairsId] = useState('');
-  const [editStairsX, setEditStairsX] = useState<number | ''>('');
-  const [editStairsY, setEditStairsY] = useState<number | ''>('');
+  const [editTransitionItem, setEditTransitionItem] = useState<{ x: number; y: number; itemIndex: number } | null>(null);
+  const [editTransitionTarget, setEditTransitionTarget] = useState<TransitionTarget>({});
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
   const requestConfirm = (message: string, onConfirm: () => void) => {
     setConfirmModal({ message, onConfirm });
@@ -1993,11 +1965,7 @@ export default function MapEditor() {
             if (batteryCharges !== '') itemEntry.batteryCharges = batteryCharges as number;
             if (gunAmmoCount !== '') itemEntry.gunAmmoCount = gunAmmoCount as number;
             
-            if (selectedItem === 'placeable.stairs_down' || selectedItem === 'placeable.stairs_up') {
-              if (transitionTargetId) itemEntry.transitionTargetId = transitionTargetId;
-              if (transitionTargetX !== '') itemEntry.transitionTargetX = transitionTargetX as number;
-              if (transitionTargetY !== '') itemEntry.transitionTargetY = transitionTargetY as number;
-            }
+            if (isTransitionItem(itemEntry)) copyTransitionFields(transitionTarget, itemEntry);
             if (selectedItem === 'placeable.help' && helpEventId) itemEntry.eventId = helpEventId;
             if (gunMagDefId) itemEntry.gunMagDefId = gunMagDefId;
             if (Object.keys(gunAttachments).some(k => gunAttachments[k])) itemEntry.gunAttachments = { ...gunAttachments };
@@ -2009,14 +1977,8 @@ export default function MapEditor() {
             tile.items.push(itemEntry);
           }
           break;
-        case 'map_transition':
-          if (transitionTargetId || transitionTargetType === 'tutorial_end') {
-            tile.mapTransition = {
-              targetType: transitionTargetType,
-              targetId: transitionTargetType === 'tutorial_end' ? 'tutorial_end' : transitionTargetId,
-              level: transitionTargetType === 'generator' ? transitionLevel : undefined
-            };
-          }
+        case 'map_transition': // places an exit arrow carrying the chosen destination
+          tile.items = [...tile.items.filter(i => i.defId !== 'placeable.exit'), copyTransitionFields(transitionTarget, { defId: 'placeable.exit' })];
           break;
         case 'place_icon':
           tile.placeIcon = selectedPlaceIconSubtype;
@@ -2032,7 +1994,6 @@ export default function MapEditor() {
           tile.entities = [];
           tile.items = [];
           delete tile.eventTrigger;
-          delete tile.mapTransition;
           delete tile.placeIcon;
           break;
       }
@@ -2066,7 +2027,7 @@ export default function MapEditor() {
 
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieEarbucksValue, zombieDeaf, npcTypeId, npcName, npcFactionId, npcIconId, npcAiDisabled, npcLoadout, npcEquippedIndex, selectedItem, turretFactionId, turretIsOn, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, vehicleAttachments, transitionTargetType, transitionTargetId, transitionLevel, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieEarbucksValue, zombieDeaf, npcTypeId, npcName, npcFactionId, npcIconId, npcAiDisabled, npcLoadout, npcEquippedIndex, selectedItem, turretFactionId, turretIsOn, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, vehicleAttachments, transitionTarget, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Furniture stamp tool ────────────────────────────────────────────
   // Validates and places a loose furniture stamp at (x, y). Lives outside
@@ -2274,8 +2235,8 @@ export default function MapEditor() {
           ctx.fillText('E', sx + 2, sy + 2);
         }
 
-        // Map transition indicator
-        if (t.mapTransition) {
+        // Exit arrow indicator
+        if (t.items.some(i => i.defId === 'placeable.exit')) {
           if (exitImage) {
             ctx.drawImage(exitImage, sx, sy, CELL, CELL);
           } else {
@@ -2497,7 +2458,7 @@ export default function MapEditor() {
       x >= b.x && x < b.x + b.width && y >= b.y && y < b.y + b.height
     );
     const onFurniture = furniture.some(p => x >= p.x && x < p.x + p.w && y >= p.y && y < p.y + p.h);
-    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger || !!tile.mapTransition || !!tile.placeIcon || hasDoorOrWindow || insideBuilding || onFurniture;
+    const hasContent = tile.entities.length > 0 || tile.items.length > 0 || !!tile.eventTrigger || !!tile.placeIcon || hasDoorOrWindow || insideBuilding || onFurniture;
     if (hasContent) {
       setInspectTile({ x, y, screenX: e.clientX, screenY: e.clientY });
     }
@@ -2754,9 +2715,7 @@ export default function MapEditor() {
   const mapEcsItemToEditorItem = (it: any) => {
     const entry: any = { defId: it.defId || it.id };
     if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
-    if (it.transitionTargetId !== undefined) entry.transitionTargetId = it.transitionTargetId;
-    if (it.transitionTargetX !== undefined) entry.transitionTargetX = it.transitionTargetX;
-    if (it.transitionTargetY !== undefined) entry.transitionTargetY = it.transitionTargetY;
+    copyTransitionFields(it, entry);
     if (it.eventId !== undefined) entry.eventId = it.eventId;
     if (it.condition !== undefined) entry.condition = it.condition;
     if (it.attachments) {
@@ -3798,31 +3757,9 @@ export default function MapEditor() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {renderItemControls()}
             
-            {(selectedItem === 'placeable.stairs_down' || selectedItem === 'placeable.stairs_up') && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
-                <label style={{ fontSize: 11, color: '#7bb8ff', fontWeight: 'bold' }}>Stairs Transition Target</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <select
-                    value={transitionTargetId}
-                    onChange={e => setTransitionTargetId(e.target.value)}
-                    style={{ ...inputStyle, width: '100%' }}
-                  >
-                    <option value="">— Select map —</option>
-                    {availableScenarios.map(s => (
-                      <option key={s.name} value={s.name}>{s.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
-                    <label style={{ fontSize: 11, color: '#888' }}>Target X</label>
-                    <input type="number" min={0} value={transitionTargetX} onChange={e => setTransitionTargetX(e.target.value === '' ? '' : Number(e.target.value))} style={{ ...inputStyle, width: '100%' }} />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
-                    <label style={{ fontSize: 11, color: '#888' }}>Target Y</label>
-                    <input type="number" min={0} value={transitionTargetY} onChange={e => setTransitionTargetY(e.target.value === '' ? '' : Number(e.target.value))} style={{ ...inputStyle, width: '100%' }} />
-                  </div>
-                </div>
+            {isTransitionItem({ defId: selectedItem }) && (
+              <div style={{ borderTop: '1px solid #444', paddingTop: 6 }}>
+                <TransitionTargetPanel value={transitionTarget} onChange={setTransitionTarget} scenarios={availableScenarios} generators={EDITOR_GENERATOR_CHOICES} />
               </div>
             )}
 
@@ -3889,80 +3826,11 @@ export default function MapEditor() {
         )}
 
         {tool === 'map_transition' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: 11, color: '#888' }}>Target Type</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <label style={{ fontSize: 11, color: '#ddd', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <input
-                  type="radio"
-                  name="transitionTargetType"
-                  checked={transitionTargetType === 'scenario'}
-                  onChange={() => { setTransitionTargetType('scenario'); setTransitionTargetId(''); }}
-                />
-                Scenario
-              </label>
-              <label style={{ fontSize: 11, color: '#ddd', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <input
-                  type="radio"
-                  name="transitionTargetType"
-                  checked={transitionTargetType === 'generator'}
-                  onChange={() => { setTransitionTargetType('generator'); setTransitionTargetId(''); }}
-                />
-                Generator
-              </label>
-              <label style={{ fontSize: 11, color: '#ddd', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <input
-                  type="radio"
-                  name="transitionTargetType"
-                  checked={transitionTargetType === 'tutorial_end'}
-                  onChange={() => { setTransitionTargetType('tutorial_end'); setTransitionTargetId(''); }}
-                />
-                Tutorial End
-              </label>
-            </div>
-
-            {transitionTargetType !== 'tutorial_end' && (
-              <>
-                <label style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
-                  {transitionTargetType === 'scenario' ? 'Select Scenario' : 'Select Generator'}
-                </label>
-
-                <select
-                  value={transitionTargetId}
-                  onChange={e => setTransitionTargetId(e.target.value)}
-                  style={{ ...inputStyle, width: '100%' }}
-                >
-                  <option value="">— Select —</option>
-                  {transitionTargetType === 'scenario' ? (
-                    availableScenarios.map(s => (
-                      <option key={s.fileName || s.name} value={s.fileName || s.name}>
-                        {s.name} ({s.width}x{s.height})
-                      </option>
-                    ))
-                  ) : (
-                    EDITOR_GENERATOR_CHOICES.map(gen => (
-                      <option key={gen} value={gen}>{gen}</option>
-                    ))
-                  )}
-                </select>
-
-                {transitionTargetType === 'generator' && (
-                  <>
-                    <label style={{ fontSize: 11, color: '#888', marginTop: 4 }}>Level (Scaling)</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={transitionLevel}
-                      onChange={e => setTransitionLevel(+e.target.value)}
-                      style={{ ...inputStyle }}
-                    />
-                  </>
-                )}
-              </>
-            )}
-
-            <p style={{ fontSize: 10, color: '#666', margin: 0, marginTop: 4 }}>
-              Click a tile to place this map transition. The player will be teleported here when stepping on the tile.
+          <div>
+            <TransitionTargetPanel value={transitionTarget} onChange={setTransitionTarget} scenarios={availableScenarios} generators={EDITOR_GENERATOR_CHOICES} />
+            <p style={{ fontSize: 10, color: '#666', margin: '6px 0 0' }}>
+              Click a tile to put an exit arrow there (replacing any arrow on it). The player clicks the arrow in the
+              ground container to travel. Stairs work the same way: place them with the Item tool.
             </p>
           </div>
         )}
@@ -3993,7 +3861,7 @@ export default function MapEditor() {
               <img src="./images/items/exit.png" style={{ width: 14, height: 14, objectFit: 'contain' }} alt="Exit" />
             ) : (
               <span style={{ color: '#0ff', fontWeight: 'bold' }}>T</span>
-            )}Map Transition
+            )}Exit arrow
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ border: '1px solid #ff0', display: 'inline-block', width: 12, height: 12, borderRadius: 2 }} />Building outline
@@ -4018,9 +3886,6 @@ export default function MapEditor() {
             )}
             {tiles[hoverCell.y][hoverCell.x].placeIcon && (
               <div>Sign: {PLACE_ICON_TYPES.find(p => p.id === tiles[hoverCell.y][hoverCell.x].placeIcon)?.label ?? tiles[hoverCell.y][hoverCell.x].placeIcon}</div>
-            )}
-            {tiles[hoverCell.y][hoverCell.x].mapTransition && (
-              <div>Transition: {tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType === 'tutorial_end' ? 'Tutorial End' : `${tiles[hoverCell.y][hoverCell.x].mapTransition!.targetId} (${tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType}${tiles[hoverCell.y][hoverCell.x].mapTransition!.targetType === 'generator' ? `, Lvl ${tiles[hoverCell.y][hoverCell.x].mapTransition!.level}` : ''})`}</div>
             )}
           </div>
         )}
@@ -4780,15 +4645,6 @@ export default function MapEditor() {
           }
         };
 
-        const removeTransition = () => {
-          setTiles(prev => {
-            pushUndo(prev, buildingsRef.current, furnitureRef.current);
-            const next = prev.map(r => r.map(c => ({ ...c, entities: [...c.entities], items: [...c.items] })));
-            delete next[ty][tx].mapTransition;
-            return next;
-          });
-        };
-
         const editEvent = () => {
           if (t.eventTrigger) {
             // Look up the lossless authored event by id (allEditorEvents) rather
@@ -4803,17 +4659,6 @@ export default function MapEditor() {
               setTool('event_editor');
               setStatusMsg(`Editing event "${ev.id}"`);
             }
-          }
-          setInspectTile(null);
-        };
-
-        const editTransition = () => {
-          if (t.mapTransition) {
-            setTransitionTargetType(t.mapTransition.targetType);
-            setTransitionTargetId(t.mapTransition.targetId);
-            setTransitionLevel(t.mapTransition.level || 1);
-            setTool('map_transition');
-            setStatusMsg(t.mapTransition.targetType === 'tutorial_end' ? 'Editing Tutorial End transition — click a tile to place' : `Editing transition to "${t.mapTransition.targetId}" — click a tile to place`);
           }
           setInspectTile(null);
         };
@@ -5090,16 +4935,14 @@ export default function MapEditor() {
                           {slotInfo && item.batteryCharges !== undefined ? ` · ${item.batteryCharges}/${slotInfo.capacity} chg` : ''}
                           {item.defId === TURRET_DEF_ID ? ` · ${(allFactions.find(f => f.id === (item.factionId || 'town'))?.name) || item.factionId || 'town'}${item.isOn === false ? ' (off)' : ''}` : ''}
                           {gunAmmoLabel}
-                          {(item.defId === 'placeable.stairs_down' || item.defId === 'placeable.stairs_up') && item.transitionTargetId ? ` · ➡ ${item.transitionTargetId} (${item.transitionTargetX ?? '?'},${item.transitionTargetY ?? '?'})` : ''}
+                          {isTransitionItem(item) ? ` · ${describeTransition(item)}` : ''}
                           {item.defId === 'placeable.help' ? (item.eventId ? ` · ▶ ${item.eventId}` : ' · ▶ (no event)') : ''}
                         </span>
                         <div style={{ display: 'flex', gap: 4 }}>
-                          {(item.defId === 'placeable.stairs_down' || item.defId === 'placeable.stairs_up') && (
+                          {isTransitionItem(item) && (
                             <button onClick={() => {
-                              setEditStairsItem({ x: tx, y: ty, itemIndex: i });
-                              setEditStairsId(item.transitionTargetId || '');
-                              setEditStairsX(item.transitionTargetX ?? '');
-                              setEditStairsY(item.transitionTargetY ?? '');
+                              setEditTransitionItem({ x: tx, y: ty, itemIndex: i });
+                              setEditTransitionTarget(copyTransitionFields(item, {}));
                             }} style={editBtnStyle}>Edit</button>
                           )}
                           <button onClick={() => removeItem(i)} style={removeBtnStyle}>Remove</button>
@@ -5156,76 +4999,32 @@ export default function MapEditor() {
                 </div>
               )}
 
-              {/* Map Transition */}
-              {t.mapTransition && (
-                <div style={sectionStyle}>
-                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Map Transition</div>
-                  <div style={{ fontSize: 12, color: '#0ff', marginBottom: 2 }}>
-                    {t.mapTransition.targetType === 'tutorial_end' ? 'Tutorial End' : `Target: ${t.mapTransition.targetId}`}
-                  </div>
-                  {t.mapTransition.targetType !== 'tutorial_end' && (
-                    <div style={{ fontSize: 11, color: '#aaa', marginBottom: 4 }}>
-                      Type: {t.mapTransition.targetType}
-                      {t.mapTransition.targetType === 'generator' && ` · Level: ${t.mapTransition.level}`}
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                    <button onClick={editTransition} style={editBtnStyle}>Edit</button>
-                    <button onClick={removeTransition} style={removeBtnStyle}>Remove</button>
-                  </div>
-                </div>
-              )}
             </div>
           </>
         );
       })()}
-      {editStairsItem && (() => {
+      {editTransitionItem && (() => {
         const handleSaveEdit = () => {
           setTiles(prev => {
+            pushUndo(prev, buildingsRef.current, furnitureRef.current);
             const next = prev.map(r => r.map(c => ({ ...c, items: [...c.items] })));
-            const cell = next[editStairsItem.y][editStairsItem.x];
-            const item = cell.items[editStairsItem.itemIndex];
-            if (item) {
-              item.transitionTargetId = editStairsId;
-              item.transitionTargetX = editStairsX === '' ? undefined : Number(editStairsX);
-              item.transitionTargetY = editStairsY === '' ? undefined : Number(editStairsY);
-            }
+            const cell = next[editTransitionItem.y][editTransitionItem.x];
+            const old = cell.items[editTransitionItem.itemIndex];
+            if (old) cell.items[editTransitionItem.itemIndex] = copyTransitionFields(editTransitionTarget, { ...old,
+              transitionTargetType: undefined, transitionTargetId: undefined, transitionTargetX: undefined, transitionTargetY: undefined, transitionLevel: undefined });
             return next;
           });
-          setEditStairsItem(null);
+          setEditTransitionItem(null);
         };
 
         return (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setEditStairsItem(null)}>
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setEditTransitionItem(null)}>
             <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, minWidth: 300 }} onClick={e => e.stopPropagation()}>
-              <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>Edit Stairs Target</h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-                <select
-                  value={editStairsId}
-                  onChange={e => setEditStairsId(e.target.value)}
-                  style={{ ...inputStyle, width: '100%' }}
-                >
-                  <option value="">— Select map —</option>
-                  {availableScenarios.map(s => (
-                    <option key={s.name} value={s.name}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ fontSize: 11, color: '#888' }}>Target X</label>
-                  <input type="number" min={0} value={editStairsX} onChange={e => setEditStairsX(e.target.value === '' ? '' : Number(e.target.value))} style={{ ...inputStyle }} />
-                </div>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ fontSize: 11, color: '#888' }}>Target Y</label>
-                  <input type="number" min={0} value={editStairsY} onChange={e => setEditStairsY(e.target.value === '' ? '' : Number(e.target.value))} style={{ ...inputStyle }} />
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: 8 }}>
+              <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>Edit Destination</h3>
+              <TransitionTargetPanel value={editTransitionTarget} onChange={setEditTransitionTarget} scenarios={availableScenarios} generators={EDITOR_GENERATOR_CHOICES} />
+              <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
                 <button onClick={handleSaveEdit} style={{ ...btnStyle('#2b9a7a'), flex: 1, padding: 8 }}>Save</button>
-                <button onClick={() => setEditStairsItem(null)} style={{ ...btnStyle('#555'), flex: 1, padding: 8 }}>Cancel</button>
+                <button onClick={() => setEditTransitionItem(null)} style={{ ...btnStyle('#555'), flex: 1, padding: 8 }}>Cancel</button>
               </div>
             </div>
           </div>

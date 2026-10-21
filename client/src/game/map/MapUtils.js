@@ -1,3 +1,5 @@
+import { hasExitAt } from './mapExits.js';
+
 /**
  * Helper function to check if coordinates (x, y) lie inside a compound's fence bounds.
  * @param {Object} compound - The compound metadata (e.g. townSquareCompound)
@@ -57,20 +59,17 @@ export function isInsideAnyBuilding(buildings, x, y) {
 }
 
 /**
- * Find the south-edge transition tile (y = height - 1). Prefers a 'transition'
- * terrain tile; falls back to any walkable edge tile. Shared by NPC pathing
+ * Find the south-edge exit tile (y = height - 1). Prefers the tile of an exit
+ * arrow on that row; falls back to any walkable edge tile. Shared by NPC pathing
  * (NPCAISystem) and NPC spawning (NPCSpawner).
  * @param {GameMap} gameMap
  * @returns {{x: number, y: number} | null}
  */
 export function findSouthTransitionTile(gameMap) {
   const y = gameMap.height - 1;
-  // Preferred: 'transition' terrain tile
+  // Preferred: an exit arrow on the bottom row
   for (let x = 0; x < gameMap.width; x++) {
-    const tile = gameMap.getTile(x, y);
-    if (tile && tile.terrain === 'transition') {
-      return { x, y };
-    }
+    if (hasExitAt(gameMap, x, y)) return { x, y };
   }
   // Fallback: any walkable edge tile
   for (let x = 0; x < gameMap.width; x++) {

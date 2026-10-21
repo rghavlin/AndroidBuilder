@@ -5,9 +5,22 @@ import { compressString, decompressString } from './GameSaveSystem.js';
 import { TEMPLATE_METADATA, getTemplateForMapNumber } from './config/TemplateConfig.js';
 import { isTerrainWalkable } from './map/TerrainTypes.js';
 import { SafeEventEmitter } from './utils/SafeEventEmitter.js';
+import { isTransitionItem, transitionTypeOf } from './inventory/transitionFields.js';
 
 import { gameRandom } from './utils/SeededRandom.js';
 const logger = Logger.scope('WorldManager');
+
+// Generator ids an authored transition can name, and the template each builds.
+const GENERATOR_TO_TEMPLATE = {
+  BranchingRoadGenerator: 'branching_road',
+  CorridorGenerator: 'corridor',
+  LabMapGenerator: 'lab',
+  MirroredWindingRoadGenerator: 'mirrored_winding_road',
+  RoadGenerator: 'road',
+  SplitRoadGenerator: 'split_road',
+  StartingRoadGenerator: 'starting_road',
+  WindingRoadGenerator: 'winding_road',
+};
 
 /**
  * WorldManager - Handles multiple maps, transitions, and world state persistence
@@ -315,19 +328,20 @@ export class WorldManager extends SafeEventEmitter {
     gameMap.mapNumber = mapNumber;
 
     // For transitions, finalize the spawn from the freshly generated map's own
-    // exits rather than the pre-generation prediction in checkTransitionPoint().
+    // exits rather than the pre-generation prediction in resolveItemTransition().
     // This keeps the player on the actual road exit even if the map's size or exit
     // columns differ from the guess. spawnPosition.y encodes the approach edge:
-    // y<=1 means we entered from the north (top).
+    // y<=1 means we entered from the north (top). The player arrives ON the exit
+    // arrow: exits only fire when clicked, so there's no need to step off them.
     let resolvedSpawn = spawnPosition;
     if (spawnPosition) {
       const tp = generatedMapData.metadata?.spawnZones?.transitionPoints;
       if (tp) {
         const enteringTop = spawnPosition.y <= 1;
         if (enteringTop && tp.north) {
-          resolvedSpawn = { x: tp.north.x, y: 1 };
+          resolvedSpawn = { x: tp.north.x, y: tp.north.y };
         } else if (!enteringTop && tp.south) {
-          resolvedSpawn = { x: tp.south.x, y: gameMap.height - 2 };
+          resolvedSpawn = { x: tp.south.x, y: tp.south.y };
         }
       }
     }
@@ -423,124 +437,93 @@ export class WorldManager extends SafeEventEmitter {
   }
 
   /**
-   * Check if player is at a transition point
-   * @param {Player} player - Player entity
-   * @param {GameMap} gameMap - Current game map
-   * @returns {Object|null} - Transition info or null
+   * Where a transition item leads — the exit arrow and stairs alike. This is the
+   * single entry point for every map transition the player starts: the
+   * destination is read off the item (see inventory/transitionFields.js), never
+   * off the tile it sits on.
+   * @param {Object} item - the clicked placeable.exit / placeable.stairs_* item
+   * @param {{x:number,y:number}} position - the tile the item (and player) is on
+   * @returns {Object|null} transition info for MapTransitionDialog / executeTransition
    */
-  checkTransitionPoint(player, gameMap) {
-    if (!player || !gameMap) return null;
+  resolveItemTransition(item, position) {
+    if (!isTransitionItem(item)) return null;
+    const type = transitionTypeOf(item);
+    const authoredSpawn = item.transitionTargetX !== undefined && item.transitionTargetY !== undefined
+      ? { x: item.transitionTargetX, y: item.transitionTargetY }
+      : null;
+    const direction = item.defId === 'placeable.stairs_down' ? 'stairs_down'
+      : item.defId === 'placeable.stairs_up' ? 'stairs_up'
+      : type === 'previous' ? 'south' : 'north';
 
-    const playerX = player.x;
-    const playerY = player.y;
-    const tile = gameMap.getTile(playerX, playerY);
-    
-    // Check for transition tile
-    if (tile && tile.terrain === 'transition') {
-      // 1. Check for custom scenario map transitions
-      if (gameMap.metadata?.mapTransitions) {
-        const customTransition = gameMap.metadata.mapTransitions.find(
-          tr => tr.x === playerX && tr.y === playerY
-        );
-        if (customTransition) {
-          const isTutorialEnd = customTransition.targetType === 'tutorial_end';
-          const targetId = isTutorialEnd ? 'BranchingRoadGenerator' : customTransition.targetId;
-          const targetType = isTutorialEnd ? 'generator' : customTransition.targetType;
-          
-          let spawnPosition = { x: 22, y: 123 };
-          if (targetType === 'generator') {
-            const generatorToTemplate = {
-              'BranchingRoadGenerator': 'branching_road',
-              'LabMapGenerator': 'lab',
-              'MirroredWindingRoadGenerator': 'mirrored_winding_road',
-              'RoadGenerator': 'road',
-              'SplitRoadGenerator': 'split_road',
-              'StartingRoadGenerator': 'starting_road',
-              'WindingRoadGenerator': 'winding_road'
-            };
-            const nextTemplate = generatorToTemplate[targetId];
-            const nextMeta = TEMPLATE_METADATA[nextTemplate];
-            if (nextMeta) {
-              const nextHeight = nextMeta.size?.height ?? 125;
-              const nextSpawnX = nextMeta.southEntranceX ?? 22;
-              spawnPosition = { x: nextSpawnX, y: nextHeight - 2 };
-            }
-          }
-
-          return {
-            direction: 'north',
-            position: { x: playerX, y: playerY },
-            nextMapId: targetId,
-            spawnPosition,
-            isCustom: true,
-            targetType,
-            level: isTutorialEnd ? 1 : customTransition.level,
-            isTutorialEnd,
-          };
-        }
+    switch (type) {
+      case 'next': {
+        const nextMapId = this.getNextMapId();
+        return { direction, position, nextMapId, spawnPosition: authoredSpawn || this._nextMapEntrance(nextMapId) };
       }
-        // NORTH transition at top edge (Entering NEXT map from SOUTH)
-        if (playerY === 0) {
-            const nextMapId = this.getNextMapId();
-            let spawnX = 22; // Default for straight road
-            let nextHeight = 125; // Default road height
-
-            // If next map exists, get its actual exit point and height
-            if (this.maps.has(nextMapId)) {
-                const nextMapData = this.maps.get(nextMapId);
-                const nextPoints = nextMapData.metadata?.transitionPoints || nextMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
-                if (nextPoints?.south) spawnX = nextPoints.south.x;
-                
-                // Use actual height from metadata if available
-                 if (nextMapData.metadata?.height) {
-                     nextHeight = nextMapData.metadata.height;
-                 } else if (nextMapData.serializedMap?.height) {
-                     nextHeight = nextMapData.serializedMap.height;
-                 }
-            } else {
-                // Predict next template and its SOUTH entrance position
-                const nextTemplate = this.determineTemplateForMap(nextMapId);
-                const nextMeta = TEMPLATE_METADATA[nextTemplate];
-                
-                nextHeight = nextMeta?.size?.height ?? 125;
-                spawnX = nextMeta?.southEntranceX ?? 22;
-            }
-
-            return {
-                direction: 'north',
-                position: { x: playerX, y: playerY },
-                nextMapId: nextMapId,
-                spawnPosition: { x: spawnX, y: nextHeight - 2 }
-            };
-        }
-
-
-      // SOUTH transition at bottom edge (Entering PREVIOUS map from NORTH)
-      if (playerY === gameMap.height - 1 && this.canGoSouth()) {
+      case 'previous': {
+        if (!this.canGoSouth()) return null;
         const prevMapId = this.getPreviousMapId();
-        let spawnX = 22; // Default for straight road
-
-        if (this.maps.has(prevMapId)) {
-          const prevMapData = this.maps.get(prevMapId);
-          const prevPoints = prevMapData.metadata?.transitionPoints || prevMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
-          if (prevPoints?.north) spawnX = prevPoints.north.x;
-        } else {
-          // Fallback prediction for NORTH exit of the previous map
-          const prevTemplate = this.determineTemplateForMap(prevMapId);
-          const prevMeta = TEMPLATE_METADATA[prevTemplate];
-          spawnX = prevMeta?.northExitX ?? 22;
-        }
-
-        return {
-          direction: 'south',
-          position: { x: playerX, y: playerY },
-          nextMapId: prevMapId,
-          spawnPosition: { x: spawnX, y: 1 }
-        };
+        return { direction, position, nextMapId: prevMapId, spawnPosition: authoredSpawn || this._previousMapExit(prevMapId) };
       }
+      case 'tutorial_end':
+        return {
+          direction, position, nextMapId: 'BranchingRoadGenerator',
+          spawnPosition: authoredSpawn || this._generatorEntrance('BranchingRoadGenerator'),
+          isCustom: true, targetType: 'generator', level: 1, isTutorialEnd: true,
+        };
+      case 'scenario':
+      case 'generator':
+        if (!item.transitionTargetId) {
+          logger.warn(`${item.defId} has a ${type} destination but no target id`);
+          return null;
+        }
+        return {
+          direction, position, nextMapId: item.transitionTargetId,
+          // A scenario's own player start is resolved in executeTransition.
+          spawnPosition: authoredSpawn || (type === 'generator' ? this._generatorEntrance(item.transitionTargetId) : null),
+          isCustom: true, targetType: type, level: type === 'generator' ? (item.transitionLevel ?? 1) : 1,
+        };
+      default:
+        logger.warn(`${item.defId} has no destination`);
+        return null;
     }
+  }
 
-    return null;
+  /** Arrival tile on the next map: its south exit arrow (actual if generated, else predicted). */
+  _nextMapEntrance(nextMapId) {
+    let spawnX = 22; // Default for straight road
+    let nextHeight = 125; // Default road height
+    if (this.maps.has(nextMapId)) {
+      const nextMapData = this.maps.get(nextMapId);
+      const nextPoints = nextMapData.metadata?.transitionPoints || nextMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
+      if (nextPoints?.south) spawnX = nextPoints.south.x;
+      nextHeight = nextMapData.metadata?.height ?? nextMapData.serializedMap?.height ?? nextHeight;
+    } else {
+      const nextMeta = TEMPLATE_METADATA[this.determineTemplateForMap(nextMapId)];
+      nextHeight = nextMeta?.size?.height ?? 125;
+      spawnX = nextMeta?.southEntranceX ?? 22;
+    }
+    return { x: spawnX, y: nextHeight - 1 };
+  }
+
+  /** Arrival tile on the previous map: its north exit arrow. */
+  _previousMapExit(prevMapId) {
+    let spawnX = 22; // Default for straight road
+    if (this.maps.has(prevMapId)) {
+      const prevMapData = this.maps.get(prevMapId);
+      const prevPoints = prevMapData.metadata?.transitionPoints || prevMapData.serializedMap?.metadata?.spawnZones?.transitionPoints;
+      if (prevPoints?.north) spawnX = prevPoints.north.x;
+    } else {
+      spawnX = TEMPLATE_METADATA[this.determineTemplateForMap(prevMapId)]?.northExitX ?? 22;
+    }
+    return { x: spawnX, y: 0 };
+  }
+
+  /** Arrival tile for a generator destination: its template's south exit. */
+  _generatorEntrance(generatorId) {
+    const meta = TEMPLATE_METADATA[GENERATOR_TO_TEMPLATE[generatorId]];
+    if (!meta) return { x: 22, y: 124 };
+    return { x: meta.southEntranceX ?? 22, y: (meta.size?.height ?? 125) - 1 };
   }
 
   /**
@@ -703,67 +686,6 @@ export class WorldManager extends SafeEventEmitter {
   }
 
   /**
-   * Stamp reciprocal transition on a map
-   * @param {string} mapId - Map to stamp transition on
-   * @param {string} direction - 'north' or 'south'
-   */
-  async stampReciprocalTransition(mapId, direction) {
-    try {
-      if (!this.maps.has(mapId)) {
-        console.warn(`[WorldManager] Cannot stamp transition - map ${mapId} not found`);
-        return false;
-      }
-
-      const mapData = this.maps.get(mapId);
-      let serializedMap = mapData.serializedMap;
-      if (!serializedMap) {
-        if (mapData.compressedMap) {
-          const decompressed = await decompressString(mapData.compressedMap);
-          serializedMap = JSON.parse(decompressed);
-        } else if (this.saveSlot) {
-          const { GameSaveSystem } = await import('./GameSaveSystem.js');
-          const chunk = await GameSaveSystem.loadChunkFromStorage(this.saveSlot, mapId);
-          if (chunk) {
-            mapData.compressedMap = chunk.compressedMap;
-            serializedMap = chunk.serializedMap;
-            if (!serializedMap && chunk.compressedMap) {
-              const decompressed = await decompressString(chunk.compressedMap);
-              serializedMap = JSON.parse(decompressed);
-            }
-          }
-        }
-      }
-
-      if (!serializedMap) {
-        console.warn(`[WorldManager] Cannot stamp transition - map ${mapId} data not loaded/decompressed`);
-        return false;
-      }
-
-      const { GameMap } = await import('./map/GameMap.js');
-      const gameMap = await GameMap.fromJSON(serializedMap);
-
-      const centerX = Math.floor(gameMap.width / 2);
-      if (direction === 'south' && mapId !== 'map_001') {
-        const southY = gameMap.height - 1;
-        console.log(`[WorldManager] Stamping south transition at (${centerX}, ${southY}) on ${mapId}`);
-        gameMap.setTerrain(centerX, southY, 'transition');
-        this.saveCurrentMap(gameMap, mapId);
-        return true;
-      } else if (direction === 'north') {
-        console.log(`[WorldManager] Stamping north transition at (${centerX}, 0) on ${mapId}`);
-        gameMap.setTerrain(centerX, 0, 'transition');
-        this.saveCurrentMap(gameMap, mapId);
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error(`[WorldManager] Failed to stamp reciprocal transition:`, error);
-      return false;
-    }
-  }
-
-  /**
    * Pick an arrival tile for a transition that carried no authored spawn
    * position. Every map-generating branch of executeTransition() resolves its
    * own default from generator metadata, but a destination map that already
@@ -867,17 +789,7 @@ export class WorldManager extends SafeEventEmitter {
           };
         } else if (customParams.targetType === 'generator') {
           // Procedural generation using a specific template/generator and level scaling
-          const generatorToTemplate = {
-            'BranchingRoadGenerator': 'branching_road',
-            'CorridorGenerator': 'corridor',
-            'LabMapGenerator': 'lab',
-            'MirroredWindingRoadGenerator': 'mirrored_winding_road',
-            'RoadGenerator': 'road',
-            'SplitRoadGenerator': 'split_road',
-            'StartingRoadGenerator': 'starting_road',
-            'WindingRoadGenerator': 'winding_road'
-          };
-          const templateToUse = generatorToTemplate[customParams.targetId] || 'road';
+          const templateToUse = GENERATOR_TO_TEMPLATE[customParams.targetId] || 'road';
           const mapNumber = customParams.level || 1;
           
           const { TemplateMapGenerator } = await import('./map/TemplateMapGenerator.js');
@@ -923,12 +835,12 @@ export class WorldManager extends SafeEventEmitter {
             const enteringTop = true; // default when generating new map without specific position
             if (tp) {
               if (enteringTop && tp.north) {
-                resolvedSpawn = { x: tp.north.x, y: 1 };
+                resolvedSpawn = { x: tp.north.x, y: tp.north.y };
               } else if (!enteringTop && tp.south) {
-                resolvedSpawn = { x: tp.south.x, y: gameMap.height - 2 };
+                resolvedSpawn = { x: tp.south.x, y: tp.south.y };
               }
             } else {
-              resolvedSpawn = { x: Math.floor(gameMap.width / 2), y: 1 };
+              resolvedSpawn = { x: Math.floor(gameMap.width / 2), y: 0 };
             }
             spawnPosition = resolvedSpawn;
           }

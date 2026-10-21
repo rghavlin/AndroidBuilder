@@ -25,6 +25,7 @@ import { AttributeProgressionManager } from "../../game/systems/AttributeProgres
 import { GAP_SIZE } from "./constants";
 import { useTheme } from "../../contexts/ThemeContext";
 import { rainbowBackground } from "@/lib/utils";
+import { isTransitionItem } from "../../game/inventory/transitionFields";
 
 const getAdjustedBgColor = (bgColor: string | null, theme: string) => {
   if (!bgColor) {
@@ -405,38 +406,20 @@ export default function UniversalGrid({
       return;
     }
 
-    // Intercept clicks on the exit item or stairs to trigger map transition
-    if (item && (item.defId === 'placeable.exit' || item.defId === 'placeable.stairs_down' || item.defId === 'placeable.stairs_up')) {
+    // Intercept clicks on the exit arrow or stairs to trigger map transition.
+    // Both carry their destination; WorldManager.resolveItemTransition reads it.
+    if (isTransitionItem(item)) {
       const gameMap = engine.gameMap;
       const player = engine.player;
       const worldManager = engine.worldManager;
-      
+
       if (gameMap && player && worldManager) {
         console.debug('[UniversalGrid] Left-clicked transition item - triggering map transition dialog');
-        
-        let transitionInfo = null;
-        
-        if (item.defId === 'placeable.exit') {
-          transitionInfo = worldManager.checkTransitionPoint({ x: player.x, y: player.y }, gameMap);
-        } else {
-          if (!item.transitionTargetId) {
-             console.warn('[UniversalGrid] Stairs clicked but no transitionTargetId found on item!', item);
-             return;
-          }
-          
-          transitionInfo = {
-            direction: item.defId === 'placeable.stairs_down' ? 'stairs_down' : 'stairs_up',
-            position: { x: item.x !== undefined ? item.x : player.x, y: item.y !== undefined ? item.y : player.y },
-            nextMapId: item.transitionTargetId,
-            spawnPosition: (item.transitionTargetX !== undefined && item.transitionTargetY !== undefined) 
-                           ? { x: item.transitionTargetX, y: item.transitionTargetY } 
-                           : null,
-            targetType: 'scenario',
-            level: 1,
-            isCustom: true
-          };
-        }
-        
+
+        // The ground container is the player's tile, so that's where the item is
+        // (an Item's own x/y are its slot in the grid, not map coords).
+        const transitionInfo = worldManager.resolveItemTransition(item, { x: player.gridX ?? player.x, y: player.gridY ?? player.y });
+
         if (transitionInfo) {
           if (setMapTransition) {
             setMapTransition(transitionInfo);

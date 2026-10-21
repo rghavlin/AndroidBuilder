@@ -9,7 +9,7 @@
  * by GameMap.toJSON(), so a map you walked back into came back events-first-run
  * only — restored from the snapshot with `metadata` undefined, which reads as
  * "this map has no events, no quest registry, no transitions" everywhere
- * downstream (resolveMapEvents, applyMapRegistries, checkTransitionPoint).
+ * downstream (resolveMapEvents, applyMapRegistries).
  *
  * Only the authored/runtime-mutated fields are persisted. The generator's
  * scratch output (buildings, doors, windows, placeIcons, the raw scenario
@@ -26,7 +26,7 @@ const PERSISTED_KEYS = [
   'questRegistry',
   // entityTag -> entity lookups used by controlEntity / moveEntity / setNpcAI.
   'entityRegistry',
-  // Stairs and road-edge exits (WorldManager.checkTransitionPoint).
+  // Legacy authored exits: old saves resolve their arrows from it (mapExits.js).
   'mapTransitions',
   // playerStart / transitionPoints, re-read on every save and transition.
   'spawnZones',

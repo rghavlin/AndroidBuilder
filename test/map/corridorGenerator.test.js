@@ -51,13 +51,17 @@ describe('CorridorGenerator', () => {
     }
   });
 
-  it('north and south transitions land on the road, not the grass', () => {
+  it('north and south exits land on the road, not the grass', () => {
     const { transitionPoints } = mapData.metadata.spawnZones;
     expect(transitionPoints.north).toEqual({ x: 10, y: 0 });
     expect(transitionPoints.south).toEqual({ x: 10, y: H - 1 });
 
-    expect(mapData.tiles[0][10].terrain).toBe('transition');
-    expect(mapData.tiles[H - 1][10].terrain).toBe('transition');
+    // Exits are plain road with an exit arrow carrying its destination.
+    expect(mapData.tiles[0][10].terrain).toBe('road');
+    expect(mapData.tiles[H - 1][10].terrain).toBe('road');
+    const exitAt = (y) => mapData.tiles[y][10].inventoryItems.find(i => i.defId === 'placeable.exit');
+    expect(exitAt(0).transitionTargetType).toBe('next');
+    expect(exitAt(H - 1).transitionTargetType).toBe('previous');
 
     // The tiles flanking each transition are road, which is what makes the
     // arrival tile reachable rather than stranding the player against a fence.
@@ -70,7 +74,7 @@ describe('CorridorGenerator', () => {
     expect(mapData.metadata.specialBuildings).toHaveLength(0);
   });
 
-  it('starts the player on the road at the south end, off the transition tile', () => {
+  it('starts the player on the road at the south end, off the exit tile', () => {
     const start = new CorridorGenerator().getStartPosition(20, H);
     expect(start).toEqual({ x: 10, y: H - 2 });
     expect(mapData.tiles[start.y][start.x].terrain).toBe('road');

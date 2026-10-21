@@ -14,6 +14,7 @@ import tradingSystem from './systems/TradingSystem.js';
 import { gameRandom } from './utils/SeededRandom.js';
 import { ensurePhone } from './phone/Phone.js';
 import { DEFAULT_PLAYER_CLOTHING } from './inventory/StartingLoadout.js';
+import { removeExits } from './map/mapExits.js';
 
 const INIT_STATES = {
   IDLE: 'idle',
@@ -497,19 +498,13 @@ class GameInitializationManager extends EventEmitter {
         console.log(`[GameInitializationManager] Spawned shopkeeper, town turrets, and initialized Earbucks catalog for ${mapId}`);
       }
 
-      // Clean up south transition tile for first map
+      // The first map has no previous map: remove its back-the-way-you-came exit.
       try {
-        const points = gameMap.metadata?.spawnZones?.transitionPoints;
-        const centerX = Math.floor(gameMap.width / 2);
-        const southX = points?.south?.x ?? centerX;
-        const southY = gameMap.height - 1;
-        const southTile = gameMap.getTile(southX, southY);
-        if (southTile && southTile.terrain === 'transition') {
-          gameMap.setTerrain(southX, southY, 'road');
-          console.log('[GameInitializationManager] Removed south transition tile for first map at', southX, southY);
+        if (removeExits(gameMap, 'previous') > 0) {
+          console.log('[GameInitializationManager] Removed the previous-map exit on the first map');
         }
       } catch (error) {
-        console.warn('[GameInitializationManager] Could not clean up transition tile:', error);
+        console.warn('[GameInitializationManager] Could not remove the previous-map exit:', error);
       }
 
       console.log('[GameInitializationManager] WORLD_POPULATION phase completed');

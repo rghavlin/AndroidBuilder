@@ -172,9 +172,17 @@
   "170": "test_noise_assert.js",
   "171": "verify_saveload.mjs",
   "172": "bench_houses.mjs",
+  "173": "ProgressionConfig.js",
+  "174": ".executeAction",
   "175": "computeMinimapSize",
   "176": "TestMapBuilder",
+  "177": "conditions.js",
   "178": "MapConnectivityValidator.js",
   "179": "npcLoadout.test.js",
+  "180": "SpeechBubbleContext.jsx",
+  "181": "eventMarkersIntegration.test.js",
+  "182": "DeviceCharge.js",
+  "183": "Row",
+  "184": "Quadrant",
   "194": "TileRenderer.js"
 }

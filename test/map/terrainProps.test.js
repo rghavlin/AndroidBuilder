@@ -21,7 +21,6 @@ const EXPECTED = {
   grass:       [true,  false, false, false],
   road:        [true,  false, false, false],
   sidewalk:    [true,  false, false, false],
-  transition:  [true,  false, false, false],
   floor:       [true,  false, false, false],
   garagefloor: [true,  false, false, false],
   tent_floor:  [true,  false, false, false],

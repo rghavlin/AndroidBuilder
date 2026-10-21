@@ -10,6 +10,7 @@ import { Container } from './Container.js';
 import { PocketLayouts } from './PocketLayouts.js';
 import { ItemDefs, createItemFromDef } from './ItemDefs.js'; // Import definitions for lookup
 import { SafeEventEmitter } from '../utils/SafeEventEmitter.js';
+import { TRANSITION_FIELDS, copyTransitionFields } from './transitionFields.js';
 import { FactionRegistry } from '../ai/FactionRegistry.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 
@@ -94,9 +95,6 @@ export class Item extends SafeEventEmitter {
       isLocked = undefined,
       zombieSubtype = undefined,
       earbucksValue = undefined,
-      transitionTargetId = undefined,
-      transitionTargetX = undefined,
-      transitionTargetY = undefined,
       eventId = undefined,
       groundPriority = undefined,
       isEventMarker = undefined
@@ -193,9 +191,7 @@ export class Item extends SafeEventEmitter {
     this.brainstemColors = brainstemColors;
     this.zombieSubtype = zombieSubtype;
     this.earbucksValue = earbucksValue;
-    this.transitionTargetId = transitionTargetId;
-    this.transitionTargetX = transitionTargetX;
-    this.transitionTargetY = transitionTargetY;
+    copyTransitionFields(config, this); // exit/stairs destination (transitionFields.js)
     // Authored event id this item fires when clicked in the ground container
     // (the placeable.help "?" item, and every event appearance — see
     // UniversalGrid/GameContext.fireItemEvent).
@@ -1669,7 +1665,7 @@ export class Item extends SafeEventEmitter {
     'backgroundColor', 'borderColor', 'fixedAppearance', 'isOn', 'providesElectricity', 'fireMode',
     'availableFireModes', 'scooterMode', 'rideApBonus', 'isLit', 'isLocked',
     'zombieSubtype', 'earbucksValue', 'brainstemColors',
-    'transitionTargetId', 'transitionTargetX', 'transitionTargetY', 'eventId',
+    ...TRANSITION_FIELDS, 'eventId',
     'groundPriority', 'isEventMarker', 'hitchedItemInstanceId', 'hitchedToInstanceId'
   ];
 

@@ -734,10 +734,10 @@ export const EntityRenderer = {
             
             ctx.drawImage(tCanvas, drawX, drawY, drawSize, drawSize);
         } else {
-            const isSouthExit = entity.type === 'item' && 
-                                (entity.defId === 'placeable.exit' || entity.subtype === 'exit') && 
-                                engine.gameMap && 
-                                entity.y === engine.gameMap.height - 1;
+            // An exit back to the previous map points down.
+            const isSouthExit = entity.type === 'item' &&
+                                (entity.defId === 'placeable.exit' || entity.subtype === 'exit') &&
+                                entity.transitionTargetType === 'previous';
             
             const isTokenItem = entity.type === 'item' && !isFullTileItem && !isExit;
 

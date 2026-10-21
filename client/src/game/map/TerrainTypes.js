@@ -42,7 +42,6 @@ export const TERRAIN_PROPS = {
   grass:       { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
   road:        { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
   sidewalk:    { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
-  transition:  { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
   // Interior surfaces
   floor:       { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },
   garagefloor: { walkable: true,  blocksSight: false, destructible: false, blocksFlight: false },

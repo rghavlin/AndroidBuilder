@@ -25,7 +25,6 @@ const SPRITE_ATLAS_MAP = {
 const TERRAIN_COLORS = {
   'grass': '#1a3c1a',
   'road': '#262626',
-  'transition': '#262626',
   'sidewalk': '#555',
   'wall': '#888',     // High-contrast structural gray
   'building': '#6a6a6a', // Concrete/Building gray, slightly darker for contrast
@@ -44,7 +43,6 @@ const TERRAIN_COLORS = {
 const BW_TERRAIN_COLORS = {
   'grass': '#4a4c4f',       // Lighter outdoor grass, clearly distinct from indoor floors
   'road': '#363638',        // Mid-dark gray road, slightly darker than floor for contrast
-  'transition': '#363638',
   'sidewalk': '#555555',    // Medium gray
   'wall': '#9a9a9e',        // Bright cool gray for high contrast structure
   'building': '#2a2a2c',    // Building mass, darker than road so roofs/exteriors read as architecture
@@ -236,7 +234,7 @@ export const TileRenderer = {
                                 tile._variantIndex = Math.abs(x * 31 + y * 17) % GRASS_VARIANTS.length;
                             }
                             mapping = GRASS_VARIANTS[tile._variantIndex];
-                        } else if (tile.terrain === 'road' || tile.terrain === 'transition') {
+                        } else if (tile.terrain === 'road') {
                             if (tile._variantIndex === undefined) {
                                 const roadHash = Math.abs(x * 13 + y * 7) % 10;
                                 if (roadHash < 3) {
@@ -276,7 +274,7 @@ export const TileRenderer = {
                         imageLoader.getTileImage(tile.terrain);
                     }
                 } else {
-                    const terrainKey = tile.terrain === 'transition' ? 'road' : renderTerrainKey(tile.terrain);
+                    const terrainKey = renderTerrainKey(tile.terrain);
                     const spriteKey = `tile_${terrainKey}`;
                     const sprite = sprites[spriteKey];
                     if (sprite) {
@@ -524,7 +522,7 @@ export const TileRenderer = {
                 tile._variantIndex = Math.abs(worldX * 31 + worldY * 17) % GRASS_VARIANTS.length;
               }
               mapping = GRASS_VARIANTS[tile._variantIndex];
-            } else if (tile.terrain === 'road' || tile.terrain === 'transition') {
+            } else if (tile.terrain === 'road') {
               if (tile._variantIndex === undefined) {
                 const roadHash = Math.abs(worldX * 13 + worldY * 7) % 10;
                 tile._variantIndex = roadHash < 3 ? 0 : roadHash < 6 ? 1 : 2;
@@ -549,7 +547,7 @@ export const TileRenderer = {
             imageLoader.getTileImage(tile.terrain);
           }
         } else {
-          const terrainKey = tile.terrain === 'transition' ? 'road' : renderTerrainKey(tile.terrain);
+          const terrainKey = renderTerrainKey(tile.terrain);
           const sprite = sprites[`tile_${terrainKey}`];
           if (sprite) {
             ctx.drawImage(sprite, screenX, screenY, tileSize, tileSize);
