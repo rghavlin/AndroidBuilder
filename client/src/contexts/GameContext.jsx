@@ -1495,6 +1495,8 @@ const GameContextInner = ({ children }) => {
   // direct-load paths (loadGameFromStateData / loadGameDirect), which differ only
   // in where the state comes from and whether they fire the 'game-loaded' event.
   const applyLoadedState = useCallback((loadedState, { dispatchGameLoaded = false } = {}) => {
+    // The start-menu sandbox shows the event log; don't carry its lines into the save.
+    if (isStartMenuModeRef.current) clearLogs();
     isStartMenuModeRef.current = false;
     setIsStartMenuMode(false);
     // Loading a save is real gameplay — re-enable autosave. Without this the flag
@@ -1557,7 +1559,7 @@ const GameContextInner = ({ children }) => {
     if (dispatchGameLoaded) {
       window.dispatchEvent(new CustomEvent('game-loaded'));
     }
-  }, [setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions]);
+  }, [setupPlayerEventListeners, updatePlayerFieldOfView, updatePlayerCardinalPositions, clearLogs]);
 
   const loadGameFromStateData = useCallback(async (saveData) => {
     console.log('[GameContext] 🎮 STATE DATA LOAD - Skipping storage, loading save data directly...');

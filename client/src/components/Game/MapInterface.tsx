@@ -626,14 +626,12 @@ export default function MapInterface({ gameState }: MapInterfaceProps) {
         onClick={handleMapAreaClick}
       >
         <InfectionHUD />
-        {!isStartMenuMode && (
-          <GameEventLog 
-            onMaximize={() => {
-              setIsLogHistoryOpen(prev => !prev);
-              setIsExtensionOpen(false); // Close other extension
-            }} 
-          />
-        )}
+        <GameEventLog
+          onMaximize={() => {
+            setIsLogHistoryOpen(prev => !prev);
+            setIsExtensionOpen(false); // Close other extension
+          }}
+        />
         <MapCanvas
           onCellClick={onCellClick}
           onCellRightClick={onCellRightClick}

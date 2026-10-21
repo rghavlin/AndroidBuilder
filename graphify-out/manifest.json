@@ -160,8 +160,8 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/MapInterface.tsx": {
-    "mtime": 1787811411.7710834,
-    "ast_hash": "b03597bd6e54d16c3a8ea0ba21062cb9",
+    "mtime": 1792565119.9715538,
+    "ast_hash": "cde72c80212a3bdeca168c21d86026ae",
     "semantic_hash": ""
   },
   "client/src/components/Game/MapTransitionDialog.tsx": {
@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1787816249.7816217,
-    "ast_hash": "7507f44976e5a3bcab108c3f5d346ef5",
+    "mtime": 1792565119.9158912,
+    "ast_hash": "5d2d2f081d5b79be32a43d70d00454e2",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -3110,13 +3110,13 @@
     "semantic_hash": ""
   },
   "customMaps/StartMenu.editor.json": {
-    "mtime": 1792483833.8779595,
-    "ast_hash": "ffd00d9da5b04dc5fc0d00536b49fe70",
+    "mtime": 1792565039.0366125,
+    "ast_hash": "db23db6d74562e4380817b57980d131b",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.scenario.json": {
-    "mtime": 1792483834.7827833,
-    "ast_hash": "a684672bdbc9d266965e21953673323c",
+    "mtime": 1792565039.6445737,
+    "ast_hash": "b9ec568302869ef1032e580b037f6de5",
     "semantic_hash": ""
   },
   "test/ai/aiStateTransitions.test.js": {

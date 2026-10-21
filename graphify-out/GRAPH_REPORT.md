@@ -1,16 +1,16 @@
-# Graph Report - AndroidBuilder  (2026-10-20)
+# Graph Report - AndroidBuilder  (2026-10-21)
 
 ## Corpus Check
-- 586 files · ~7,300,125 words
+- 586 files · ~7,670,022 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3530 nodes · 9785 edges · 174 communities (123 shown, 51 thin omitted)
+- 3530 nodes · 9785 edges · 178 communities (124 shown, 54 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 160 edges (avg confidence: 0.77)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `fdf68b5c`
+- Built from commit: `3f8e8a70`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -174,6 +174,7 @@
 - Firestation Layout Verification
 - Special Window Layouts
 - Vite Electron Configuration
+- verify_saveload.mjs
 - bench_houses.mjs
 - computeMinimapSize
 - TestMapBuilder
@@ -197,25 +198,25 @@
   .agent/skills/cheap-inspector/index.js → verify_phase_2.mjs
 - `GameMapProvider()` --indirect_call--> `newMap()`  [INFERRED]
   client/src/contexts/GameMapContext.jsx → test/quest/mapEnterEvents.test.js
-- `makeVehicle()` --calls--> `createItemFromDef()`  [EXTRACTED]
-  test/balance/wagonDrag.test.js → client/src/game/inventory/ItemDefs.js
 - `make()` --calls--> `createItemFromDef()`  [EXTRACTED]
   test/inventory/groundPriority.test.js → client/src/game/inventory/ItemDefs.js
 - `flyDrone()` --calls--> `createItemFromDef()`  [EXTRACTED]
   test/phone/phoneTurn.test.js → client/src/game/inventory/ItemDefs.js
+- `makeWagon()` --calls--> `createItemFromDef()`  [EXTRACTED]
+  test/remote/remoteLink.test.js → client/src/game/inventory/ItemDefs.js
 
 ## Import Cycles
 - 1-file cycle: `test/balance/apEconomy.mjs -> test/balance/apEconomy.mjs`
 - 1-file cycle: `test/balance/balance.mjs -> test/balance/balance.mjs`
-- 3-file cycle: `client/src/game/inventory/Item.js -> client/src/game/utils/TurnProcessingUtils.js -> client/src/game/inventory/gridUtils.js -> client/src/game/inventory/Item.js`
 - 3-file cycle: `client/src/game/ai/TurretCombat.js -> client/src/game/inventory/gridUtils.js -> client/src/game/inventory/Item.js -> client/src/game/ai/TurretCombat.js`
+- 3-file cycle: `client/src/game/inventory/Item.js -> client/src/game/utils/TurnProcessingUtils.js -> client/src/game/inventory/gridUtils.js -> client/src/game/inventory/Item.js`
 - 4-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/entities/Entity.js -> client/src/game/GameEngine.js`
 - 4-file cycle: `client/src/game/ai/TurretCombat.js -> client/src/game/inventory/gridUtils.js -> client/src/game/inventory/Item.js -> client/src/game/utils/TurnProcessingUtils.js -> client/src/game/ai/TurretCombat.js`
 - 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/utils/Pathfinding.js -> client/src/game/entities/Entity.js -> client/src/game/GameEngine.js`
-- 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/entities/Entity.js -> client/src/game/systems/AttributeProgressionManager.js -> client/src/game/GameEngine.js`
 - 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/entities/Entity.js -> client/src/game/systems/CombatResolver.js -> client/src/game/GameEngine.js`
+- 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/entities/Entity.js -> client/src/game/systems/AttributeProgressionManager.js -> client/src/game/GameEngine.js`
 
-## Communities (174 total, 51 thin omitted)
+## Communities (178 total, 54 thin omitted)
 
 ### Community 0 - "traits.js"
 Cohesion: 0.12
@@ -225,12 +226,8 @@ Nodes (20): drawImprovedCursor(), lastRainUpdate, MapCanvas(), playerRenderScrat
 Cohesion: 0.06
 Nodes (36): ARCHETYPES, BUNGALOW_2BED_LARGE, BUNGALOW_2BED_WIDE, BUNGALOW_3BED_EXTRA_WIDE, BUNGALOW_3BED_WIDE, BY_SIZE, CENTER_HALL_12, CENTER_HALL_14 (+28 more)
 
-### Community 2 - "Item Interaction Logic"
-Cohesion: 0.05
-Nodes (5): Item, equipBackpack(), makeItem(), equipBeltWithPouch(), makeItem()
-
 ### Community 3 - "Game Engine Context"
-Cohesion: 0.07
+Cohesion: 0.08
 Nodes (8): DevConsole(), Movable, Renderable, SurvivalStats, Vision, EntityFactory, npc(), runTest()
 
 ### Community 4 - "AI and Inventory Systems"
@@ -266,8 +263,8 @@ Cohesion: 0.04
 Nodes (53): dependencies, class-variance-authority, clsx, cmdk, date-fns, embla-carousel-react, framer-motion, @hookform/resolvers (+45 more)
 
 ### Community 12 - "Inventory and Skill Windows"
-Cohesion: 0.06
-Nodes (47): DroneConfig, Drone, canTogglePhonePower(), ensurePhone(), getPhone(), phoneBlockedReason(), phoneCharges(), phoneOnline() (+39 more)
+Cohesion: 0.07
+Nodes (43): DroneConfig, Drone, canTogglePhonePower(), ensurePhone(), getPhone(), phoneBlockedReason(), phoneCharges(), phoneOnline() (+35 more)
 
 ### Community 13 - "Entity and Item Types"
 Cohesion: 0.27
@@ -398,8 +395,8 @@ Cohesion: 0.12
 Nodes (11): Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarLabel, MenubarRadioItem, MenubarSeparator, MenubarShortcut() (+3 more)
 
 ### Community 57 - "Entity Serialization Tests"
-Cohesion: 0.29
-Nodes (3): makeVehicle(), MOTOR_PAIRS, penalty()
+Cohesion: 0.07
+Nodes (21): IntentQueue, actionQueue, activeZombie, diedAny, ecsEntities, explosionIntent, intentQueue, item (+13 more)
 
 ### Community 58 - "Audio Management System"
 Cohesion: 0.28
@@ -430,16 +427,16 @@ Cohesion: 0.06
 Nodes (34): hashLocation(), hashNavigate(), useHashLocation(), NOTE: both modes must render the SAME element structure. Swapping between a, ScreenScaler(), ScreenScalerProps, Toast, ToastAction (+26 more)
 
 ### Community 71 - "Carousel UI Components"
-Cohesion: 0.04
-Nodes (55): engine, NOTE: equipItem intentionally has NO "Items inside" guard (unlike moveItem)., _warnedCatchAllProps, getItemName(), ItemDefs, TODO: art — shares rcreceiver.png until autonomouscontroller.png exists., getMeterPercent(), getWaterPercent() (+47 more)
+Cohesion: 0.05
+Nodes (52): engine, NOTE: equipItem intentionally has NO "Items inside" guard (unlike moveItem)., _warnedCatchAllProps, getItemName(), ItemDefs, TODO: art — shares rcreceiver.png until autonomouscontroller.png exists., getMeterPercent(), getWaterPercent() (+44 more)
 
 ### Community 73 - "World Object Spawning"
 Cohesion: 0.42
 Nodes (7): DEFAULT_TERRAIN_PROPS, getTerrainProps(), isTerrainDestructible(), isTerrainFlyable(), TERRAIN_PROPS, terrainBlocksSight(), EXPECTED
 
 ### Community 75 - "Map Serialization Tests"
-Cohesion: 0.06
-Nodes (30): DestroyIntent, NoiseEvent, IntentQueue, CombatSystem, DestructionSystem, ExplosionSystem, FireSystem, MovementSystem (+22 more)
+Cohesion: 0.12
+Nodes (9): DestroyIntent, NoiseEvent, CombatSystem, DestructionSystem, ExplosionSystem, FireSystem, MovementSystem, computeHearingZone() (+1 more)
 
 ### Community 76 - "App Routing and Scaling"
 Cohesion: 0.25
@@ -498,8 +495,8 @@ Cohesion: 0.22
 Nodes (8): Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow
 
 ### Community 93 - "EntityRenderer.js"
-Cohesion: 0.29
-Nodes (4): MoveIntent, NPCTypes, findAttackSlotPath(), isMeleeAttackPosition()
+Cohesion: 0.22
+Nodes (5): MoveIntent, NPCTypes, findAttackSlotPath(), isMeleeAttackPosition(), AudioSystem
 
 ### Community 94 - "DevConsole.tsx"
 Cohesion: 0.25
@@ -530,8 +527,8 @@ Cohesion: 0.12
 Nodes (8): BaseMapGenerator, LAYOUT, gameRandom, makeSeededRandom(), map, brokenScopeStats, templates, tmg
 
 ### Community 104 - ".runTurn"
-Cohesion: 0.05
-Nodes (51): engine, createItemFromDef(), SimulationManager, log, applyItemGrants(), GameHarness, UNARMED_WEAPON, NOTE: GameHarness drives the global engine/gameRandom singletons, so only (+43 more)
+Cohesion: 0.03
+Nodes (65): engine, createItemFromDef(), SimulationManager, log, applyItemGrants(), makeVehicle(), MOTOR_PAIRS, penalty() (+57 more)
 
 ### Community 105 - "LineOfSight.js"
 Cohesion: 0.27
@@ -542,8 +539,8 @@ Cohesion: 0.19
 Nodes (13): FloatingContainer(), FloatingContainerProps, FloatingContainerOverlay(), FloatingContainerOverlayProps, WeaponModPanel(), WeaponModPanelProps, useAction(), GridSlotSizeConfig (+5 more)
 
 ### Community 108 - "Seeded Random Utilities"
-Cohesion: 0.06
-Nodes (5): COMPONENT_NAME_BY_CTOR, DERIVED_CONDITIONS, Entity, get(), set()
+Cohesion: 0.07
+Nodes (4): COMPONENT_NAME_BY_CTOR, DERIVED_CONDITIONS, Entity, set()
 
 ### Community 112 - ".isEdgeBlocked"
 Cohesion: 0.47
@@ -610,7 +607,7 @@ Cohesion: 0.08
 Nodes (11): AIState, Burnable, RpgStats, SequencerAction, aiComp, ent, npc, player (+3 more)
 
 ### Community 133 - "._restoreTilesAndEntities"
-Cohesion: 0.40
+Cohesion: 0.25
 Nodes (3): PERSISTED_KEYS, pickPersistedMetadata(), restoreMapMetadata()
 
 ### Community 135 - "alert.tsx"
@@ -632,10 +629,6 @@ Nodes (8): Rabbit, map, mockTile, npc, player, rabbit, zombie, testCases
 ### Community 144 - "apEconomy.js"
 Cohesion: 0.71
 Nodes (5): compareVitals(), makeOpenArena(), maxScavengeRadius(), stopsAtDistance(), walkCost()
-
-### Community 147 - "MockGameMap"
-Cohesion: 0.09
-Nodes (3): GameMap, log, runTest()
 
 ### Community 148 - "verify_army_tent.js"
 Cohesion: 0.12
@@ -672,7 +665,7 @@ Nodes (4): doorsForBuilding(), floodFill(), PLAYER_FLOOD_OPTS, validateConnectiv
 ## Knowledge Gaps
 - **740 isolated node(s):** `inputContent`, `ActionSlotButtonProps`, `BarterWindowProps`, `BuildingTooltipProps`, `CharacterCreatorProps` (+735 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **51 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **54 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -690,4 +683,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `UI Components` be split into smaller, more focused modules?**
   _Cohesion score 0.05555555555555555 - nodes in this community are weakly interconnected._
 - **Should `Item Interaction Logic` be split into smaller, more focused modules?**
-  _Cohesion score 0.04807017543859649 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05341614906832298 - nodes in this community are weakly interconnected._
