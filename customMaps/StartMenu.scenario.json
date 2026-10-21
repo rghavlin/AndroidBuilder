@@ -77120,7 +77120,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_tomato-1792565039574-rqowx",
+            "instanceId": "provision.harvestable_tomato-1792566129272-hrohv",
             "defId": "provision.harvestable_tomato",
             "id": "provision.harvestable_tomato",
             "name": "Harvestable tomato",
@@ -112976,7 +112976,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.bandage-1792565039575-dawu9",
+            "instanceId": "medical.bandage-1792566129272-9bw53",
             "defId": "medical.bandage",
             "id": "medical.bandage",
             "name": "Bandage",
@@ -115137,7 +115137,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.honey-1792565039575-bfuuz",
+            "instanceId": "food.honey-1792566129272-qywgp",
             "defId": "food.honey",
             "id": "food.honey",
             "name": "Honey",
@@ -119128,7 +119128,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_tomato-1792565039575-9u5sy",
+            "instanceId": "provision.harvestable_tomato-1792566129272-bb1y4",
             "defId": "provision.harvestable_tomato",
             "id": "provision.harvestable_tomato",
             "name": "Harvestable tomato",
@@ -119148,7 +119148,7 @@
             "produceMax": 7
           },
           {
-            "instanceId": "food.tomatoseeds-1792565039575-m8q2y",
+            "instanceId": "food.tomatoseeds-1792566129272-t0ki3",
             "defId": "food.tomatoseeds",
             "id": "food.tomatoseeds",
             "name": "Tomato seeds",
@@ -119166,7 +119166,7 @@
             "plantsAs": "provision.tomato_plant"
           },
           {
-            "instanceId": "weapon.shovel-1792565039575-sga5f",
+            "instanceId": "weapon.shovel-1792566129272-voebn",
             "defId": "weapon.shovel",
             "id": "weapon.shovel",
             "name": "Shovel",
@@ -119195,7 +119195,7 @@
             "description": "Right click to dig a hole in the ground (grid)."
           },
           {
-            "instanceId": "placeable.help-1792565039575-gu6p3",
+            "instanceId": "placeable.help-1792566129272-iq8sa",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -121364,7 +121364,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.crowbar-1792565039575-cnrme",
+            "instanceId": "weapon.crowbar-1792566129272-yiam7",
             "defId": "weapon.crowbar",
             "id": "weapon.crowbar",
             "name": "Crowbar",
@@ -121393,7 +121393,7 @@
             "description": "Right click to use on doors and windows"
           },
           {
-            "instanceId": "placeable.help-1792565039575-zripy",
+            "instanceId": "placeable.help-1792566129272-06zlp",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -123428,7 +123428,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.help-1792565039575-0mon3",
+            "instanceId": "placeable.help-1792566129272-w05ey",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -124449,7 +124449,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.pocket_t-1792565039575-1vo0i",
+            "instanceId": "clothing.pocket_t-1792566129272-5uzud",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -124470,7 +124470,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1792565039575-5uc8v",
+            "instanceId": "clothing.sweatpants-1792566129272-4zp8u",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -124491,7 +124491,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "placeable.help-1792565039575-7ltig",
+            "instanceId": "placeable.help-1792566129273-9haf4",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -132911,6 +132911,24 @@
   },
   "entities": [
     {
+      "type": "zombie",
+      "x": 2,
+      "y": 115,
+      "subtype": "basic",
+      "noLoot": true,
+      "deaf": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 16,
+      "y": 118,
+      "subtype": "basic",
+      "noLoot": true,
+      "deaf": true,
+      "earbucksValue": 0
+    },
+    {
       "type": "player",
       "x": 6,
       "y": 120,
@@ -132988,22 +133006,22 @@
     },
     {
       "chainOnly": true,
-      "id": "equip weapon",
+      "id": "equip clothes",
       "steps": [
         {
           "speaker": "",
-          "text": "Click on the crowbar, then click on your melee slot to equip it."
+          "text": "Click on clothes, then click on your clothing slots to equip."
         }
       ],
       "oneShot": false
     },
     {
       "chainOnly": true,
-      "id": "equip clothes",
+      "id": "equip weapon",
       "steps": [
         {
           "speaker": "",
-          "text": "Click on clothes, then click on your clothing slots to equip."
+          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies."
         }
       ],
       "oneShot": false
@@ -133108,22 +133126,6 @@
       ]
     },
     {
-      "id": "equip weapon",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Click on the crowbar, then click on your melee slot to equip it."
-        }
-      ]
-    },
-    {
       "id": "equip clothes",
       "placement": {
         "kind": "chainOnly"
@@ -133136,6 +133138,22 @@
           "type": "dialog",
           "speaker": "",
           "text": "Click on clothes, then click on your clothing slots to equip."
+        }
+      ]
+    },
+    {
+      "id": "equip weapon",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies."
         }
       ]
     }

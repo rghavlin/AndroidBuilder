@@ -265010,7 +265010,15 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -272338,7 +272346,15 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -290689,21 +290705,21 @@
       "oneShot": false
     },
     {
-      "id": "equip weapon",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Click on the crowbar, then click on your melee slot to equip it."
-        }
-      ],
-      "oneShot": false
-    },
-    {
       "id": "equip clothes",
       "steps": [
         {
           "speaker": "",
           "text": "Click on clothes, then click on your clothing slots to equip."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "equip weapon",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies."
         }
       ],
       "oneShot": false
@@ -290807,22 +290823,6 @@
       ]
     },
     {
-      "id": "equip weapon",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Click on the crowbar, then click on your melee slot to equip it."
-        }
-      ]
-    },
-    {
       "id": "equip clothes",
       "placement": {
         "kind": "chainOnly"
@@ -290835,6 +290835,22 @@
           "type": "dialog",
           "speaker": "",
           "text": "Click on clothes, then click on your clothing slots to equip."
+        }
+      ]
+    },
+    {
+      "id": "equip weapon",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies."
         }
       ]
     }
