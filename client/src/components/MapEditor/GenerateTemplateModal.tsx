@@ -31,7 +31,7 @@ export const GenerateTemplateModal: React.FC<GenerateTemplateModalProps> = ({ on
           <span>
             Keep this map's name, events, quests, entities and settings
             <span style={{ display: 'block', color: '#888', fontSize: 11 }}>
-              Player, NPCs, triggers, transitions and event items stay at their coordinates; ordinary loot is dropped.
+              Player, NPCs, triggers, transitions and event items stay at their coordinates; ordinary loot and signs come from the new layout.
             </span>
           </span>
         </label>

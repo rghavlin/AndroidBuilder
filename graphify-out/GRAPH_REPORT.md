@@ -1,16 +1,16 @@
 # Graph Report - AndroidBuilder  (2026-10-20)
 
 ## Corpus Check
-- 582 files · ~7,297,615 words
+- 582 files · ~7,297,733 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3498 nodes · 9698 edges · 183 communities (132 shown, 51 thin omitted)
+- 3498 nodes · 9698 edges · 181 communities (132 shown, 49 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 157 edges (avg confidence: 0.77)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8a8d091b`
+- Built from commit: `7c589779`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -143,7 +143,6 @@
 - rcVehicleMovement.test.js
 - Drone
 - rcVehicle.test.js
-- addItemToPlayer.test.js
 - conditions.js
 - toggle-group.tsx
 - .executeAction
@@ -185,7 +184,6 @@
 - verify_saveload.mjs
 - MapConnectivityValidator.js
 - npcLoadout.test.js
-- beltSearch.test.js
 
 ## God Nodes (most connected - your core abstractions)
 1. `createItemFromDef()` - 197 edges
@@ -214,15 +212,15 @@
 ## Import Cycles
 - 1-file cycle: `test/balance/apEconomy.mjs -> test/balance/apEconomy.mjs`
 - 1-file cycle: `test/balance/balance.mjs -> test/balance/balance.mjs`
-- 3-file cycle: `client/src/game/ai/TurretCombat.js -> client/src/game/inventory/gridUtils.js -> client/src/game/inventory/Item.js -> client/src/game/ai/TurretCombat.js`
 - 3-file cycle: `client/src/game/inventory/Item.js -> client/src/game/utils/TurnProcessingUtils.js -> client/src/game/inventory/gridUtils.js -> client/src/game/inventory/Item.js`
+- 3-file cycle: `client/src/game/ai/TurretCombat.js -> client/src/game/inventory/gridUtils.js -> client/src/game/inventory/Item.js -> client/src/game/ai/TurretCombat.js`
 - 4-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/entities/Entity.js -> client/src/game/GameEngine.js`
 - 4-file cycle: `client/src/game/ai/TurretCombat.js -> client/src/game/inventory/gridUtils.js -> client/src/game/inventory/Item.js -> client/src/game/utils/TurnProcessingUtils.js -> client/src/game/ai/TurretCombat.js`
-- 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/entities/Entity.js -> client/src/game/systems/CombatResolver.js -> client/src/game/GameEngine.js`
 - 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/utils/Pathfinding.js -> client/src/game/entities/Entity.js -> client/src/game/GameEngine.js`
 - 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/entities/Entity.js -> client/src/game/systems/AttributeProgressionManager.js -> client/src/game/GameEngine.js`
+- 5-file cycle: `client/src/game/GameEngine.js -> client/src/game/remote/AutoWagonOrders.js -> client/src/game/remote/RcPathing.js -> client/src/game/entities/Entity.js -> client/src/game/systems/CombatResolver.js -> client/src/game/GameEngine.js`
 
-## Communities (183 total, 51 thin omitted)
+## Communities (181 total, 49 thin omitted)
 
 ### Community 1 - "UI Components"
 Cohesion: 0.06
@@ -233,8 +231,8 @@ Cohesion: 0.09
 Nodes (8): ActionPoints, AIBehavior, InventoryContainer, PlayerWallet, EntityFactory, AISystem, npc(), runTest()
 
 ### Community 4 - "AI and Inventory Systems"
-Cohesion: 0.10
-Nodes (40): BarterWindow(), BarterWindowProps, EarbucksShopWindow(), InventoryPanel(), PhoneWindow(), TollWindow(), TollWindowProps, BackpackGrid() (+32 more)
+Cohesion: 0.09
+Nodes (42): BarterWindow(), BarterWindowProps, EarbucksShopWindow(), InventoryPanel(), LeftPanelWindowProps, BATTERY_SLOT, DeviceChargeGauge(), DeviceList() (+34 more)
 
 ### Community 5 - "NPC AI Behavior"
 Cohesion: 0.07
@@ -269,12 +267,16 @@ Cohesion: 0.08
 Nodes (31): DroneConfig, Drone, droneEntityFilter(), findDronePath(), finishFlight(), moveActiveDevice(), previewMoveCost(), canAffordFlight() (+23 more)
 
 ### Community 13 - "Entity and Item Types"
-Cohesion: 0.18
+Cohesion: 0.21
 Nodes (5): DevConsole(), exportScenario(), MockGameMap, testWallGapFix(), verifyRestoration()
 
+### Community 15 - "HUD and Dialog UI"
+Cohesion: 0.07
+Nodes (18): Container, isGroundPriority(), isPinnedInPlace(), _warnedCatchAllProps, getMeterPercent(), getWaterPercent(), synthesizeZombieVirusCure(), PocketLayouts (+10 more)
+
 ### Community 17 - "Entity Spawning and Scent"
-Cohesion: 0.16
-Nodes (18): EarbucksDisplay(), GameEventLog(), GameEventLogProps, getLogColor(), formatTimestamp(), LoadGameWindow(), getLogColor(), LogHistoryWindow() (+10 more)
+Cohesion: 0.10
+Nodes (18): getProgressionForMap(), LootProgression, MapProgression, FIXED_TEMPLATE_ASSIGNMENTS, getTemplateForMapNumber(), POST_MAP_7_CYCLE, TEMPLATE_METADATA, getBrainstemColor() (+10 more)
 
 ### Community 18 - "Map Template Generation"
 Cohesion: 0.18
@@ -301,7 +303,7 @@ Cohesion: 0.13
 Nodes (14): MAP_GEN_CONFIG, BuildingTypes, isSpecialBuilding(), SPECIAL_BUILDING_SPECS, FLOORPLAN_FOOTPRINTS, FURNITURE_FOOTPRINTS, hasSpecialFurnitureLayout(), LAYOUTS (+6 more)
 
 ### Community 24 - "Turret Combat Logic"
-Cohesion: 0.07
+Cohesion: 0.06
 Nodes (8): TemplateMapGenerator, { GameMap }, { TemplateMapGenerator }, generator, layout, mapData, verifyRandomBuildings(), generator
 
 ### Community 26 - "Action Queue Processing"
@@ -309,8 +311,8 @@ Cohesion: 0.07
 Nodes (26): BuildingTooltip(), BuildingTooltipProps, CropTooltip(), CropTooltipProps, DoorTooltip(), DoorTooltipProps, DroneTooltip(), DroneTooltipProps (+18 more)
 
 ### Community 27 - "useGame"
-Cohesion: 0.06
-Nodes (37): ActionSlotButton(), ActionSlotButtonProps, EarbucksShopWindowProps, ShopItemRow(), ShopItemRowProps, EquipmentSlot, EquipmentSlotProps, SLOT_INFO (+29 more)
+Cohesion: 0.07
+Nodes (36): ActionSlotButton(), ActionSlotButtonProps, EarbucksDisplay(), EarbucksShopWindowProps, ShopItemRow(), ShopItemRowProps, GameEventLog(), GameEventLogProps (+28 more)
 
 ### Community 28 - "MapBuilder.js"
 Cohesion: 0.21
@@ -393,8 +395,8 @@ Cohesion: 0.16
 Nodes (12): BUILTIN_FACTIONS, BUILTIN_STANCES, builtinStanceValue(), cloneStances(), deltaKeys, DISPOSITION, DISPOSITIONS, FACTIONS (+4 more)
 
 ### Community 55 - "pagination.tsx"
-Cohesion: 0.20
-Nodes (13): findSouthTransitionTile(), getTownTurretPositions(), computeTollGateLayout(), TOLLGATE_DEFAULTS, getTurretKeepOutZone(), isInTurretKeepOut(), isPatientZero(), isPatientZeroStepAllowed() (+5 more)
+Cohesion: 0.14
+Nodes (20): findSouthTransitionTile(), getTownTurretPositions(), isInsideCompound(), isInsideTollGate(), isInStartArea(), computeTollGateLayout(), TOLLGATE_DEFAULTS, getTurretKeepOutZone() (+12 more)
 
 ### Community 56 - "Menubar UI Components"
 Cohesion: 0.12
@@ -413,24 +415,24 @@ Cohesion: 0.23
 Nodes (9): applyExpiration(), applyPower(), processInventoryTurn(), processItem(), chargerContents(), collectBatteries(), containerGridOf(), isBattery() (+1 more)
 
 ### Community 62 - "DecorationPlanner.js"
-Cohesion: 0.12
-Nodes (6): getFoodRejectionChance(), LootGenerator, isInsideAnyBuilding(), gameMap, generator, generator
+Cohesion: 0.17
+Nodes (4): getFoodRejectionChance(), LootGenerator, isInsideAnyBuilding(), isFloor()
 
 ### Community 63 - "Crafting Recipe Verification"
 Cohesion: 0.26
 Nodes (8): attachmentGrids(), consumeItemRecursive(), countItemRecursive(), findItemRecursive(), findStackRecursive(), nestedGrids(), ownGrids(), grid()
 
 ### Community 64 - "PhoneWindow.tsx"
-Cohesion: 0.40
-Nodes (3): allErrors, generator, subtypes
+Cohesion: 0.11
+Nodes (23): FloatingContainerOverlay(), ItemContextMenu(), ItemContextMenuProps, SplitDialog(), ContextMenuCheckboxItem, ContextMenuContent, ContextMenuItem, ContextMenuLabel (+15 more)
 
 ### Community 66 - "Form UI Components"
 Cohesion: 0.20
 Nodes (7): ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent, THEMES
 
 ### Community 68 - "Road Generation Logic"
-Cohesion: 0.28
-Nodes (8): isInsideCompound(), isInsideTollGate(), isInStartArea(), isFloor(), logger, ZombieReplenishmentSystem, corridorZombieCap(), ZombieSpawner
+Cohesion: 0.25
+Nodes (6): { ItemCategory }, { ItemDefs }, clothingKeys, lootGen, subtypes, { LootGenerator }
 
 ### Community 70 - "Toast Notification State"
 Cohesion: 0.20
@@ -438,7 +440,7 @@ Nodes (13): Action, ActionType, actionTypes, addToRemoveQueue(), dispatch(), gen
 
 ### Community 71 - "Carousel UI Components"
 Cohesion: 0.06
-Nodes (30): NPCTypes, Container, CraftingRecipes, engine, NOTE: equipItem intentionally has NO "Items inside" guard (unlike moveItem)., _warnedCatchAllProps, getItemName(), ItemDefs (+22 more)
+Nodes (21): NPCTypes, CraftingRecipes, engine, NOTE: equipItem intentionally has NO "Items inside" guard (unlike moveItem)., getItemName(), ItemDefs, TODO: art — shares rcreceiver.png until autonomouscontroller.png exists., EquipmentSlot (+13 more)
 
 ### Community 72 - "Toast UI Components"
 Cohesion: 0.20
@@ -451,10 +453,6 @@ Nodes (3): hasItemsInside(), isClothingOrBackpack(), verifyLoadSwaps()
 ### Community 75 - "Map Serialization Tests"
 Cohesion: 0.15
 Nodes (10): DestroyIntent, NoiseEvent, CombatSystem, DestructionSystem, ExplosionSystem, FireSystem, MovementSystem, computeHearingZone() (+2 more)
-
-### Community 76 - "App Routing and Scaling"
-Cohesion: 0.16
-Nodes (10): LeftPanelWindowProps, BATTERY_SLOT, DeviceChargeGauge(), DeviceList(), deviceName(), deviceStatus(), MessageReader(), PhoneAppIcon() (+2 more)
 
 ### Community 77 - "Item Factory Methods"
 Cohesion: 0.12
@@ -485,8 +483,8 @@ Cohesion: 0.05
 Nodes (25): DEFAULT_TERRAIN_PROPS, getTerrainProps(), isTerrainDestructible(), isTerrainFlyable(), isTerrainWalkable(), TERRAIN_PROPS, terrainBlocksSight(), Tile (+17 more)
 
 ### Community 84 - "JournalUI.tsx"
-Cohesion: 0.08
-Nodes (26): LootProgression, ItemCategory, RarityWeights, CorridorLootGenerator, spawnLabBuildingLoot(), FOOD_SCARCITY, LOOT_CONSTANTS, MAP_WIDE_REQUIREMENTS (+18 more)
+Cohesion: 0.11
+Nodes (18): RarityWeights, CorridorLootGenerator, spawnLabBuildingLoot(), FOOD_SCARCITY, LOOT_CONSTANTS, MAP_WIDE_REQUIREMENTS, SPECIAL_BUILDING_LOOT, ZOMBIE_LOOT (+10 more)
 
 ### Community 85 - "context-menu.tsx"
 Cohesion: 0.13
@@ -533,12 +531,12 @@ Cohesion: 0.50
 Nodes (4): btnStyle(), inputStyle, ZombieGeneratorModal(), ZombieGeneratorModalProps
 
 ### Community 100 - "tmp_verify_zombie_loot.js"
-Cohesion: 0.16
-Nodes (17): hasItemsInside(), InventoryProvider(), isClothingOrBackpack(), AttributeProgressionManager, applyEnergyApCap(), applySurvivalCascade(), applyVirusCure(), cureInfection() (+9 more)
+Cohesion: 0.18
+Nodes (14): AttributeProgressionManager, applyEnergyApCap(), applySurvivalCascade(), applyVirusCure(), cureInfection(), deriveSecondaryStats(), maxApBonusFromAttributes(), maxHpFromAttributes() (+6 more)
 
 ### Community 102 - "WeatherManager"
-Cohesion: 0.05
-Nodes (27): getProgressionForMap(), MapProgression, FIXED_TEMPLATE_ASSIGNMENTS, getTemplateForMapNumber(), POST_MAP_7_CYCLE, TEMPLATE_METADATA, getBrainstemColor(), getBrainstemStewColors() (+19 more)
+Cohesion: 0.07
+Nodes (11): ItemCategory, NOTE: do NOT force itemsModified for every container/attachment item., BaseMapGenerator, CorridorGenerator, NOTE: previously spawned a 'placeable.help' ("?") item on every legacy, gameRandom, makeSeededRandom(), map (+3 more)
 
 ### Community 103 - "RabbitAI"
 Cohesion: 0.29
@@ -549,8 +547,8 @@ Cohesion: 0.09
 Nodes (30): createItemFromDef(), make(), makeItems(), deployDrone(), freshBattery(), linkAutonomousWagon(), arm(), deployDrone() (+22 more)
 
 ### Community 106 - "navigation-menu.tsx"
-Cohesion: 0.11
-Nodes (24): drawImprovedCursor(), lastRainUpdate, MapCanvas(), playerRenderScratch, rainParticles, NOTE: PLACE_ICON and ITEM are intentionally excluded., renderRain(), warnedMalformedEntityIds (+16 more)
+Cohesion: 0.13
+Nodes (21): BeltContainerPanel(), BeltContainerPanelProps, FloatingContainer(), FloatingContainerProps, GridSlot, GridSlotProps, getAdjustedBgColor(), UniversalGrid() (+13 more)
 
 ### Community 108 - "Seeded Random Utilities"
 Cohesion: 0.07
@@ -657,12 +655,12 @@ Cohesion: 0.71
 Nodes (5): compareVitals(), makeOpenArena(), maxScavengeRadius(), stopsAtDistance(), walkCost()
 
 ### Community 148 - "verify_army_tent.js"
-Cohesion: 0.14
-Nodes (25): GameControls(), GameScreenContent(), InfectionHUD(), InventoryExtensionWindow(), InventoryExtensionWindowProps, MapInterface(), MapTransitionDialog(), OverlayManager() (+17 more)
+Cohesion: 0.07
+Nodes (50): GameControls(), GameScreenContent(), InfectionHUD(), InventoryExtensionWindow(), InventoryExtensionWindowProps, drawImprovedCursor(), lastRainUpdate, MapCanvas() (+42 more)
 
 ### Community 149 - "markerInteraction.test.js"
-Cohesion: 0.05
-Nodes (51): StartModeDialog(), StartModeDialogProps, ActionContext, AudioProvider(), CameraContext, CameraProvider(), CombatContext, GameContext (+43 more)
+Cohesion: 0.06
+Nodes (37): StartModeDialog(), StartModeDialogProps, ActionContext, CombatContext, GameContext, logger, NOTE: do NOT sync `condition` here — it is a DERIVED getter, and, logger (+29 more)
 
 ### Community 150 - "migrateEvents.js"
 Cohesion: 0.26
@@ -707,14 +705,14 @@ Nodes (4): doorsForBuilding(), floodFill(), PLAYER_FLOOD_OPTS, validateConnectiv
 ## Knowledge Gaps
 - **731 isolated node(s):** `inputContent`, `ActionSlotButtonProps`, `BarterWindowProps`, `BuildingTooltipProps`, `CharacterCreatorProps` (+726 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **51 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **49 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `EarbucksShopSystem` to `.executeAction`, `AI and Inventory Systems`, `Entity Spawning and Scent`, `Character and Menu Windows`, `verify_army_tent.js`, `Action Queue Processing`, `useGame`, `Sidebar UI Components`, `Container Grid Logic`, `Options and Crafting UI`, `Map Editor Tools`, `alert.tsx`, `Turret AI Testing`, `Menubar UI Components`, `Form UI Components`, `Toast UI Components`, `App Routing and Scaling`, `Weather Management System`, `.generateFromScenario`, `TollGateSystem`, `navigation-menu.tsx`, `toggle-group.tsx`, `react`, `lineOfSight.test.js`?**
+- **Why does `cn()` connect `EarbucksShopSystem` to `.executeAction`, `AI and Inventory Systems`, `Character and Menu Windows`, `verify_army_tent.js`, `Action Queue Processing`, `useGame`, `Sidebar UI Components`, `Container Grid Logic`, `Options and Crafting UI`, `Map Editor Tools`, `alert.tsx`, `Turret AI Testing`, `Menubar UI Components`, `PhoneWindow.tsx`, `Form UI Components`, `Toast UI Components`, `Weather Management System`, `.generateFromScenario`, `TollGateSystem`, `navigation-menu.tsx`, `toggle-group.tsx`, `react`, `lineOfSight.test.js`?**
   _High betweenness centrality (0.085) - this node is a cross-community bridge._
-- **Why does `createItemFromDef()` connect `.runTurn` to `traits.js`, `Item Interaction Logic`, `Game Engine Context`, `AI and Inventory Systems`, `NPC AI Behavior`, `Action Intent System`, `._processCurrentStep`, `Tooltip Components`, `get`, `Inventory and Skill Windows`, `Entity and Item Types`, `MapConnectivityValidator.js`, `TestEntity.js`, `Map Template Generation`, `MockGameMap`, `verify_army_tent.js`, `markerInteraction.test.js`, `Game Initialization Manager`, `Turret Combat Logic`, `bench_houses.mjs`, `Action Queue Processing`, `Map Generation Config`, `EventRunner`, `Dialog and Button UI`, `Road and Town Generation`, `Line of Sight System`, `toast.tsx`, `vehicleCharger.test.js`, `Window and Door Interaction`, `.pos`, `npcLoadout.test.js`, `beltSearch.test.js`, `pagination.tsx`, `Entity Serialization Tests`, `Audio Management System`, `DecorationPlanner.js`, `Road Generation Logic`, `Carousel UI Components`, `World Object Spawning`, `Map Tile Logic`, `Map Serialization Tests`, `DevConsole.tsx`, `JournalUI.tsx`, `MusicManager`, `Weapon Attachment Logic`, `tmp_verify_zombie_loot.js`, `Table UI Components`, `WeatherManager`, `npcAttackOnSight.test.js`, `MoveIntent`, `rcVehicleMovement.test.js`, `rcVehicle.test.js`?**
+- **Why does `createItemFromDef()` connect `.runTurn` to `traits.js`, `Item Interaction Logic`, `Game Engine Context`, `AI and Inventory Systems`, `NPC AI Behavior`, `Action Intent System`, `._processCurrentStep`, `Tooltip Components`, `get`, `Inventory and Skill Windows`, `TestEntity.js`, `MapConnectivityValidator.js`, `HUD and Dialog UI`, `Entity Spawning and Scent`, `Map Template Generation`, `MockGameMap`, `verify_army_tent.js`, `markerInteraction.test.js`, `Game Initialization Manager`, `Turret Combat Logic`, `bench_houses.mjs`, `Action Queue Processing`, `Map Generation Config`, `EventRunner`, `Dialog and Button UI`, `Road and Town Generation`, `Line of Sight System`, `toast.tsx`, `vehicleCharger.test.js`, `Window and Door Interaction`, `.pos`, `npcLoadout.test.js`, `pagination.tsx`, `Entity Serialization Tests`, `Audio Management System`, `DecorationPlanner.js`, `Carousel UI Components`, `World Object Spawning`, `Map Tile Logic`, `Map Serialization Tests`, `DevConsole.tsx`, `JournalUI.tsx`, `MusicManager`, `Weapon Attachment Logic`, `Table UI Components`, `WeatherManager`, `navigation-menu.tsx`, `npcAttackOnSight.test.js`, `MoveIntent`, `rcVehicleMovement.test.js`, `rcVehicle.test.js`?**
   _High betweenness centrality (0.075) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `External Dependencies` to `Project Package Metadata`, `Server and Vite Config`, `toggle-group.tsx`, `RabbitAI`?**
   _High betweenness centrality (0.071) - this node is a cross-community bridge._

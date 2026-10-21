@@ -3865,18 +3865,18 @@
     "semantic_hash": ""
   },
   "client/src/components/MapEditor/GenerateTemplateModal.tsx": {
-    "mtime": 1792542225.7524655,
-    "ast_hash": "d7f091fc2e3d3944c8a2c3932fabe9aa",
+    "mtime": 1792544834.0763142,
+    "ast_hash": "269f86e9af5ff5358c85c364fd58854d",
     "semantic_hash": ""
   },
   "client/src/components/MapEditor/carryOverAuthoredTiles.ts": {
-    "mtime": 1792542189.3417914,
-    "ast_hash": "0c61498ace6d5823a190e3ce51b1248e",
+    "mtime": 1792544822.4219365,
+    "ast_hash": "aaa5a82946bb810c79a60162f33061d6",
     "semantic_hash": ""
   },
   "test/editor/carryOverAuthoredTiles.test.js": {
-    "mtime": 1792542297.3422031,
-    "ast_hash": "2117ebf6c7b617e65c7a3e58458bc946",
+    "mtime": 1792544834.0412717,
+    "ast_hash": "faed15ce4ab9c368b43cd003ad291bbf",
     "semantic_hash": ""
   }
 }
