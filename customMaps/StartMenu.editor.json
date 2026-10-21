@@ -253565,7 +253565,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "medical.bandage"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -258363,7 +258367,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.honey"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -265024,9 +265032,12 @@
             "window": false
           },
           "w": {
-            "wall": true,
-            "door": false,
-            "window": false
+            "wall": false,
+            "door": true,
+            "window": false,
+            "locked": false,
+            "keylocked": false,
+            "isGarage": false
           }
         },
         "entities": [],
@@ -265122,7 +265133,7 @@
             "window": false
           },
           "e": {
-            "wall": true,
+            "wall": false,
             "door": false,
             "window": false
           },
@@ -265159,9 +265170,12 @@
             "window": false
           },
           "w": {
-            "wall": true,
-            "door": false,
-            "window": false
+            "wall": false,
+            "door": true,
+            "window": false,
+            "locked": false,
+            "keylocked": false,
+            "isGarage": false
           }
         },
         "entities": [],
@@ -267276,7 +267290,21 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "provision.harvestable_tomato"
+          },
+          {
+            "defId": "food.tomatoseeds"
+          },
+          {
+            "defId": "weapon.shovel"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Farming"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -267324,11 +267352,9 @@
             "window": false
           },
           "w": {
-            "wall": false,
-            "door": true,
-            "window": false,
-            "locked": false,
-            "keylocked": false
+            "wall": true,
+            "door": false,
+            "window": false
           }
         },
         "entities": [],
@@ -269617,7 +269643,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -269645,7 +269671,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -269672,7 +269698,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -269699,7 +269725,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -269726,7 +269752,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -272112,7 +272138,15 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.crowbar"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "equip weapon"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -274538,10 +274572,9 @@
             "window": false
           },
           "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
-            "window": true,
-            "locked": true
+            "window": false
           },
           "s": {
             "wall": false,
@@ -276637,8 +276670,19 @@
             "window": false
           }
         },
-        "entities": [],
-        "items": []
+        "entities": [
+          {
+            "type": "player",
+            "inventory": [],
+            "equippedIndex": -1
+          }
+        ],
+        "items": [
+          {
+            "defId": "placeable.help",
+            "eventId": "Starting tile"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -278874,10 +278918,9 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
-            "window": true,
-            "locked": true
+            "window": false
           },
           "w": {
             "wall": false,
@@ -278886,7 +278929,18 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "clothing.pocket_t"
+          },
+          {
+            "defId": "clothing.sweatpants"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "equip clothes"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -279066,9 +279120,10 @@
             "window": false
           },
           "s": {
-            "wall": true,
+            "wall": false,
             "door": false,
-            "window": false
+            "window": true,
+            "locked": false
           },
           "w": {
             "wall": false,
@@ -290628,7 +290683,27 @@
       "steps": [
         {
           "speaker": "",
-          "text": "You should put some clothes on before going outside. When you run out of ACTION POINTS, end your turn."
+          "text": "You should find some clothes to put on before going outside. Right-click on doors to open them. If you run out of ACTION POINTS, end your turn."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "equip weapon",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Click on the crowbar, then click on your melee slot to equip it."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "equip clothes",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Click on clothes, then click on your clothing slots to equip."
         }
       ],
       "oneShot": false
@@ -290727,7 +290802,39 @@
         {
           "type": "dialog",
           "speaker": "",
-          "text": "You should put some clothes on before going outside. When you run out of ACTION POINTS, end your turn."
+          "text": "You should find some clothes to put on before going outside. Right-click on doors to open them. If you run out of ACTION POINTS, end your turn."
+        }
+      ]
+    },
+    {
+      "id": "equip weapon",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Click on the crowbar, then click on your melee slot to equip it."
+        }
+      ]
+    },
+    {
+      "id": "equip clothes",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Click on clothes, then click on your clothing slots to equip."
         }
       ]
     }
@@ -290742,5 +290849,14 @@
   "entityRegistry": {
     "entries": []
   },
-  "furniture": []
+  "furniture": [
+    {
+      "type": "bed",
+      "x": 3,
+      "y": 117,
+      "w": 3,
+      "h": 2,
+      "rot": 3
+    }
+  ]
 }
