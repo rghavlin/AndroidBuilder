@@ -23,7 +23,9 @@ import { TileRenderer } from '@/game/renderer/TileRenderer';
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { FURNITURE_FOOTPRINTS } from '@/game/map/FurniturePlanner';
 import { RETIRED_INDOOR_DECORATIONS } from '@/game/map/DecorationPlanner';
-import { EDITOR_TEMPLATE_CHOICES, EDITOR_GENERATOR_CHOICES } from '@/game/config/TemplateConfig';
+import { EDITOR_GENERATOR_CHOICES } from '@/game/config/TemplateConfig';
+import { GenerateTemplateModal } from '@/components/MapEditor/GenerateTemplateModal';
+import { carryOverAuthoredTiles } from '@/components/MapEditor/carryOverAuthoredTiles';
 import { computeMinimapSize } from '@/game/editor/minimapLayout';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -2695,8 +2697,11 @@ export default function MapEditor() {
     }
   };
 
-  const handleGenerateTemplate = async (templateName: string) => {
+  const handleGenerateTemplate = async (templateName: string, keepEvents: boolean) => {
     setShowGenPicker(false);
+    // Snapshot of the current scenario's authored layer, re-applied over the
+    // generated layout when keepEvents is on (see carryOverAuthoredTiles).
+    const kept = { scenarioName, tiles, noAutosave, lightMode, bubbleEvents, chainDialogEvents, allEditorEvents, questRegistry, entityRegistry };
     requestConfirm('Generate template? This will replace the current map layout!', async () => {
       setStatusMsg(`Generating map template "${templateName}"...`);
       try {
@@ -2709,6 +2714,13 @@ export default function MapEditor() {
         }
         scenarioData.name = `generated_${templateName}`;
         applyLoadedData(scenarioData, `Generated: ${templateName}`);
+        if (!keepEvents) return;
+        const { tiles: merged, carried, dropped } = carryOverAuthoredTiles(kept.tiles, sanitizeTiles(scenarioToEditorState(scenarioData).tiles));
+        setTiles(merged);
+        setScenarioName(kept.scenarioName); setNoAutosave(kept.noAutosave); setLightMode(kept.lightMode);
+        setBubbleEvents(kept.bubbleEvents); setChainDialogEvents(kept.chainDialogEvents); setAllEditorEvents(kept.allEditorEvents);
+        setQuestRegistry(kept.questRegistry); setEntityRegistry(kept.entityRegistry);
+        setStatusMsg(`Generated "${templateName}" layout for "${kept.scenarioName}" — kept events, carried ${carried} tile item(s)${dropped ? `, ${dropped} out of bounds dropped` : ''}`);
       } catch (err: any) {
         console.error('Failed to generate template:', err);
         setStatusMsg(`Generation failed: ${err.message}`);
@@ -4020,45 +4032,7 @@ export default function MapEditor() {
         )}
       </div>
 
-      {/* ─── Generator picker modal ─── */}
-      {showGenPicker && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={() => setShowGenPicker(false)}>
-          <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: 16, minWidth: 320, maxHeight: '80vh', overflow: 'auto' }}
-            onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#7bb8ff' }}>Generate Map Template</h3>
-            <p style={{ fontSize: 12, color: '#aaa', marginBottom: 12 }}>Select a map template to procedurally generate. This will overwrite the current map!</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {EDITOR_TEMPLATE_CHOICES.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => handleGenerateTemplate(t.id)}
-                  style={{
-                    padding: '8px 12px',
-                    background: '#333',
-                    border: '1px solid #555',
-                    borderRadius: 4,
-                    color: '#ddd',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    fontSize: 13,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#444')}
-                  onMouseLeave={e => (e.currentTarget.style.background = '#333')}
-                >
-                  <span>{t.name}</span>
-                  <span style={{ color: '#888', fontSize: 10 }}>{t.id}</span>
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setShowGenPicker(false)}
-              style={{ ...btnStyle('#555'), marginTop: 16, width: '100%' }}>Cancel</button>
-          </div>
-        </div>
-      )}
+      {showGenPicker && <GenerateTemplateModal onGenerate={handleGenerateTemplate} onClose={() => setShowGenPicker(false)} />}
 
       {/* ─── Load picker modal ─── */}
       {showLoadPicker && (

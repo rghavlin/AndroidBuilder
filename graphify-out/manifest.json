@@ -1405,8 +1405,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1790227488.429094,
-    "ast_hash": "63dd7a42edacae0ba93efd7f154f3841",
+    "mtime": 1792542277.5029085,
+    "ast_hash": "385bb87ac75ded5e5522f14e0ee11265",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -3110,13 +3110,13 @@
     "semantic_hash": ""
   },
   "customMaps/StartMenu.editor.json": {
-    "mtime": 1792482640.216292,
-    "ast_hash": "3856c40930572b2f957fbc7703770551",
+    "mtime": 1792483833.8779595,
+    "ast_hash": "ffd00d9da5b04dc5fc0d00536b49fe70",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.scenario.json": {
-    "mtime": 1792482641.3633895,
-    "ast_hash": "24290893505228b60dc402f471348221",
+    "mtime": 1792483834.7827833,
+    "ast_hash": "a684672bdbc9d266965e21953673323c",
     "semantic_hash": ""
   },
   "test/ai/aiStateTransitions.test.js": {
@@ -3250,8 +3250,8 @@
     "semantic_hash": ""
   },
   "scripts/god-object-budget.json": {
-    "mtime": 1789633060.0433395,
-    "ast_hash": "69a3ea4044b45db1b5b84868f246a8b2",
+    "mtime": 1792542362.356332,
+    "ast_hash": "e186ef95080dadc4ad9cfe2bde009f64",
     "semantic_hash": ""
   },
   "scripts/godObjectBudget.mjs": {
@@ -3862,6 +3862,21 @@
   "test/map/specialFurnitureLayouts.test.js": {
     "mtime": 1792482409.8247924,
     "ast_hash": "8793619d28638014ff9f9024ed4f8356",
+    "semantic_hash": ""
+  },
+  "client/src/components/MapEditor/GenerateTemplateModal.tsx": {
+    "mtime": 1792542225.7524655,
+    "ast_hash": "d7f091fc2e3d3944c8a2c3932fabe9aa",
+    "semantic_hash": ""
+  },
+  "client/src/components/MapEditor/carryOverAuthoredTiles.ts": {
+    "mtime": 1792542189.3417914,
+    "ast_hash": "0c61498ace6d5823a190e3ce51b1248e",
+    "semantic_hash": ""
+  },
+  "test/editor/carryOverAuthoredTiles.test.js": {
+    "mtime": 1792542297.3422031,
+    "ast_hash": "2117ebf6c7b617e65c7a3e58458bc946",
     "semantic_hash": ""
   }
 }
