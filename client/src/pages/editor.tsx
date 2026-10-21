@@ -25,6 +25,9 @@ import { FURNITURE_FOOTPRINTS } from '@/game/map/FurniturePlanner';
 import { RETIRED_INDOOR_DECORATIONS } from '@/game/map/DecorationPlanner';
 import { EDITOR_GENERATOR_CHOICES } from '@/game/config/TemplateConfig';
 import { GenerateTemplateModal } from '@/components/MapEditor/GenerateTemplateModal';
+import { FurnitureStampPanel } from '@/components/MapEditor/FurnitureStampPanel';
+import { BuildingStampPanel, drawStampGhost, rotateStamp, type StampSelection } from '@/components/MapEditor/BuildingStampPanel';
+import { measureStamp, buildStampMap, stampBlockedReason, mergeStampTiles } from '@/game/editor/buildingStamp';
 import { carryOverAuthoredTiles } from '@/components/MapEditor/carryOverAuthoredTiles';
 import { computeMinimapSize } from '@/game/editor/minimapLayout';
 
@@ -154,7 +157,7 @@ function looseFurnitureFrom(flat: FurniturePiece[], buildings: any[]): Furniture
 }
 
 type Edge = 'n' | 'e' | 's' | 'w';
-type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'furniture' | 'eraser' | 'map_transition' | 'place_icon' | 'event_editor';
+type ToolMode = 'terrain' | 'edge_wall' | 'edge_door' | 'edge_window' | 'entity' | 'item' | 'building_rect' | 'building_stamp' | 'furniture' | 'eraser' | 'map_transition' | 'place_icon' | 'event_editor';
 
 // Editor-only display names for items whose in-game name is too terse to find in
 // an alphabetical picker (e.g. the help item's name is literally "?", which sorts
@@ -1139,6 +1142,8 @@ export default function MapEditor() {
     { items: EditorItem[]; equippedIndex: number; target: { x: number; y: number; idx: number } | null } | null
   >(null);
   const [selectedBuildingType, setSelectedBuildingType] = useState('residential');
+  const [stampSel, setStampSel] = useState<StampSelection>({ key: 'house:cottage_1bed', frontage: 'south', mirror: false });
+  const stampFootprint = useMemo(() => measureStamp(stampSel), [stampSel]);
   const [selectedPlaceIconSubtype, setSelectedPlaceIconSubtype] = useState('grocer');
   const [selectedItem, setSelectedItem] = useState('');
   const [itemCategory, setItemCategory] = useState('');
@@ -1815,9 +1820,9 @@ export default function MapEditor() {
       // Bare R rotates the furniture stamp, but not while typing in a field.
       const target = e.target as HTMLElement | null;
       const typing = !!target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
-      if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'r' || e.key === 'R') && tool === 'furniture') {
+      if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'r' || e.key === 'R') && (tool === 'furniture' || tool === 'building_stamp')) {
         e.preventDefault();
-        setFurnitureRot(r => (r + 1) % 4);
+        if (tool === 'furniture') setFurnitureRot(r => (r + 1) % 4); else setStampSel(rotateStamp);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -2088,6 +2093,17 @@ export default function MapEditor() {
     setStatusMsg(`Stamped ${furnitureType} at (${x},${y})`);
   }, [furnitureType, furnitureRot, width, height, tiles]);
 
+  // ─── Building stamp tool (drawn by MapBuilder; see game/editor/buildingStamp) ─
+  const stampBuildingAt = useCallback((x: number, y: number) => {
+    const blocked = stampBlockedReason(stampFootprint, x, y, width, height, buildingsRef.current, furnitureRef.current);
+    if (blocked) { setStatusMsg(`Can't stamp here: ${blocked}`); return; }
+    const mapData = buildStampMap(stampSel, x, y, width, height);
+    pushUndo(tiles, buildingsRef.current, furnitureRef.current);
+    setTiles(mergeStampTiles(tiles, scenarioToEditorState(mapData).tiles, mapData));
+    setBuildings(prev => [...prev, ...mapData.metadata.buildings]);
+    setStatusMsg(`Stamped ${stampSel.key.split(':')[1]} facing ${stampSel.frontage}`);
+  }, [stampSel, stampFootprint, width, height, tiles]);
+
   // ─── Building rect drawing ──────────────────────────────────────────
   const finishBuildingRect = useCallback((endX: number, endY: number) => {
     if (!buildStart) return;
@@ -2320,8 +2336,13 @@ export default function MapEditor() {
       ctx.lineWidth = 1;
     }
 
+    if (tool === 'building_stamp' && hoverCell) {
+      drawStampGhost(ctx, stampFootprint, hoverCell.x, hoverCell.y, CELL,
+        !!stampBlockedReason(stampFootprint, hoverCell.x, hoverCell.y, width, height, buildings, furniture));
+    }
+
     // Hover highlight
-    if (hoverCell && tool !== 'building_rect' && tool !== 'furniture') {
+    if (hoverCell && tool !== 'building_rect' && tool !== 'furniture' && tool !== 'building_stamp') {
       ctx.strokeStyle = 'rgba(255,255,255,0.5)';
       const useBrush = tool === 'terrain' || tool === 'eraser';
       if (useBrush && brushSize > 1) {
@@ -2333,7 +2354,7 @@ export default function MapEditor() {
         ctx.strokeRect(hoverCell.x * CELL, hoverCell.y * CELL, CELL, CELL);
       }
     }
-  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, furniture, furnitureType, furnitureRot, showGrid, showFurniture]);
+  }, [width, height, hoverCell, buildStart, tool, brushSize, tiles, buildings, furniture, furnitureType, furnitureRot, stampFootprint, showGrid, showFurniture]);
 
   // ─── Minimap update logic ────────────────────────────────────────────
   const updateMinimapViewport = useCallback(() => {
@@ -2457,6 +2478,8 @@ export default function MapEditor() {
       setBuildStart({ x, y });
     } else if (tool === 'furniture') {
       stampFurniture(x, y);
+    } else if (tool === 'building_stamp') {
+      stampBuildingAt(x, y);
     } else {
       strokeUndoPushed.current = false;
       setIsPainting(true);
@@ -3471,6 +3494,7 @@ export default function MapEditor() {
           {toolButton('edge_door', 'Door')}
           {toolButton('edge_window', 'Window')}
           {toolButton('building_rect', 'Building')}
+          {toolButton('building_stamp', 'Stamp Building')}
           {toolButton('furniture', 'Furniture')}
           {toolButton('place_icon', 'Sign')}
           {toolButton('entity', 'Entity')}
@@ -3747,36 +3771,11 @@ export default function MapEditor() {
           </div>
         )}
 
+        {tool === 'building_stamp' && <BuildingStampPanel selection={stampSel} onChange={setStampSel} footprint={stampFootprint} />}
+
         {tool === 'furniture' && (
-          <div>
-            <label style={{ fontSize: 11, color: '#888' }}>Outline / Stamp Type</label>
-            <select
-              value={furnitureType}
-              onChange={e => setFurnitureType(e.target.value)}
-              style={{ ...inputStyle, width: '100%', marginTop: 4 }}
-            >
-              <optgroup label="Furniture">
-                {FURNITURE_STAMP_TYPES.filter(ft => !['car', 'pickup', 'van'].includes(ft.id)).map(ft => (
-                  <option key={ft.id} value={ft.id}>{ft.label}</option>
-                ))}
-              </optgroup>
-              <optgroup label="Vehicles (Roads)">
-                {FURNITURE_STAMP_TYPES.filter(ft => ['car', 'pickup', 'van'].includes(ft.id)).map(ft => (
-                  <option key={ft.id} value={ft.id}>{ft.label}</option>
-                ))}
-              </optgroup>
-            </select>
-            <button
-              onClick={() => setFurnitureRot(r => (r + 1) % 4)}
-              style={{ ...btnStyle('#555'), width: '100%', marginTop: 6 }}
-            >
-              Rotate 90° [R] (now {rotatedFootprint(furnitureType, furnitureRot).w}×{rotatedFootprint(furnitureType, furnitureRot).h})
-            </button>
-            <p style={{ fontSize: 11, color: '#888', margin: '4px 0 0' }}>
-              Click to stamp the outlined piece. Red outline = blocked. Use Eraser or right-click to remove.
-              {' '}<span style={{ color: '#8fd0c8' }}>{furniture.length} stamped</span>.
-            </p>
-          </div>
+          <FurnitureStampPanel types={FURNITURE_STAMP_TYPES} furnitureType={furnitureType} onTypeChange={setFurnitureType}
+            onRotate={() => setFurnitureRot(r => (r + 1) % 4)} footprint={rotatedFootprint(furnitureType, furnitureRot)} stampedCount={furniture.length} />
         )}
 
         {tool === 'place_icon' && (

@@ -125,15 +125,17 @@ export class MapBuilder {
   }
 
   /**
-   * Place a building footprint
+   * Place a building footprint. `plan` forces a specific canonical (front=south)
+   * floorplan instead of picking one for the lot — the map editor's building
+   * stamp uses this so a stamped house is drawn by exactly this code path.
    */
-  drawBuilding(x, y, w, h, frontage, type = 'residential') {
+  drawBuilding(x, y, w, h, frontage, type = 'residential', plan = null) {
     // Standardized floorplans: for residential lots, try to snap the footprint
     // down to an authored floorplan (oriented to the frontage) and stamp it.
     // Falls back to procedural subdivision when nothing fits (see below).
     let orientedPlan = null;
     if (type === 'residential' || type === 'starting_home') {
-      const picked = pickFloorplan(w, h, frontage);
+      const picked = plan ? { plan } : pickFloorplan(w, h, frontage);
       if (picked) {
         orientedPlan = orientFloorplan(picked.plan, frontage);
         w = orientedPlan.width;

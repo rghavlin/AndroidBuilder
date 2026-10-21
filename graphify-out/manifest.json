@@ -1070,8 +1070,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/MapBuilder.js": {
-    "mtime": 1792482371.5566514,
-    "ast_hash": "ed5ad2dd874b4fa450488fa5efdfec02",
+    "mtime": 1792545980.4357755,
+    "ast_hash": "1025e7a75e786f10b1b7558d9ff961bc",
     "semantic_hash": ""
   },
   "client/src/game/map/MapConnectivityValidator.js": {
@@ -1405,8 +1405,8 @@
     "semantic_hash": "3cec33c7524e2e65685aa1afac15885b"
   },
   "client/src/pages/editor.tsx": {
-    "mtime": 1792542277.5029085,
-    "ast_hash": "385bb87ac75ded5e5522f14e0ee11265",
+    "mtime": 1792546137.793424,
+    "ast_hash": "d215c1c884205e6cb245426bbdf96a45",
     "semantic_hash": ""
   },
   "client/src/pages/game.tsx": {
@@ -3250,8 +3250,8 @@
     "semantic_hash": ""
   },
   "scripts/god-object-budget.json": {
-    "mtime": 1792542362.356332,
-    "ast_hash": "e186ef95080dadc4ad9cfe2bde009f64",
+    "mtime": 1792546274.0704496,
+    "ast_hash": "0b412a278950501091a398cc650f9922",
     "semantic_hash": ""
   },
   "scripts/godObjectBudget.mjs": {
@@ -3877,6 +3877,26 @@
   "test/editor/carryOverAuthoredTiles.test.js": {
     "mtime": 1792544834.0412717,
     "ast_hash": "faed15ce4ab9c368b43cd003ad291bbf",
+    "semantic_hash": ""
+  },
+  "client/src/components/MapEditor/BuildingStampPanel.tsx": {
+    "mtime": 1792546080.6996446,
+    "ast_hash": "e513dd383ebb8800ff261f39c1aafd1e",
+    "semantic_hash": ""
+  },
+  "client/src/components/MapEditor/FurnitureStampPanel.tsx": {
+    "mtime": 1792546137.308262,
+    "ast_hash": "3bdd3c0c66421b8839c6a62ffaf1454f",
+    "semantic_hash": ""
+  },
+  "client/src/game/editor/buildingStamp.js": {
+    "mtime": 1792546022.2702775,
+    "ast_hash": "33865f6a537d8eab6508f0b8de71355f",
+    "semantic_hash": ""
+  },
+  "test/editor/buildingStamp.test.js": {
+    "mtime": 1792546045.5883918,
+    "ast_hash": "202de41d624a4a36933baf1aac79a941",
     "semantic_hash": ""
   }
 }
