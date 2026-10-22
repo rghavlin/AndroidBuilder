@@ -17,6 +17,7 @@ import { planRoadVehicles } from './RoadVehiclePlanner.js';
 import { gameRandom } from '../utils/SeededRandom.js';
 import { CorridorLootGenerator } from './generators/CorridorLootGenerator.js';
 import { spawnLabBuildingLoot } from './generators/LabLootGenerator.js';
+import { populateSafe, fillSpecialContainer } from './ContainerLoot.js';
 const LOOT_CONSTANTS = {
     GENERATOR_SPAWN_FUEL_MAX: 6, // 0-5 units
     FUEL_COVER_OFFSET: 3,
@@ -501,166 +502,6 @@ export class LootGenerator {
     }
 
     /**
-     * Populate safe container with random loot
-     */
-    populateSafe(safeItem) {
-        const grid = safeItem.getContainerGrid();
-        if (!grid) return;
-
-        const SAFE_GUNS = [
-            { gun: 'weapon.9mmPistol', ammo: 'ammo.9mm' },
-            { gun: 'weapon.357Pistol', ammo: 'ammo.357' },
-            { gun: 'weapon.hunting_rifle', ammo: 'ammo.308' },
-            { gun: 'weapon.battle_rifle', ammo: 'ammo.556' },
-            { gun: 'weapon.shotgun', ammo: 'ammo.shotgun_shells' }
-        ];
-
-        const options = [];
-
-        // Option: A gun (max one)
-        const hasGun = gameRandom.next() < 0.7; // 70% chance to contain a gun
-        let spawnedGunInfo = null;
-        if (hasGun) {
-            const gunInfo = SAFE_GUNS[gameRandom.nextInt(0, SAFE_GUNS.length - 1)];
-            spawnedGunInfo = gunInfo;
-            options.push(() => {
-                const gun = createItemFromDef(gunInfo.gun);
-                if (gun) {
-                    const item = Item.fromJSON(gun);
-                    LootGenerator.applySpawnDefaults(item, false);
-                    return item;
-                }
-                return null;
-            });
-        }
-
-        // Option: Ammo for the gun in the safe (15-20 rounds)
-        if (hasGun) {
-            options.push(() => {
-                if (!spawnedGunInfo) return null;
-                const ammo = createItemFromDef(spawnedGunInfo.ammo);
-                if (ammo) {
-                    const count = 15 + gameRandom.nextInt(0, 5); // 15-20
-                    const item = Item.fromJSON(ammo);
-                    item.stackCount = count;
-                    return item;
-                }
-                return null;
-            });
-        }
-
-        // Option: MREs (1-2)
-        if (gameRandom.next() < 0.8) options.push(() => {
-            const mre = createItemFromDef('food.mre');
-            if (!mre) return null;
-            const item = Item.fromJSON(mre);
-            item.stackCount = gameRandom.next() < 0.5 ? 1 : 2;
-            return item;
-        });
-
-        // Option: Full water bottles (1-2)
-        if (gameRandom.next() < 0.8) options.push(() => {
-            const bottle = createItemFromDef('food.waterbottle');
-            if (!bottle) return null;
-            const item = Item.fromJSON(bottle);
-            item.ammoCount = 20; // Full
-            item.waterQuality = 'clean';
-            return item;
-        });
-
-        // Option: Any ammo (15-20 rounds)
-        if (gameRandom.next() < 0.8) {
-            options.push(() => {
-                const randGun = SAFE_GUNS[gameRandom.nextInt(0, SAFE_GUNS.length - 1)];
-                const ammo = createItemFromDef(randGun.ammo);
-                if (ammo) {
-                    const count = 15 + gameRandom.nextInt(0, 5); // 15-20
-                    const item = Item.fromJSON(ammo);
-                    item.stackCount = count;
-                    return item;
-                }
-                return null;
-            });
-        }
-
-        // Option: flashlight (with full battery)
-        if (gameRandom.next() < 0.6) {
-            options.push(() => {
-                const flData = createItemFromDef('tool.smallflashlight');
-                if (flData) {
-                    flData.attachments = {
-                        battery: createItemFromDef('tool.battery')
-                    };
-                    const item = Item.fromJSON(flData);
-                    return item;
-                }
-                return null;
-            });
-        }
-
-        // Option: batteries (2-4)
-        if (gameRandom.next() < 0.7) options.push(() => {
-            const bat = createItemFromDef('tool.battery');
-            if (!bat) return null;
-            const item = Item.fromJSON(bat);
-            item.stackCount = 2 + gameRandom.nextInt(0, 2); // 2-4
-            return item;
-        });
-
-        // Option: high capacity batteries (1-2)
-        if (gameRandom.next() < 0.45) options.push(() => {
-            const highBat = createItemFromDef('tool.high_capacity_battery');
-            if (!highBat) return null;
-            const item = Item.fromJSON(highBat);
-            item.stackCount = gameRandom.next() < 0.5 ? 1 : 2; // 1-2
-            return item;
-        });
-
-        // Option: hand cranked battery charger
-        if (gameRandom.next() < 0.5) options.push(() => {
-            const charger = createItemFromDef('tool.crank_charger');
-            return charger ? Item.fromJSON(charger) : null;
-        });
-
-        // Option: first aid kit
-        if (gameRandom.next() < 0.6) options.push(() => {
-            const kit = createItemFromDef('medical.first_aid_kit');
-            return kit ? Item.fromJSON(kit) : null;
-        });
-
-        // Shuffle the option generators
-        const shuffled = gameRandom.shuffle(options);
-
-        // Try to generate and add each item
-        let gunAdded = false;
-        for (const gen of shuffled) {
-            const item = gen();
-            if (!item) continue;
-
-            // If it's a gun and we already added a gun, skip it!
-            if (item.hasCategory?.(ItemCategory.GUN) || item.categories?.includes(ItemCategory.GUN)) {
-                if (gunAdded) continue;
-                gunAdded = true;
-            }
-
-            // Attempt to add to grid
-            const added = grid.addItem(item);
-            if (!added) {
-                // Try rotating to fit
-                item.rotation = item.rotation === 0 ? 90 : 0;
-                const addedRotated = grid.addItem(item);
-                if (!addedRotated) {
-                    console.log(`[LootGenerator] Safe: Item ${item.name} did not fit. Skipping.`);
-                } else {
-                    console.log(`[LootGenerator] Safe: Added rotated ${item.name}`);
-                }
-            } else {
-                console.log(`[LootGenerator] Safe: Added ${item.name}`);
-            }
-        }
-    }
-
-    /**
      * Spawn safes inside random buildings
      */
     spawnSafes(gameMap, count) {
@@ -728,7 +569,7 @@ export class LootGenerator {
                 if (safeData) {
                     const safe = Item.fromJSON(safeData);
                     // Populate safe with loot
-                    this.populateSafe(safe);
+                    populateSafe(safe);
                     
                     // Place the safe on the tile
                     gameMap.setItemsOnTile(foundLocation.x, foundLocation.y, [safe]);
@@ -1484,6 +1325,9 @@ export class LootGenerator {
         if (isWeapon && (item.categories?.includes(ItemCategory.GUN) || item.attachmentSlots)) {
             LootGenerator.initializeWeaponAmmo(item);
         }
+
+        // 5. Starting contents for lunchboxes, tool boxes and medkits
+        fillSpecialContainer(item, isZombieLoot);
     }
 
     /**

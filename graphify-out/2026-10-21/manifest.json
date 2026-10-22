@@ -725,8 +725,8 @@
     "semantic_hash": "a5c0da845b52753acd9f626600010f74"
   },
   "client/src/game/WorldManager.js": {
-    "mtime": 1792567943.5411196,
-    "ast_hash": "e72ebe343231451089bd506d35d7d2b7",
+    "mtime": 1792569083.7562966,
+    "ast_hash": "b04622cef24e6c387d4f0592f4bbfabc",
     "semantic_hash": ""
   },
   "client/src/game/ai/AITargeting.js": {
@@ -3920,8 +3920,8 @@
     "semantic_hash": ""
   },
   "test/map/mapExits.test.js": {
-    "mtime": 1792568070.863139,
-    "ast_hash": "c16b2beb005605f7307f51511dccd62a",
+    "mtime": 1792569107.344613,
+    "ast_hash": "69cb77cbe3a2a8faff66cb36ef1cb3de",
     "semantic_hash": ""
   }
 }

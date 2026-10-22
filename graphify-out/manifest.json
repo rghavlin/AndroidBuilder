@@ -1060,8 +1060,8 @@
     "semantic_hash": ""
   },
   "client/src/game/map/LootGenerator.js": {
-    "mtime": 1787733700.8886087,
-    "ast_hash": "f6f24a788a7871895300b5169f69ab20",
+    "mtime": 1792629277.7693498,
+    "ast_hash": "6645e5b749ba0daaed4853697b0b3744",
     "semantic_hash": ""
   },
   "client/src/game/map/LootTables.js": {
@@ -1300,8 +1300,8 @@
     "semantic_hash": ""
   },
   "client/src/game/utils/NPCSpawner.js": {
-    "mtime": 1790060147.7243235,
-    "ast_hash": "c5388392e176e4f04cf7901e6b5a95af",
+    "mtime": 1792629287.8353925,
+    "ast_hash": "58166d67cd9f127d1001bfeb6ec58f6c",
     "semantic_hash": ""
   },
   "client/src/game/utils/Pathfinding.js": {
@@ -3110,13 +3110,13 @@
     "semantic_hash": ""
   },
   "customMaps/StartMenu.editor.json": {
-    "mtime": 1792567943.5726466,
-    "ast_hash": "630a456a96410ac81da7fffec128625e",
+    "mtime": 1792629206.022076,
+    "ast_hash": "c5c7e97d11b769b4503f5d105c2f5e25",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.scenario.json": {
-    "mtime": 1792567943.5811546,
-    "ast_hash": "66164889abc678f6ce02c08aaba5e20a",
+    "mtime": 1792629206.5707972,
+    "ast_hash": "4be5c0633873082aa865137f33b442e2",
     "semantic_hash": ""
   },
   "test/ai/aiStateTransitions.test.js": {
@@ -3250,8 +3250,8 @@
     "semantic_hash": ""
   },
   "scripts/god-object-budget.json": {
-    "mtime": 1792568083.484895,
-    "ast_hash": "4076febd7c2f4e67721ea448870b7c57",
+    "mtime": 1792629373.346089,
+    "ast_hash": "4aff15d91be76d43755e144c7046e232",
     "semantic_hash": ""
   },
   "scripts/godObjectBudget.mjs": {
@@ -3922,6 +3922,16 @@
   "test/map/mapExits.test.js": {
     "mtime": 1792569107.344613,
     "ast_hash": "69cb77cbe3a2a8faff66cb36ef1cb3de",
+    "semantic_hash": ""
+  },
+  "client/src/game/map/ContainerLoot.js": {
+    "mtime": 1792629266.1205502,
+    "ast_hash": "94d1c652b8c56c835ce7a0b498f94090",
+    "semantic_hash": ""
+  },
+  "test/map/containerLoot.test.js": {
+    "mtime": 1792629307.0511746,
+    "ast_hash": "ecfb64eca883a0b2b9a80ed5e7f8d43b",
     "semantic_hash": ""
   }
 }

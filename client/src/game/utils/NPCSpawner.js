@@ -7,6 +7,7 @@ import { getNPCType } from '../entities/NPCTypes.js';
 import { TURRET_DEF_ID } from '../ai/TurretCombat.js';
 import { PlaceIcon } from '../entities/PlaceIcon.js';
 import { computeTollGateLayout } from '../map/TollGate.js';
+import { fillSpecialContainer } from '../map/ContainerLoot.js';
 
 
 import { gameRandom } from './SeededRandom.js';
@@ -194,6 +195,7 @@ export class NPCSpawner {
         const itemData = createItemFromDef(itemDefId);
         if (itemData) {
           const item = Item.fromJSON(itemData);
+          fillSpecialContainer(item);
           const success = npc.inventory.addItem(item);
           if (success) {
             itemsAdded++;
