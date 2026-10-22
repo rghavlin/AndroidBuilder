@@ -1679,7 +1679,7 @@
         "items": []
       },
       {
-        "terrain": "transition",
+        "terrain": "road",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -1703,7 +1703,12 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "placeable.exit",
+            "transitionTargetType": "next"
+          }
+        ]
       },
       {
         "terrain": "road",
@@ -182568,7 +182573,12 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "furniture.electric_mower",
+            "batteryCharges": 130
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -191779,7 +191789,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.wrench"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -197194,7 +197208,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.tape"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -199471,7 +199489,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "container.toolbox"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -206383,7 +206405,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.battery_charger"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -207682,7 +207708,19 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "environment.water_puddle"
+          },
+          {
+            "defId": "food.waterbottle",
+            "ammoCount": 0
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Water puddle"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -207791,7 +207829,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "clothing.blue_jeans"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -210261,7 +210303,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "clothing.workshirt"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -210585,7 +210631,15 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.lighter"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Fire cook"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -215587,9 +215641,10 @@
             "window": false
           },
           "s": {
-            "wall": true,
+            "wall": false,
             "door": false,
-            "window": false
+            "window": true,
+            "locked": false
           },
           "w": {
             "wall": false,
@@ -243394,7 +243449,22 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.fuel_can"
+          },
+          {
+            "defId": "furniture.fuel_cover",
+            "ammoCount": 32
+          },
+          {
+            "defId": "tool.rubber_hose"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "fuel cover"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -245001,9 +245071,10 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": true,
+            "wall": false,
             "door": false,
-            "window": false
+            "window": true,
+            "locked": false
           },
           "e": {
             "wall": false,
@@ -249633,7 +249704,21 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.knife"
+          },
+          {
+            "defId": "clothing.sweatpants"
+          },
+          {
+            "defId": "clothing.sweatpants"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Rags"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -254030,7 +254115,18 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "vehicle.toy_wagon"
+          },
+          {
+            "defId": "weapon.frying_pan"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Wagon and pan"
+          }
+        ]
       },
       {
         "terrain": "road",
@@ -256763,8 +256859,11 @@
           },
           "w": {
             "wall": false,
-            "door": false,
-            "window": false
+            "door": true,
+            "window": false,
+            "locked": false,
+            "keylocked": false,
+            "isGarage": false
           }
         },
         "entities": [],
@@ -259065,12 +259164,12 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
           "w": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           }
@@ -259092,7 +259191,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -259103,7 +259202,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "backpack.school"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -261329,7 +261432,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.hammer"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -265970,7 +266077,15 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "placeable.bed"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "disassemble"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -286323,7 +286438,7 @@
         "items": []
       },
       {
-        "terrain": "transition",
+        "terrain": "road",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -290645,16 +290760,6 @@
   "bubbleEvents": [],
   "chainDialogEvents": [
     {
-      "id": "Farming",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant"
-        }
-      ],
-      "oneShot": false
-    },
-    {
       "id": "Wagon and pan",
       "steps": [
         {
@@ -290720,6 +290825,36 @@
         {
           "speaker": "",
           "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "disassemble",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Place a hammer on the ground, then right-click the bed to disassemble."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "Farming",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant. If you run out of ACTIION POINTS, end your turn."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "fuel cover",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers."
         }
       ],
       "oneShot": false
@@ -290727,22 +290862,6 @@
   ],
   "events": [
     {
-      "id": "Farming",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant"
-        }
-      ]
-    },
-    {
       "id": "Wagon and pan",
       "placement": {
         "kind": "chainOnly"
@@ -290851,6 +290970,54 @@
           "type": "dialog",
           "speaker": "",
           "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies."
+        }
+      ]
+    },
+    {
+      "id": "disassemble",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Place a hammer on the ground, then right-click the bed to disassemble."
+        }
+      ]
+    },
+    {
+      "id": "Farming",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant. If you run out of ACTIION POINTS, end your turn."
+        }
+      ]
+    },
+    {
+      "id": "fuel cover",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers."
         }
       ]
     }

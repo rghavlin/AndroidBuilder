@@ -753,14 +753,33 @@
       {
         "x": 62,
         "y": 0,
-        "terrain": "transition",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "placeable.exit-1792629206499-1d5sr",
+            "defId": "placeable.exit",
+            "id": "placeable.exit",
+            "name": "Exit",
+            "rarity": "common",
+            "imageId": "exit",
+            "width": 3,
+            "height": 3,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "renderFullTile": true,
+            "transitionTargetType": "next"
+          }
+        ]
       },
       {
         "x": 63,
@@ -77120,7 +77139,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_tomato-1792566129272-hrohv",
+            "instanceId": "provision.harvestable_tomato-1792629206500-fg6kz",
             "defId": "provision.harvestable_tomato",
             "id": "provision.harvestable_tomato",
             "name": "Harvestable tomato",
@@ -81340,7 +81359,95 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "furniture.electric_mower-1792629206500-vzk56",
+            "defId": "furniture.electric_mower",
+            "id": "furniture.electric_mower",
+            "name": "Electric mower",
+            "noLoot": true,
+            "noPickup": true,
+            "rarity": "rare",
+            "imageId": "electricmower",
+            "categories": [
+              "furniture"
+            ],
+            "width": 4,
+            "height": 5,
+            "traits": [
+              "draggable",
+              "groundOnly",
+              "openable-when-nested",
+              "furniture"
+            ],
+            "dragApPenalty": 1,
+            "renderFullTile": true,
+            "description": "Dissasemble: Wrench",
+            "attachmentSlots": [
+              {
+                "id": "battery",
+                "name": "Power Cell",
+                "allowedCategories": [
+                  "large_battery"
+                ],
+                "allowedItems": [
+                  "tool.large_battery",
+                  "tool.high_capacity_battery"
+                ]
+              }
+            ],
+            "disassembleData": {
+              "toolId": "weapon.wrench",
+              "apCost": 15,
+              "components": [
+                {
+                  "id": "crafting.wheel",
+                  "count": 4
+                },
+                {
+                  "id": "electric_motor",
+                  "count": 1
+                },
+                {
+                  "id": "crafting.mower_blade",
+                  "count": 1
+                },
+                {
+                  "id": "weapon.metal_rod",
+                  "count": 2
+                },
+                {
+                  "id": "crafting.metal_plate",
+                  "count": 1
+                }
+              ]
+            },
+            "attachments": {
+              "battery": {
+                "instanceId": "tool.large_battery-1792629206500-xbifu",
+                "defId": "tool.large_battery",
+                "id": "tool.large_battery",
+                "name": "Large battery",
+                "rarity": "uncommon",
+                "imageId": "largebattery",
+                "width": 2,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
+                ],
+                "categories": [
+                  "large_battery",
+                  "tool"
+                ],
+                "stackMax": 5,
+                "capacity": 150,
+                "ammoCount": 130
+              }
+            }
+          }
+        ]
       },
       {
         "x": 21,
@@ -85446,7 +85553,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.wrench-1792629206500-1ucll",
+            "defId": "weapon.wrench",
+            "id": "weapon.wrench",
+            "name": "Wrench",
+            "rarity": "uncommon",
+            "imageId": "wrench",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 21,
@@ -87857,7 +87993,27 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.tape-1792629206500-agbp7",
+            "defId": "crafting.tape",
+            "id": "crafting.tape",
+            "name": "Tape",
+            "rarity": "common",
+            "imageId": "tape",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "tool",
+              "crafting_material"
+            ],
+            "stackMax": 20
+          }
+        ]
       },
       {
         "x": 51,
@@ -88868,7 +89024,31 @@
           "s": true,
           "w": true
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "container.toolbox-1792629206500-4gu1d",
+            "defId": "container.toolbox",
+            "id": "container.toolbox",
+            "name": "Tool Box",
+            "rarity": "uncommon",
+            "imageId": "toolbox",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "container",
+              "openable-when-nested"
+            ],
+            "containerGrid": {
+              "width": 4,
+              "height": 3,
+              "allowedCategories": [
+                "tool"
+              ]
+            },
+            "description": "Holds tools and materials"
+          }
+        ]
       },
       {
         "x": 50,
@@ -91942,7 +92122,35 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "tool.battery_charger-1792629206500-k5xza",
+            "defId": "tool.battery_charger",
+            "id": "tool.battery_charger",
+            "name": "Battery charger",
+            "rarity": "rare",
+            "imageId": "charger",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "container",
+              "openable-when-nested"
+            ],
+            "categories": [
+              "tool"
+            ],
+            "containerGrid": {
+              "width": 3,
+              "height": 2,
+              "allowedCategories": [
+                "battery",
+                "large_battery"
+              ]
+            },
+            "description": "Use with a generator"
+          }
+        ]
       },
       {
         "x": 50,
@@ -92521,7 +92729,79 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "environment.water_puddle-1792629206500-y4s98",
+            "defId": "environment.water_puddle",
+            "id": "environment.water_puddle",
+            "name": "Water puddle",
+            "rarity": "common",
+            "imageId": "waterpuddle",
+            "width": 5,
+            "height": 5,
+            "isPickable": false,
+            "noDrag": true,
+            "traits": [
+              "water_bottle",
+              "consumable",
+              "water_source"
+            ],
+            "maxWater": 50,
+            "ammoCount": 50,
+            "capacity": 50,
+            "waterQuality": "dirty",
+            "categories": [
+              "environment"
+            ],
+            "noLoot": true,
+            "renderFullTile": false,
+            "backgroundColor": "#0a2e5c",
+            "description": "Use empty bottle or jug to collect dirty water"
+          },
+          {
+            "instanceId": "food.waterbottle-1792629206500-hjr7u",
+            "defId": "food.waterbottle",
+            "id": "food.waterbottle",
+            "name": "Water Bottle",
+            "rarity": "common",
+            "imageId": "waterbottle",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable",
+              "water_bottle"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "capacity": 20,
+            "ammoCount": 0,
+            "spawnAmmoPercent": 1,
+            "consumptionEffects": {
+              "hydration": 1
+            }
+          },
+          {
+            "instanceId": "placeable.help-1792629206500-6kk43",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Water puddle"
+          }
+        ]
       },
       {
         "x": 13,
@@ -92569,7 +92849,30 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "clothing.blue_jeans-1792629206500-ksvee",
+            "defId": "clothing.blue_jeans",
+            "id": "clothing.blue_jeans",
+            "name": "Blue Jeans",
+            "rarity": "common",
+            "imageId": "jeans",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "lower_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "blue_jeans",
+            "description": "When on the ground, right-click to open pockets"
+          }
+        ]
       },
       {
         "x": 17,
@@ -93670,7 +93973,30 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "clothing.workshirt-1792629206500-t4xgq",
+            "defId": "clothing.workshirt",
+            "id": "clothing.workshirt",
+            "name": "Work Shirt",
+            "rarity": "uncommon",
+            "imageId": "workshirt",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "upper_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "work_shirt",
+            "description": "When on the ground, right-click to open pockets"
+          }
+        ]
       },
       {
         "x": 23,
@@ -93814,7 +94140,46 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "tool.lighter-1792629206500-o62cz",
+            "defId": "tool.lighter",
+            "id": "tool.lighter",
+            "name": "Lighter",
+            "rarity": "uncommon",
+            "imageId": "lighter",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "charge-based"
+            ],
+            "categories": [
+              "tool"
+            ],
+            "stackMax": 1,
+            "capacity": 10,
+            "ammoCount": 10,
+            "spawnAmmoPercent": 1
+          },
+          {
+            "instanceId": "placeable.help-1792629206500-8v9qk",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Fire cook"
+          }
+        ]
       },
       {
         "x": 35,
@@ -108442,7 +108807,88 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "tool.fuel_can-1792629206500-w8d6f",
+            "defId": "tool.fuel_can",
+            "id": "tool.fuel_can",
+            "name": "Fuel can",
+            "rarity": "rare",
+            "imageId": "fuelcan",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "fuel_container"
+            ],
+            "categories": [
+              "tool"
+            ],
+            "capacity": 25
+          },
+          {
+            "instanceId": "furniture.fuel_cover-1792629206500-wbl3w",
+            "defId": "furniture.fuel_cover",
+            "id": "furniture.fuel_cover",
+            "name": "Fuel cover",
+            "rarity": "common",
+            "imageId": "fuelcover",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "groundOnly",
+              "no_drag",
+              "fuel_container"
+            ],
+            "categories": [
+              "furniture"
+            ],
+            "capacity": 100,
+            "renderFullTile": true,
+            "noTooltipUnits": true,
+            "noTooltipRarity": true,
+            "noLoot": true,
+            "description": "Use a rubber hose on the fuel cover to put fuel into a fuel can",
+            "ammoCount": 32
+          },
+          {
+            "instanceId": "tool.rubber_hose-1792629206500-m4mjd",
+            "defId": "tool.rubber_hose",
+            "id": "tool.rubber_hose",
+            "name": "Rubber hose",
+            "rarity": "common",
+            "imageId": "rubberhose",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "canSiphon"
+            ],
+            "categories": [
+              "tool"
+            ],
+            "spawnBias": {
+              "outside": 3,
+              "inside": 0.1
+            }
+          },
+          {
+            "instanceId": "placeable.help-1792629206500-k4lj5",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "fuel cover"
+          }
+        ]
       },
       {
         "x": 56,
@@ -111221,7 +111667,96 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.knife-1792629206500-ah6l0",
+            "defId": "weapon.knife",
+            "id": "weapon.knife",
+            "name": "Knife",
+            "rarity": "common",
+            "imageId": "knife",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool",
+              "knife"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 4
+              }
+            }
+          },
+          {
+            "instanceId": "clothing.sweatpants-1792629206500-uysnc",
+            "defId": "clothing.sweatpants",
+            "id": "clothing.sweatpants",
+            "name": "Sweatpants",
+            "rarity": "common",
+            "imageId": "sweatpants",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "lower_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "sweatpants",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "clothing.sweatpants-1792629206500-svgta",
+            "defId": "clothing.sweatpants",
+            "id": "clothing.sweatpants",
+            "name": "Sweatpants",
+            "rarity": "common",
+            "imageId": "sweatpants",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "lower_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "sweatpants",
+            "description": "When on the ground, right-click to open pockets"
+          },
+          {
+            "instanceId": "placeable.help-1792629206500-994y7",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Rags"
+          }
+        ]
       },
       {
         "x": 31,
@@ -112976,7 +113511,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.bandage-1792566129272-9bw53",
+            "instanceId": "medical.bandage-1792629206500-d8mb1",
             "defId": "medical.bandage",
             "id": "medical.bandage",
             "name": "Bandage",
@@ -113207,7 +113742,135 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "vehicle.toy_wagon-1792629206500-hi3pp",
+            "defId": "vehicle.toy_wagon",
+            "id": "vehicle.toy_wagon",
+            "name": "Toy Wagon",
+            "noLoot": true,
+            "rarity": "uncommon",
+            "imageId": "toywagon",
+            "width": 4,
+            "height": 6,
+            "traits": [
+              "draggable",
+              "groundOnly",
+              "container",
+              "vehicle",
+              "wagon"
+            ],
+            "categories": [
+              "furniture",
+              "vehicle"
+            ],
+            "dragApPenalty": 2,
+            "motorAssistBonus": 1,
+            "terrainModifiers": {
+              "road": -0.5,
+              "sidewalk": -0.5
+            },
+            "renderFullTile": true,
+            "description": "Used to move items",
+            "containerGrid": {
+              "width": 4,
+              "height": 5,
+              "isVehicle": true
+            },
+            "attachmentSlots": [
+              {
+                "id": "motor",
+                "name": "Electric Motor",
+                "allowedItems": [
+                  "electric_motor"
+                ]
+              },
+              {
+                "id": "battery",
+                "name": "Power Cell",
+                "allowedCategories": [
+                  "large_battery"
+                ],
+                "allowedItems": [
+                  "tool.large_battery",
+                  "tool.high_capacity_battery"
+                ]
+              },
+              {
+                "id": "rc_receiver",
+                "name": "Receiver",
+                "allowedItems": [
+                  "tool.rc_receiver",
+                  "tool.autonomous_controller"
+                ]
+              }
+            ],
+            "disassembleData": {
+              "toolId": "weapon.wrench",
+              "apCost": 10,
+              "components": [
+                {
+                  "id": "crafting.wheel",
+                  "count": 4
+                },
+                {
+                  "id": "weapon.metal_rod",
+                  "count": 2
+                },
+                {
+                  "id": "crafting.metal_plate",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          {
+            "instanceId": "weapon.frying_pan-1792629206500-lyxg2",
+            "defId": "weapon.frying_pan",
+            "id": "weapon.frying_pan",
+            "name": "Frying pan",
+            "rarity": "common",
+            "imageId": "fryingpan",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool",
+              "cooking_pot"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          },
+          {
+            "instanceId": "placeable.help-1792629206500-0iec9",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Wagon and pan"
+          }
+        ]
       },
       {
         "x": 23,
@@ -114420,7 +115083,7 @@
           "n": true,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
@@ -115137,7 +115800,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.honey-1792566129272-qywgp",
+            "instanceId": "food.honey-1792629206500-poivf",
             "defId": "food.honey",
             "id": "food.honey",
             "name": "Honey",
@@ -115467,8 +116130,8 @@
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
@@ -115479,10 +116142,35 @@
         "edgeWalls": {
           "n": false,
           "e": true,
-          "s": false,
+          "s": true,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "backpack.school-1792629206500-c2gi8",
+            "defId": "backpack.school",
+            "id": "backpack.school",
+            "name": "Book Bag",
+            "rarity": "uncommon",
+            "imageId": "bookBag",
+            "width": 3,
+            "height": 3,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "categories": [
+              "container"
+            ],
+            "equippableSlot": "backpack",
+            "containerGrid": {
+              "width": 4,
+              "height": 5
+            },
+            "description": "When on the ground, right-click to open"
+          }
+        ]
       },
       {
         "x": 40,
@@ -116472,7 +117160,37 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.hammer-1792629206500-bsdin",
+            "defId": "weapon.hammer",
+            "id": "weapon.hammer",
+            "name": "Hammer",
+            "rarity": "uncommon",
+            "imageId": "hammer",
+            "width": 3,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool",
+              "hammer"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.7,
+              "damage": {
+                "min": 2,
+                "max": 8
+              }
+            }
+          }
+        ]
       },
       {
         "x": 37,
@@ -118532,7 +119250,77 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "placeable.bed-1792629206500-v627b",
+            "defId": "placeable.bed",
+            "id": "placeable.bed",
+            "name": "Bed",
+            "rarity": "rare",
+            "noLoot": true,
+            "noPickup": true,
+            "renderFullTile": true,
+            "traits": [
+              "groundOnly",
+              "draggable",
+              "furniture"
+            ],
+            "dragApPenalty": 4,
+            "terrainModifiers": {
+              "road": 0,
+              "sidewalk": 0
+            },
+            "imageId": "bed",
+            "width": 4,
+            "height": 6,
+            "categories": [
+              "furniture",
+              "tool"
+            ],
+            "disassembleData": {
+              "toolId": {
+                "either": [
+                  "weapon.hammer",
+                  "weapon.makeshift_hammer"
+                ]
+              },
+              "apCost": 10,
+              "components": [
+                {
+                  "id": "crafting.feather_padding",
+                  "count": 1
+                },
+                {
+                  "id": "weapon.plank",
+                  "count": 4
+                },
+                {
+                  "id": "crafting.nail",
+                  "count": 4
+                }
+              ]
+            },
+            "description": "Dissasemble: Hammer"
+          },
+          {
+            "instanceId": "placeable.help-1792629206500-wfkv5",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "disassemble"
+          }
+        ]
       },
       {
         "x": 38,
@@ -119128,7 +119916,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_tomato-1792566129272-bb1y4",
+            "instanceId": "provision.harvestable_tomato-1792629206500-ka2nw",
             "defId": "provision.harvestable_tomato",
             "id": "provision.harvestable_tomato",
             "name": "Harvestable tomato",
@@ -119148,7 +119936,7 @@
             "produceMax": 7
           },
           {
-            "instanceId": "food.tomatoseeds-1792566129272-t0ki3",
+            "instanceId": "food.tomatoseeds-1792629206500-j981i",
             "defId": "food.tomatoseeds",
             "id": "food.tomatoseeds",
             "name": "Tomato seeds",
@@ -119166,7 +119954,7 @@
             "plantsAs": "provision.tomato_plant"
           },
           {
-            "instanceId": "weapon.shovel-1792566129272-voebn",
+            "instanceId": "weapon.shovel-1792629206501-vs5ub",
             "defId": "weapon.shovel",
             "id": "weapon.shovel",
             "name": "Shovel",
@@ -119195,7 +119983,7 @@
             "description": "Right click to dig a hole in the ground (grid)."
           },
           {
-            "instanceId": "placeable.help-1792566129272-iq8sa",
+            "instanceId": "placeable.help-1792629206501-6piha",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -121364,7 +122152,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.crowbar-1792566129272-yiam7",
+            "instanceId": "weapon.crowbar-1792629206501-h34eo",
             "defId": "weapon.crowbar",
             "id": "weapon.crowbar",
             "name": "Crowbar",
@@ -121393,7 +122181,7 @@
             "description": "Right click to use on doors and windows"
           },
           {
-            "instanceId": "placeable.help-1792566129272-06zlp",
+            "instanceId": "placeable.help-1792629206501-k69a5",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -123428,7 +124216,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.help-1792566129272-w05ey",
+            "instanceId": "placeable.help-1792629206501-d3oce",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -124449,7 +125237,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.pocket_t-1792566129272-5uzud",
+            "instanceId": "clothing.pocket_t-1792629206501-lar7n",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -124470,7 +125258,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1792566129272-4zp8u",
+            "instanceId": "clothing.sweatpants-1792629206501-96i7f",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -124491,7 +125279,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "placeable.help-1792566129273-9haf4",
+            "instanceId": "placeable.help-1792629206501-89ham",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -127793,7 +128581,7 @@
       {
         "x": 22,
         "y": 124,
-        "terrain": "transition",
+        "terrain": "road",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -132281,6 +133069,14 @@
         "edge": "w"
       },
       {
+        "x": 38,
+        "y": 111,
+        "isLocked": false,
+        "isKeylocked": false,
+        "isOpen": false,
+        "edge": "w"
+      },
+      {
         "x": 10,
         "y": 112,
         "isLocked": false,
@@ -132797,6 +133593,20 @@
         "edge": "w"
       },
       {
+        "x": 49,
+        "y": 93,
+        "isLocked": false,
+        "isOpen": false,
+        "edge": "s"
+      },
+      {
+        "x": 30,
+        "y": 106,
+        "isLocked": false,
+        "isOpen": false,
+        "edge": "n"
+      },
+      {
         "x": 35,
         "y": 106,
         "isLocked": false,
@@ -132940,17 +133750,6 @@
   "eventTriggers": [
     {
       "chainOnly": true,
-      "id": "Farming",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant"
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
       "id": "Wagon and pan",
       "steps": [
         {
@@ -133022,29 +133821,45 @@
         {
           "speaker": "",
           "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "disassemble",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Place a hammer on the ground, then right-click the bed to disassemble."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Farming",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant. If you run out of ACTIION POINTS, end your turn."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "fuel cover",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers."
         }
       ],
       "oneShot": false
     }
   ],
-  "mapTransitions": [],
   "events": [
-    {
-      "id": "Farming",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant"
-        }
-      ]
-    },
     {
       "id": "Wagon and pan",
       "placement": {
@@ -133154,6 +133969,54 @@
           "type": "dialog",
           "speaker": "",
           "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies."
+        }
+      ]
+    },
+    {
+      "id": "disassemble",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Place a hammer on the ground, then right-click the bed to disassemble."
+        }
+      ]
+    },
+    {
+      "id": "Farming",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant. If you run out of ACTIION POINTS, end your turn."
+        }
+      ]
+    },
+    {
+      "id": "fuel cover",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers."
         }
       ]
     }
