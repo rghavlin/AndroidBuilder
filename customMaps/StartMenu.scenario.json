@@ -763,7 +763,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.exit-1792629206499-1d5sr",
+            "instanceId": "placeable.exit-1793075837087-vnase",
             "defId": "placeable.exit",
             "id": "placeable.exit",
             "name": "Exit",
@@ -2194,7 +2194,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1793075837087-csoe4",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 10,
@@ -11674,7 +11708,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837087-fnnjo",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 31,
@@ -12121,7 +12184,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837087-tym2e",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 68,
@@ -13229,7 +13321,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837087-3mtjj",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 75,
@@ -14049,7 +14170,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837087-xt9ic",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 58,
@@ -17605,7 +17755,36 @@
           "s": true,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837087-npjxi",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 13,
@@ -18353,7 +18532,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837087-w0swt",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 75,
@@ -19577,7 +19785,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1793075837088-8nhds",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 6,
@@ -19973,7 +20215,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837088-6kydj",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 39,
@@ -21744,7 +22015,31 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1793075837088-5dskw",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50
+          }
+        ]
       },
       {
         "x": 16,
@@ -24380,7 +24675,31 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1793075837088-wuynq",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50
+          }
+        ]
       },
       {
         "x": 64,
@@ -27876,7 +28195,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837088-0mby0",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 13,
@@ -37541,7 +37889,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837088-p85pr",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 49,
@@ -39124,7 +39501,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1793075837088-ll587",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 10,
@@ -40439,7 +40850,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837088-x3re6",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 34,
@@ -44792,7 +45232,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837088-x1tmb",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 55,
@@ -45251,7 +45720,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837088-a2ird",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 8,
@@ -51215,7 +51713,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837088-2i4av",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 77,
@@ -51410,7 +51937,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837088-bazm4",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 8,
@@ -52364,7 +52920,31 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1793075837088-zysg6",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50
+          }
+        ]
       },
       {
         "x": 2,
@@ -56273,7 +56853,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837088-bhg1x",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 71,
@@ -61737,7 +62346,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1793075837088-ujb7l",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 13,
@@ -62436,7 +63079,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1793075837088-oxt0e",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 71,
@@ -66797,7 +67474,31 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1793075837088-gu784",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50
+          }
+        ]
       },
       {
         "x": 7,
@@ -67543,7 +68244,31 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1793075837088-410lc",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50
+          }
+        ]
       },
       {
         "x": 69,
@@ -67596,21 +68321,21 @@
       {
         "x": 73,
         "y": 65,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 74,
         "y": 65,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -67620,9 +68345,9 @@
       {
         "x": 75,
         "y": 65,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -67632,9 +68357,9 @@
       {
         "x": 76,
         "y": 65,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -67644,9 +68369,9 @@
       {
         "x": 77,
         "y": 65,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -67656,9 +68381,9 @@
       {
         "x": 78,
         "y": 65,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -67668,9 +68393,9 @@
       {
         "x": 79,
         "y": 65,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -67680,9 +68405,9 @@
       {
         "x": 80,
         "y": 65,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -67692,9 +68417,9 @@
       {
         "x": 81,
         "y": 65,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
+          "n": false,
           "e": false,
           "s": false,
           "w": false
@@ -67704,10 +68429,10 @@
       {
         "x": 82,
         "y": 65,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
-          "n": true,
-          "e": true,
+          "n": false,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -68619,19 +69344,19 @@
       {
         "x": 73,
         "y": 66,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 74,
         "y": 66,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -68643,7 +69368,7 @@
       {
         "x": 75,
         "y": 66,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -68655,7 +69380,7 @@
       {
         "x": 76,
         "y": 66,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -68667,7 +69392,7 @@
       {
         "x": 77,
         "y": 66,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -68679,7 +69404,7 @@
       {
         "x": 78,
         "y": 66,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -68691,7 +69416,7 @@
       {
         "x": 79,
         "y": 66,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -68703,7 +69428,7 @@
       {
         "x": 80,
         "y": 66,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -68715,7 +69440,7 @@
       {
         "x": 81,
         "y": 66,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -68727,10 +69452,10 @@
       {
         "x": 82,
         "y": 66,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -69448,7 +70173,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1793075837088-ksy0y",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 57,
@@ -69647,19 +70406,19 @@
       {
         "x": 73,
         "y": 67,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
       {
         "x": 74,
         "y": 67,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -69671,7 +70430,7 @@
       {
         "x": 75,
         "y": 67,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -69683,7 +70442,7 @@
       {
         "x": 76,
         "y": 67,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -69695,7 +70454,7 @@
       {
         "x": 77,
         "y": 67,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -69707,7 +70466,7 @@
       {
         "x": 78,
         "y": 67,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -69719,7 +70478,7 @@
       {
         "x": 79,
         "y": 67,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -69731,7 +70490,7 @@
       {
         "x": 80,
         "y": 67,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -69743,7 +70502,7 @@
       {
         "x": 81,
         "y": 67,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -69755,10 +70514,10 @@
       {
         "x": 82,
         "y": 67,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -70623,21 +71382,21 @@
       {
         "x": 69,
         "y": 68,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 70,
         "y": 68,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -70647,9 +71406,9 @@
       {
         "x": 71,
         "y": 68,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -70659,9 +71418,9 @@
       {
         "x": 72,
         "y": 68,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -70673,10 +71432,10 @@
         "y": 68,
         "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
@@ -70685,7 +71444,7 @@
         "y": 68,
         "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -70697,7 +71456,7 @@
         "y": 68,
         "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -70709,7 +71468,7 @@
         "y": 68,
         "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -70721,7 +71480,7 @@
         "y": 68,
         "terrain": "floor",
         "edgeWalls": {
-          "n": false,
+          "n": true,
           "e": false,
           "s": false,
           "w": false
@@ -70733,8 +71492,8 @@
         "y": 68,
         "terrain": "floor",
         "edgeWalls": {
-          "n": false,
-          "e": false,
+          "n": true,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -70743,7 +71502,7 @@
       {
         "x": 79,
         "y": 68,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -70755,7 +71514,7 @@
       {
         "x": 80,
         "y": 68,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -70767,7 +71526,7 @@
       {
         "x": 81,
         "y": 68,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -70779,10 +71538,10 @@
       {
         "x": 82,
         "y": 68,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -71650,19 +72409,19 @@
       {
         "x": 69,
         "y": 69,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 70,
         "y": 69,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -71674,7 +72433,7 @@
       {
         "x": 71,
         "y": 69,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -71686,7 +72445,7 @@
       {
         "x": 72,
         "y": 69,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -71703,7 +72462,7 @@
           "n": false,
           "e": false,
           "s": false,
-          "w": true
+          "w": false
         },
         "contents": []
       },
@@ -71761,7 +72520,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -71770,7 +72529,7 @@
       {
         "x": 79,
         "y": 69,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -71782,7 +72541,7 @@
       {
         "x": 80,
         "y": 69,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -71794,7 +72553,7 @@
       {
         "x": 81,
         "y": 69,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -71806,10 +72565,10 @@
       {
         "x": 82,
         "y": 69,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
+          "e": false,
           "s": false,
           "w": false
         },
@@ -72678,19 +73437,19 @@
       {
         "x": 69,
         "y": 70,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 70,
         "y": 70,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -72702,7 +73461,7 @@
       {
         "x": 71,
         "y": 70,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -72714,7 +73473,7 @@
       {
         "x": 72,
         "y": 70,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -72730,8 +73489,8 @@
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
-          "w": true
+          "s": false,
+          "w": false
         },
         "contents": []
       },
@@ -72742,7 +73501,7 @@
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -72754,7 +73513,7 @@
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -72766,7 +73525,7 @@
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -72778,7 +73537,7 @@
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -72789,8 +73548,8 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": true,
+          "e": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -72798,11 +73557,11 @@
       {
         "x": 79,
         "y": 70,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -72810,11 +73569,11 @@
       {
         "x": 80,
         "y": 70,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -72822,11 +73581,11 @@
       {
         "x": 81,
         "y": 70,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": true,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -72834,11 +73593,11 @@
       {
         "x": 82,
         "y": 70,
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": false,
-          "e": true,
-          "s": true,
+          "e": false,
+          "s": false,
           "w": false
         },
         "contents": []
@@ -73398,7 +74157,31 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1793075837089-xa3td",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50
+          }
+        ]
       },
       {
         "x": 44,
@@ -73422,7 +74205,31 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1793075837089-6b1ij",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50
+          }
+        ]
       },
       {
         "x": 46,
@@ -73706,19 +74513,19 @@
       {
         "x": 69,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 70,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -73730,7 +74537,7 @@
       {
         "x": 71,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -73742,7 +74549,7 @@
       {
         "x": 72,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -73754,7 +74561,7 @@
       {
         "x": 73,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -73766,7 +74573,7 @@
       {
         "x": 74,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -73778,7 +74585,7 @@
       {
         "x": 75,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -73790,7 +74597,7 @@
       {
         "x": 76,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -73802,7 +74609,7 @@
       {
         "x": 77,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -73814,10 +74621,10 @@
       {
         "x": 78,
         "y": 71,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -74735,19 +75542,19 @@
       {
         "x": 69,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 70,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -74759,19 +75566,43 @@
       {
         "x": 71,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "clothing.police_shirt-1793075837089-p635q",
+            "defId": "clothing.police_shirt",
+            "id": "clothing.police_shirt",
+            "name": "Police shirt",
+            "rarity": "rare",
+            "imageId": "policeshirt",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "upper_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "police_shirt",
+            "backgroundColor": "#0a2e5c",
+            "description": "When on the ground, right-click to open pockets"
+          }
+        ]
       },
       {
         "x": 72,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -74783,7 +75614,7 @@
       {
         "x": 73,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -74795,7 +75626,7 @@
       {
         "x": 74,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -74807,7 +75638,7 @@
       {
         "x": 75,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -74819,7 +75650,7 @@
       {
         "x": 76,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -74831,7 +75662,7 @@
       {
         "x": 77,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -74843,15 +75674,14 @@
       {
         "x": 78,
         "y": 72,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
-        "contents": [],
-        "decoration": "outdoordecor5"
+        "contents": []
       },
       {
         "x": 79,
@@ -75766,19 +76596,19 @@
       {
         "x": 69,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 70,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -75790,7 +76620,7 @@
       {
         "x": 71,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -75802,7 +76632,7 @@
       {
         "x": 72,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -75814,7 +76644,7 @@
       {
         "x": 73,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -75826,7 +76656,7 @@
       {
         "x": 74,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -75838,7 +76668,7 @@
       {
         "x": 75,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -75850,7 +76680,7 @@
       {
         "x": 76,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -75862,7 +76692,7 @@
       {
         "x": 77,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -75874,10 +76704,10 @@
       {
         "x": 78,
         "y": 73,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -76207,7 +77037,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1793075837089-uln65",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 21,
@@ -76789,19 +77653,19 @@
       {
         "x": 69,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 70,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -76813,20 +77677,19 @@
       {
         "x": 71,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
           "w": false
         },
-        "contents": [],
-        "decoration": "outdoordecor4"
+        "contents": []
       },
       {
         "x": 72,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -76838,7 +77701,7 @@
       {
         "x": 73,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -76850,7 +77713,7 @@
       {
         "x": 74,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -76862,7 +77725,7 @@
       {
         "x": 75,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -76874,7 +77737,7 @@
       {
         "x": 76,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -76886,7 +77749,7 @@
       {
         "x": 77,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -76898,10 +77761,10 @@
       {
         "x": 78,
         "y": 74,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -77139,7 +78002,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_tomato-1792629206500-fg6kz",
+            "instanceId": "provision.harvestable_tomato-1793075837089-9vj7q",
             "defId": "provision.harvestable_tomato",
             "id": "provision.harvestable_tomato",
             "name": "Harvestable tomato",
@@ -77838,19 +78701,19 @@
       {
         "x": 69,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
-          "w": false
+          "w": true
         },
         "contents": []
       },
       {
         "x": 70,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -77862,7 +78725,7 @@
       {
         "x": 71,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -77874,7 +78737,7 @@
       {
         "x": 72,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -77886,7 +78749,7 @@
       {
         "x": 73,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -77898,19 +78761,113 @@
       {
         "x": 74,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.357Pistol-1793075837089-65s84",
+            "defId": "weapon.357Pistol",
+            "id": "weapon.357Pistol",
+            "name": ".357 Pistol",
+            "rarity": "rare",
+            "imageId": "357",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "container",
+              "openable-when-nested"
+            ],
+            "equippableSlot": "handgun",
+            "categories": [
+              "weapon",
+              "gun"
+            ],
+            "attachmentSlots": [
+              {
+                "id": "sight",
+                "name": "Optic",
+                "allowedCategories": [
+                  "laser_sight"
+                ]
+              },
+              {
+                "id": "ammo",
+                "name": "Ammo",
+                "hidden": true,
+                "allowedCategories": [
+                  "ammo"
+                ],
+                "allowedItems": [
+                  "ammo.357"
+                ]
+              }
+            ],
+            "rangedStats": {
+              "noiseRadius": 15,
+              "damage": {
+                "min": 5,
+                "max": 12
+              },
+              "accuracyFalloff": 0.1,
+              "minAccuracy": 0.01
+            },
+            "directLoad": {
+              "slotId": "ammo",
+              "ammoId": "ammo.357",
+              "capacity": 6
+            },
+            "spawnMaxRounds": 6
+          },
+          {
+            "instanceId": "ammo.357-1793075837089-bxaqd",
+            "defId": "ammo.357",
+            "id": "ammo.357",
+            "name": ".357 Ammo",
+            "rarity": "uncommon",
+            "imageId": "357ammo",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "ammo"
+            ],
+            "stackMax": 50,
+            "spawnStackMin": 1,
+            "spawnStackMax": 3,
+            "stackCount": 9
+          },
+          {
+            "instanceId": "placeable.help-1793075837089-bbcyv",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "load gun (NO mag)"
+          }
+        ]
       },
       {
         "x": 75,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -77922,7 +78879,7 @@
       {
         "x": 76,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -77934,7 +78891,7 @@
       {
         "x": 77,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -77946,10 +78903,10 @@
       {
         "x": 78,
         "y": 75,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -78860,7 +79817,19 @@
       {
         "x": 69,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": false,
+          "e": false,
+          "s": false,
+          "w": true
+        },
+        "contents": []
+      },
+      {
+        "x": 70,
+        "y": 76,
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -78870,22 +79839,9 @@
         "contents": []
       },
       {
-        "x": 70,
-        "y": 76,
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": false,
-          "e": false,
-          "s": false,
-          "w": false
-        },
-        "contents": [],
-        "decoration": "outdoordecor5"
-      },
-      {
         "x": 71,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -78897,20 +79853,19 @@
       {
         "x": 72,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
           "s": false,
           "w": false
         },
-        "contents": [],
-        "decoration": "outdoordecor2"
+        "contents": []
       },
       {
         "x": 73,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -78922,7 +79877,7 @@
       {
         "x": 74,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -78934,7 +79889,7 @@
       {
         "x": 75,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -78946,7 +79901,7 @@
       {
         "x": 76,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -78958,7 +79913,7 @@
       {
         "x": 77,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
@@ -78970,10 +79925,10 @@
       {
         "x": 78,
         "y": 76,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
+          "e": true,
           "s": false,
           "w": false
         },
@@ -79643,7 +80598,93 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "provision.harvestable_tomato-1793075837089-jx2ya",
+            "defId": "provision.harvestable_tomato",
+            "id": "provision.harvestable_tomato",
+            "name": "Harvestable tomato",
+            "rarity": "common",
+            "renderFullTile": true,
+            "imageId": "harvestabletomato",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "groundOnly"
+            ],
+            "categories": [],
+            "noLoot": true,
+            "noDrag": true,
+            "produce": "food.tomato",
+            "produceMin": 4,
+            "produceMax": 7
+          },
+          {
+            "instanceId": "weapon.shovel-1793075837089-aya2f",
+            "defId": "weapon.shovel",
+            "id": "weapon.shovel",
+            "name": "Shovel",
+            "rarity": "uncommon",
+            "imageId": "shovel",
+            "width": 5,
+            "height": 2,
+            "traits": [
+              "equippable",
+              "degradable",
+              "canDig"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "tool"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.75,
+              "damage": {
+                "min": 3,
+                "max": 9
+              }
+            },
+            "description": "Right click to dig a hole in the ground (grid)."
+          },
+          {
+            "instanceId": "food.tomatoseeds-1793075837089-2lfb4",
+            "defId": "food.tomatoseeds",
+            "id": "food.tomatoseeds",
+            "name": "Tomato seeds",
+            "rarity": "uncommon",
+            "imageId": "tomatoseeds",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [],
+            "stackMax": 100,
+            "spawnStackMin": 2,
+            "spawnStackMax": 3,
+            "plantsAs": "provision.tomato_plant"
+          },
+          {
+            "instanceId": "placeable.help-1793075837089-60pvv",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Farming"
+          }
+        ]
       },
       {
         "x": 49,
@@ -79888,23 +80929,23 @@
       {
         "x": 69,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
-          "w": false
+          "s": true,
+          "w": true
         },
         "contents": []
       },
       {
         "x": 70,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -79912,11 +80953,11 @@
       {
         "x": 71,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -79924,11 +80965,11 @@
       {
         "x": 72,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -79936,11 +80977,11 @@
       {
         "x": 73,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -79948,24 +80989,23 @@
       {
         "x": 74,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
-        "contents": [],
-        "decoration": "outdoordecor4"
+        "contents": []
       },
       {
         "x": 75,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -79973,11 +81013,11 @@
       {
         "x": 76,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -79985,11 +81025,11 @@
       {
         "x": 77,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
           "e": false,
-          "s": false,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -79997,11 +81037,11 @@
       {
         "x": 78,
         "y": 77,
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": false,
-          "e": false,
-          "s": false,
+          "e": true,
+          "s": true,
           "w": false
         },
         "contents": []
@@ -81362,7 +82402,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.electric_mower-1792629206500-vzk56",
+            "instanceId": "furniture.electric_mower-1793075837089-wuds4",
             "defId": "furniture.electric_mower",
             "id": "furniture.electric_mower",
             "name": "Electric mower",
@@ -81425,7 +82465,7 @@
             },
             "attachments": {
               "battery": {
-                "instanceId": "tool.large_battery-1792629206500-xbifu",
+                "instanceId": "tool.large_battery-1793075837089-npkh7",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -81443,7 +82483,7 @@
                 ],
                 "stackMax": 5,
                 "capacity": 150,
-                "ammoCount": 130
+                "ammoCount": 8
               }
             }
           }
@@ -84636,7 +85676,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837089-ebubg",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 30,
@@ -85556,7 +86625,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.wrench-1792629206500-1ucll",
+            "instanceId": "weapon.wrench-1793075837089-nh2j5",
             "defId": "weapon.wrench",
             "id": "weapon.wrench",
             "name": "Wrench",
@@ -86923,7 +87992,33 @@
           "s": false,
           "w": true
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "medical.first_aid_kit-1793075837089-9kg6e",
+            "defId": "medical.first_aid_kit",
+            "id": "medical.first_aid_kit",
+            "name": "First Aid Kit",
+            "rarity": "rare",
+            "imageId": "firstaidkit",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "consumable",
+              "stackable"
+            ],
+            "categories": [
+              "medical"
+            ],
+            "consumptionSound": "Bandage",
+            "pileLimitOne": true,
+            "stackMax": 5,
+            "consumptionEffects": {
+              "heal": "Max HP",
+              "stop_bleeding": true
+            }
+          }
+        ]
       },
       {
         "x": 47,
@@ -87693,7 +88788,33 @@
           "s": true,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "medical.stimulant-1793075837089-7gi9n",
+            "defId": "medical.stimulant",
+            "id": "medical.stimulant",
+            "name": "Stimulant",
+            "rarity": "rare",
+            "imageId": "stimulant",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "consumable",
+              "stackable"
+            ],
+            "categories": [
+              "medical"
+            ],
+            "consumptionSound": "Pills",
+            "stackMax": 10,
+            "consumptionEffects": {
+              "energy": 5,
+              "ap": 3,
+              "hydration": -2
+            }
+          }
+        ]
       },
       {
         "x": 26,
@@ -87996,7 +89117,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.tape-1792629206500-agbp7",
+            "instanceId": "crafting.tape-1793075837089-wbhnf",
             "defId": "crafting.tape",
             "id": "crafting.tape",
             "name": "Tape",
@@ -89027,7 +90148,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "container.toolbox-1792629206500-4gu1d",
+            "instanceId": "container.toolbox-1793075837089-sun68",
             "defId": "container.toolbox",
             "id": "container.toolbox",
             "name": "Tool Box",
@@ -89288,7 +90409,46 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "tool.lighter-1793075837089-a26wb",
+            "defId": "tool.lighter",
+            "id": "tool.lighter",
+            "name": "Lighter",
+            "rarity": "uncommon",
+            "imageId": "lighter",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "charge-based"
+            ],
+            "categories": [
+              "tool"
+            ],
+            "stackMax": 1,
+            "capacity": 10,
+            "ammoCount": 10,
+            "spawnAmmoPercent": 1
+          },
+          {
+            "instanceId": "placeable.help-1793075837089-68xfi",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Fire cook"
+          }
+        ]
       },
       {
         "x": 70,
@@ -89554,7 +90714,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1793075837089-0xhm8",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 7,
@@ -89783,7 +90977,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837089-bebdo",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 26,
@@ -90155,7 +91378,79 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "environment.water_puddle-1793075837089-wang0",
+            "defId": "environment.water_puddle",
+            "id": "environment.water_puddle",
+            "name": "Water puddle",
+            "rarity": "common",
+            "imageId": "waterpuddle",
+            "width": 5,
+            "height": 5,
+            "isPickable": false,
+            "noDrag": true,
+            "traits": [
+              "water_bottle",
+              "consumable",
+              "water_source"
+            ],
+            "maxWater": 50,
+            "ammoCount": 50,
+            "capacity": 50,
+            "waterQuality": "dirty",
+            "categories": [
+              "environment"
+            ],
+            "noLoot": true,
+            "renderFullTile": false,
+            "backgroundColor": "#0a2e5c",
+            "description": "Use empty bottle or jug to collect dirty water"
+          },
+          {
+            "instanceId": "food.waterbottle-1793075837089-95lt6",
+            "defId": "food.waterbottle",
+            "id": "food.waterbottle",
+            "name": "Water Bottle",
+            "rarity": "common",
+            "imageId": "waterbottle",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable",
+              "water_bottle"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "capacity": 20,
+            "ammoCount": 0,
+            "spawnAmmoPercent": 1,
+            "consumptionEffects": {
+              "hydration": 1
+            }
+          },
+          {
+            "instanceId": "placeable.help-1793075837089-ssw7c",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "Water puddle"
+          }
+        ]
       },
       {
         "x": 57,
@@ -92125,7 +93420,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.battery_charger-1792629206500-k5xza",
+            "instanceId": "tool.battery_charger-1793075837089-k7apw",
             "defId": "tool.battery_charger",
             "id": "tool.battery_charger",
             "name": "Battery charger",
@@ -92729,79 +94024,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "environment.water_puddle-1792629206500-y4s98",
-            "defId": "environment.water_puddle",
-            "id": "environment.water_puddle",
-            "name": "Water puddle",
-            "rarity": "common",
-            "imageId": "waterpuddle",
-            "width": 5,
-            "height": 5,
-            "isPickable": false,
-            "noDrag": true,
-            "traits": [
-              "water_bottle",
-              "consumable",
-              "water_source"
-            ],
-            "maxWater": 50,
-            "ammoCount": 50,
-            "capacity": 50,
-            "waterQuality": "dirty",
-            "categories": [
-              "environment"
-            ],
-            "noLoot": true,
-            "renderFullTile": false,
-            "backgroundColor": "#0a2e5c",
-            "description": "Use empty bottle or jug to collect dirty water"
-          },
-          {
-            "instanceId": "food.waterbottle-1792629206500-hjr7u",
-            "defId": "food.waterbottle",
-            "id": "food.waterbottle",
-            "name": "Water Bottle",
-            "rarity": "common",
-            "imageId": "waterbottle",
-            "width": 2,
-            "height": 1,
-            "traits": [
-              "stackable",
-              "consumable",
-              "water_bottle"
-            ],
-            "categories": [
-              "food"
-            ],
-            "stackMax": 10,
-            "capacity": 20,
-            "ammoCount": 0,
-            "spawnAmmoPercent": 1,
-            "consumptionEffects": {
-              "hydration": 1
-            }
-          },
-          {
-            "instanceId": "placeable.help-1792629206500-6kk43",
-            "defId": "placeable.help",
-            "id": "placeable.help",
-            "name": "?",
-            "rarity": "common",
-            "imageId": "help",
-            "width": 1,
-            "height": 1,
-            "noDrag": true,
-            "traits": [
-              "groundOnly"
-            ],
-            "noLoot": true,
-            "groundPriority": true,
-            "eventId": "Water puddle"
-          }
-        ]
+        "contents": []
       },
       {
         "x": 13,
@@ -92852,7 +94075,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.blue_jeans-1792629206500-ksvee",
+            "instanceId": "clothing.blue_jeans-1793075837089-mrtpx",
             "defId": "clothing.blue_jeans",
             "id": "clothing.blue_jeans",
             "name": "Blue Jeans",
@@ -93976,7 +95199,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.workshirt-1792629206500-t4xgq",
+            "instanceId": "clothing.workshirt-1793075837089-w2g5u",
             "defId": "clothing.workshirt",
             "id": "clothing.workshirt",
             "name": "Work Shirt",
@@ -94143,7 +95366,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.lighter-1792629206500-o62cz",
+            "instanceId": "tool.lighter-1793075837089-mio0y",
             "defId": "tool.lighter",
             "id": "tool.lighter",
             "name": "Lighter",
@@ -94163,7 +95386,7 @@
             "spawnAmmoPercent": 1
           },
           {
-            "instanceId": "placeable.help-1792629206500-8v9qk",
+            "instanceId": "placeable.help-1793075837089-tudaq",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -95710,7 +96933,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837089-vzcv3",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 77,
@@ -99733,7 +100985,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837089-nbw97",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 70,
@@ -105156,7 +106437,31 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1793075837089-vbrum",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50
+          }
+        ]
       },
       {
         "x": 9,
@@ -108298,7 +109603,31 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1793075837089-vtzn8",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50
+          }
+        ]
       },
       {
         "x": 14,
@@ -108810,7 +110139,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.fuel_can-1792629206500-w8d6f",
+            "instanceId": "tool.fuel_can-1793075837089-ld8lj",
             "defId": "tool.fuel_can",
             "id": "tool.fuel_can",
             "name": "Fuel can",
@@ -108827,7 +110156,7 @@
             "capacity": 25
           },
           {
-            "instanceId": "furniture.fuel_cover-1792629206500-wbl3w",
+            "instanceId": "furniture.fuel_cover-1793075837089-o6i2e",
             "defId": "furniture.fuel_cover",
             "id": "furniture.fuel_cover",
             "name": "Fuel cover",
@@ -108852,7 +110181,7 @@
             "ammoCount": 32
           },
           {
-            "instanceId": "tool.rubber_hose-1792629206500-m4mjd",
+            "instanceId": "tool.rubber_hose-1793075837089-f0vro",
             "defId": "tool.rubber_hose",
             "id": "tool.rubber_hose",
             "name": "Rubber hose",
@@ -108872,7 +110201,7 @@
             }
           },
           {
-            "instanceId": "placeable.help-1792629206500-k4lj5",
+            "instanceId": "placeable.help-1793075837089-7him5",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -109363,7 +110692,41 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.stick-1793075837089-78h2m",
+            "defId": "weapon.stick",
+            "id": "weapon.stick",
+            "name": "Stick",
+            "rarity": "common",
+            "imageId": "stick",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "crafting_material",
+              "fuel"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.6,
+              "damage": {
+                "min": 1,
+                "max": 5
+              }
+            }
+          }
+        ]
       },
       {
         "x": 10,
@@ -111670,7 +113033,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.knife-1792629206500-ah6l0",
+            "instanceId": "weapon.knife-1793075837089-dxl9o",
             "defId": "weapon.knife",
             "id": "weapon.knife",
             "name": "Knife",
@@ -111698,7 +113061,7 @@
             }
           },
           {
-            "instanceId": "clothing.sweatpants-1792629206500-uysnc",
+            "instanceId": "clothing.sweatpants-1793075837089-aqpyp",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -111719,7 +113082,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1792629206500-svgta",
+            "instanceId": "clothing.sweatpants-1793075837089-94xhw",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -111740,7 +113103,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "placeable.help-1792629206500-994y7",
+            "instanceId": "placeable.help-1793075837089-yd9r5",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -111840,7 +113203,30 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "clothing.cargopants-1793075837089-xlscu",
+            "defId": "clothing.cargopants",
+            "id": "clothing.cargopants",
+            "name": "Cargo Pants",
+            "rarity": "uncommon",
+            "imageId": "cargopants",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "container"
+            ],
+            "equippableSlot": "lower_body",
+            "categories": [
+              "clothing",
+              "fuel"
+            ],
+            "pocketLayoutId": "cargo_pants",
+            "description": "When on the ground, right-click to open pockets"
+          }
+        ]
       },
       {
         "x": 38,
@@ -111972,7 +113358,30 @@
           "s": false,
           "w": true
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "food.granolabar-1793075837089-oa11j",
+            "defId": "food.granolabar",
+            "id": "food.granolabar",
+            "name": "Granola Bar",
+            "rarity": "common",
+            "imageId": "granolabar",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "consumptionEffects": {
+              "nutrition": 6
+            }
+          }
+        ]
       },
       {
         "x": 49,
@@ -112104,7 +113513,31 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "crafting.stone-1793075837089-60eum",
+            "defId": "crafting.stone",
+            "id": "crafting.stone",
+            "name": "Stone",
+            "rarity": "common",
+            "imageId": "stone",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable"
+            ],
+            "categories": [
+              "crafting_material"
+            ],
+            "spawnBias": {
+              "outside": 10,
+              "inside": 0
+            },
+            "pileLimitOne": true,
+            "stackMax": 50
+          }
+        ]
       },
       {
         "x": 60,
@@ -113511,7 +114944,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.bandage-1792629206500-d8mb1",
+            "instanceId": "medical.bandage-1793075837089-d5uxf",
             "defId": "medical.bandage",
             "id": "medical.bandage",
             "name": "Bandage",
@@ -113745,7 +115178,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.toy_wagon-1792629206500-hi3pp",
+            "instanceId": "vehicle.toy_wagon-1793075837089-2kpns",
             "defId": "vehicle.toy_wagon",
             "id": "vehicle.toy_wagon",
             "name": "Toy Wagon",
@@ -113826,7 +115259,7 @@
             }
           },
           {
-            "instanceId": "weapon.frying_pan-1792629206500-lyxg2",
+            "instanceId": "weapon.frying_pan-1793075837089-ppk7i",
             "defId": "weapon.frying_pan",
             "id": "weapon.frying_pan",
             "name": "Frying pan",
@@ -113854,7 +115287,7 @@
             }
           },
           {
-            "instanceId": "placeable.help-1792629206500-0iec9",
+            "instanceId": "placeable.help-1793075837089-57h1c",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -115254,7 +116687,55 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "food.chips-1793075837089-54s4u",
+            "defId": "food.chips",
+            "id": "food.chips",
+            "name": "Potato Chips",
+            "rarity": "uncommon",
+            "imageId": "chips",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "consumptionEffects": {
+              "nutrition": 3
+            }
+          },
+          {
+            "instanceId": "food.waterbottle-1793075837089-dz0hq",
+            "defId": "food.waterbottle",
+            "id": "food.waterbottle",
+            "name": "Water Bottle",
+            "rarity": "common",
+            "imageId": "waterbottle",
+            "width": 2,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable",
+              "water_bottle"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "capacity": 20,
+            "ammoCount": 20,
+            "spawnAmmoPercent": 1,
+            "consumptionEffects": {
+              "hydration": 1
+            }
+          }
+        ]
       },
       {
         "x": 53,
@@ -115278,7 +116759,30 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "food.granolabar-1793075837089-by0xs",
+            "defId": "food.granolabar",
+            "id": "food.granolabar",
+            "name": "Granola Bar",
+            "rarity": "common",
+            "imageId": "granolabar",
+            "width": 1,
+            "height": 1,
+            "traits": [
+              "stackable",
+              "consumable"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 10,
+            "consumptionEffects": {
+              "nutrition": 6
+            }
+          }
+        ]
       },
       {
         "x": 55,
@@ -115800,7 +117304,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.honey-1792629206500-poivf",
+            "instanceId": "food.honey-1793075837089-xm5ka",
             "defId": "food.honey",
             "id": "food.honey",
             "name": "Honey",
@@ -116148,7 +117652,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "backpack.school-1792629206500-c2gi8",
+            "instanceId": "backpack.school-1793075837089-c2a3s",
             "defId": "backpack.school",
             "id": "backpack.school",
             "name": "Book Bag",
@@ -116291,7 +117795,34 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "food.waterjug-1793075837089-1zvqt",
+            "defId": "food.waterjug",
+            "id": "food.waterjug",
+            "name": "Water Jug",
+            "rarity": "uncommon",
+            "imageId": "waterjug",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "stackable",
+              "consumable",
+              "water_bottle"
+            ],
+            "categories": [
+              "food"
+            ],
+            "stackMax": 5,
+            "capacity": 50,
+            "ammoCount": 12,
+            "spawnAmmoPercent": 1,
+            "consumptionEffects": {
+              "hydration": 1
+            }
+          }
+        ]
       },
       {
         "x": 50,
@@ -116812,7 +118343,36 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "weapon.plank-1793075837089-xzh3i",
+            "defId": "weapon.plank",
+            "id": "weapon.plank",
+            "name": "Plank",
+            "rarity": "common",
+            "imageId": "plank",
+            "width": 4,
+            "height": 1,
+            "traits": [
+              "equippable",
+              "degradable"
+            ],
+            "equippableSlot": "melee",
+            "categories": [
+              "weapon",
+              "fuel"
+            ],
+            "condition": 100,
+            "combat": {
+              "hitChance": 0.65,
+              "damage": {
+                "min": 1,
+                "max": 6
+              }
+            }
+          }
+        ]
       },
       {
         "x": 8,
@@ -117163,7 +118723,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.hammer-1792629206500-bsdin",
+            "instanceId": "weapon.hammer-1793075837089-4dv0x",
             "defId": "weapon.hammer",
             "id": "weapon.hammer",
             "name": "Hammer",
@@ -117396,7 +118956,49 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "container.lunchbox-1793075837089-pulcc",
+            "defId": "container.lunchbox",
+            "id": "container.lunchbox",
+            "name": "Lunchbox",
+            "rarity": "uncommon",
+            "imageId": "lunchbox",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "container",
+              "openable-when-nested"
+            ],
+            "backgroundColor": "#006B18",
+            "containerGrid": {
+              "width": 4,
+              "height": 3,
+              "allowedCategories": [
+                "food"
+              ]
+            },
+            "description": "Holds food and drinks"
+          },
+          {
+            "instanceId": "placeable.help-1793075837089-k28w5",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "lunchbox"
+          }
+        ]
       },
       {
         "x": 54,
@@ -119253,7 +120855,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.bed-1792629206500-v627b",
+            "instanceId": "placeable.bed-1793075837089-gemt0",
             "defId": "placeable.bed",
             "id": "placeable.bed",
             "name": "Bed",
@@ -119304,7 +120906,7 @@
             "description": "Dissasemble: Hammer"
           },
           {
-            "instanceId": "placeable.help-1792629206500-wfkv5",
+            "instanceId": "placeable.help-1793075837089-135o8",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -119524,7 +121126,37 @@
           "s": false,
           "w": false
         },
-        "contents": []
+        "contents": [],
+        "inventoryItems": [
+          {
+            "instanceId": "furniture.generator-1793075837089-wv4zy",
+            "defId": "furniture.generator",
+            "id": "furniture.generator",
+            "name": "Generator",
+            "rarity": "rare",
+            "imageId": "generator",
+            "width": 3,
+            "height": 3,
+            "traits": [
+              "groundOnly",
+              "draggable",
+              "fuel_container",
+              "power_source",
+              "furniture"
+            ],
+            "categories": [
+              "furniture"
+            ],
+            "capacity": 50,
+            "ammoCount": 0,
+            "isOn": false,
+            "providesElectricity": true,
+            "dragApPenalty": 1.5,
+            "renderFullTile": true,
+            "noLoot": true,
+            "description": "With fuel, turn on generator and place electric items beside it to power the items"
+          }
+        ]
       },
       {
         "x": 55,
@@ -119913,93 +121545,7 @@
           "s": false,
           "w": false
         },
-        "contents": [],
-        "inventoryItems": [
-          {
-            "instanceId": "provision.harvestable_tomato-1792629206500-ka2nw",
-            "defId": "provision.harvestable_tomato",
-            "id": "provision.harvestable_tomato",
-            "name": "Harvestable tomato",
-            "rarity": "common",
-            "renderFullTile": true,
-            "imageId": "harvestabletomato",
-            "width": 2,
-            "height": 2,
-            "traits": [
-              "groundOnly"
-            ],
-            "categories": [],
-            "noLoot": true,
-            "noDrag": true,
-            "produce": "food.tomato",
-            "produceMin": 4,
-            "produceMax": 7
-          },
-          {
-            "instanceId": "food.tomatoseeds-1792629206500-j981i",
-            "defId": "food.tomatoseeds",
-            "id": "food.tomatoseeds",
-            "name": "Tomato seeds",
-            "rarity": "uncommon",
-            "imageId": "tomatoseeds",
-            "width": 1,
-            "height": 1,
-            "traits": [
-              "stackable"
-            ],
-            "categories": [],
-            "stackMax": 100,
-            "spawnStackMin": 2,
-            "spawnStackMax": 3,
-            "plantsAs": "provision.tomato_plant"
-          },
-          {
-            "instanceId": "weapon.shovel-1792629206501-vs5ub",
-            "defId": "weapon.shovel",
-            "id": "weapon.shovel",
-            "name": "Shovel",
-            "rarity": "uncommon",
-            "imageId": "shovel",
-            "width": 5,
-            "height": 2,
-            "traits": [
-              "equippable",
-              "degradable",
-              "canDig"
-            ],
-            "equippableSlot": "melee",
-            "categories": [
-              "weapon",
-              "tool"
-            ],
-            "condition": 100,
-            "combat": {
-              "hitChance": 0.75,
-              "damage": {
-                "min": 3,
-                "max": 9
-              }
-            },
-            "description": "Right click to dig a hole in the ground (grid)."
-          },
-          {
-            "instanceId": "placeable.help-1792629206501-6piha",
-            "defId": "placeable.help",
-            "id": "placeable.help",
-            "name": "?",
-            "rarity": "common",
-            "imageId": "help",
-            "width": 1,
-            "height": 1,
-            "noDrag": true,
-            "traits": [
-              "groundOnly"
-            ],
-            "noLoot": true,
-            "groundPriority": true,
-            "eventId": "Farming"
-          }
-        ]
+        "contents": []
       },
       {
         "x": 2,
@@ -122152,7 +123698,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.crowbar-1792629206501-h34eo",
+            "instanceId": "weapon.crowbar-1793075837089-g8843",
             "defId": "weapon.crowbar",
             "id": "weapon.crowbar",
             "name": "Crowbar",
@@ -122181,7 +123727,7 @@
             "description": "Right click to use on doors and windows"
           },
           {
-            "instanceId": "placeable.help-1792629206501-k69a5",
+            "instanceId": "placeable.help-1793075837089-6mk61",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -124216,7 +125762,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.help-1792629206501-d3oce",
+            "instanceId": "placeable.help-1793075837090-08s8b",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -124231,6 +125777,67 @@
             "noLoot": true,
             "groundPriority": true,
             "eventId": "Starting tile"
+          },
+          {
+            "instanceId": "tool.recon_drone-1793075837090-3lqb2",
+            "defId": "tool.recon_drone",
+            "id": "tool.recon_drone",
+            "name": "Recon drone",
+            "noLoot": true,
+            "renderFullTile": true,
+            "rarity": "rare",
+            "imageId": "recondrone",
+            "width": 2,
+            "height": 2,
+            "traits": [
+              "groundOnly",
+              "battery-powered",
+              "openable-when-nested"
+            ],
+            "categories": [
+              "tool",
+              "electric"
+            ],
+            "droneStats": {
+              "kind": "recon",
+              "sightBonus": 3,
+              "apPerTile": 0.5,
+              "chargePerTile": 0.5,
+              "hp": 8,
+              "altitude": "high"
+            },
+            "attachmentSlots": [
+              {
+                "id": "battery",
+                "name": "Battery",
+                "allowedCategories": [
+                  "battery"
+                ]
+              }
+            ],
+            "attachments": {
+              "battery": {
+                "instanceId": "tool.battery-1793075837090-phfmz",
+                "defId": "tool.battery",
+                "id": "tool.battery",
+                "name": "Battery",
+                "rarity": "uncommon",
+                "imageId": "battery",
+                "width": 1,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
+                ],
+                "categories": [
+                  "battery",
+                  "tool"
+                ],
+                "stackMax": 10,
+                "capacity": 20,
+                "ammoCount": 20
+              }
+            }
           }
         ]
       },
@@ -125237,7 +126844,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.pocket_t-1792629206501-lar7n",
+            "instanceId": "clothing.pocket_t-1793075837090-nxma9",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -125258,7 +126865,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1792629206501-96i7f",
+            "instanceId": "clothing.sweatpants-1793075837090-bgd4m",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -125279,7 +126886,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "placeable.help-1792629206501-89ham",
+            "instanceId": "placeable.help-1793075837090-im6n4",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -131713,13 +133320,6 @@
         ]
       },
       {
-        "type": "army_tent",
-        "x": 73,
-        "y": 65,
-        "width": 10,
-        "height": 6
-      },
-      {
         "type": "grocer",
         "x": 39,
         "y": 58,
@@ -131948,6 +133548,74 @@
             "w": 1,
             "h": 3,
             "rot": 1
+          }
+        ]
+      },
+      {
+        "type": "police",
+        "x": 69,
+        "y": 68,
+        "width": 10,
+        "height": 10,
+        "frontage": "west",
+        "entranceX": 69,
+        "entranceY": 73,
+        "furniturePlan": [
+          {
+            "type": "desk",
+            "x": 77,
+            "y": 69,
+            "w": 1,
+            "h": 2,
+            "rot": 1
+          },
+          {
+            "type": "desk",
+            "x": 77,
+            "y": 75,
+            "w": 1,
+            "h": 2,
+            "rot": 1
+          },
+          {
+            "type": "desk",
+            "x": 74,
+            "y": 69,
+            "w": 1,
+            "h": 2,
+            "rot": 1
+          },
+          {
+            "type": "desk",
+            "x": 74,
+            "y": 75,
+            "w": 1,
+            "h": 2,
+            "rot": 1
+          },
+          {
+            "type": "desk",
+            "x": 72,
+            "y": 72,
+            "w": 1,
+            "h": 2,
+            "rot": 3
+          },
+          {
+            "type": "bench",
+            "x": 69,
+            "y": 68,
+            "w": 1,
+            "h": 3,
+            "rot": 3
+          },
+          {
+            "type": "bench",
+            "x": 69,
+            "y": 75,
+            "w": 1,
+            "h": 3,
+            "rot": 3
           }
         ]
       }
@@ -131964,13 +133632,6 @@
     ],
     "specialBuildings": [
       {
-        "type": "army_tent",
-        "x": 73,
-        "y": 65,
-        "width": 10,
-        "height": 6
-      },
-      {
         "type": "grocer",
         "x": 39,
         "y": 58,
@@ -132199,6 +133860,74 @@
             "w": 1,
             "h": 3,
             "rot": 1
+          }
+        ]
+      },
+      {
+        "type": "police",
+        "x": 69,
+        "y": 68,
+        "width": 10,
+        "height": 10,
+        "frontage": "west",
+        "entranceX": 69,
+        "entranceY": 73,
+        "furniturePlan": [
+          {
+            "type": "desk",
+            "x": 77,
+            "y": 69,
+            "w": 1,
+            "h": 2,
+            "rot": 1
+          },
+          {
+            "type": "desk",
+            "x": 77,
+            "y": 75,
+            "w": 1,
+            "h": 2,
+            "rot": 1
+          },
+          {
+            "type": "desk",
+            "x": 74,
+            "y": 69,
+            "w": 1,
+            "h": 2,
+            "rot": 1
+          },
+          {
+            "type": "desk",
+            "x": 74,
+            "y": 75,
+            "w": 1,
+            "h": 2,
+            "rot": 1
+          },
+          {
+            "type": "desk",
+            "x": 72,
+            "y": 72,
+            "w": 1,
+            "h": 2,
+            "rot": 3
+          },
+          {
+            "type": "bench",
+            "x": 69,
+            "y": 68,
+            "w": 1,
+            "h": 3,
+            "rot": 3
+          },
+          {
+            "type": "bench",
+            "x": 69,
+            "y": 75,
+            "w": 1,
+            "h": 3,
+            "rot": 3
           }
         ]
       }
@@ -132813,14 +134542,6 @@
         "edge": "w"
       },
       {
-        "x": 73,
-        "y": 67,
-        "isLocked": false,
-        "isKeylocked": false,
-        "isOpen": false,
-        "edge": "w"
-      },
-      {
         "x": 23,
         "y": 68,
         "isLocked": false,
@@ -132829,20 +134550,20 @@
         "edge": "e"
       },
       {
-        "x": 73,
-        "y": 68,
-        "isLocked": false,
-        "isKeylocked": false,
-        "isOpen": false,
-        "edge": "w"
-      },
-      {
         "x": 22,
         "y": 69,
         "isLocked": false,
         "isKeylocked": false,
         "isOpen": false,
         "edge": "s"
+      },
+      {
+        "x": 69,
+        "y": 73,
+        "isLocked": false,
+        "isKeylocked": false,
+        "isOpen": false,
+        "edge": "w"
       },
       {
         "x": 17,
@@ -133537,6 +135258,20 @@
         "edge": "s"
       },
       {
+        "x": 69,
+        "y": 69,
+        "isLocked": true,
+        "isOpen": false,
+        "edge": "w"
+      },
+      {
+        "x": 69,
+        "y": 76,
+        "isLocked": false,
+        "isOpen": false,
+        "edge": "w"
+      },
+      {
         "x": 20,
         "y": 81,
         "isLocked": true,
@@ -133556,6 +135291,13 @@
         "isLocked": true,
         "isOpen": false,
         "edge": "n"
+      },
+      {
+        "x": 68,
+        "y": 87,
+        "isLocked": false,
+        "isOpen": false,
+        "edge": "w"
       },
       {
         "x": 32,
@@ -133705,6 +135447,11 @@
         "y": 55
       },
       {
+        "subtype": "police",
+        "x": 66,
+        "y": 73
+      },
+      {
         "subtype": "fuelpump",
         "x": 52,
         "y": 105
@@ -133722,8 +135469,128 @@
   "entities": [
     {
       "type": "zombie",
+      "x": 71,
+      "y": 72,
+      "subtype": "swat",
+      "deaf": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 28,
+      "y": 84,
+      "subtype": "basic",
+      "noLoot": true,
+      "deaf": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 47,
+      "y": 86,
+      "subtype": "basic",
+      "noLoot": true,
+      "deaf": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 76,
+      "y": 86,
+      "subtype": "basic",
+      "noLoot": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 80,
+      "y": 88,
+      "subtype": "basic",
+      "noLoot": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 17,
+      "y": 90,
+      "subtype": "basic",
+      "noLoot": true,
+      "deaf": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 8,
+      "y": 92,
+      "subtype": "basic",
+      "noLoot": true,
+      "deaf": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 69,
+      "y": 93,
+      "subtype": "basic",
+      "noLoot": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 34,
+      "y": 100,
+      "subtype": "basic",
+      "noLoot": true,
+      "deaf": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 66,
+      "y": 101,
+      "subtype": "basic",
+      "noLoot": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 38,
+      "y": 108,
+      "subtype": "basic",
+      "noLoot": true,
+      "deaf": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 70,
+      "y": 113,
+      "subtype": "basic",
+      "noLoot": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
       "x": 2,
       "y": 115,
+      "subtype": "basic",
+      "noLoot": true,
+      "deaf": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 32,
+      "y": 116,
+      "subtype": "basic",
+      "noLoot": true,
+      "deaf": true,
+      "earbucksValue": 0
+    },
+    {
+      "type": "zombie",
+      "x": 52,
+      "y": 116,
       "subtype": "basic",
       "noLoot": true,
       "deaf": true,
@@ -133857,6 +135724,39 @@
         }
       ],
       "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "lunchbox",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "load gun (NO mag)",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag."
+        }
+      ],
+      "oneShot": false
+    }
+  ],
+  "bubbleEvents": [
+    {
+      "id": "generator",
+      "oneShot": false,
+      "trigger": {
+        "type": "proximity",
+        "radius": 2
+      },
+      "lines": []
     }
   ],
   "events": [
@@ -134017,6 +135917,55 @@
           "type": "dialog",
           "speaker": "",
           "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers."
+        }
+      ]
+    },
+    {
+      "id": "generator",
+      "placement": {
+        "kind": "proximity",
+        "radius": 2
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use the fuel can on the generator to fuel it up. Right-click on the generator to turn it on and off. Items on the ground near the generator will receive power."
+        }
+      ]
+    },
+    {
+      "id": "lunchbox",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container."
+        }
+      ]
+    },
+    {
+      "id": "load gun (NO mag)",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag."
         }
       ]
     }

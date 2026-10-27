@@ -4878,7 +4878,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.stick"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -26167,7 +26171,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -27173,7 +27181,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -29665,7 +29677,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -31505,7 +31521,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -39513,7 +39533,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -41192,7 +41216,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -43931,7 +43959,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.stick"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -44827,7 +44859,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -48809,7 +48845,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.stone"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -54722,7 +54762,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.stone"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -62558,7 +62602,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -84275,7 +84323,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -87826,7 +87878,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.stick"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -90779,7 +90835,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -100575,7 +100635,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -101606,7 +101670,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -114995,7 +115063,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -115430,7 +115502,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -117575,7 +117651,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.stone"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -126351,7 +126431,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -138605,7 +138689,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.stick"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -140180,7 +140268,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.stick"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -149958,7 +150050,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.stone"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -151634,6 +151730,118 @@
           }
         },
         "entities": [],
+        "items": [
+          {
+            "defId": "crafting.stone"
+          }
+        ]
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
         "items": []
       },
       {
@@ -151745,37 +151953,10 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "e": {
             "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": true,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": true,
             "door": false,
             "window": false
           },
@@ -151799,10 +151980,10 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
-            "wall": true,
+            "wall": false,
             "door": false,
             "window": false
           },
@@ -151826,10 +152007,10 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
-            "wall": true,
+            "wall": false,
             "door": false,
             "window": false
           },
@@ -151853,10 +152034,10 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
-            "wall": true,
+            "wall": false,
             "door": false,
             "window": false
           },
@@ -151880,10 +152061,10 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
-            "wall": true,
+            "wall": false,
             "door": false,
             "window": false
           },
@@ -151907,96 +152088,15 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
-            "wall": true,
+            "wall": false,
             "door": false,
             "window": false
           },
           "e": {
             "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": true,
             "door": false,
             "window": false
           },
@@ -154045,34 +154145,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": true,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -154099,7 +154172,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -154126,7 +154199,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -154153,7 +154226,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -154180,7 +154253,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -154207,7 +154280,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -154234,7 +154307,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -154261,7 +154334,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -154288,7 +154361,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -154296,7 +154369,34 @@
             "window": false
           },
           "e": {
-            "wall": true,
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
             "door": false,
             "window": false
           },
@@ -155911,7 +156011,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.stick"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -156348,36 +156452,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": true,
-            "window": false,
-            "locked": false,
-            "keylocked": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -156404,7 +156479,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -156431,7 +156506,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -156458,7 +156533,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -156485,7 +156560,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -156512,7 +156587,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -156539,7 +156614,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -156566,7 +156641,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -156593,7 +156668,7 @@
         "items": []
       },
       {
-        "terrain": "floor",
+        "terrain": "grass",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -156601,7 +156676,34 @@
             "window": false
           },
           "e": {
-            "wall": true,
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
             "door": false,
             "window": false
           },
@@ -158543,10 +158645,10 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -158561,7 +158663,7 @@
             "window": false
           },
           "w": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           }
@@ -158570,64 +158672,10 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -158654,36 +158702,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": true,
-            "window": false,
-            "locked": false,
-            "keylocked": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -158710,7 +158729,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -158737,7 +158756,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -158764,7 +158783,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -158791,7 +158810,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -158818,7 +158837,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -158845,7 +158864,7 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -158872,39 +158891,120 @@
         "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
           "e": {
             "wall": true,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
             "door": false,
             "window": false
           },
@@ -160850,114 +160950,6 @@
         "decoration": "outdoordecor1"
       },
       {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
         "terrain": "floor",
         "edgeWalls": {
           "n": {
@@ -160976,9 +160968,10 @@
             "window": false
           },
           "w": {
-            "wall": true,
+            "wall": false,
             "door": false,
-            "window": false
+            "window": true,
+            "locked": true
           }
         },
         "entities": [],
@@ -161210,6 +161203,114 @@
           },
           "e": {
             "wall": true,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
             "door": false,
             "window": false
           },
@@ -163153,6 +163254,276 @@
         "items": []
       },
       {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": true,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
         "terrain": "grass",
         "edgeWalls": {
           "n": {
@@ -163248,276 +163619,6 @@
           },
           "s": {
             "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": true,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": true,
             "door": false,
             "window": false
           },
@@ -164775,7 +164876,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.stone"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -164829,7 +164934,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.stone"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -165456,7 +165565,34 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -165483,7 +165619,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -165510,7 +165646,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -165537,7 +165673,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -165564,7 +165700,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -165591,7 +165727,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -165618,7 +165754,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -165645,7 +165781,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -165672,7 +165808,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -165680,34 +165816,7 @@
             "window": false
           },
           "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -167760,7 +167869,34 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -167787,7 +167923,45 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "swat",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
+        "items": [
+          {
+            "defId": "clothing.police_shirt"
+          }
+        ]
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -167814,7 +167988,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -167841,7 +168015,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -167868,7 +168042,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -167895,7 +168069,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -167922,7 +168096,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -167949,7 +168123,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -167957,7 +168131,7 @@
             "window": false
           },
           "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -167974,61 +168148,6 @@
         },
         "entities": [],
         "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [],
-        "decoration": "outdoordecor5"
       },
       {
         "terrain": "grass",
@@ -170009,7 +170128,8 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [],
+        "placeIcon": "police"
       },
       {
         "terrain": "grass",
@@ -170066,7 +170186,36 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": true,
+            "window": false,
+            "locked": false,
+            "keylocked": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -170093,7 +170242,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -170120,7 +170269,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -170147,7 +170296,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -170174,7 +170323,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -170201,7 +170350,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -170228,7 +170377,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -170255,7 +170404,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -170282,7 +170431,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -170290,34 +170439,7 @@
             "window": false
           },
           "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -171064,7 +171186,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.stick"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -172364,7 +172490,34 @@
         "decoration": "outdoordecor1"
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -172391,7 +172544,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -172418,35 +172571,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [],
-        "decoration": "outdoordecor4"
-      },
-      {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -172473,7 +172598,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -172500,7 +172625,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -172527,7 +172652,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -172554,7 +172679,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -172581,7 +172706,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -172608,7 +172733,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -172616,7 +172741,7 @@
             "window": false
           },
           "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -174670,7 +174795,34 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -174697,7 +174849,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -174724,7 +174876,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -174751,7 +174903,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -174778,7 +174930,46 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": [
+          {
+            "defId": "weapon.357Pistol"
+          },
+          {
+            "defId": "ammo.357",
+            "stackCount": 9
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "load gun (NO mag)"
+          }
+        ]
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -174805,7 +174996,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -174832,7 +175023,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -174859,7 +175050,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -174867,61 +175058,7 @@
             "window": false
           },
           "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -176967,7 +177104,35 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": true,
+            "locked": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -176994,35 +177159,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [],
-        "decoration": "outdoordecor5"
-      },
-      {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -177049,35 +177186,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [],
-        "decoration": "outdoordecor2"
-      },
-      {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -177104,7 +177213,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -177131,7 +177240,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -177158,7 +177267,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -177185,7 +177294,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -177212,7 +177321,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -177221,6 +177330,33 @@
           },
           "e": {
             "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -178727,7 +178863,21 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "provision.harvestable_tomato"
+          },
+          {
+            "defId": "weapon.shovel"
+          },
+          {
+            "defId": "food.tomatoseeds"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Farming"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -179270,7 +179420,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -179283,7 +179433,34 @@
             "window": false
           },
           "s": {
+            "wall": true,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
             "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -179297,7 +179474,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -179310,7 +179487,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -179324,7 +179501,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -179337,7 +179514,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -179351,7 +179528,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -179364,7 +179541,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -179378,7 +179555,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -179391,7 +179568,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -179405,7 +179582,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -179418,35 +179595,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [],
-        "decoration": "outdoordecor4"
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -179460,7 +179609,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -179473,7 +179622,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -179487,7 +179636,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -179500,7 +179649,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -179514,7 +179663,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -179522,12 +179671,12 @@
             "window": false
           },
           "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -182576,7 +182725,7 @@
         "items": [
           {
             "defId": "furniture.electric_mower",
-            "batteryCharges": 130
+            "batteryCharges": 8
           }
         ]
       },
@@ -189730,7 +189879,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -194311,7 +194464,15 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -194799,7 +194960,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "medical.first_aid_kit"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -196531,7 +196696,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "medical.stimulant"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -199434,7 +199603,15 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -200033,7 +200210,15 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.lighter"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Fire cook"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -200223,7 +200408,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0
+          }
+        ],
         "items": []
       },
       {
@@ -200631,7 +200823,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.stick"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -201145,7 +201341,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -201988,7 +202188,19 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "environment.water_puddle"
+          },
+          {
+            "defId": "food.waterbottle",
+            "ammoCount": 0
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Water puddle"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -202306,9 +202518,10 @@
             "window": false
           },
           "w": {
-            "wall": true,
+            "wall": false,
             "door": false,
-            "window": false
+            "window": true,
+            "locked": false
           }
         },
         "entities": [],
@@ -204939,7 +205152,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0
+          }
+        ],
         "items": []
       },
       {
@@ -207708,19 +207928,7 @@
           }
         },
         "entities": [],
-        "items": [
-          {
-            "defId": "environment.water_puddle"
-          },
-          {
-            "defId": "food.waterbottle",
-            "ammoCount": 0
-          },
-          {
-            "defId": "placeable.help",
-            "eventId": "Water puddle"
-          }
-        ]
+        "items": []
       },
       {
         "terrain": "grass",
@@ -207859,7 +208067,15 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -212236,7 +212452,15 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -214080,7 +214304,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -216192,7 +216420,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0
+          }
+        ],
         "items": []
       },
       {
@@ -223109,7 +223344,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -231367,7 +231606,15 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -234531,7 +234778,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0
+          }
+        ],
         "items": []
       },
       {
@@ -235267,7 +235521,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.stone"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -242309,7 +242567,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.stone"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -244524,7 +244786,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.stick"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -249911,6 +250177,454 @@
           }
         },
         "entities": [],
+        "items": [
+          {
+            "defId": "clothing.cargopants"
+          }
+        ]
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": true,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "grass",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": [
+          {
+            "defId": "food.granolabar"
+          }
+        ]
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
         "items": []
       },
       {
@@ -250073,439 +250787,11 @@
           }
         },
         "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
+        "items": [
+          {
+            "defId": "crafting.stone"
           }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": true,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "floor",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": true,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
+        ]
       },
       {
         "terrain": "grass",
@@ -257246,7 +257532,14 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.chips"
+          },
+          {
+            "defId": "food.waterbottle"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -257300,7 +257593,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.granolabar"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -259477,7 +259774,12 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.waterjug",
+            "ammoCount": 12
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -260649,7 +260951,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -261897,7 +262203,15 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "container.lunchbox"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "lunchbox"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -262355,7 +262669,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0
+          }
+        ],
         "items": []
       },
       {
@@ -266544,7 +266865,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "furniture.generator"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -267413,21 +267738,7 @@
           }
         },
         "entities": [],
-        "items": [
-          {
-            "defId": "provision.harvestable_tomato"
-          },
-          {
-            "defId": "food.tomatoseeds"
-          },
-          {
-            "defId": "weapon.shovel"
-          },
-          {
-            "defId": "placeable.help",
-            "eventId": "Farming"
-          }
-        ]
+        "items": []
       },
       {
         "terrain": "grass",
@@ -268263,7 +268574,15 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -268807,7 +269126,15 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "noLoot": true,
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": [],
         "decoration": "outdoordecor4"
       },
@@ -276812,6 +277139,10 @@
           {
             "defId": "placeable.help",
             "eventId": "Starting tile"
+          },
+          {
+            "defId": "tool.recon_drone",
+            "batteryCharges": 20
           }
         ]
       },
@@ -290515,13 +290846,6 @@
       ]
     },
     {
-      "type": "army_tent",
-      "x": 73,
-      "y": 65,
-      "width": 10,
-      "height": 6
-    },
-    {
       "type": "grocer",
       "x": 39,
       "y": 58,
@@ -290752,12 +291076,90 @@
           "rot": 1
         }
       ]
+    },
+    {
+      "type": "police",
+      "x": 69,
+      "y": 68,
+      "width": 10,
+      "height": 10,
+      "frontage": "west",
+      "entranceX": 69,
+      "entranceY": 73,
+      "furniturePlan": [
+        {
+          "type": "desk",
+          "x": 77,
+          "y": 69,
+          "w": 1,
+          "h": 2,
+          "rot": 1
+        },
+        {
+          "type": "desk",
+          "x": 77,
+          "y": 75,
+          "w": 1,
+          "h": 2,
+          "rot": 1
+        },
+        {
+          "type": "desk",
+          "x": 74,
+          "y": 69,
+          "w": 1,
+          "h": 2,
+          "rot": 1
+        },
+        {
+          "type": "desk",
+          "x": 74,
+          "y": 75,
+          "w": 1,
+          "h": 2,
+          "rot": 1
+        },
+        {
+          "type": "desk",
+          "x": 72,
+          "y": 72,
+          "w": 1,
+          "h": 2,
+          "rot": 3
+        },
+        {
+          "type": "bench",
+          "x": 69,
+          "y": 68,
+          "w": 1,
+          "h": 3,
+          "rot": 3
+        },
+        {
+          "type": "bench",
+          "x": 69,
+          "y": 75,
+          "w": 1,
+          "h": 3,
+          "rot": 3
+        }
+      ]
     }
   ],
   "noAutosave": true,
   "lightMode": "time_dependent",
   "lowSpots": [],
-  "bubbleEvents": [],
+  "bubbleEvents": [
+    {
+      "id": "generator",
+      "oneShot": false,
+      "trigger": {
+        "type": "proximity",
+        "radius": 2
+      },
+      "lines": []
+    }
+  ],
   "chainDialogEvents": [
     {
       "id": "Wagon and pan",
@@ -290855,6 +291257,26 @@
         {
           "speaker": "",
           "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "lunchbox",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "load gun (NO mag)",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag."
         }
       ],
       "oneShot": false
@@ -291018,6 +291440,55 @@
           "type": "dialog",
           "speaker": "",
           "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers."
+        }
+      ]
+    },
+    {
+      "id": "generator",
+      "placement": {
+        "kind": "proximity",
+        "radius": 2
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use the fuel can on the generator to fuel it up. Right-click on the generator to turn it on and off. Items on the ground near the generator will receive power."
+        }
+      ]
+    },
+    {
+      "id": "lunchbox",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container."
+        }
+      ]
+    },
+    {
+      "id": "load gun (NO mag)",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag."
         }
       ]
     }
