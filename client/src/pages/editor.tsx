@@ -33,6 +33,8 @@ import { addLegacyTransitionItem, migrateEditorTransitionTiles } from '@/game/ed
 import { TransitionTargetPanel, type TransitionTarget } from '@/components/MapEditor/TransitionTargetPanel';
 import { carryOverAuthoredTiles } from '@/components/MapEditor/carryOverAuthoredTiles';
 import { computeMinimapSize } from '@/game/editor/minimapLayout';
+import { isLockableContainer, packContainerContents } from '@/game/editor/containerContents';
+import ContainerContentsModal from '@/components/MapEditor/ContainerContentsModal';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -208,6 +210,10 @@ interface EditorItem {
   // auto_turret only: which faction owns the turret, and whether it starts powered.
   factionId?: string;
   isOn?: boolean;
+  stackCount?: number;
+  // Lockable containers (safe) only — see game/editor/containerContents.js.
+  isLocked?: boolean;
+  contents?: EditorItem[];
 }
 
 // One authored entity on a tile. NPC-only flags:
@@ -338,50 +344,7 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
         // Items: scenario stores as inventoryItems with defId
         if (st.inventoryItems) {
           tiles[y][x].items = st.inventoryItems
-            .map((it: any) => {
-              const entry: any = { defId: it.defId || it.id };
-              if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
-              copyTransitionFields(it, entry);
-              if (it.eventId !== undefined) entry.eventId = it.eventId;
-              if (it.condition !== undefined) entry.condition = it.condition;
-              if (it.attachments) {
-                const itItemDef = (ItemDefs as any)[entry.defId];
-                const slotInfo = getBatterySlotInfo(itItemDef);
-                if (slotInfo && it.attachments[slotInfo.slotId]?.ammoCount !== undefined) {
-                  entry.batteryCharges = it.attachments[slotInfo.slotId].ammoCount;
-                }
-                if (itItemDef?.categories?.includes(ItemCategory.GUN)) {
-                  const ammoAtt = it.attachments['ammo'];
-                  if (ammoAtt) {
-                    if (itItemDef.directLoad) {
-                      entry.gunAmmoCount = ammoAtt.stackCount ?? 0;
-                    } else {
-                      entry.gunMagDefId = ammoAtt.defId;
-                      entry.gunAmmoCount = ammoAtt.ammoCount ?? 0;
-                    }
-                  }
-                  const nonAmmo: Record<string, string> = {};
-                  for (const [slotId, att] of Object.entries(it.attachments as Record<string, any>)) {
-                    if (slotId !== 'ammo' && att?.defId) nonAmmo[slotId] = att.defId;
-                  }
-                  if (Object.keys(nonAmmo).length > 0) entry.gunAttachments = nonAmmo;
-                }
-                if (itItemDef?.attachmentSlots && (itItemDef.categories?.includes(ItemCategory.VEHICLE) || itItemDef.traits?.includes(ItemTrait.VEHICLE) || entry.defId === 'vehicle.golf_cart')) {
-                  const vAtts: Record<string, { defId: string; charges?: number }> = {};
-                  for (const slot of itItemDef.attachmentSlots) {
-                    const att = it.attachments[slot.id];
-                    if (att && (att.defId || att.id)) {
-                      vAtts[slot.id] = {
-                        defId: att.defId || att.id,
-                        charges: att.ammoCount,
-                      };
-                    }
-                  }
-                  if (Object.keys(vAtts).length > 0) entry.vehicleAttachments = vAtts;
-                }
-              }
-              return entry;
-            })
+            .map(itemToEditorEntry)
             .filter((it: any) => it.defId);
         }
       }
@@ -566,50 +529,7 @@ function saveGameMapToEditorState(mapData: any): { name: string; width: number; 
         });
 
         tiles[y][x].items = Array.from(uniqueItems.values())
-          .map((it: any) => {
-            const entry: any = { defId: it.defId || it.id };
-            if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
-            copyTransitionFields(it, entry);
-            if (it.eventId !== undefined) entry.eventId = it.eventId;
-            if (it.condition !== undefined) entry.condition = it.condition;
-            if (it.attachments) {
-              const itItemDef = (ItemDefs as any)[entry.defId];
-              const slotInfo = getBatterySlotInfo(itItemDef);
-              if (slotInfo && it.attachments[slotInfo.slotId]?.ammoCount !== undefined) {
-                entry.batteryCharges = it.attachments[slotInfo.slotId].ammoCount;
-              }
-              if (itItemDef?.categories?.includes(ItemCategory.GUN)) {
-                const ammoAtt = it.attachments['ammo'];
-                if (ammoAtt) {
-                  if (itItemDef.directLoad) {
-                    entry.gunAmmoCount = ammoAtt.stackCount ?? 0;
-                  } else {
-                    entry.gunMagDefId = ammoAtt.defId;
-                    entry.gunAmmoCount = ammoAtt.ammoCount ?? 0;
-                  }
-                }
-                const nonAmmo: Record<string, string> = {};
-                for (const [slotId, att] of Object.entries(it.attachments as Record<string, any>)) {
-                  if (slotId !== 'ammo' && att?.defId) nonAmmo[slotId] = att.defId;
-                }
-                if (Object.keys(nonAmmo).length > 0) entry.gunAttachments = nonAmmo;
-              }
-              if (itItemDef?.attachmentSlots && (itItemDef.categories?.includes(ItemCategory.VEHICLE) || itItemDef.traits?.includes(ItemTrait.VEHICLE) || entry.defId === 'vehicle.golf_cart')) {
-                const vAtts: Record<string, { defId: string; charges?: number }> = {};
-                for (const slot of itItemDef.attachmentSlots) {
-                  const att = it.attachments[slot.id];
-                  if (att && (att.defId || att.id)) {
-                    vAtts[slot.id] = {
-                      defId: att.defId || att.id,
-                      charges: att.ammoCount,
-                    };
-                  }
-                }
-                if (Object.keys(vAtts).length > 0) entry.vehicleAttachments = vAtts;
-              }
-            }
-            return entry;
-          })
+          .map(itemToEditorEntry)
           .filter((it: any) => it.defId);
 
         // Reconstruct entities from contents
@@ -844,8 +764,18 @@ function buildFullItem(item: EditorItem): any {
   if (item.factionId !== undefined) full.factionId = item.factionId;
   if (item.isOn !== undefined) full.isOn = item.isOn;
 
+  if (item.stackCount !== undefined) full.stackCount = item.stackCount;
+  if (item.isLocked !== undefined) full.isLocked = item.isLocked;
+  if (item.contents?.length) {
+    full.containerGrid = packContainerContents(item.defId, item.contents.map(buildFullItem), full.instanceId).containerGrid;
+  }
+
   return full;
 }
+
+// Indices of a container's authored contents that won't fit (size/category).
+const findRejectedContents = (defId: string) => (items: EditorItem[]) =>
+  packContainerContents(defId, items.map(buildFullItem), 'preview').rejected;
 
 // The inverse of buildFullItem: collapse a serialized item back into the flat
 // EditorItem knobs so a loaded map is editable again.
@@ -858,6 +788,12 @@ function itemToEditorEntry(it: any): EditorItem {
   if ((it.defId || it.id) === TURRET_DEF_ID) {
     if (it.factionId !== undefined) entry.factionId = it.factionId;
     if (it.isOn !== undefined) entry.isOn = it.isOn;
+  }
+  if (it.stackCount > 1) entry.stackCount = it.stackCount;
+  if (isLockableContainer(entry.defId)) {
+    if (it.isLocked !== undefined) entry.isLocked = it.isLocked;
+    const contents = it.containerGrid?.items;
+    if (contents?.length) entry.contents = contents.map(itemToEditorEntry);
   }
 
   if (it.attachments) {
@@ -1131,6 +1067,15 @@ export default function MapEditor() {
   const [gunMagDefId, setGunMagDefId] = useState('');
   const [gunAttachments, setGunAttachments] = useState<Record<string, string>>({});
   const [vehicleAttachments, setVehicleAttachments] = useState<Record<string, { defId: string; charges?: number }>>({});
+  const [stackCount, setStackCount] = useState<number | ''>('');
+  // Lockable container brush (safe): starting lock state + authored contents.
+  const [containerLocked, setContainerLocked] = useState(true);
+  const [containerContents, setContainerContents] = useState<EditorItem[]>([]);
+  // Open contents editor: target === null edits the brush above, otherwise item
+  // `itemIndex` on tile (x, y). brush/category park the item controls meanwhile.
+  const [contentsModal, setContentsModal] = useState<
+    { defId: string; items: EditorItem[]; target: { x: number; y: number; itemIndex: number } | null; brush: EditorItem | null; category: string } | null
+  >(null);
   // ─── Speech bubble event storage (authored via the unified Event Window) ──
   const [bubbleEvents, setBubbleEvents] = useState<BubbleEvent[]>([]);
 
@@ -1959,21 +1904,9 @@ export default function MapEditor() {
           break;
         case 'item':
           if (selectedItem) {
-            const itemEntry: EditorItem = { defId: selectedItem };
-            if (waterFill !== '') itemEntry.ammoCount = waterFill as number;
-            if (conditionVal !== '') itemEntry.condition = conditionVal as number;
-            if (batteryCharges !== '') itemEntry.batteryCharges = batteryCharges as number;
-            if (gunAmmoCount !== '') itemEntry.gunAmmoCount = gunAmmoCount as number;
-            
+            const itemEntry = draftItemFromControls()!;
             if (isTransitionItem(itemEntry)) copyTransitionFields(transitionTarget, itemEntry);
             if (selectedItem === 'placeable.help' && helpEventId) itemEntry.eventId = helpEventId;
-            if (gunMagDefId) itemEntry.gunMagDefId = gunMagDefId;
-            if (Object.keys(gunAttachments).some(k => gunAttachments[k])) itemEntry.gunAttachments = { ...gunAttachments };
-            if (Object.keys(vehicleAttachments).some(k => vehicleAttachments[k]?.defId)) itemEntry.vehicleAttachments = { ...vehicleAttachments };
-            if (selectedItem === TURRET_DEF_ID) {
-              itemEntry.factionId = turretFactionId;
-              itemEntry.isOn = turretIsOn;
-            }
             tile.items.push(itemEntry);
           }
           break;
@@ -2027,7 +1960,7 @@ export default function MapEditor() {
 
       return next;
     });
-  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieEarbucksValue, zombieDeaf, npcTypeId, npcName, npcFactionId, npcIconId, npcAiDisabled, npcLoadout, npcEquippedIndex, selectedItem, turretFactionId, turretIsOn, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, vehicleAttachments, transitionTarget, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
+  }, [tool, selectedTerrain, selectedEdge, edgeLocked, selectedEntity, zombieSubtype, zombieHp, zombieNoLoot, zombieEarbucksValue, zombieDeaf, npcTypeId, npcName, npcFactionId, npcIconId, npcAiDisabled, npcLoadout, npcEquippedIndex, selectedItem, turretFactionId, turretIsOn, waterFill, conditionVal, batteryCharges, gunAmmoCount, gunMagDefId, gunAttachments, vehicleAttachments, stackCount, containerLocked, containerContents, transitionTarget, helpEventId, selectedPlaceIconSubtype, brushSize, width, height]);
 
   // ─── Furniture stamp tool ────────────────────────────────────────────
   // Validates and places a loose furniture stamp at (x, y). Lives outside
@@ -2712,51 +2645,6 @@ export default function MapEditor() {
     });
   };
 
-  const mapEcsItemToEditorItem = (it: any) => {
-    const entry: any = { defId: it.defId || it.id };
-    if (it.ammoCount !== undefined) entry.ammoCount = it.ammoCount;
-    copyTransitionFields(it, entry);
-    if (it.eventId !== undefined) entry.eventId = it.eventId;
-    if (it.condition !== undefined) entry.condition = it.condition;
-    if (it.attachments) {
-      const itItemDef = (ItemDefs as any)[entry.defId];
-      const slotInfo = getBatterySlotInfo(itItemDef);
-      if (slotInfo && it.attachments[slotInfo.slotId]?.ammoCount !== undefined) {
-        entry.batteryCharges = it.attachments[slotInfo.slotId].ammoCount;
-      }
-      if (itItemDef?.categories?.includes(ItemCategory.GUN)) {
-        const ammoAtt = it.attachments['ammo'];
-        if (ammoAtt) {
-          if (itItemDef.directLoad) {
-            entry.gunAmmoCount = ammoAtt.stackCount ?? 0;
-          } else {
-            entry.gunMagDefId = ammoAtt.defId;
-            entry.gunAmmoCount = ammoAtt.ammoCount ?? 0;
-          }
-        }
-        const nonAmmo: Record<string, string> = {};
-        for (const [slotId, att] of Object.entries(it.attachments as Record<string, any>)) {
-          if (slotId !== 'ammo' && att?.defId) nonAmmo[slotId] = att.defId;
-        }
-        if (Object.keys(nonAmmo).length > 0) entry.gunAttachments = nonAmmo;
-      }
-      if (itItemDef?.attachmentSlots && (itItemDef.categories?.includes(ItemCategory.VEHICLE) || itItemDef.traits?.includes(ItemTrait.VEHICLE) || entry.defId === 'vehicle.golf_cart')) {
-        const vAtts: Record<string, { defId: string; charges?: number }> = {};
-        for (const slot of itItemDef.attachmentSlots) {
-          const att = it.attachments[slot.id];
-          if (att && (att.defId || att.id)) {
-            vAtts[slot.id] = {
-              defId: att.defId || att.id,
-              charges: att.ammoCount,
-            };
-          }
-        }
-        if (Object.keys(vAtts).length > 0) entry.vehicleAttachments = vAtts;
-      }
-    }
-    return entry;
-  };
-
   const handleGenerateLoot = async (amountParam?: 'lots' | 'some' | 'little', seedParam?: string, modeParam?: 'standard' | 'corridor') => {
     setIsGeneratingLoot(true);
     setStatusMsg('Running loot generator...');
@@ -2795,7 +2683,7 @@ export default function MapEditor() {
 
           const generatedEditorItems = rawItems.map((entity: any) => {
             const json = typeof entity.toJSON === 'function' ? entity.toJSON() : entity;
-            return mapEcsItemToEditorItem(json);
+            return itemToEditorEntry(json);
           }).filter((it: any) => it.defId);
 
           return { ...t, items: [...t.items, ...generatedEditorItems] };
@@ -2994,7 +2882,63 @@ export default function MapEditor() {
       draft.factionId = turretFactionId;
       draft.isOn = turretIsOn;
     }
+    if (stackCount !== '') draft.stackCount = stackCount as number;
+    if (isLockableContainer(selectedItem)) {
+      draft.isLocked = containerLocked;
+      if (containerContents.length) draft.contents = containerContents.map(it => ({ ...it }));
+    }
     return draft;
+  };
+
+  // Load an EditorItem into the item controls (null clears them). Used when the
+  // item select changes and to park/restore the brush around the contents editor.
+  const loadItemControls = (it: EditorItem | null) => {
+    const defId = it?.defId ?? '';
+    setSelectedItem(defId);
+    setWaterFill(it?.ammoCount ?? '');
+    setConditionVal(it?.condition ?? '');
+    setBatteryCharges(it?.batteryCharges ?? '');
+    setGunAmmoCount(it?.gunAmmoCount ?? '');
+    setGunMagDefId(it?.gunMagDefId ?? '');
+    setGunAttachments(it?.gunAttachments ?? {});
+    setVehicleAttachments(it?.vehicleAttachments ?? getDefaultVehicleAttachments(defId));
+    setStackCount(it?.stackCount ?? '');
+    setContainerLocked(it?.isLocked ?? ((ItemDefs as any)[defId]?.isLocked ?? true));
+    setContainerContents(it?.contents ?? []);
+    if (it?.factionId !== undefined) setTurretFactionId(it.factionId);
+    if (it?.isOn !== undefined) setTurretIsOn(it.isOn);
+  };
+
+  const openContentsEditor = (target: { x: number; y: number; itemIndex: number } | null) => {
+    const placed = target ? tilesRef.current[target.y]?.[target.x]?.items[target.itemIndex] : null;
+    const items = (placed ? placed.contents : containerContents) ?? [];
+    setContentsModal({
+      defId: placed?.defId ?? selectedItem,
+      items: items.map(it => ({ ...it })),
+      target,
+      brush: draftItemFromControls(),
+      category: itemCategory,
+    });
+    setItemCategory('');
+    loadItemControls(null);
+  };
+
+  // items === null cancels. Either way the parked item brush comes back.
+  const closeContentsEditor = (items: EditorItem[] | null) => {
+    if (!contentsModal) return;
+    const { target, brush, category } = contentsModal;
+    setItemCategory(category);
+    loadItemControls(brush);
+    if (items && !target) setContainerContents(items);
+    if (items && target) {
+      pushUndo(tilesRef.current, buildingsRef.current, furnitureRef.current);
+      setTiles(prev => prev.map((row, y) => y !== target.y ? row : row.map((t, x) => x !== target.x ? t : {
+        ...t,
+        items: t.items.map((it, i) => i !== target.itemIndex ? it : { ...it, contents: items.length ? items : undefined }),
+      })));
+    }
+    if (items) setStatusMsg(`Container contents set (${items.length} item(s))`);
+    setContentsModal(null);
   };
 
   // Open the loadout editor on the brush default, or on a placed NPC/Player.
@@ -3057,6 +3001,7 @@ export default function MapEditor() {
   const describeLoadoutItem = (it: EditorItem) => {
     const def = (ItemDefs as any)[it.defId];
     const bits: string[] = [def?.name || it.defId];
+    if (it.stackCount !== undefined) bits.push(`×${it.stackCount}`);
     if (it.gunAmmoCount !== undefined) bits.push(`${it.gunAmmoCount} rds`);
     if (it.batteryCharges !== undefined) bits.push(`${it.batteryCharges} chg`);
     if (it.condition !== undefined) bits.push(`${it.condition}%`);
@@ -3089,7 +3034,7 @@ export default function MapEditor() {
               <label style={{ fontSize: 11, color: '#888' }}>Item</label>
               <select
                 value={selectedItem}
-                onChange={e => { setSelectedItem(e.target.value); setWaterFill(''); setConditionVal(''); setBatteryCharges(''); setGunAmmoCount(''); setGunMagDefId(''); setGunAttachments({}); setVehicleAttachments(getDefaultVehicleAttachments(e.target.value)); }}
+                onChange={e => loadItemControls({ defId: e.target.value })}
                 style={{ ...inputStyle, width: '100%' }}
               >
                 <option value="">— Select item —</option>
@@ -3166,6 +3111,32 @@ export default function MapEditor() {
                       ? ' Non-player turrets have infinite battery + ammo and stay on.'
                       : ' Player turrets consume the battery/ammo you configure below.'}
                   </p>
+                </div>
+              )}
+              {(() => {
+                const max: number = (ItemDefs as any)[selectedItem]?.stackMax ?? 1;
+                if (max <= 1) return null;
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid #444', paddingTop: 6 }}>
+                    <label style={{ fontSize: 11, color: '#888' }}>Quantity (blank = 1, max {max})</label>
+                    <input
+                      type="number" min={1} max={max} value={stackCount} placeholder="1"
+                      onChange={e => setStackCount(e.target.value === '' ? '' : Math.min(max, Math.max(1, Number(e.target.value))))}
+                      style={{ ...inputStyle, width: '100%' }}
+                    />
+                  </div>
+                );
+              })()}
+              {/* Hidden inside the contents editor itself: no safes in safes. */}
+              {isLockableContainer(selectedItem) && !contentsModal && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #444', paddingTop: 6 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={containerLocked} onChange={e => setContainerLocked(e.target.checked)} />
+                    Locked (needs a lockpick to open)
+                  </label>
+                  <button onClick={() => openContentsEditor(null)} style={{ ...btnStyle('#46607a'), width: '100%' }}>
+                    Contents… ({containerContents.length} item{containerContents.length === 1 ? '' : 's'})
+                  </button>
                 </div>
               )}
               {(() => {
@@ -4501,6 +4472,22 @@ export default function MapEditor() {
       );
     })()}
 
+      {contentsModal && (
+        <ContainerContentsModal<EditorItem>
+          title={(ItemDefs as any)[contentsModal.defId]?.name || 'Container'}
+          description={contentsModal.target
+            ? `Editing the one placed at (${contentsModal.target.x}, ${contentsModal.target.y}).`
+            : 'Contents of every one you place with the item brush from now on.'}
+          initialItems={contentsModal.items}
+          findRejected={findRejectedContents(contentsModal.defId)}
+          describeItem={describeLoadoutItem}
+          renderItemControls={renderItemControls}
+          draftItem={draftItemFromControls}
+          onSave={items => closeContentsEditor(items)}
+          onCancel={() => closeContentsEditor(null)}
+        />
+      )}
+
       {showZombieModal && (
         <ZombieGeneratorModal
           initialDensity={zombieDensity}
@@ -4937,8 +4924,19 @@ export default function MapEditor() {
                           {gunAmmoLabel}
                           {isTransitionItem(item) ? ` · ${describeTransition(item)}` : ''}
                           {item.defId === 'placeable.help' ? (item.eventId ? ` · ▶ ${item.eventId}` : ' · ▶ (no event)') : ''}
+                          {item.stackCount !== undefined ? ` · ×${item.stackCount}` : ''}
+                          {isLockableContainer(item.defId) ? ` · ${item.isLocked === false ? 'unlocked' : 'locked'} · ${item.contents?.length ?? 0} inside` : ''}
                         </span>
                         <div style={{ display: 'flex', gap: 4 }}>
+                          {isLockableContainer(item.defId) && (<>
+                            <button onClick={() => setTiles(prev => {
+                              pushUndo(prev, buildingsRef.current, furnitureRef.current);
+                              const next = prev.map(r => r.map(c => ({ ...c, items: [...c.items] })));
+                              next[ty][tx].items[i] = { ...item, isLocked: item.isLocked === false };
+                              return next;
+                            })} style={editBtnStyle}>{item.isLocked === false ? 'Lock' : 'Unlock'}</button>
+                            <button onClick={() => openContentsEditor({ x: tx, y: ty, itemIndex: i })} style={editBtnStyle}>Contents</button>
+                          </>)}
                           {isTransitionItem(item) && (
                             <button onClick={() => {
                               setEditTransitionItem({ x: tx, y: ty, itemIndex: i });
