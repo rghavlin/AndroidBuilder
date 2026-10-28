@@ -1,9 +1,6 @@
 # Exclude game editor custom maps and scenarios (large JSON files)
 customMaps/
 
-# Exclude Graphify output files (visualization data, HTML, cache)
-graphify-out/
-
 # Exclude build output directories
 dist/
 dist-electron/

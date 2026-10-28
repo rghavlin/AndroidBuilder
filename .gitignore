@@ -5,4 +5,4 @@ server/public
 vite.config.ts.*
 *.tar.gz
 dist-electron/
-fuzz-crashes/
+fuzz-crashes/graphify-out/
