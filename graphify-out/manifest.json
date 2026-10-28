@@ -60,8 +60,8 @@
     "semantic_hash": "50e71b53c5315f7cc2cde55f8da972a9"
   },
   "client/src/components/Game/DefeatDialog.tsx": {
-    "mtime": 1784715545.840376,
-    "ast_hash": "d47948426a0a2fbf2c6504c7e4152f5c",
+    "mtime": 1793148004.100875,
+    "ast_hash": "c6ec72a171069af397842081d2b4082a",
     "semantic_hash": ""
   },
   "client/src/components/Game/DevConsole.tsx": {
@@ -185,13 +185,13 @@
     "semantic_hash": ""
   },
   "client/src/components/Game/OverlayManager.tsx": {
-    "mtime": 1787811411.7716408,
-    "ast_hash": "bea4cd30ab5e734b8dedb07a640dc135",
+    "mtime": 1793147944.1723838,
+    "ast_hash": "f73f6524e86501eb2f7064c082f27ab4",
     "semantic_hash": ""
   },
   "client/src/components/Game/PlayerSkillsUI.tsx": {
-    "mtime": 1787729711.823464,
-    "ast_hash": "239a600dec682b89368063af15406e07",
+    "mtime": 1793148023.842882,
+    "ast_hash": "db71d9b7be5b197594523ce34fa643e0",
     "semantic_hash": ""
   },
   "client/src/components/Game/PlayerSkillsWindow.tsx": {
@@ -640,8 +640,8 @@
     "semantic_hash": ""
   },
   "client/src/contexts/GameContext.jsx": {
-    "mtime": 1792565119.9158912,
-    "ast_hash": "5d2d2f081d5b79be32a43d70d00454e2",
+    "mtime": 1793147992.3545103,
+    "ast_hash": "4de3ca28ca1e8a8e49d37eee254286d0",
     "semantic_hash": ""
   },
   "client/src/contexts/GameMapContext.jsx": {
@@ -715,8 +715,8 @@
     "semantic_hash": ""
   },
   "client/src/game/GameSaveSystem.js": {
-    "mtime": 1787816200.8855302,
-    "ast_hash": "22721ccb6c7d95239291158e875bcf5b",
+    "mtime": 1793147832.2170732,
+    "ast_hash": "e41a5db7665cb5bbedc9d3fdf87adb34",
     "semantic_hash": ""
   },
   "client/src/game/ScenarioStorage.js": {
@@ -3110,13 +3110,13 @@
     "semantic_hash": ""
   },
   "customMaps/StartMenu.editor.json": {
-    "mtime": 1793074474.7537327,
-    "ast_hash": "c6a94ae3d7a58941e2cd80f2cf88726e",
+    "mtime": 1793145872.0652773,
+    "ast_hash": "77696619280d25655a18c2d62b6e8d51",
     "semantic_hash": ""
   },
   "customMaps/StartMenu.scenario.json": {
-    "mtime": 1793074475.7348874,
-    "ast_hash": "dcc7b8ec23ab17b4380f395cad279aa0",
+    "mtime": 1793145872.6680107,
+    "ast_hash": "63ce3f789afeae925301bb0c604e2174",
     "semantic_hash": ""
   },
   "test/ai/aiStateTransitions.test.js": {
@@ -3947,6 +3947,16 @@
   "test/editor/containerContents.test.js": {
     "mtime": 1793075146.0906954,
     "ast_hash": "accfa029e5b13f2f6c835ad7e99a9ab5",
+    "semantic_hash": ""
+  },
+  "client/src/game/StartMapSave.js": {
+    "mtime": 1793147844.948397,
+    "ast_hash": "05b7c45376bf49553102b959e89b4901",
+    "semantic_hash": ""
+  },
+  "test/serialization/startMapSave.test.js": {
+    "mtime": 1793148121.8749278,
+    "ast_hash": "b917dae82f8bc8735650a06fb41eada4",
     "semantic_hash": ""
   }
 }

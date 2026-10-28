@@ -122,6 +122,9 @@
   "120": "computeMinimapSize",
   "121": "JournalUI.tsx",
   "122": "lineOfSight.test.js",
+  "123": "Item",
+  "124": "DamageIntent",
+  "125": "stairsTransition.test.js",
   "129": "conditions.js",
   "130": "toggle-group.tsx",
   "131": ".executeAction",
@@ -133,7 +136,6 @@
   "139": "Zombie Bleeding Logic",
   "140": "TestEntity.js",
   "141": "Item",
-  "142": "MapConnectivityValidator.js",
   "143": "MockGameMap",
   "145": "mapRestoreParity.test.js",
   "146": "Image Cropping Scripts",
@@ -155,10 +157,7 @@
   "166": "Simple Utility Script",
   "167": "Tailwind CSS Configuration",
   "168": "Vite Electron Configuration",
-  "170": "test_noise_assert.js",
   "173": "ProgressionConfig.js",
   "176": "TestMapBuilder",
-  "178": "MapConnectivityValidator.js",
-  "181": "eventMarkersIntegration.test.js",
   "194": "TileRenderer.js"
 }

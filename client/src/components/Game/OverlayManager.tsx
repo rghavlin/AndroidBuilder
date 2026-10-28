@@ -55,7 +55,7 @@ export default function OverlayManager() {
     toggleJournal,
     closeJournalAndOpenSkills,
     initializeGame,
-    enableAutosave,
+    exitStartMenuMode,
   } = useGame();
 
   const { worldManager } = useGameMap();
@@ -199,8 +199,12 @@ export default function OverlayManager() {
               open={true}
               onOpenChange={(open) => !open && handleMapTransitionCancel()}
               onContinue={async () => {
-                enableAutosave();
-                return handleMapTransitionConfirmWrapper();
+                // The student walks on into a real game: leave the sandbox so it
+                // autosaves to the regular slots (not the tutorial's) and gets the
+                // in-game header back. The tutorial's own save keeps its last turn.
+                const success = await handleMapTransitionConfirmWrapper();
+                if (success) exitStartMenuMode();
+                return success;
               }}
               onNewGame={() => {
                 handleMapTransitionCancel();

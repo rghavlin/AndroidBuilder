@@ -7,6 +7,12 @@ import { serializeOrders } from './remote/AutoWagonOrders.js';
 import { serializeControlModes } from './remote/DeviceControlMode.js';
 import { ensurePhone } from './phone/Phone.js';
 
+// The start-menu tutorial's private autosave. It lives beside the regular save
+// slots but is never listed with them — see StartMapSave.js.
+export const START_MAP_SLOT = 'startmap_autosave';
+const isHiddenSlot = (slotName) =>
+  slotName === START_MAP_SLOT || (typeof slotName === 'string' && slotName.startsWith(`${START_MAP_SLOT}_chunk_`));
+
 export const DEFAULT_PLAYER_STATS = {
   hp: 100,
   maxHp: 100,
@@ -306,7 +312,12 @@ export class GameSaveSystem {
         // Game metadata
         metadata: {
           mapTemplate: gameState.metadata?.mapTemplate || 'road',
-          gameMode: gameState.metadata?.gameMode || 'survival'
+          gameMode: gameState.metadata?.gameMode || 'survival',
+          // Start-map saves only: identifies the StartMenu scenario they were
+          // played on, so an edited/updated tutorial map discards stale progress.
+          ...(gameState.metadata?.scenarioFingerprint
+            ? { scenarioFingerprint: gameState.metadata.scenarioFingerprint }
+            : {})
         },
 
         interactionState: {
@@ -524,12 +535,16 @@ export class GameSaveSystem {
    * Save game state to storage
    * @param {Object} gameState - Game state to save
    * @param {string} slotName - Save slot name (default: 'quicksave')
+   * @param {Object} [options]
+   * @param {boolean} [options.syncCharacter=true] - Write the player back to the
+   *   CharacterRegistry. Off for the start-map tutorial, whose student must never
+   *   show up as a pickable character.
    * @returns {Promise<boolean>} - True if save succeeded
    */
-  static async saveToStorage(gameState, slotName = 'quicksave') {
+  static async saveToStorage(gameState, slotName = 'quicksave', { syncCharacter = true } = {}) {
     try {
       // Sync character stats to character registry whenever the character is saved
-      if (gameState.player) {
+      if (gameState.player && syncCharacter) {
         try {
           CharacterRegistry.saveCharacterFromPlayer(gameState.player);
         } catch (e) {
@@ -631,40 +646,7 @@ export class GameSaveSystem {
    */
   static async loadFromStorage(slotName = 'quicksave') {
     try {
-      let saveData = null;
-
-      // Check if running in Electron native filesystem environment
-      if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.loadGame === 'function') {
-        const result = await window.electronAPI.loadGame(slotName);
-        if (result) {
-          saveData = typeof result === 'string' ? JSON.parse(result) : result;
-        }
-      } else {
-        // Web Fallback: Try IndexedDB
-        try {
-          saveData = await idbStore.getItem(slotName);
-        } catch (idbError) {
-          console.warn('[GameSaveSystem] IndexedDB load failed, trying localStorage fallback:', idbError);
-        }
-
-        // Try localStorage if IndexedDB returned null or failed
-        if (!saveData) {
-          try {
-            if (typeof window !== 'undefined' && window.localStorage) {
-              const key = `zombie_road_save_${slotName}`;
-              const localData = window.localStorage.getItem(key);
-              if (localData) {
-                console.log(`[GameSaveSystem] Loaded game from localStorage key: ${key}`);
-                const decompressed = await decompressString(localData);
-                saveData = JSON.parse(decompressed);
-              }
-            }
-          } catch (lsError) {
-            console.error('[GameSaveSystem] localStorage load fallback also failed:', lsError);
-          }
-        }
-      }
-
+      const saveData = await this.readSaveData(slotName);
       if (!saveData) {
         console.log(`[GameSaveSystem] No save found in slot: ${slotName}`);
         return null;
@@ -679,6 +661,51 @@ export class GameSaveSystem {
       console.error('[GameSaveSystem] Failed to load game state:', error);
       return null;
     }
+  }
+
+  /**
+   * Read a slot's raw save data without deserializing it into the engine.
+   * loadGameState() mutates global state (engine, quest/event runners, RNG), so
+   * a caller that may reject a save after inspecting it reads it here first.
+   * @param {string} slotName - Save slot name
+   * @returns {Promise<Object|null>} - Parsed save data, or null if the slot is empty
+   */
+  static async readSaveData(slotName) {
+    let saveData = null;
+
+    // Check if running in Electron native filesystem environment
+    if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.loadGame === 'function') {
+      const result = await window.electronAPI.loadGame(slotName);
+      if (result) {
+        saveData = typeof result === 'string' ? JSON.parse(result) : result;
+      }
+    } else {
+      // Web Fallback: Try IndexedDB
+      try {
+        saveData = await idbStore.getItem(slotName);
+      } catch (idbError) {
+        console.warn('[GameSaveSystem] IndexedDB load failed, trying localStorage fallback:', idbError);
+      }
+
+      // Try localStorage if IndexedDB returned null or failed
+      if (!saveData) {
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            const key = `zombie_road_save_${slotName}`;
+            const localData = window.localStorage.getItem(key);
+            if (localData) {
+              console.log(`[GameSaveSystem] Loaded game from localStorage key: ${key}`);
+              const decompressed = await decompressString(localData);
+              saveData = JSON.parse(decompressed);
+            }
+          }
+        } catch (lsError) {
+          console.error('[GameSaveSystem] localStorage load fallback also failed:', lsError);
+        }
+      }
+    }
+
+    return saveData || null;
   }
 
   /**
@@ -819,7 +846,8 @@ export class GameSaveSystem {
     // Check if running in Electron native filesystem environment
     if (typeof window !== 'undefined' && window.electronAPI && typeof window.electronAPI.listSaves === 'function') {
       try {
-        return await window.electronAPI.listSaves();
+        const saves = await window.electronAPI.listSaves();
+        return (saves || []).filter(s => !isHiddenSlot(s.slotName));
       } catch (error) {
         console.error('[GameSaveSystem] Failed to list saves via Electron IPC:', error);
         return [];
@@ -870,7 +898,9 @@ export class GameSaveSystem {
       console.error('[GameSaveSystem] Failed to list saves from localStorage:', lsError);
     }
 
-    return Array.from(savesMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+    return Array.from(savesMap.values())
+      .filter(s => !isHiddenSlot(s.slotName))
+      .sort((a, b) => b.timestamp - a.timestamp);
   }
 
   // Helper methods for complex object restoration

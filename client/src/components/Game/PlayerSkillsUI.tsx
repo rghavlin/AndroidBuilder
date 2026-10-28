@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useGame } from '@/contexts/GameContext';
-import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye, Heart, Dices, AlertTriangle, Shield, ShieldCheck, Swords, BookOpen } from 'lucide-react';
+import { Info, Crosshair, Sparkles, Hammer, Dumbbell, Wind, Eye, Heart, Dices, AlertTriangle, Shield, ShieldCheck, Swords, BookOpen, RotateCcw } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { imageLoader } from '@/game/utils/ImageLoader';
 import { CombatResolver } from '@/game/systems/CombatResolver';
@@ -194,8 +194,26 @@ const AttributeCard = ({ name, current, base, effects, totalXP, spentXP, require
 
 export default function PlayerSkillsUI() {
     const { player, playerStats } = usePlayer();
-    const { openJournalAndCloseSkills } = useGame();
+    const { openJournalAndCloseSkills, isStartMenuMode, resetStartMenu } = useGame();
     const [playerIcon, setPlayerIcon] = useState<string | null>(null);
+    // Two-step guard on the start-map Reset: the first click arms it, a second
+    // within a few seconds wipes the tutorial's progress.
+    const [confirmReset, setConfirmReset] = useState(false);
+
+    useEffect(() => {
+        if (!confirmReset) return;
+        const timer = setTimeout(() => setConfirmReset(false), 4000);
+        return () => clearTimeout(timer);
+    }, [confirmReset]);
+
+    const handleResetClick = () => {
+        if (!confirmReset) {
+            setConfirmReset(true);
+            return;
+        }
+        setConfirmReset(false);
+        resetStartMenu();
+    };
 
     useEffect(() => {
         const loadIcon = async () => {
@@ -389,6 +407,22 @@ export default function PlayerSkillsUI() {
                             <BookOpen className="w-3 h-3 text-primary" />
                             Journal
                         </button>
+                        {isStartMenuMode && (
+                            <button
+                                onClick={handleResetClick}
+                                title="Reset the start map to its original state, discarding the student's progress"
+                                className={cn(
+                                    "ml-1 px-2 py-0.5 rounded border flex items-center gap-1.5 transition-colors font-mono text-[9px] font-bold uppercase tracking-wider cursor-pointer",
+                                    confirmReset
+                                        ? "bg-red-950/80 border-red-500/60 text-red-300 hover:bg-red-900/80"
+                                        : "bg-primary/10 border-primary/20 text-primary hover:bg-primary/20"
+                                )}
+                                data-testid="button-reset-start-map"
+                            >
+                                <RotateCcw className="w-3 h-3" />
+                                {confirmReset ? 'Confirm Reset?' : 'Reset'}
+                            </button>
+                        )}
                     </div>
 
                     {/* Name Label */}

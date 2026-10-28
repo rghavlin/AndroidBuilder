@@ -6,6 +6,7 @@ import turnManager from '../game/managers/TurnManager.js';
 import audioManager from '../game/utils/AudioManager.js';
 import musicManager from '../game/utils/MusicManager.js';
 import { GameSaveSystem } from '../game/GameSaveSystem.js';
+import { scenarioFingerprint, saveStartMap, loadStartMap, resetStartMap } from '../game/StartMapSave.js';
 import GameInitializationManager from '../game/GameInitializationManager.js';
 import { PlayerProvider, usePlayer } from './PlayerContext.jsx';
 import { GameMapProvider, useGameMap } from './GameMapContext.jsx';
@@ -96,6 +97,10 @@ const GameContextInner = ({ children }) => {
   const initManagerRef = useRef(null);
   const autosaveTimeoutRef = useRef(null);
   const noAutosaveRef = useRef(false);
+  // Fingerprint of the StartMenu scenario the running tutorial was built from;
+  // stamped on every start-map save (see StartMapSave.js).
+  const startMapFingerprintRef = useRef(null);
+  const freshStartMenuRef = useRef(false);
   const isStartMenuModeRef = useRef(false);
   const [isStartMenuMode, setIsStartMenuMode] = useState(false);
   const [showDifficultySelect, setShowDifficultySelect] = useState(false);
@@ -796,8 +801,41 @@ const GameContextInner = ({ children }) => {
     return { actionQueue, demandTriggered, newTurn, nextIsNight };
   }, [turn, inventoryManager, checkZombieAwareness, getPlayerCardinalPositions, isFlashlightOn, setIsFlashlightOn]);
 
+  // The start-menu tutorial's own per-turn save: a private slot, written silently
+  // (no toasts, no backup slot) and resumed on the next boot by initializeStartMenu.
+  // Deliberately ignores the StartMenu scenario's noAutosave flag, which only keeps
+  // the tutorial out of the regular save slots.
+  const performStartMapAutosave = useCallback(async (turnOverride = null) => {
+    if (!engine.player || !engine.gameMap || !engine.gameMap.getTile(engine.player.x, engine.player.y)) {
+      console.warn('[GameContext] Start-map autosave skipped: player not found on map');
+      return false;
+    }
+    setIsAutosaving(true);
+    engine.isAutosaving = true;
+    try {
+      const success = await saveStartMap({
+        turn: turnOverride || turn,
+        gameMap: engine.gameMap,
+        worldManager: engine.worldManager,
+        player: engine.player,
+        inventoryManager: engine.inventoryManager,
+        camera: engine.camera,
+        metadata: engine.gameMap.metadata || {}
+      }, startMapFingerprintRef.current);
+      if (!success) console.warn('[GameContext] Start-map autosave failed');
+      return success;
+    } catch (error) {
+      console.error('[GameContext] Start-map autosave error:', error);
+      return false;
+    } finally {
+      setIsAutosaving(false);
+      engine.isAutosaving = false;
+    }
+  }, [turn]);
+
   const performAutosave = useCallback(async (turnOverride = null) => {
-    if (!isInitialized || engine.isSleeping || isStartMenuModeRef.current) return false;
+    if (!isInitialized || engine.isSleeping) return false;
+    if (isStartMenuModeRef.current) return performStartMapAutosave(turnOverride);
     if (noAutosaveRef.current) {
       console.log('[GameContext] Autosave skipped — noAutosave is set for this scenario');
       return false;
@@ -884,7 +922,7 @@ const GameContextInner = ({ children }) => {
       engine.isAutosaving = false;
       return false;
     }
-  }, [isInitialized, inventoryManager, turn]);
+  }, [isInitialized, inventoryManager, turn, performStartMapAutosave]);
 
   /**
    * Phase 3 Refactor: Playback Phase
@@ -1494,11 +1532,13 @@ const GameContextInner = ({ children }) => {
   // Apply a fully-deserialized save state to the engine + React UI. Shared by the
   // direct-load paths (loadGameFromStateData / loadGameDirect), which differ only
   // in where the state comes from and whether they fire the 'game-loaded' event.
-  const applyLoadedState = useCallback((loadedState, { dispatchGameLoaded = false } = {}) => {
+  // `startMenu` resumes the start-menu tutorial from its own save instead of
+  // leaving the sandbox for real gameplay.
+  const applyLoadedState = useCallback((loadedState, { dispatchGameLoaded = false, startMenu = false } = {}) => {
     // The start-menu sandbox shows the event log; don't carry its lines into the save.
-    if (isStartMenuModeRef.current) clearLogs();
-    isStartMenuModeRef.current = false;
-    setIsStartMenuMode(false);
+    if (isStartMenuModeRef.current || startMenu) clearLogs();
+    isStartMenuModeRef.current = startMenu;
+    setIsStartMenuMode(startMenu);
     // Loading a save is real gameplay — re-enable autosave. Without this the flag
     // stays true from the start-menu sandbox (StartMenu.scenario.json has
     // noAutosave:true), so a resumed game would silently never autosave.
@@ -1782,8 +1822,16 @@ const GameContextInner = ({ children }) => {
     return true;
   }, [wireManagerEvents, resetAll]);
 
-  const initializeStartMenu = useCallback(async () => {
-    console.log('[GameContext] 🎮 initializeStartMenu called...');
+  // Boot the start-menu tutorial. Resumes the student's saved progress (see
+  // StartMapSave.js) unless `fresh` is set or the StartMenu scenario changed.
+  const initializeStartMenu = useCallback(async ({ fresh = false } = {}) => {
+    console.log('[GameContext] 🎮 initializeStartMenu called...', { fresh });
+    // A turn-end autosave still pending from the previous session must not fire
+    // into the tutorial (or its slot) once it is rebuilt.
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+      autosaveTimeoutRef.current = null;
+    }
     if (musicManager && typeof musicManager.stop === 'function') {
       musicManager.stop();
     }
@@ -1793,6 +1841,21 @@ const GameContextInner = ({ children }) => {
       scenarioData = await ScenarioStorage.load('StartMenu');
     } catch (e) {
       console.warn('[GameContext] Failed to load StartMenu scenario from storage:', e);
+    }
+    startMapFingerprintRef.current = scenarioFingerprint(scenarioData);
+
+    // resetStartMenu rebuilds through shutdownGame → 'game-shutdown' → here, so
+    // its "start fresh" request arrives as a one-shot flag rather than an argument.
+    const startFresh = fresh || freshStartMenuRef.current;
+    freshStartMenuRef.current = false;
+    if (!startFresh) {
+      resetAll();
+      const savedState = await loadStartMap(startMapFingerprintRef.current);
+      if (savedState) {
+        console.log('[GameContext] Resuming start-map tutorial from its autosave');
+        applyLoadedState(savedState, { startMenu: true });
+        return true;
+      }
     }
 
     const START_MENU_CHARACTER = {
@@ -1827,7 +1890,15 @@ const GameContextInner = ({ children }) => {
     }
 
     return await initializeGame(config);
-  }, [initializeGame]);
+  }, [initializeGame, applyLoadedState, resetAll]);
+
+  // Leave the start-menu sandbox without rebuilding the world — the tutorial's
+  // end exit carries the student straight on into a real game.
+  const exitStartMenuMode = useCallback(() => {
+    isStartMenuModeRef.current = false;
+    setIsStartMenuMode(false);
+    noAutosaveRef.current = false;
+  }, []);
 
 
 
@@ -2166,6 +2237,22 @@ const GameContextInner = ({ children }) => {
     window.dispatchEvent(new CustomEvent('game-shutdown'));
   }, [resetAll, wireManagerEvents, handleMapTransitionCancel]);
 
+  // Wipe the tutorial's saved progress. In the sandbox the start map is then
+  // rebuilt from scratch (via the same shutdown → start-menu path the defeat
+  // dialog's respawn uses); during a real game only the save is cleared, so the
+  // next start menu begins fresh.
+  const resetStartMenu = useCallback(async () => {
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+      autosaveTimeoutRef.current = null;
+    }
+    await resetStartMap();
+    if (!isStartMenuModeRef.current) return true;
+    freshStartMenuRef.current = true;
+    shutdownGame();
+    return true;
+  }, [shutdownGame]);
+
   const contextValue = useMemo(() => ({
     // Game lifecycle state only
     isInitialized,
@@ -2208,6 +2295,8 @@ const GameContextInner = ({ children }) => {
     // Orchestration functions only
     initializeGame,
     initializeStartMenu,
+    resetStartMenu,
+    exitStartMenuMode,
     endTurn,
     spawnTestEntities,
     spawnInitialZombies,
@@ -2223,7 +2312,6 @@ const GameContextInner = ({ children }) => {
     loadGameFromStateData,
     loadAutosave,
     performAutosave,
-    enableAutosave: () => { noAutosaveRef.current = false; },
     exportGame,
     getSerializedSaveData,
 
@@ -2263,7 +2351,6 @@ const GameContextInner = ({ children }) => {
     handleDialogDismiss,
     fireDialogAtPlayerTile,
     fireItemEvent,
-    enableAutosave: () => { noAutosaveRef.current = false; },
   }), [
     isInitialized,
     isGameReady,
@@ -2271,6 +2358,8 @@ const GameContextInner = ({ children }) => {
     initializationError,
     isStartMenuMode,
     initializeStartMenu,
+    resetStartMenu,
+    exitStartMenuMode,
     setTurn,
     isNight,
     hour,

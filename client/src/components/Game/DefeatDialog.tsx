@@ -5,16 +5,25 @@ import { useGame } from '../../contexts/GameContext.jsx';
 import { Skull, RotateCcw, LogOut, XCircle } from "lucide-react";
 
 export default function DefeatDialog() {
-    const { isDefeated, loadGameDirect, shutdownGame, setIsDefeated, isStartMenuMode } = useGame();
+    const { isDefeated, loadGameDirect, shutdownGame, setIsDefeated, isStartMenuMode, resetStartMenu } = useGame();
     const [isLoading, setIsLoading] = useState(false);
 
     if (!isDefeated) return null;
 
+    // Rebuilding the start menu resumes the tutorial's own autosave — the turn
+    // before this death.
     const handleRespawnStartMenu = () => {
-        console.log('[DefeatDialog] Resetting start menu sandbox...');
+        console.log('[DefeatDialog] Respawning start menu sandbox from its last autosave...');
         if (shutdownGame) {
             shutdownGame();
         }
+    };
+
+    const handleRestartTutorial = async () => {
+        console.log('[DefeatDialog] Restarting start menu tutorial from scratch...');
+        setIsLoading(true);
+        await resetStartMenu();
+        setIsLoading(false);
     };
 
     const handleReplay = async () => {
@@ -63,13 +72,25 @@ export default function DefeatDialog() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3 pb-8 px-8">
                     {isStartMenuMode ? (
-                        <Button
-                            onClick={handleRespawnStartMenu}
-                            className="w-full py-6 bg-red-950/60 hover:bg-red-900/80 border border-red-900/40 text-red-100 font-bold flex items-center justify-center gap-2 group transition-all"
-                        >
-                            <RotateCcw className="h-4 w-4 group-hover:rotate-[-45deg] transition-transform" />
-                            Respawn Sandbox
-                        </Button>
+                        <>
+                            <Button
+                                onClick={handleRespawnStartMenu}
+                                disabled={isLoading}
+                                className="w-full py-6 bg-red-950/60 hover:bg-red-900/80 border border-red-900/40 text-red-100 font-bold flex items-center justify-center gap-2 group transition-all"
+                            >
+                                <RotateCcw className="h-4 w-4 group-hover:rotate-[-45deg] transition-transform" />
+                                Replay Last Turn
+                            </Button>
+
+                            <Button
+                                onClick={handleRestartTutorial}
+                                disabled={isLoading}
+                                className="w-full py-6 bg-red-950/40 hover:bg-red-900/60 border border-red-900/20 text-red-100 font-bold flex items-center justify-center gap-2 group transition-all"
+                            >
+                                <Skull className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                                Restart Tutorial
+                            </Button>
+                        </>
                     ) : (
                         <>
                             <Button
