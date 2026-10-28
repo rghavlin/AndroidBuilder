@@ -5,22 +5,23 @@ import { useGame } from '../../contexts/GameContext.jsx';
 import { Skull, RotateCcw, LogOut, XCircle } from "lucide-react";
 
 export default function DefeatDialog() {
-    const { isDefeated, loadGameDirect, shutdownGame, setIsDefeated, isStartMenuMode, resetStartMenu } = useGame();
+    const { isDefeated, loadGameDirect, shutdownGame, setIsDefeated, isStartMenuMode, initializeStartMenu, resetStartMenu } = useGame();
     const [isLoading, setIsLoading] = useState(false);
 
     if (!isDefeated) return null;
 
-    // Rebuilding the start menu resumes the tutorial's own autosave — the turn
-    // before this death.
-    const handleRespawnStartMenu = () => {
-        console.log('[DefeatDialog] Respawning start menu sandbox from its last autosave...');
-        if (shutdownGame) {
-            shutdownGame();
-        }
+    // The start-map counterpart of handleReplay: reload the tutorial's own
+    // autosave (the turn before this death) in place. With no save yet — death
+    // on the very first turn — this starts the tutorial fresh.
+    const handleReplayStartMenu = async () => {
+        setIsLoading(true);
+        console.log('[DefeatDialog] Replaying last turn - loading start-map autosave...');
+        await initializeStartMenu();
+        setIsLoading(false);
     };
 
-    const handleRestartTutorial = async () => {
-        console.log('[DefeatDialog] Restarting start menu tutorial from scratch...');
+    const handleResetStartMenu = async () => {
+        console.log('[DefeatDialog] Resetting start map to its original state...');
         setIsLoading(true);
         await resetStartMenu();
         setIsLoading(false);
@@ -74,21 +75,22 @@ export default function DefeatDialog() {
                     {isStartMenuMode ? (
                         <>
                             <Button
-                                onClick={handleRespawnStartMenu}
+                                onClick={handleReplayStartMenu}
                                 disabled={isLoading}
-                                className="w-full py-6 bg-red-950/60 hover:bg-red-900/80 border border-red-900/40 text-red-100 font-bold flex items-center justify-center gap-2 group transition-all"
+                                className="w-full py-6 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white font-bold flex items-center justify-center gap-2 group transition-all"
                             >
                                 <RotateCcw className="h-4 w-4 group-hover:rotate-[-45deg] transition-transform" />
                                 Replay Last Turn
                             </Button>
 
                             <Button
-                                onClick={handleRestartTutorial}
+                                onClick={handleResetStartMenu}
                                 disabled={isLoading}
+                                title="Reset the start map to its original state, discarding the student's progress"
                                 className="w-full py-6 bg-red-950/40 hover:bg-red-900/60 border border-red-900/20 text-red-100 font-bold flex items-center justify-center gap-2 group transition-all"
                             >
                                 <Skull className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                                Restart Tutorial
+                                Reset
                             </Button>
                         </>
                     ) : (
