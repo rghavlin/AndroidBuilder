@@ -7828,7 +7828,48 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "spitter",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
+        "items": []
+      },
+      {
+        "terrain": "road",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "acid",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -8044,34 +8085,14 @@
             "window": false
           }
         },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "road",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "fat",
+            "earbucksValue": 0,
+            "deaf": true
           }
-        },
-        "entities": [],
+        ],
         "items": []
       },
       {
@@ -9536,7 +9557,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -10835,7 +10863,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -11865,7 +11900,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "crawler",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -12568,7 +12610,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "peeper",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -13407,7 +13456,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "runner",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -13542,7 +13598,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "peeper",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -18774,7 +18837,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -19263,7 +19333,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "spitter",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -19479,7 +19556,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -19993,7 +20077,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "peeper",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": [],
         "decoration": "outdoordecor2"
       },
@@ -20914,7 +21005,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -21726,7 +21824,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "crawler",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -23620,7 +23725,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "acid",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -24732,7 +24844,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "firefighter",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -25792,7 +25911,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -26528,7 +26654,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.wire"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -26906,7 +27036,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "acid",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -27373,7 +27510,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -27997,7 +28141,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -29082,7 +29233,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -30223,7 +30381,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "crawler",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -31033,7 +31198,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -31686,7 +31858,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -31878,7 +32057,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.cannedsoup"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -33098,7 +33281,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -33260,7 +33450,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "crawler",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -34671,7 +34868,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "fat",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -35297,7 +35501,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -35433,7 +35644,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "medical.wound_spray"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -36082,7 +36297,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "crawler",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -40295,7 +40517,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -40431,7 +40660,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "fat",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -41080,7 +41316,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "fat",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -42359,7 +42602,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -43225,7 +43475,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "fat",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -43549,7 +43806,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -46410,7 +46674,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": [],
         "decoration": "outdoordecor3"
       },
@@ -46736,7 +47007,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.machete"
+          }
+        ]
       },
       {
         "terrain": "road",
@@ -47545,8 +47820,19 @@
             "window": false
           }
         },
-        "entities": [],
-        "items": []
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
+        "items": [
+          {
+            "defId": "food.energydrink"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -50260,7 +50546,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "spitter",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -53296,7 +53589,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "fat",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -53973,7 +54273,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "crawler",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -54435,7 +54742,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -56205,7 +56519,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -56421,7 +56742,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "acid",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -58644,7 +58972,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "runner",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -59185,7 +59520,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "peeper",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -60840,7 +61182,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -62359,7 +62708,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "medical.first_aid_kit"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -63038,7 +63391,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "fat",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -69736,7 +70096,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.golf_club"
+          }
+        ]
       },
       {
         "terrain": "road",
@@ -69898,7 +70262,15 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.recon_drone_stowed"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "drone"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -71798,7 +72170,12 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "ammo.9mm",
+            "stackCount": 32
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -73942,7 +74319,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.9mmPistol"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -74131,7 +74512,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "attachment.9mm_magazine"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -74779,7 +75164,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "attachment.suppressor"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -77004,7 +77393,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "medical.stimulant"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -79169,7 +79562,12 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic"
+          }
+        ],
         "items": []
       },
       {
@@ -79902,7 +80300,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.energydrink"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -82019,7 +82421,12 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic"
+          }
+        ],
         "items": []
       },
       {
@@ -87008,7 +87415,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "runner",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -88638,7 +89052,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.softdrink"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -89181,7 +89599,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.tape"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -93683,7 +94105,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.high_capacity_battery"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -94143,7 +94569,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -94744,7 +95174,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "peeper",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -95586,7 +96023,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.cannedsoup"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -100444,7 +100885,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.battery"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -100747,7 +101192,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.vitamindrink"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -101863,7 +102312,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.fire_axe"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -103350,7 +103803,11 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "rabbit"
+          }
+        ],
         "items": []
       },
       {
@@ -105818,7 +106275,31 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "furniture.safe",
+            "isLocked": true,
+            "contents": [
+              {
+                "defId": "tool.crank_charger"
+              },
+              {
+                "defId": "weapon.shotgun"
+              },
+              {
+                "defId": "ammo.shotgun_shells",
+                "stackCount": 11
+              },
+              {
+                "defId": "food.mre"
+              }
+            ]
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "safe"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -110453,7 +110934,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.wire"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -112734,7 +113219,12 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.nail",
+            "stackCount": 2
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -123425,7 +123915,21 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "vehicle.electric_scooter",
+            "vehicleAttachments": {
+              "battery": {
+                "defId": "tool.large_battery",
+                "charges": 52
+              }
+            }
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "scooter"
+          }
+        ]
       },
       {
         "terrain": "road",
@@ -129745,7 +130249,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.hunting_rifle"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -133843,10 +134351,37 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
+            "wall": true,
+            "door": false,
+            "window": false
+          },
+          "e": {
             "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -133870,10 +134405,10 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -133897,10 +134432,10 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -133924,38 +134459,10 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [],
-        "decoration": "outdoordecor1"
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -133979,38 +134486,10 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [],
-        "decoration": "outdoordecor3"
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -134034,10 +134513,10 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -134061,10 +134540,10 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -134088,15 +134567,42 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
           "e": {
             "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": true,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -135005,7 +135511,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "crawler",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -136149,7 +136662,34 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -136176,7 +136716,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -136203,7 +136743,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -136230,7 +136770,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -136257,7 +136797,52 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": false,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": [
+          {
+            "defId": "ammo.556",
+            "stackCount": 44
+          },
+          {
+            "defId": "weapon.battle_rifle"
+          },
+          {
+            "defId": "attachment.556_magazine"
+          },
+          {
+            "defId": "attachment.556_magazine"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "mag"
+          }
+        ]
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -136284,7 +136869,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -136311,7 +136896,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -136338,7 +136923,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -136346,7 +136931,7 @@
             "window": false
           },
           "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -136363,61 +136948,6 @@
         },
         "entities": [],
         "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [],
-        "decoration": "outdoordecor5"
       },
       {
         "terrain": "grass",
@@ -138448,7 +138978,34 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -138475,7 +139032,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -138502,7 +139059,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -138529,7 +139086,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -138556,7 +139113,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -138583,7 +139140,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -138610,7 +139167,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -138637,7 +139194,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -138661,11 +139218,10 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "outdoordecor2"
+        "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -138674,39 +139230,10 @@
           },
           "e": {
             "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [
-          {
-            "defId": "weapon.stick"
-          }
-        ]
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
+            "door": true,
+            "window": false,
+            "locked": false,
+            "keylocked": false
           },
           "s": {
             "wall": false,
@@ -138856,7 +139383,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.wire"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -140766,7 +141297,34 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -140793,7 +141351,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -140820,7 +141378,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -140847,7 +141405,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -140874,7 +141432,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -140901,7 +141459,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -140928,7 +141486,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -140955,7 +141513,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -140982,7 +141540,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -140991,36 +141549,10 @@
           },
           "e": {
             "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": [],
-        "decoration": "outdoordecor2"
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
+            "door": true,
+            "window": false,
+            "locked": false,
+            "keylocked": false
           },
           "s": {
             "wall": false,
@@ -142033,7 +142565,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "basic",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -143069,7 +143608,34 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -143093,11 +143659,15 @@
           }
         },
         "entities": [],
-        "items": [],
-        "decoration": "outdoordecor2"
+        "items": [
+          {
+            "defId": "weapon.grenade",
+            "stackCount": 2
+          }
+        ]
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -143124,7 +143694,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -143151,7 +143721,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -143178,7 +143748,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -143205,7 +143775,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -143232,7 +143802,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -143259,7 +143829,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -143286,7 +143856,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -143294,34 +143864,7 @@
             "window": false
           },
           "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -143634,7 +144177,15 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "ammo.308",
+            "stackCount": 8
+          },
+          {
+            "defId": "attachment.riflescope"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -145371,7 +145922,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -145384,7 +145935,34 @@
             "window": false
           },
           "s": {
+            "wall": true,
+            "door": false,
+            "window": false
+          },
+          "w": {
+            "wall": true,
+            "door": false,
+            "window": false
+          }
+        },
+        "entities": [],
+        "items": []
+      },
+      {
+        "terrain": "floor",
+        "edgeWalls": {
+          "n": {
             "wall": false,
+            "door": false,
+            "window": false
+          },
+          "e": {
+            "wall": false,
+            "door": false,
+            "window": false
+          },
+          "s": {
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -145398,7 +145976,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -145411,7 +145989,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -145425,7 +146003,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -145438,7 +146016,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -145452,7 +146030,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -145465,7 +146043,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -145479,7 +146057,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -145492,7 +146070,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -145506,7 +146084,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -145519,7 +146097,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -145533,7 +146111,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -145546,7 +146124,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -145560,7 +146138,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -145573,7 +146151,7 @@
             "window": false
           },
           "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -145587,7 +146165,7 @@
         "items": []
       },
       {
-        "terrain": "grass",
+        "terrain": "floor",
         "edgeWalls": {
           "n": {
             "wall": false,
@@ -145595,39 +146173,12 @@
             "window": false
           },
           "e": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
           "s": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "w": {
-            "wall": false,
-            "door": false,
-            "window": false
-          }
-        },
-        "entities": [],
-        "items": []
-      },
-      {
-        "terrain": "grass",
-        "edgeWalls": {
-          "n": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "e": {
-            "wall": false,
-            "door": false,
-            "window": false
-          },
-          "s": {
-            "wall": false,
+            "wall": true,
             "door": false,
             "window": false
           },
@@ -146637,7 +147188,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.beans"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -148643,7 +149198,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.cannedcorn"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -153359,7 +153918,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.beans"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -160298,7 +160861,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.waterjug"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -167920,7 +168487,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.stone"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -180336,7 +180907,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "crawler",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -189717,7 +190295,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.wire"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -190207,7 +190789,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.waterbottle"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -197186,7 +197772,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.wire"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -202689,7 +203279,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.woodenbat"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -225784,7 +226378,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.mre"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -235524,6 +236122,10 @@
         "items": [
           {
             "defId": "crafting.stone"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "throw"
           }
         ]
       },
@@ -247640,7 +248242,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.beans"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -250980,7 +251586,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -255629,7 +256239,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.fruitjuice"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -258766,6 +259380,10 @@
         "items": [
           {
             "defId": "food.honey"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "rotate item"
           }
         ]
       },
@@ -259281,7 +259899,12 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.smallflashlight",
+            "batteryCharges": 10
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -261931,7 +262554,14 @@
             "window": false
           }
         },
-        "entities": [],
+        "entities": [
+          {
+            "type": "zombie",
+            "subtype": "crawler",
+            "earbucksValue": 0,
+            "deaf": true
+          }
+        ],
         "items": []
       },
       {
@@ -263354,7 +263984,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.cannedcorn"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -263462,7 +264096,17 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.waterbottle",
+            "ammoCount": 10,
+            "stackCount": 2
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Water transfer"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -265085,7 +265729,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "weapon.plank"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -269624,7 +270272,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.battery"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -269788,7 +270440,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.tape"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -277139,10 +277795,6 @@
           {
             "defId": "placeable.help",
             "eventId": "Starting tile"
-          },
-          {
-            "defId": "tool.recon_drone",
-            "batteryCharges": 20
           }
         ]
       },
@@ -291144,6 +291796,13 @@
           "rot": 3
         }
       ]
+    },
+    {
+      "type": "army_tent",
+      "x": 4,
+      "y": 58,
+      "width": 10,
+      "height": 6
     }
   ],
   "noAutosave": true,
@@ -291152,6 +291811,24 @@
   "bubbleEvents": [
     {
       "id": "generator",
+      "oneShot": false,
+      "trigger": {
+        "type": "proximity",
+        "radius": 2
+      },
+      "lines": []
+    },
+    {
+      "id": "throw",
+      "oneShot": false,
+      "trigger": {
+        "type": "proximity",
+        "radius": 2
+      },
+      "lines": []
+    },
+    {
+      "id": "scooter",
       "oneShot": false,
       "trigger": {
         "type": "proximity",
@@ -291202,51 +291879,11 @@
       "oneShot": false
     },
     {
-      "id": "Starting tile",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "You should find some clothes to put on before going outside. Right-click on doors to open them. If you run out of ACTION POINTS, end your turn."
-        }
-      ],
-      "oneShot": false
-    },
-    {
       "id": "equip clothes",
       "steps": [
         {
           "speaker": "",
           "text": "Click on clothes, then click on your clothing slots to equip."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "equip weapon",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "disassemble",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Place a hammer on the ground, then right-click the bed to disassemble."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "Farming",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant. If you run out of ACTIION POINTS, end your turn."
         }
       ],
       "oneShot": false
@@ -291277,6 +291914,91 @@
         {
           "speaker": "",
           "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "safe",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use a lockpick on a safe to unlock it. Lockpicks can be crafted"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "mag",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Select ammo to load it into a magazine. Select a magazine to load it into a gun. If a gun already has a mag, it will be swapped."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "rotate item",
+      "steps": [],
+      "oneShot": false
+    },
+    {
+      "id": "Starting tile",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "You should find some clothes to put on before going outside. Right-click on doors to open them. If you run out of ACTION POINTS, end your turn. When your energy becomes low find a safe place to SLEEP."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "equip weapon",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies. You can right-click on a crowbar to use it on locked doors and windows."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "disassemble",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use a hammer on the bed to disassemble it. "
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "Farming",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hole to plant. If you run out of ACTIION POINTS, end your turn."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "Water transfer",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Water can be transferred between containers by selecting one container, then clicking on the other one."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "drone",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Right-click on a drone to deploy it. Deployed drones can be detected by your smartphone. Once you select a drone in your smartphone, you can right click on the phone action button above the map to launch and land the drone."
         }
       ],
       "oneShot": false
@@ -291348,22 +292070,6 @@
       ]
     },
     {
-      "id": "Starting tile",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "You should find some clothes to put on before going outside. Right-click on doors to open them. If you run out of ACTION POINTS, end your turn."
-        }
-      ]
-    },
-    {
       "id": "equip clothes",
       "placement": {
         "kind": "chainOnly"
@@ -291376,54 +292082,6 @@
           "type": "dialog",
           "speaker": "",
           "text": "Click on clothes, then click on your clothing slots to equip."
-        }
-      ]
-    },
-    {
-      "id": "equip weapon",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies."
-        }
-      ]
-    },
-    {
-      "id": "disassemble",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Place a hammer on the ground, then right-click the bed to disassemble."
-        }
-      ]
-    },
-    {
-      "id": "Farming",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hold to plant. If you run out of ACTIION POINTS, end your turn."
         }
       ]
     },
@@ -291489,6 +292147,178 @@
           "type": "dialog",
           "speaker": "",
           "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag."
+        }
+      ]
+    },
+    {
+      "id": "safe",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use a lockpick on a safe to unlock it. Lockpicks can be crafted"
+        }
+      ]
+    },
+    {
+      "id": "throw",
+      "placement": {
+        "kind": "proximity",
+        "radius": 2
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Right-click on a stone to throw it."
+        }
+      ]
+    },
+    {
+      "id": "mag",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Select ammo to load it into a magazine. Select a magazine to load it into a gun. If a gun already has a mag, it will be swapped."
+        }
+      ]
+    },
+    {
+      "id": "scooter",
+      "placement": {
+        "kind": "proximity",
+        "radius": 2
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "You can ride electric vehicles to use less ACTION POINTS when moving."
+        }
+      ]
+    },
+    {
+      "id": "rotate item",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": []
+    },
+    {
+      "id": "Starting tile",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "You should find some clothes to put on before going outside. Right-click on doors to open them. If you run out of ACTION POINTS, end your turn. When your energy becomes low find a safe place to SLEEP."
+        }
+      ]
+    },
+    {
+      "id": "equip weapon",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies. You can right-click on a crowbar to use it on locked doors and windows."
+        }
+      ]
+    },
+    {
+      "id": "disassemble",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use a hammer on the bed to disassemble it. "
+        }
+      ]
+    },
+    {
+      "id": "Farming",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hole to plant. If you run out of ACTIION POINTS, end your turn."
+        }
+      ]
+    },
+    {
+      "id": "Water transfer",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Water can be transferred between containers by selecting one container, then clicking on the other one."
+        }
+      ]
+    },
+    {
+      "id": "drone",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Right-click on a drone to deploy it. Deployed drones can be detected by your smartphone. Once you select a drone in your smartphone, you can right click on the phone action button above the map to launch and land the drone."
         }
       ]
     }
