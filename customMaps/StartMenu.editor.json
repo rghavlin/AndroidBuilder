@@ -69172,7 +69172,14 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "food.tomatoseeds"
+          },
+          {
+            "defId": "food.tomatoseeds"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -83729,7 +83736,12 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "furniture.electric_mower",
+            "batteryCharges": 108
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -101575,7 +101587,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "environment.water_puddle"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -125503,7 +125519,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "environment.water_puddle"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -129489,7 +129509,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.cooking_pot"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -130249,11 +130273,7 @@
           }
         },
         "entities": [],
-        "items": [
-          {
-            "defId": "weapon.hunting_rifle"
-          }
-        ]
+        "items": []
       },
       {
         "terrain": "grass",
@@ -144179,10 +144199,6 @@
         "entities": [],
         "items": [
           {
-            "defId": "ammo.308",
-            "stackCount": 8
-          },
-          {
             "defId": "attachment.riflescope"
           }
         ]
@@ -146405,7 +146421,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "backpack.standard"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -170319,7 +170339,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "environment.water_puddle"
+          }
+        ]
       },
       {
         "terrain": "grass",
@@ -179447,6 +179471,9 @@
           {
             "defId": "placeable.help",
             "eventId": "Farming"
+          },
+          {
+            "defId": "food.tomatoseeds"
           }
         ]
       },
@@ -188074,7 +188101,18 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "crafting.leather_belt"
+          },
+          {
+            "defId": "belt.pouch"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "Belt"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -196226,7 +196264,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.cooking_pot"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -197775,6 +197817,9 @@
         "items": [
           {
             "defId": "crafting.wire"
+          },
+          {
+            "defId": "tool.cooking_pot"
           }
         ]
       },
@@ -206703,7 +206748,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "tool.cooking_pot"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -214901,6 +214950,12 @@
         "items": [
           {
             "defId": "weapon.plank"
+          },
+          {
+            "defId": "food.tomatoseeds"
+          },
+          {
+            "defId": "food.tomatoseeds"
           }
         ]
       },
@@ -259379,11 +259434,13 @@
         "entities": [],
         "items": [
           {
-            "defId": "food.honey"
-          },
-          {
             "defId": "placeable.help",
             "eventId": "rotate item"
+          },
+          {
+            "defId": "food.waterbottle",
+            "ammoCount": 10,
+            "stackCount": 1
           }
         ]
       },
@@ -264098,13 +264155,13 @@
         "entities": [],
         "items": [
           {
-            "defId": "food.waterbottle",
-            "ammoCount": 10,
-            "stackCount": 2
-          },
-          {
             "defId": "placeable.help",
             "eventId": "Water transfer"
+          },
+          {
+            "defId": "food.waterbottle",
+            "ammoCount": 10,
+            "stackCount": 1
           }
         ]
       },
@@ -291835,6 +291892,15 @@
         "radius": 2
       },
       "lines": []
+    },
+    {
+      "id": "Belt",
+      "oneShot": false,
+      "trigger": {
+        "type": "proximity",
+        "radius": 2
+      },
+      "lines": []
     }
   ],
   "chainDialogEvents": [
@@ -291939,11 +292005,6 @@
       "oneShot": false
     },
     {
-      "id": "rotate item",
-      "steps": [],
-      "oneShot": false
-    },
-    {
       "id": "Starting tile",
       "steps": [
         {
@@ -292002,6 +292063,26 @@
         }
       ],
       "oneShot": false
+    },
+    {
+      "id": "rotate item",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "With an item selected, right-click to rotate."
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "Game intro",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Opening message"
+        }
+      ],
+      "oneShot": true
     }
   ],
   "events": [
@@ -292217,16 +292298,6 @@
       ]
     },
     {
-      "id": "rotate item",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": []
-    },
-    {
       "id": "Starting tile",
       "placement": {
         "kind": "chainOnly"
@@ -292319,6 +292390,55 @@
           "type": "dialog",
           "speaker": "",
           "text": "Right-click on a drone to deploy it. Deployed drones can be detected by your smartphone. Once you select a drone in your smartphone, you can right click on the phone action button above the map to launch and land the drone."
+        }
+      ]
+    },
+    {
+      "id": "Belt",
+      "placement": {
+        "kind": "proximity",
+        "radius": 2
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "A belt has it's own equipment slots. Equip the belt, then right-click on the belt to open and equip the pouch to the belt."
+        }
+      ]
+    },
+    {
+      "id": "rotate item",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "With an item selected, right-click to rotate."
+        }
+      ]
+    },
+    {
+      "id": "Game intro",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "auto",
+      "preconditions": [],
+      "repeat": "once",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Opening message"
         }
       ]
     }

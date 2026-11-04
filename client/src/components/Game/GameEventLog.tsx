@@ -9,7 +9,11 @@ interface GameEventLogProps {
     className?: string;
 }
 
-const getLogColor = (type: string, originalColor: string, theme: string) => {
+// Matches the various "can't afford this action" messages ("Not enough AP to
+// dig", "Need 2 AP to pry open", "Insufficient AP", ...).
+const AP_SHORTAGE_RE = /not enough ap\b|insufficient ap\b|need \d+(\.\d+)? ap\b/i;
+
+const getLogColor =(type: string, originalColor: string, theme: string) => {
     if (isLightTheme(theme)) {
         switch (type) {
             case 'combat':
@@ -38,6 +42,21 @@ export default function GameEventLog({ onMaximize, className }: GameEventLogProp
     });
 
     const [lastSeenLogCount, setLastSeenLogCount] = useState(logs.length);
+
+    // When minimized, pop the compact panel open if an AP-shortage message
+    // arrives so the player can see why their action didn't happen. This is
+    // transient: the saved minimized preference is left alone. Tracked by the
+    // last log id (not count) because the log array is capped at MAX_LOGS.
+    const lastCheckedLogIdRef = useRef<string | undefined>(logs[logs.length - 1]?.id);
+    useEffect(() => {
+        const lastId = lastCheckedLogIdRef.current;
+        lastCheckedLogIdRef.current = logs[logs.length - 1]?.id;
+        if (!isMinimized) return;
+        const start = logs.findIndex((l: { id: string }) => l.id === lastId) + 1;
+        if (logs.slice(start).some((l: { message: string }) => AP_SHORTAGE_RE.test(String(l.message)))) {
+            setIsMinimized(false);
+        }
+    }, [logs, isMinimized]);
 
     useEffect(() => {
         if (!isMinimized) {
