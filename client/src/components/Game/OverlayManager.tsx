@@ -234,6 +234,7 @@ export default function OverlayManager() {
           {/* Dialog Overlay (Scenario Events) */}
           {activeDialog && (
             <DialogOverlay
+              key={`${activeDialog.id}:${activeDialog.stepIndex}`}
               steps={activeDialog.steps}
               onComplete={handleDialogDismiss}
             />

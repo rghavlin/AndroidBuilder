@@ -490,7 +490,8 @@ const GameContextInner = ({ children }) => {
   // { id, steps: [{speaker, text}] } shape kept for DialogOverlay compatibility.
   const activeDialog = (() => {
     const step = eventRunner.getActiveDialogStep();
-    return step ? { id: eventRunner.getActiveEventId(), steps: [step] } : null;
+    // stepIndex lets the overlay remount per step (fresh "don't show again" box).
+    return step ? { id: eventRunner.getActiveEventId(), stepIndex: eventRunner.activeRun?.stepIndex ?? 0, steps: [step] } : null;
   })();
   const isAutosaving = engine.isAutosaving;
   const setIsAutosaving = useCallback((val) => {
@@ -1218,9 +1219,9 @@ const GameContextInner = ({ children }) => {
 
   // Dismiss/advance the currently-showing dialog step. The unified runner
   // handles turnPhase + chaining/further steps internally.
-  const handleDialogDismiss = useCallback(() => {
+  const handleDialogDismiss = useCallback((opts) => {
     console.log(`[GameContext] Dialog step dismissed: "${eventRunner.getActiveEventId()}"`);
-    eventRunner.advance();
+    eventRunner.advance({ dontShowAgain: !!opts?.dontShowAgain });
   }, []);
 
   // Activate the event at the player's current tile from the placeable.help

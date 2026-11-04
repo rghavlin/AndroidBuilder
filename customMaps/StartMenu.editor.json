@@ -292438,7 +292438,8 @@
         {
           "type": "dialog",
           "speaker": "",
-          "text": "Opening message"
+          "text": "Opening message",
+          "dontShowAgain": true
         }
       ]
     }

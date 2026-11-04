@@ -57,6 +57,10 @@ export interface EventStep {
   speaker?: string;
   text?: string;
   video?: string;
+  // Show a "Don't show this again" checkbox on this dialog. If the player ticks
+  // it, the whole event is remembered on this machine (DismissedEvents.js,
+  // localStorage) and never triggers again — across new games and restarts.
+  dontShowAgain?: boolean;
   // speech
   anchorX?: number;
   anchorY?: number;

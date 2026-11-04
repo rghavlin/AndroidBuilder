@@ -380,6 +380,10 @@ function StepEditor({
             <input style={{ ...inputStyle, flex: 1 }} placeholder="line of dialog" value={step.text || ''} onChange={e => onChange({ ...step, text: e.target.value })} />
           </div>
           <input style={{ ...inputStyle, width: '100%' }} placeholder="video filename (optional, e.g. movement.webm)" value={step.video || ''} onChange={e => onChange({ ...step, video: e.target.value || undefined })} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#888', cursor: 'pointer' }}>
+            <input type="checkbox" checked={!!step.dontShowAgain} onChange={e => onChange({ ...step, dontShowAgain: e.target.checked || undefined })} />
+            Offer "Don't show this again" (if ticked, this event never triggers again for the player)
+          </label>
           <span style={{ fontSize: 10, color: '#777' }}>Tip: reference a variable with [name], e.g. "How are you, [playerName]?"</span>
         </div>
       )}

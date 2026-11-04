@@ -10,6 +10,7 @@ import { performScriptedAttack } from '../systems/ScriptedAttack.js';
 import { infectPlayer, cureInfection } from '../utils/SurvivalCascade.js';
 import Logger from '../utils/Logger.js';
 import { getLightMode } from '../config/VisionConfig.js';
+import { isEventDismissed, dismissEvent } from './DismissedEvents.js';
 
 const log = Logger.scope('EventRunner');
 
@@ -314,6 +315,9 @@ class EventRunner {
    */
   _isEligible(ev, ctx) {
     if (!ev || !ev.steps || ev.steps.length === 0) return false;
+    // Player ticked "Don't show this again" on one of its dialogs. Checked
+    // before the endWhen latch so a dismissed event never mutates state.
+    if (isEventDismissed(ev.id)) return false;
     if (ev.repeat === 'oncePerTurn' && this.lastFiredTurn.get(ev.id) === engine.turn) return false;
     // Firing is the one path allowed to latch endWhen permanently; isEventActive
     // only reads it. Latch first so the set stays authoritative for later checks.
@@ -498,9 +502,18 @@ class EventRunner {
     this.runEvent({ ...event, steps: dialogSteps }, { ignoreOnce: true });
   }
 
-  /** Advance past the current blocking step (dialog/speech dismissed by the player). */
-  advance() {
+  /**
+   * Advance past the current blocking step (dialog/speech dismissed by the player).
+   * @param {{ dontShowAgain?: boolean }} [opts] - dontShowAgain: the player
+   *   ticked "Don't show this again" on a dialog step that offers it; the
+   *   running event is remembered (DismissedEvents) and never triggers again.
+   *   The rest of this run still plays out.
+   */
+  advance(opts = {}) {
     if (!this.activeRun) return;
+    if (opts.dontShowAgain && this._currentStep()?.dontShowAgain) {
+      dismissEvent(this.activeRun.event.id);
+    }
     this.activeRun.stepIndex++;
     this._processCurrentStep();
   }

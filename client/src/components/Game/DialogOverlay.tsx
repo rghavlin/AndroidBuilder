@@ -4,23 +4,25 @@ export interface DialogStep {
   speaker: string;
   text: string;
   video?: string; // filename in /video/help/, e.g. "inventory_basics.webm"
+  dontShowAgain?: boolean; // offer a "Don't show this again" checkbox
 }
 
 interface DialogOverlayProps {
   steps: DialogStep[];
-  onComplete: () => void;
+  onComplete: (opts: { dontShowAgain: boolean }) => void;
 }
 
 export default function DialogOverlay({ steps, onComplete }: DialogOverlayProps) {
   const [stepIndex, setStepIndex] = useState(0);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const advance = useCallback(() => {
     if (stepIndex < steps.length - 1) {
       setStepIndex(i => i + 1);
     } else {
-      onComplete();
+      onComplete({ dontShowAgain });
     }
-  }, [stepIndex, steps.length, onComplete]);
+  }, [stepIndex, steps.length, onComplete, dontShowAgain]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -82,6 +84,20 @@ export default function DialogOverlay({ steps, onComplete }: DialogOverlayProps)
               <div className="text-white text-sm leading-relaxed">
                 {step.text}
               </div>
+            )}
+            {step.dontShowAgain && (
+              <label
+                className="flex items-center gap-2 mt-3 text-[11px] text-white/60 cursor-pointer select-none w-fit"
+                onClick={e => e.stopPropagation()}
+              >
+                <input
+                  type="checkbox"
+                  checked={dontShowAgain}
+                  onChange={e => setDontShowAgain(e.target.checked)}
+                  className="cursor-pointer"
+                />
+                Don't show this again
+              </label>
             )}
             <div className="flex justify-between items-center mt-3" onClick={advance} style={{ cursor: 'pointer' }}>
               <span className="text-[10px] text-white/30">

@@ -19,6 +19,7 @@ import { Slider } from "@/components/ui/slider";
 import { useGame } from '../../contexts/GameContext.jsx';
 import { GameSaveSystem } from '@/game/GameSaveSystem';
 import { useTheme } from '../../contexts/ThemeContext';
+import { getDismissedEventCount, clearDismissedEvents } from '@/game/quest/DismissedEvents';
 
 interface OptionsWindowProps {
     onClose: () => void;
@@ -160,6 +161,14 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
         window.dispatchEvent(new CustomEvent('config-changed', { detail: { key: 'furnitureOpacity', value: val } }));
     };
 
+    // Dialogs the player ticked "Don't show this again" on (DismissedEvents.js).
+    const [dismissedCount, setDismissedCount] = useState(() => getDismissedEventCount());
+
+    const handleRestoreDismissed = () => {
+        clearDismissedEvents();
+        setDismissedCount(0);
+    };
+
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-background/90 backdrop-blur-md pointer-events-auto animate-in fade-in zoom-in duration-200">
             <Card className="w-[500px] h-[550px] flex flex-col bg-card border-2 border-primary/20 shadow-2xl relative overflow-hidden">
@@ -189,7 +198,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
 
                 <CardContent className="pt-6 flex-1 flex flex-col overflow-hidden">
                     <Tabs defaultValue="audio" className="w-full flex-1 flex flex-col overflow-hidden" onValueChange={setActiveTab}>
-                        <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/50 p-1 rounded-xl">
+                        <TabsList className="grid w-full grid-cols-3 mb-8 bg-muted/50 p-1 rounded-xl">
                             <TabsTrigger value="audio" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all py-2">
                                 <Volume2 className="w-4 h-4" />
                                 <span className="font-semibold">Audio</span>
@@ -197,6 +206,10 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                             <TabsTrigger value="graphics" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all py-2">
                                 <Monitor className="w-4 h-4" />
                                 <span className="font-semibold">Graphics</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="gameplay" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all py-2">
+                                <Gamepad2 className="w-4 h-4" />
+                                <span className="font-semibold">Gameplay</span>
                             </TabsTrigger>
                         </TabsList>
 
@@ -295,6 +308,31 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                 </div>
                             </TabsContent>
 
+
+                            <TabsContent value="gameplay" className="mt-0 w-full animate-in slide-in-from-bottom-2 duration-300">
+                                <div className="space-y-6 py-1">
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Hidden Messages</label>
+                                        <div className="flex gap-2 items-center">
+                                            <span className="flex-1 text-sm text-muted-foreground px-1">
+                                                {dismissedCount === 0
+                                                    ? 'No messages are hidden.'
+                                                    : `${dismissedCount} message${dismissedCount === 1 ? '' : 's'} hidden.`}
+                                            </span>
+                                            <Button
+                                                onClick={handleRestoreDismissed}
+                                                disabled={dismissedCount === 0}
+                                                className="bg-primary hover:bg-primary/90 font-bold px-6 shadow-lg shadow-primary/20"
+                                            >
+                                                Show Again
+                                            </Button>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground/60 italic px-1">
+                                            Brings back every message you marked "Don't show this again". They appear the next time they would normally trigger.
+                                        </p>
+                                    </div>
+                                </div>
+                            </TabsContent>
 
                             <TabsContent value="audio" className="mt-0 w-full animate-in slide-in-from-bottom-2 duration-300">
                                 <div className="space-y-6 py-1">
