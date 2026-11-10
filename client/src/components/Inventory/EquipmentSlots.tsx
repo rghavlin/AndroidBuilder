@@ -40,6 +40,14 @@ export default function EquipmentSlots() {
 
     // disallow selection/unequip if no AP
     if (playerStats.ap < 1 && (selectedItem || equippedItem)) {
+      const carrying = selectedItem && !selectedItem.isEquipment ? selectedItem.item : null;
+      if (carrying && !equippedItem) {
+        addLog(`Not enough AP to equip ${carrying.name}.`, 'error');
+      } else if (!carrying && equippedItem) {
+        addLog(`Not enough AP to unequip ${equippedItem.name}.`, 'error');
+      } else {
+        addLog('Not enough AP.', 'error');
+      }
       playSound('Fail');
       return;
     }

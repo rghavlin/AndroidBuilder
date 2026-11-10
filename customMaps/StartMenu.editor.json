@@ -292082,7 +292082,7 @@
           "text": "Opening message"
         }
       ],
-      "oneShot": true
+      "oneShot": false
     }
   ],
   "events": [
@@ -292431,9 +292431,9 @@
       "placement": {
         "kind": "chainOnly"
       },
-      "trigger": "auto",
+      "trigger": "onMapEnter",
       "preconditions": [],
-      "repeat": "once",
+      "repeat": "everyTime",
       "steps": [
         {
           "type": "dialog",

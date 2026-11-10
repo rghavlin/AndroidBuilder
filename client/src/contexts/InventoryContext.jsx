@@ -208,7 +208,9 @@ export const InventoryProvider = ({ children }) => {
   const equipItem = useCallback((item, slot) => {
     const turnCheck = checkPlayerTurn();
     if (!turnCheck.success) return turnCheck;
-    if (!engine.inventoryManager || !engine.player || engine.player.ap < 1) {
+    if (!engine.inventoryManager || !engine.player) return { success: false };
+    if (engine.player.ap < 1) {
+      addLog(`Not enough AP to equip ${item?.name || 'that'}.`, 'error');
       return { success: false, reason: 'Not enough AP' };
     }
     const result = engine.inventoryManager.equipItem(item, slot);
@@ -225,7 +227,10 @@ export const InventoryProvider = ({ children }) => {
   const unequipItem = useCallback((slot) => {
     const turnCheck = checkPlayerTurn();
     if (!turnCheck.success) return turnCheck;
-    if (!engine.inventoryManager || !engine.player || engine.player.ap < 1) {
+    if (!engine.inventoryManager || !engine.player) return { success: false };
+    if (engine.player.ap < 1) {
+      const worn = engine.inventoryManager.equipment?.[slot];
+      addLog(`Not enough AP to unequip ${worn?.name || 'that'}.`, 'error');
       return { success: false, reason: 'Not enough AP' };
     }
     const result = engine.inventoryManager.unequipItem(slot);
@@ -601,7 +606,7 @@ export const InventoryProvider = ({ children }) => {
 
     // Check AP for gear changes
     if (isGearChange && (!engine.player || engine.player.ap < 1)) {
-        console.warn('[InventoryContext] Not enough AP for gear change');
+        addLog(`Not enough AP to ${isEquipping ? 'equip' : 'unequip'} ${item?.name || 'that'}.`, 'error');
         return { success: false, reason: 'Not enough AP' };
     }
 
@@ -1357,6 +1362,7 @@ export const InventoryProvider = ({ children }) => {
     
     // Check AP for gear change
     if (engine.player.ap < 1) {
+        addLog(`Not enough AP to equip ${selectedItem.item?.name || 'that'}.`, 'error');
         return { success: false, reason: 'Not enough AP' };
     }
 
@@ -1372,7 +1378,7 @@ export const InventoryProvider = ({ children }) => {
       engine.notifyUpdate();
     }
     return result;
-  }, [selectedItem, inventoryPulse]);
+  }, [selectedItem, inventoryPulse, addLog]);
 
    const splitStack = useCallback((item, count) => {
     if (!checkPlayerTurn()) return { success: false };
