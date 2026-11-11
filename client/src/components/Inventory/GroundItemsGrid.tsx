@@ -104,7 +104,7 @@ export default function GroundItemsGrid() {
 
   const isNoneTileSet = imageLoader.tileSet === 'none';
   const isSpriteSheet = imageLoader.tileSet === 'spritesheet';
-  const subFolder = imageLoader.tileSet === 'standard' ? '' : `${imageLoader.tileSet}/`;
+  const subFolder = `${imageLoader.tileSet}/`;
   // The tile-texture background is a dark-theme-only feature. In the light themes ground slots
   // have a solid background so the texture would be invisible anyway — and the image still bleeds
   // through semi-transparent placement previews. Suppress the URL outside dark mode.

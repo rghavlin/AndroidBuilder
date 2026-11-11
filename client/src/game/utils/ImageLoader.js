@@ -29,6 +29,11 @@ export class ImageLoader {
 
     // Load initial tileSet from global config
     this.tileSet = configManager.get('tileSet') || 'b&w';
+    // The color ('standard') and 'custom' tile sets were removed; migrate configs still pointing at them.
+    if (this.tileSet === 'standard' || this.tileSet === 'custom') {
+      this.tileSet = configManager.getDefaults().tileSet;
+      configManager.set('tileSet', this.tileSet);
+    }
 
     // Determine the correct base path for images
     this.basePath = this.determineBasePath();
@@ -679,7 +684,7 @@ export class ImageLoader {
       let basePathIndex = 0;
 
       // Determine subfolder based on tileSet
-      const subFolder = this.tileSet === 'standard' ? '' : `${this.tileSet}/`;
+      const subFolder = `${this.tileSet}/`;
 
       // Use same path structure
       const basePaths = [

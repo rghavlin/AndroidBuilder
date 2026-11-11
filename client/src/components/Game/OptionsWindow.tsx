@@ -225,9 +225,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                                     <SelectValue placeholder="Select tile set" />
                                                 </SelectTrigger>
                                                 <SelectContent className="z-[120]">
-                                                    <SelectItem value="standard">Color</SelectItem>
                                                     <SelectItem value="b&w">Black and White</SelectItem>
-                                                    <SelectItem value="custom">Custom</SelectItem>
                                                     <SelectItem value="none">Grayscale (No Textures)</SelectItem>
                                                 </SelectContent>
                                             </Select>
@@ -243,7 +241,7 @@ export default function OptionsWindow({ onClose }: OptionsWindowProps) {
                                                 ? "Grayscale tiles rendered from the built-in palette. No image textures." 
                                                 : tempTileSet === 'spritesheet'
                                                 ? "Textures will be loaded from the master sprite sheet: ./images/tiles/tileset2.png"
-                                                : `Textures will be loaded from: ./images/tiles/${tempTileSet === 'standard' ? '' : tempTileSet + '/'}`}
+                                                : `Textures will be loaded from: ./images/tiles/${tempTileSet}/`}
                                         </p>
                                     </div>
 

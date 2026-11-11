@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { X, Sparkles, Music, Paintbrush, Cpu } from "lucide-react";
+import { X, Sparkles, Cpu } from "lucide-react";
 
 interface CreditsWindowProps {
     onClose: () => void;
@@ -36,26 +36,6 @@ export default function CreditsWindow({ onClose }: CreditsWindowProps) {
                 </CardHeader>
 
                 <CardContent className="pt-6 overflow-y-auto custom-scrollbar flex-1 space-y-6 text-sm text-muted-foreground">
-                    {/* Graphics & Tiles Section */}
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider border-b border-border/30 pb-1.5">
-                            <Paintbrush className="w-4 h-4 text-primary" />
-                            Graphics & Tilesets
-                        </div>
-                        <ul className="space-y-2.5 list-disc list-inside pl-1 text-[13px] leading-relaxed">
-                            <li>
-                                Color tiles by Little Martian —{' '}
-                                <a href="https://little-martian.itch.io/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                                    itch.io
-                                </a>
-                                ,{' '}
-                                <a href="https://little-martian.itch.io/retro-textures-pack" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                                    retro-textures-pack
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
                     {/* Libraries & Frameworks Section */}
                     <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider border-b border-border/30 pb-1.5">
