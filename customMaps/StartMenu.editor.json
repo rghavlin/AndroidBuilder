@@ -89614,6 +89614,9 @@
         "items": [
           {
             "defId": "crafting.tape"
+          },
+          {
+            "defId": "medical.bandage"
           }
         ]
       },
@@ -180042,7 +180045,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "medical.bandage"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -262202,7 +262209,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "medical.antiseptic"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -267981,7 +267992,11 @@
           }
         },
         "entities": [],
-        "items": []
+        "items": [
+          {
+            "defId": "medical.bandage"
+          }
+        ]
       },
       {
         "terrain": "floor",
@@ -292079,7 +292094,7 @@
       "steps": [
         {
           "speaker": "",
-          "text": "Opening message"
+          "text": "Welcome to Icon Zombie. The start screen includes a playable game map where you can learn how to play the game. Explore the map to find tips. Click to move your player on the map. Moving and performing actions uses Action Points. When you run out of Action Points, end your turn. Find the '?' and click them on the ground. Start a New Game whenever you feel ready to survive the long trek. Check your smartphone for additional information. "
         }
       ],
       "oneShot": false
@@ -292438,7 +292453,7 @@
         {
           "type": "dialog",
           "speaker": "",
-          "text": "Opening message",
+          "text": "Welcome to Icon Zombie. The start screen includes a playable game map where you can learn how to play the game. Explore the map to find tips. Click to move your player on the map. Moving and performing actions uses Action Points. When you run out of Action Points, end your turn. Find the '?' and click them on the ground. Start a New Game whenever you feel ready to survive the long trek. Check your smartphone for additional information. ",
           "dontShowAgain": true
         }
       ]
