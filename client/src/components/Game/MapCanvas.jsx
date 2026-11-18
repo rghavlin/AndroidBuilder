@@ -14,7 +14,8 @@ import { configManager } from '../../game/utils/ConfigManager.js';
 import { EntityType } from '../../game/entities/Entity.js';
 import { isLinkedDevice, getLinkedDeviceUnderfoot } from '../../game/remote/RemoteDeviceKinds.js';
 import { isIndoorFloor } from '../../game/map/TerrainTypes.js';
-import { getEffectiveHour, isNightHour } from '../../game/config/VisionConfig.js';
+import { getEffectiveHour, getLightMode, isNightHour } from '../../game/config/VisionConfig.js';
+import { getRainMask } from '../../game/renderer/RainMask.js';
 import { getHourFromTurn } from '../../game/utils/TimeUtils.js';
 import { ItemDefs } from '../../game/inventory/ItemDefs.js';
 import engine from '../../game/GameEngine.js';
@@ -810,15 +811,32 @@ export default function MapCanvas({
         ctx.restore();
       }
 
-      // Layer 6: Global Weather (Screen Space)
-      if (engine.weather && engine.weather.type === 'rain' && player) {
+      // Layer 6: Global Weather (Screen Space), clipped by RainMask so rain
+      // stops over interiors: from inside, it only falls on the open-sky tiles
+      // visible through doors/windows; from outside, it skips the interior floor
+      // visible through them. Pinned-light maps are interior facilities
+      // (GameEngine treats them as always inside), so they never show rain.
+      if (engine.weather && engine.weather.type === 'rain' && player &&
+          getLightMode(gameMap?.metadata) === 'time_dependent') {
         const currentX = isAnimatingMovement ? playerRenderPosition.x : player.x;
         const currentY = isAnimatingMovement ? playerRenderPosition.y : player.y;
-        const playerTile = engine.gameMap.getTile(Math.round(currentX), Math.round(currentY));
-        const isInside = playerTile && isIndoorFloor(playerTile.terrain);
+        const playerTile = gameMap.getTile(Math.round(currentX), Math.round(currentY));
+        const isInside = !!playerTile && isIndoorFloor(playerTile.terrain);
+        const { mode, runs } = getRainMask(gameMap, extendedBounds, visibleTileSet, isInside);
 
-        if (!isInside) {
+        // Inside with no window/door view of the sky: nothing to draw.
+        if (mode === 'exclude' || runs.length > 0) {
+          ctx.save();
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.beginPath();
+          // 'exclude' = full screen minus the runs (even-odd punches them out).
+          if (mode === 'exclude') ctx.rect(0, 0, physicalWidth, physicalHeight);
+          for (const [rx, ry, rw] of runs) {
+            ctx.rect(rx * rTileSize + globalOffsetX, ry * rTileSize + globalOffsetY, rw * rTileSize, rTileSize);
+          }
+          ctx.clip(mode === 'exclude' ? 'evenodd' : 'nonzero');
           renderRain(ctx, physicalWidth, physicalHeight, engine.weather.intensity, dpr);
+          ctx.restore();
         }
       }
 
@@ -1452,7 +1470,10 @@ let lastRainUpdate = performance.now();
 
 function renderRain(ctx, width, height, intensity, dpr) {
   const now = performance.now();
-  const dt = (now - lastRainUpdate) / 1000;
+  // Clamped: rain isn't drawn while the player is somewhere with no sky in
+  // view, and a multi-second dt on the first frame back would recycle every
+  // drop to the top at once (a visible "curtain" falling).
+  const dt = Math.min(0.1, (now - lastRainUpdate) / 1000);
   lastRainUpdate = now;
 
   // 1. Particle Lifecycle

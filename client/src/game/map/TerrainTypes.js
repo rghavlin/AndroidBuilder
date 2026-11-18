@@ -17,6 +17,16 @@ export const isFloor = (terrain) => terrain === 'floor' || terrain === 'garagefl
 export const isIndoorFloor = (terrain) =>
   terrain === 'floor' || terrain === 'garagefloor' || terrain === 'tent_floor';
 
+// Building structure: wall tops, solid footprints and legacy full-tile windows.
+const STRUCTURE_TERRAINS = new Set(['wall', 'building', 'tent_wall', 'brick', 'metal_wall', 'window']);
+
+// "Open to the sky" = neither a sheltered interior surface nor part of a
+// building's structure. Drives where rain is drawn while the player is inside:
+// the view out through a door or window rains on the yard, never on the room's
+// own walls.
+export const isOpenToSky = (terrain) =>
+  !isIndoorFloor(terrain) && !STRUCTURE_TERRAINS.has(terrain);
+
 /**
  * TERRAIN_PROPS — the single source of truth for what a terrain does
  * (T2: replaces the 5-6 copy-pasted blocking lists that had already drifted).
