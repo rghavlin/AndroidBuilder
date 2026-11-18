@@ -1705,8 +1705,8 @@
         "entities": [],
         "items": [
           {
-            "defId": "placeable.exit",
-            "transitionTargetType": "next"
+            "defId": "placeable.help",
+            "eventId": "exit"
           }
         ]
       },
@@ -70271,11 +70271,12 @@
         "entities": [],
         "items": [
           {
-            "defId": "tool.recon_drone_stowed"
-          },
-          {
             "defId": "placeable.help",
             "eventId": "drone"
+          },
+          {
+            "defId": "tool.recon_drone_stowed",
+            "batteryCharges": 20
           }
         ]
       },
@@ -291878,7 +291879,7 @@
   "lowSpots": [],
   "bubbleEvents": [
     {
-      "id": "generator",
+      "id": "throw",
       "oneShot": false,
       "trigger": {
         "type": "proximity",
@@ -291887,7 +291888,7 @@
       "lines": []
     },
     {
-      "id": "throw",
+      "id": "generator",
       "oneShot": false,
       "trigger": {
         "type": "proximity",
@@ -291916,46 +291917,6 @@
   ],
   "chainDialogEvents": [
     {
-      "id": "Wagon and pan",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "Fire cook",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Craft a campfire to cook food and boil dirty water."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "Rags",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "Water puddle",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Use an empty water bottle on a water puddle to collect dirty water"
-        }
-      ],
-      "oneShot": false
-    },
-    {
       "id": "equip clothes",
       "steps": [
         {
@@ -291966,111 +291927,11 @@
       "oneShot": false
     },
     {
-      "id": "fuel cover",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "lunchbox",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "load gun (NO mag)",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "safe",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Use a lockpick on a safe to unlock it. Lockpicks can be crafted"
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "mag",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Select ammo to load it into a magazine. Select a magazine to load it into a gun. If a gun already has a mag, it will be swapped."
-        }
-      ],
-      "oneShot": false
-    },
-    {
       "id": "Starting tile",
       "steps": [
         {
           "speaker": "",
           "text": "You should find some clothes to put on before going outside. Right-click on doors to open them. If you run out of ACTION POINTS, end your turn. When your energy becomes low find a safe place to SLEEP."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "disassemble",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Use a hammer on the bed to disassemble it. "
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "Farming",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hole to plant. If you run out of ACTIION POINTS, end your turn."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "Water transfer",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Water can be transferred between containers by selecting one container, then clicking on the other one."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "drone",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Right-click on a drone to deploy it. Deployed drones can be detected by your smartphone. Once you select a drone in your smartphone, you can right click on the phone action button above the map to launch and land the drone."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "id": "rotate item",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "With an item selected, right-click to rotate."
         }
       ],
       "oneShot": false
@@ -292096,73 +291957,173 @@
         }
       ],
       "oneShot": false
-    }
-  ],
-  "events": [
+    },
     {
       "id": "Wagon and pan",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
       "steps": [
         {
-          "type": "dialog",
           "speaker": "",
-          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement."
+          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement.",
+          "video": "wagon.webm"
         }
-      ]
+      ],
+      "oneShot": false
     },
     {
       "id": "Fire cook",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
       "steps": [
         {
-          "type": "dialog",
           "speaker": "",
-          "text": "Craft a campfire to cook food and boil dirty water."
+          "text": "Craft a campfire to cook food and boil dirty water.",
+          "video": "cooking.webm"
         }
-      ]
+      ],
+      "oneShot": false
     },
     {
       "id": "Rags",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
       "steps": [
         {
-          "type": "dialog",
           "speaker": "",
-          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires."
+          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires.",
+          "video": "rags.webm"
         }
-      ]
+      ],
+      "oneShot": false
     },
     {
       "id": "Water puddle",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
       "steps": [
         {
-          "type": "dialog",
           "speaker": "",
-          "text": "Use an empty water bottle on a water puddle to collect dirty water"
+          "text": "Use an empty water bottle on a water puddle to collect dirty water",
+          "video": "waterpuddle.webm"
         }
-      ]
+      ],
+      "oneShot": false
     },
+    {
+      "id": "fuel cover",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers.",
+          "video": "fuelcan.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "lunchbox",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container.",
+          "video": "lunchbox.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "load gun (NO mag)",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag.",
+          "video": "loadgun.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "safe",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use a lockpick on a safe to unlock it. Lockpicks can be crafted",
+          "video": "safe.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "mag",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Select ammo to load it into a magazine. Select a magazine to load it into a gun. If a gun already has a mag, it will be swapped.",
+          "video": "magazine.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "disassemble",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use a hammer on the bed to disassemble it. ",
+          "video": "dissasemble.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "Farming",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hole to plant. If you run out of ACTIION POINTS, end your turn.",
+          "video": "farm.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "Water transfer",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Water can be transferred between containers by selecting one container, then clicking on the other one.",
+          "video": "watertransfer.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "drone",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Right-click on a drone to deploy it. Deployed drones can be detected by your smartphone. Once you select a drone in your smartphone, you can right click on the phone action button above the map to launch and land the drone.",
+          "video": "drone.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "rotate item",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "With an item selected, right-click to rotate.",
+          "video": "rotate.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "exit",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Congratulations! You have completed the tutorial map! Start a new game to put your survival skills to work."
+        }
+      ],
+      "oneShot": false
+    }
+  ],
+  "events": [
     {
       "id": "equip clothes",
       "placement": {
@@ -292176,87 +292137,6 @@
           "type": "dialog",
           "speaker": "",
           "text": "Click on clothes, then click on your clothing slots to equip."
-        }
-      ]
-    },
-    {
-      "id": "fuel cover",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers."
-        }
-      ]
-    },
-    {
-      "id": "generator",
-      "placement": {
-        "kind": "proximity",
-        "radius": 2
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Use the fuel can on the generator to fuel it up. Right-click on the generator to turn it on and off. Items on the ground near the generator will receive power."
-        }
-      ]
-    },
-    {
-      "id": "lunchbox",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container."
-        }
-      ]
-    },
-    {
-      "id": "load gun (NO mag)",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag."
-        }
-      ]
-    },
-    {
-      "id": "safe",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Use a lockpick on a safe to unlock it. Lockpicks can be crafted"
         }
       ]
     },
@@ -292278,39 +292158,6 @@
       ]
     },
     {
-      "id": "mag",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Select ammo to load it into a magazine. Select a magazine to load it into a gun. If a gun already has a mag, it will be swapped."
-        }
-      ]
-    },
-    {
-      "id": "scooter",
-      "placement": {
-        "kind": "proximity",
-        "radius": 2
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "You can ride electric vehicles to use less ACTION POINTS when moving."
-        }
-      ]
-    },
-    {
       "id": "Starting tile",
       "placement": {
         "kind": "chainOnly"
@@ -292323,103 +292170,6 @@
           "type": "dialog",
           "speaker": "",
           "text": "You should find some clothes to put on before going outside. Right-click on doors to open them. If you run out of ACTION POINTS, end your turn. When your energy becomes low find a safe place to SLEEP."
-        }
-      ]
-    },
-    {
-      "id": "disassemble",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Use a hammer on the bed to disassemble it. "
-        }
-      ]
-    },
-    {
-      "id": "Farming",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hole to plant. If you run out of ACTIION POINTS, end your turn."
-        }
-      ]
-    },
-    {
-      "id": "Water transfer",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Water can be transferred between containers by selecting one container, then clicking on the other one."
-        }
-      ]
-    },
-    {
-      "id": "drone",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Right-click on a drone to deploy it. Deployed drones can be detected by your smartphone. Once you select a drone in your smartphone, you can right click on the phone action button above the map to launch and land the drone."
-        }
-      ]
-    },
-    {
-      "id": "Belt",
-      "placement": {
-        "kind": "proximity",
-        "radius": 2
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "A belt has it's own equipment slots. Equip the belt, then right-click on the belt to open and equip the pouch to the belt."
-        }
-      ]
-    },
-    {
-      "id": "rotate item",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "With an item selected, right-click to rotate."
         }
       ]
     },
@@ -292455,6 +292205,314 @@
           "speaker": "",
           "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies. You can right-click on a crowbar to use it on locked doors and windows.",
           "video": "weapon.webm"
+        }
+      ]
+    },
+    {
+      "id": "Wagon and pan",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement.",
+          "video": "wagon.webm"
+        }
+      ]
+    },
+    {
+      "id": "Fire cook",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Craft a campfire to cook food and boil dirty water.",
+          "video": "cooking.webm"
+        }
+      ]
+    },
+    {
+      "id": "Rags",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires.",
+          "video": "rags.webm"
+        }
+      ]
+    },
+    {
+      "id": "Water puddle",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use an empty water bottle on a water puddle to collect dirty water",
+          "video": "waterpuddle.webm"
+        }
+      ]
+    },
+    {
+      "id": "fuel cover",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers.",
+          "video": "fuelcan.webm"
+        }
+      ]
+    },
+    {
+      "id": "generator",
+      "placement": {
+        "kind": "proximity",
+        "radius": 2
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use the fuel can on the generator to fuel it up. Right-click on the generator to turn it on and off. Items on the ground near the generator will receive power.",
+          "video": "generator.webm"
+        }
+      ]
+    },
+    {
+      "id": "lunchbox",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container.",
+          "video": "lunchbox.webm"
+        }
+      ]
+    },
+    {
+      "id": "load gun (NO mag)",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag.",
+          "video": "loadgun.webm"
+        }
+      ]
+    },
+    {
+      "id": "safe",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use a lockpick on a safe to unlock it. Lockpicks can be crafted",
+          "video": "safe.webm"
+        }
+      ]
+    },
+    {
+      "id": "mag",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Select ammo to load it into a magazine. Select a magazine to load it into a gun. If a gun already has a mag, it will be swapped.",
+          "video": "magazine.webm"
+        }
+      ]
+    },
+    {
+      "id": "scooter",
+      "placement": {
+        "kind": "proximity",
+        "radius": 2
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "You can ride electric vehicles to use less ACTION POINTS when moving.",
+          "video": "scooter.webm"
+        }
+      ]
+    },
+    {
+      "id": "disassemble",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use a hammer on the bed to disassemble it. ",
+          "video": "dissasemble.webm"
+        }
+      ]
+    },
+    {
+      "id": "Farming",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hole to plant. If you run out of ACTIION POINTS, end your turn.",
+          "video": "farm.webm"
+        }
+      ]
+    },
+    {
+      "id": "Water transfer",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Water can be transferred between containers by selecting one container, then clicking on the other one.",
+          "video": "watertransfer.webm"
+        }
+      ]
+    },
+    {
+      "id": "drone",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Right-click on a drone to deploy it. Deployed drones can be detected by your smartphone. Once you select a drone in your smartphone, you can right click on the phone action button above the map to launch and land the drone.",
+          "video": "drone.webm"
+        }
+      ]
+    },
+    {
+      "id": "Belt",
+      "placement": {
+        "kind": "proximity",
+        "radius": 2
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "A belt has it's own equipment slots. Equip the belt, then right-click on the belt to open and equip the pouch to the belt.",
+          "video": "belt.webm"
+        }
+      ]
+    },
+    {
+      "id": "rotate item",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "With an item selected, right-click to rotate.",
+          "video": "rotate.webm"
+        }
+      ]
+    },
+    {
+      "id": "exit",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Congratulations! You have completed the tutorial map! Start a new game to put your survival skills to work."
         }
       ]
     }

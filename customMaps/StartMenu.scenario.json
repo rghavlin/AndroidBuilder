@@ -763,21 +763,21 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.exit-1794441306941-3djlz",
-            "defId": "placeable.exit",
-            "id": "placeable.exit",
-            "name": "Exit",
+            "instanceId": "placeable.help-1794965134263-yi27g",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
             "rarity": "common",
-            "imageId": "exit",
-            "width": 3,
-            "height": 3,
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
             "noDrag": true,
             "traits": [
               "groundOnly"
             ],
             "noLoot": true,
-            "renderFullTile": true,
-            "transitionTargetType": "next"
+            "groundPriority": true,
+            "eventId": "exit"
           }
         ]
       },
@@ -2197,7 +2197,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.stick-1794441306941-fmz0f",
+            "instanceId": "weapon.stick-1794965134263-k6u0g",
             "defId": "weapon.stick",
             "id": "weapon.stick",
             "name": "Stick",
@@ -11711,7 +11711,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306941-chf0r",
+            "instanceId": "weapon.plank-1794965134264-krn31",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -11896,7 +11896,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.wire-1794441306941-vcymf",
+            "instanceId": "crafting.wire-1794965134264-rx9kz",
             "defId": "crafting.wire",
             "id": "crafting.wire",
             "name": "Wire",
@@ -12207,7 +12207,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306941-8otfl",
+            "instanceId": "weapon.plank-1794965134264-w3szt",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -13344,7 +13344,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306941-pdf8f",
+            "instanceId": "weapon.plank-1794965134264-br9ak",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -14193,7 +14193,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306941-jvivp",
+            "instanceId": "weapon.plank-1794965134264-a7tnu",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -14378,7 +14378,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.cannedsoup-1794441306941-hd548",
+            "instanceId": "food.cannedsoup-1794965134264-i28bs",
             "defId": "food.cannedsoup",
             "id": "food.cannedsoup",
             "name": "Canned Soup",
@@ -15981,7 +15981,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.wound_spray-1794441306941-8yft9",
+            "instanceId": "medical.wound_spray-1794965134264-ap5tq",
             "defId": "medical.wound_spray",
             "id": "medical.wound_spray",
             "name": "Wound spray",
@@ -17828,7 +17828,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306941-d1gng",
+            "instanceId": "weapon.plank-1794965134264-tunbs",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -18605,7 +18605,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306941-4tr3t",
+            "instanceId": "weapon.plank-1794965134264-ti2nb",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -19858,7 +19858,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.stick-1794441306941-jlghs",
+            "instanceId": "weapon.stick-1794965134264-f3kru",
             "defId": "weapon.stick",
             "id": "weapon.stick",
             "name": "Stick",
@@ -20288,7 +20288,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306941-9jvjm",
+            "instanceId": "weapon.plank-1794965134264-kmdpe",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -21149,7 +21149,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.machete-1794441306941-yho11",
+            "instanceId": "weapon.machete-1794965134264-bxkzv",
             "defId": "weapon.machete",
             "id": "weapon.machete",
             "name": "Machete",
@@ -21537,7 +21537,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.energydrink-1794441306941-f34q3",
+            "instanceId": "food.energydrink-1794965134264-42l5f",
             "defId": "food.energydrink",
             "id": "food.energydrink",
             "name": "Energy drink",
@@ -22142,7 +22142,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.stone-1794441306941-tcps3",
+            "instanceId": "crafting.stone-1794965134264-gmlnf",
             "defId": "crafting.stone",
             "id": "crafting.stone",
             "name": "Stone",
@@ -24802,7 +24802,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.stone-1794441306941-ibr48",
+            "instanceId": "crafting.stone-1794965134264-rh7go",
             "defId": "crafting.stone",
             "id": "crafting.stone",
             "name": "Stone",
@@ -28214,7 +28214,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.first_aid_kit-1794441306941-sgrvn",
+            "instanceId": "medical.first_aid_kit-1794965134264-lqkqc",
             "defId": "medical.first_aid_kit",
             "id": "medical.first_aid_kit",
             "name": "First Aid Kit",
@@ -28348,7 +28348,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306941-2owri",
+            "instanceId": "weapon.plank-1794965134264-au17c",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -31144,7 +31144,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.tomatoseeds-1794441306942-p79gu",
+            "instanceId": "food.tomatoseeds-1794965134264-jejfc",
             "defId": "food.tomatoseeds",
             "id": "food.tomatoseeds",
             "name": "Tomato seeds",
@@ -31162,7 +31162,7 @@
             "plantsAs": "provision.tomato_plant"
           },
           {
-            "instanceId": "food.tomatoseeds-1794441306942-bbr7e",
+            "instanceId": "food.tomatoseeds-1794965134264-ufnwd",
             "defId": "food.tomatoseeds",
             "id": "food.tomatoseeds",
             "name": "Tomato seeds",
@@ -31594,7 +31594,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.golf_club-1794441306942-r8iv3",
+            "instanceId": "weapon.golf_club-1794965134264-ayq67",
             "defId": "weapon.golf_club",
             "id": "weapon.golf_club",
             "name": "Golf club",
@@ -31694,7 +31694,24 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.recon_drone_stowed-1794441306942-u5ux3",
+            "instanceId": "placeable.help-1794965134264-wmpxt",
+            "defId": "placeable.help",
+            "id": "placeable.help",
+            "name": "?",
+            "rarity": "common",
+            "imageId": "help",
+            "width": 1,
+            "height": 1,
+            "noDrag": true,
+            "traits": [
+              "groundOnly"
+            ],
+            "noLoot": true,
+            "groundPriority": true,
+            "eventId": "drone"
+          },
+          {
+            "instanceId": "tool.recon_drone_stowed-1794965134264-yz3kc",
             "defId": "tool.recon_drone_stowed",
             "id": "tool.recon_drone_stowed",
             "name": "Recon drone (stowed)",
@@ -31718,24 +31735,30 @@
                   "battery"
                 ]
               }
-            ]
-          },
-          {
-            "instanceId": "placeable.help-1794441306942-ebrwt",
-            "defId": "placeable.help",
-            "id": "placeable.help",
-            "name": "?",
-            "rarity": "common",
-            "imageId": "help",
-            "width": 1,
-            "height": 1,
-            "noDrag": true,
-            "traits": [
-              "groundOnly"
             ],
-            "noLoot": true,
-            "groundPriority": true,
-            "eventId": "drone"
+            "attachments": {
+              "battery": {
+                "instanceId": "tool.battery-1794965134264-q0x6u",
+                "defId": "tool.battery",
+                "id": "tool.battery",
+                "name": "Battery",
+                "rarity": "uncommon",
+                "imageId": "battery",
+                "width": 1,
+                "height": 1,
+                "traits": [
+                  "stackable",
+                  "battery"
+                ],
+                "categories": [
+                  "battery",
+                  "tool"
+                ],
+                "stackMax": 10,
+                "capacity": 20,
+                "ammoCount": 20
+              }
+            }
           }
         ]
       },
@@ -32586,7 +32609,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "ammo.9mm-1794441306942-6fjms",
+            "instanceId": "ammo.9mm-1794965134264-gr7vd",
             "defId": "ammo.9mm",
             "id": "ammo.9mm",
             "name": "9mm Ammo",
@@ -33562,7 +33585,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.9mmPistol-1794441306942-i5y9g",
+            "instanceId": "weapon.9mmPistol-1794965134264-zxia7",
             "defId": "weapon.9mmPistol",
             "id": "weapon.9mmPistol",
             "name": "9mm Pistol",
@@ -33705,7 +33728,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "attachment.9mm_magazine-1794441306942-3r8v1",
+            "instanceId": "attachment.9mm_magazine-1794965134264-v0rn2",
             "defId": "attachment.9mm_magazine",
             "id": "attachment.9mm_magazine",
             "name": "9mm Magazine",
@@ -34013,7 +34036,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "attachment.suppressor-1794441306942-k3z0v",
+            "instanceId": "attachment.suppressor-1794965134264-eqqgu",
             "defId": "attachment.suppressor",
             "id": "attachment.suppressor",
             "name": "Suppressor",
@@ -35016,7 +35039,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.stimulant-1794441306942-1r395",
+            "instanceId": "medical.stimulant-1794965134264-vcrx8",
             "defId": "medical.stimulant",
             "id": "medical.stimulant",
             "name": "Stimulant",
@@ -36332,7 +36355,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.energydrink-1794441306942-r0enu",
+            "instanceId": "food.energydrink-1794965134264-4rl74",
             "defId": "food.energydrink",
             "id": "food.energydrink",
             "name": "Energy drink",
@@ -37877,7 +37900,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.electric_mower-1794441306942-aaw0f",
+            "instanceId": "furniture.electric_mower-1794965134264-upr6j",
             "defId": "furniture.electric_mower",
             "id": "furniture.electric_mower",
             "name": "Electric mower",
@@ -37940,7 +37963,7 @@
             },
             "attachments": {
               "battery": {
-                "instanceId": "tool.large_battery-1794441306942-j4wbk",
+                "instanceId": "tool.large_battery-1794965134264-edxe6",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -38411,7 +38434,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306942-1mo7b",
+            "instanceId": "weapon.plank-1794965134264-pref7",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -40023,7 +40046,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.stick-1794441306942-c3dss",
+            "instanceId": "weapon.stick-1794965134264-s01ow",
             "defId": "weapon.stick",
             "id": "weapon.stick",
             "name": "Stick",
@@ -40393,7 +40416,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.softdrink-1794441306942-eqm9g",
+            "instanceId": "food.softdrink-1794965134264-myyvd",
             "defId": "food.softdrink",
             "id": "food.softdrink",
             "name": "Soft drink",
@@ -40659,7 +40682,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.tape-1794441306942-k8zwx",
+            "instanceId": "crafting.tape-1794965134264-q6akr",
             "defId": "crafting.tape",
             "id": "crafting.tape",
             "name": "Tape",
@@ -40677,7 +40700,7 @@
             "stackMax": 20
           },
           {
-            "instanceId": "medical.bandage-1794441306942-lowl6",
+            "instanceId": "medical.bandage-1794965134264-ob63l",
             "defId": "medical.bandage",
             "id": "medical.bandage",
             "name": "Bandage",
@@ -41444,7 +41467,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306942-l5c2r",
+            "instanceId": "weapon.plank-1794965134264-y1n64",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -42739,7 +42762,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.high_capacity_battery-1794441306942-xjono",
+            "instanceId": "tool.high_capacity_battery-1794965134265-hq78a",
             "defId": "tool.high_capacity_battery",
             "id": "tool.high_capacity_battery",
             "name": "High-capacity battery",
@@ -42969,7 +42992,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306942-k3hyr",
+            "instanceId": "weapon.plank-1794965134265-9vnou",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -43640,7 +43663,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.cannedsoup-1794441306942-uboka",
+            "instanceId": "food.cannedsoup-1794965134265-labyw",
             "defId": "food.cannedsoup",
             "id": "food.cannedsoup",
             "name": "Canned Soup",
@@ -45820,7 +45843,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.battery-1794441306942-24kez",
+            "instanceId": "tool.battery-1794965134265-kdtdh",
             "defId": "tool.battery",
             "id": "tool.battery",
             "name": "Battery",
@@ -45927,7 +45950,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306942-6pxc0",
+            "instanceId": "weapon.plank-1794965134265-agoth",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -46004,7 +46027,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.vitamindrink-1794441306942-gxbfi",
+            "instanceId": "food.vitamindrink-1794965134265-z7vfw",
             "defId": "food.vitamindrink",
             "id": "food.vitamindrink",
             "name": "Vitamin drink",
@@ -46198,7 +46221,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "environment.water_puddle-1794441306942-g7fdu",
+            "instanceId": "environment.water_puddle-1794965134265-83vpk",
             "defId": "environment.water_puddle",
             "id": "environment.water_puddle",
             "name": "Water puddle",
@@ -46470,7 +46493,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306942-wv9ke",
+            "instanceId": "weapon.plank-1794965134265-szgnv",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -46583,7 +46606,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.fire_axe-1794441306942-hws9a",
+            "instanceId": "weapon.fire_axe-1794965134265-9k6yu",
             "defId": "weapon.fire_axe",
             "id": "weapon.fire_axe",
             "name": "Fire axe",
@@ -48375,7 +48398,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.safe-1794441306942-2bf41",
+            "instanceId": "furniture.safe-1794965134265-y4azy",
             "defId": "furniture.safe",
             "id": "furniture.safe",
             "name": "Safe",
@@ -48396,14 +48419,14 @@
             "noLoot": true,
             "isLocked": true,
             "containerGrid": {
-              "id": "furniture.safe-1794441306942-2bf41-container",
+              "id": "furniture.safe-1794965134265-y4azy-container",
               "type": "generic",
               "name": "Safe",
               "width": 5,
               "height": 4,
               "autoExpand": false,
               "autoSort": false,
-              "ownerId": "furniture.safe-1794441306942-2bf41",
+              "ownerId": "furniture.safe-1794965134265-y4azy",
               "allowedCategories": null,
               "allowedItems": null,
               "ignoreSize": false,
@@ -48412,7 +48435,7 @@
               "items": [
                 {
                   "type": "item",
-                  "instanceId": "tool.crank_charger-1794441306942-m5ubt",
+                  "instanceId": "tool.crank_charger-1794965134265-ifwfv",
                   "defId": "tool.crank_charger",
                   "name": "Hand-cranked battery charger",
                   "imageId": "crankcharger",
@@ -48467,14 +48490,14 @@
                     "openable-when-nested"
                   ],
                   "containerGrid": {
-                    "id": "tool.crank_charger-1794441306942-m5ubt-container",
+                    "id": "tool.crank_charger-1794965134265-ifwfv-container",
                     "type": "generic",
                     "name": "Hand-cranked battery charger",
                     "width": 2,
                     "height": 1,
                     "autoExpand": false,
                     "autoSort": false,
-                    "ownerId": "tool.crank_charger-1794441306942-m5ubt",
+                    "ownerId": "tool.crank_charger-1794965134265-ifwfv",
                     "allowedCategories": [
                       "battery",
                       "large_battery"
@@ -48488,7 +48511,7 @@
                 },
                 {
                   "type": "item",
-                  "instanceId": "weapon.shotgun-1794441306942-cc4qk",
+                  "instanceId": "weapon.shotgun-1794965134265-7iyvq",
                   "defId": "weapon.shotgun",
                   "name": "Shotgun",
                   "imageId": "shotgun",
@@ -48580,7 +48603,7 @@
                 },
                 {
                   "type": "item",
-                  "instanceId": "ammo.shotgun_shells-1794441306942-ll2oc",
+                  "instanceId": "ammo.shotgun_shells-1794965134265-zlitw",
                   "defId": "ammo.shotgun_shells",
                   "name": "Shotgun Shells",
                   "imageId": "shotgunshells",
@@ -48638,7 +48661,7 @@
                 },
                 {
                   "type": "item",
-                  "instanceId": "food.mre-1794441306942-9fa81",
+                  "instanceId": "food.mre-1794965134265-nhk4n",
                   "defId": "food.mre",
                   "name": "MRE",
                   "imageId": "mre",
@@ -48700,7 +48723,7 @@
             "description": "Use a lockpick to unlock"
           },
           {
-            "instanceId": "placeable.help-1794441306945-utkco",
+            "instanceId": "placeable.help-1794965134267-5at80",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -50785,7 +50808,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.wire-1794441306945-upa8h",
+            "instanceId": "crafting.wire-1794965134267-sy2gv",
             "defId": "crafting.wire",
             "id": "crafting.wire",
             "name": "Wire",
@@ -51821,7 +51844,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.nail-1794441306945-z1f7u",
+            "instanceId": "crafting.nail-1794965134267-aajnk",
             "defId": "crafting.nail",
             "id": "crafting.nail",
             "name": "Nail",
@@ -52881,7 +52904,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306945-ayljv",
+            "instanceId": "weapon.plank-1794965134267-4q9pt",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -53105,7 +53128,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306945-tb34b",
+            "instanceId": "weapon.plank-1794965134267-i3c1n",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -54088,7 +54111,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.stone-1794441306945-t3ua4",
+            "instanceId": "crafting.stone-1794965134267-085t1",
             "defId": "crafting.stone",
             "id": "crafting.stone",
             "name": "Stone",
@@ -56680,7 +56703,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.electric_scooter-1794441306945-jcw3x",
+            "instanceId": "vehicle.electric_scooter-1794965134267-mu9mc",
             "defId": "vehicle.electric_scooter",
             "id": "vehicle.electric_scooter",
             "name": "Electric Scooter",
@@ -56739,7 +56762,7 @@
             },
             "attachments": {
               "battery": {
-                "instanceId": "tool.large_battery-1794441306945-1s77p",
+                "instanceId": "tool.large_battery-1794965134267-zr0lq",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -56762,7 +56785,7 @@
             }
           },
           {
-            "instanceId": "placeable.help-1794441306945-to2ao",
+            "instanceId": "placeable.help-1794965134267-z8r53",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -57485,7 +57508,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "environment.water_puddle-1794441306945-w3hm9",
+            "instanceId": "environment.water_puddle-1794965134267-u0j1e",
             "defId": "environment.water_puddle",
             "id": "environment.water_puddle",
             "name": "Water puddle",
@@ -58152,7 +58175,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306945-ot4z8",
+            "instanceId": "weapon.plank-1794965134267-rayo0",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -59317,7 +59340,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.cooking_pot-1794441306945-i91ed",
+            "instanceId": "tool.cooking_pot-1794965134267-t0zbu",
             "defId": "tool.cooking_pot",
             "id": "tool.cooking_pot",
             "name": "Cooking pot",
@@ -62602,7 +62625,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "ammo.556-1794441306945-ly9ih",
+            "instanceId": "ammo.556-1794965134267-3mb4a",
             "defId": "ammo.556",
             "id": "ammo.556",
             "name": "5.56 Ammo",
@@ -62622,7 +62645,7 @@
             "stackCount": 44
           },
           {
-            "instanceId": "weapon.battle_rifle-1794441306945-4y67a",
+            "instanceId": "weapon.battle_rifle-1794965134267-alpww",
             "defId": "weapon.battle_rifle",
             "id": "weapon.battle_rifle",
             "name": "Battle rifle",
@@ -62684,7 +62707,7 @@
             ]
           },
           {
-            "instanceId": "attachment.556_magazine-1794441306945-ye1wr",
+            "instanceId": "attachment.556_magazine-1794965134267-15mip",
             "defId": "attachment.556_magazine",
             "id": "attachment.556_magazine",
             "name": "5.56 Mag",
@@ -62702,7 +62725,7 @@
             "ammoDefId": "ammo.556"
           },
           {
-            "instanceId": "attachment.556_magazine-1794441306945-q191a",
+            "instanceId": "attachment.556_magazine-1794965134267-148iv",
             "defId": "attachment.556_magazine",
             "id": "attachment.556_magazine",
             "name": "5.56 Mag",
@@ -62720,7 +62743,7 @@
             "ammoDefId": "ammo.556"
           },
           {
-            "instanceId": "placeable.help-1794441306945-l41yk",
+            "instanceId": "placeable.help-1794965134267-uqqlp",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -63870,7 +63893,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.wire-1794441306945-ekqzp",
+            "instanceId": "crafting.wire-1794965134267-ak66f",
             "defId": "crafting.wire",
             "id": "crafting.wire",
             "name": "Wire",
@@ -64517,7 +64540,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.stick-1794441306945-wt8e9",
+            "instanceId": "weapon.stick-1794965134267-p4efe",
             "defId": "weapon.stick",
             "id": "weapon.stick",
             "name": "Stick",
@@ -65823,7 +65846,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.grenade-1794441306945-344v8",
+            "instanceId": "weapon.grenade-1794965134267-5iarc",
             "defId": "weapon.grenade",
             "id": "weapon.grenade",
             "name": "Grenade",
@@ -66071,7 +66094,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "attachment.riflescope-1794441306945-nxg8o",
+            "instanceId": "attachment.riflescope-1794965134267-gg1ea",
             "defId": "attachment.riflescope",
             "id": "attachment.riflescope",
             "name": "Rifle Scope",
@@ -67079,7 +67102,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "backpack.standard-1794441306945-n0zfd",
+            "instanceId": "backpack.standard-1794965134267-7wov0",
             "defId": "backpack.standard",
             "id": "backpack.standard",
             "name": "Standard Backpack",
@@ -67452,7 +67475,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.beans-1794441306945-z5q8c",
+            "instanceId": "food.beans-1794965134267-6kz82",
             "defId": "food.beans",
             "id": "food.beans",
             "name": "Canned Beans",
@@ -68369,7 +68392,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.cannedcorn-1794441306945-dix5l",
+            "instanceId": "food.cannedcorn-1794965134267-csr4k",
             "defId": "food.cannedcorn",
             "id": "food.cannedcorn",
             "name": "Canned corn",
@@ -69019,7 +69042,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.stone-1794441306945-n0m11",
+            "instanceId": "crafting.stone-1794965134267-312dp",
             "defId": "crafting.stone",
             "id": "crafting.stone",
             "name": "Stone",
@@ -69789,7 +69812,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.stone-1794441306945-e8qn7",
+            "instanceId": "crafting.stone-1794965134267-mj74q",
             "defId": "crafting.stone",
             "id": "crafting.stone",
             "name": "Stone",
@@ -70536,7 +70559,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.beans-1794441306945-fwxym",
+            "instanceId": "food.beans-1794965134267-ja54a",
             "defId": "food.beans",
             "id": "food.beans",
             "name": "Canned Beans",
@@ -71741,7 +71764,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.stick-1794441306945-wtema",
+            "instanceId": "weapon.stick-1794965134267-vg042",
             "defId": "weapon.stick",
             "id": "weapon.stick",
             "name": "Stick",
@@ -73683,7 +73706,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.waterjug-1794441306945-rg2zd",
+            "instanceId": "food.waterjug-1794965134267-tfsru",
             "defId": "food.waterjug",
             "id": "food.waterjug",
             "name": "Water Jug",
@@ -75752,7 +75775,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.stone-1794441306945-20bkc",
+            "instanceId": "crafting.stone-1794965134267-fy3e9",
             "defId": "crafting.stone",
             "id": "crafting.stone",
             "name": "Stone",
@@ -75800,7 +75823,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.stone-1794441306945-78tg8",
+            "instanceId": "crafting.stone-1794965134267-e0rb6",
             "defId": "crafting.stone",
             "id": "crafting.stone",
             "name": "Stone",
@@ -77156,7 +77179,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.stone-1794441306945-zd146",
+            "instanceId": "crafting.stone-1794965134267-w3m3d",
             "defId": "crafting.stone",
             "id": "crafting.stone",
             "name": "Stone",
@@ -77192,7 +77215,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.police_shirt-1794441306945-j8xh4",
+            "instanceId": "clothing.police_shirt-1794965134267-n0jpj",
             "defId": "clothing.police_shirt",
             "id": "clothing.police_shirt",
             "name": "Police shirt",
@@ -78016,7 +78039,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "environment.water_puddle-1794441306945-m6ect",
+            "instanceId": "environment.water_puddle-1794965134267-i28t1",
             "defId": "environment.water_puddle",
             "id": "environment.water_puddle",
             "name": "Water puddle",
@@ -78686,7 +78709,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.stick-1794441306945-kok51",
+            "instanceId": "weapon.stick-1794965134267-90991",
             "defId": "weapon.stick",
             "id": "weapon.stick",
             "name": "Stick",
@@ -79648,7 +79671,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_tomato-1794441306945-5kz9e",
+            "instanceId": "provision.harvestable_tomato-1794965134267-r51g6",
             "defId": "provision.harvestable_tomato",
             "id": "provision.harvestable_tomato",
             "name": "Harvestable tomato",
@@ -80417,7 +80440,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.357Pistol-1794441306945-ld3qn",
+            "instanceId": "weapon.357Pistol-1794965134267-w9jl5",
             "defId": "weapon.357Pistol",
             "id": "weapon.357Pistol",
             "name": ".357 Pistol",
@@ -80472,7 +80495,7 @@
             "spawnMaxRounds": 6
           },
           {
-            "instanceId": "ammo.357-1794441306945-rjrw7",
+            "instanceId": "ammo.357-1794965134267-o568l",
             "defId": "ammo.357",
             "id": "ammo.357",
             "name": ".357 Ammo",
@@ -80492,7 +80515,7 @@
             "stackCount": 9
           },
           {
-            "instanceId": "placeable.help-1794441306945-o9vbj",
+            "instanceId": "placeable.help-1794965134267-dbg61",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -82247,7 +82270,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "provision.harvestable_tomato-1794441306945-oz41m",
+            "instanceId": "provision.harvestable_tomato-1794965134267-0vhyt",
             "defId": "provision.harvestable_tomato",
             "id": "provision.harvestable_tomato",
             "name": "Harvestable tomato",
@@ -82267,7 +82290,7 @@
             "produceMax": 7
           },
           {
-            "instanceId": "weapon.shovel-1794441306945-pgy2u",
+            "instanceId": "weapon.shovel-1794965134267-pzlod",
             "defId": "weapon.shovel",
             "id": "weapon.shovel",
             "name": "Shovel",
@@ -82296,7 +82319,7 @@
             "description": "Right click to dig a hole in the ground (grid)."
           },
           {
-            "instanceId": "food.tomatoseeds-1794441306945-mtn1q",
+            "instanceId": "food.tomatoseeds-1794965134267-lxehb",
             "defId": "food.tomatoseeds",
             "id": "food.tomatoseeds",
             "name": "Tomato seeds",
@@ -82314,7 +82337,7 @@
             "plantsAs": "provision.tomato_plant"
           },
           {
-            "instanceId": "placeable.help-1794441306945-hpc0h",
+            "instanceId": "placeable.help-1794965134267-qli4q",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -82331,7 +82354,7 @@
             "eventId": "Farming"
           },
           {
-            "instanceId": "food.tomatoseeds-1794441306945-swfxn",
+            "instanceId": "food.tomatoseeds-1794965134267-xxua6",
             "defId": "food.tomatoseeds",
             "id": "food.tomatoseeds",
             "name": "Tomato seeds",
@@ -82603,7 +82626,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.bandage-1794441306945-07kpm",
+            "instanceId": "medical.bandage-1794965134267-1i79v",
             "defId": "medical.bandage",
             "id": "medical.bandage",
             "name": "Bandage",
@@ -84095,7 +84118,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.electric_mower-1794441306945-twsiz",
+            "instanceId": "furniture.electric_mower-1794965134267-nxo1d",
             "defId": "furniture.electric_mower",
             "id": "furniture.electric_mower",
             "name": "Electric mower",
@@ -84158,7 +84181,7 @@
             },
             "attachments": {
               "battery": {
-                "instanceId": "tool.large_battery-1794441306945-b05v7",
+                "instanceId": "tool.large_battery-1794965134267-jbytq",
                 "defId": "tool.large_battery",
                 "id": "tool.large_battery",
                 "name": "Large battery",
@@ -86309,7 +86332,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.leather_belt-1794441306945-rwhkr",
+            "instanceId": "crafting.leather_belt-1794965134267-zokrh",
             "defId": "crafting.leather_belt",
             "id": "crafting.leather_belt",
             "name": "Leather belt",
@@ -86382,7 +86405,7 @@
             "description": "Right-click to open equipment slots"
           },
           {
-            "instanceId": "belt.pouch-1794441306945-wymoe",
+            "instanceId": "belt.pouch-1794965134267-1eg0f",
             "defId": "belt.pouch",
             "id": "belt.pouch",
             "name": "Belt pouch",
@@ -86403,7 +86426,7 @@
             "description": "Equip to a belt"
           },
           {
-            "instanceId": "placeable.help-1794441306945-vpdg4",
+            "instanceId": "placeable.help-1794965134267-lhw0p",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -87413,7 +87436,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.wire-1794441306945-4wgqd",
+            "instanceId": "crafting.wire-1794965134267-u7mv3",
             "defId": "crafting.wire",
             "id": "crafting.wire",
             "name": "Wire",
@@ -87505,7 +87528,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306945-yvse2",
+            "instanceId": "weapon.plank-1794965134267-4n7zi",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -87678,7 +87701,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.waterbottle-1794441306945-jadhg",
+            "instanceId": "food.waterbottle-1794965134267-txiqv",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -88478,7 +88501,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.wrench-1794441306945-pk1u0",
+            "instanceId": "weapon.wrench-1794965134267-s8k2s",
             "defId": "weapon.wrench",
             "id": "weapon.wrench",
             "name": "Wrench",
@@ -89848,7 +89871,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.first_aid_kit-1794441306945-1k6mk",
+            "instanceId": "medical.first_aid_kit-1794965134267-kj7hm",
             "defId": "medical.first_aid_kit",
             "id": "medical.first_aid_kit",
             "name": "First Aid Kit",
@@ -90174,7 +90197,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.cooking_pot-1794441306945-m6uei",
+            "instanceId": "tool.cooking_pot-1794965134267-5wz2l",
             "defId": "tool.cooking_pot",
             "id": "tool.cooking_pot",
             "name": "Cooking pot",
@@ -90664,7 +90687,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.stimulant-1794441306945-gupz8",
+            "instanceId": "medical.stimulant-1794965134267-ln4av",
             "defId": "medical.stimulant",
             "id": "medical.stimulant",
             "name": "Stimulant",
@@ -90906,7 +90929,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.wire-1794441306945-migq4",
+            "instanceId": "crafting.wire-1794965134267-a9vdn",
             "defId": "crafting.wire",
             "id": "crafting.wire",
             "name": "Wire",
@@ -90924,7 +90947,7 @@
             "stackMax": 20
           },
           {
-            "instanceId": "tool.cooking_pot-1794441306945-3q5q2",
+            "instanceId": "tool.cooking_pot-1794965134267-obshn",
             "defId": "tool.cooking_pot",
             "id": "tool.cooking_pot",
             "name": "Cooking pot",
@@ -91028,7 +91051,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.tape-1794441306945-cd5kv",
+            "instanceId": "crafting.tape-1794965134267-zf9nb",
             "defId": "crafting.tape",
             "id": "crafting.tape",
             "name": "Tape",
@@ -92059,7 +92082,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "container.toolbox-1794441306946-ypnyt",
+            "instanceId": "container.toolbox-1794965134268-9iajc",
             "defId": "container.toolbox",
             "id": "container.toolbox",
             "name": "Tool Box",
@@ -92323,7 +92346,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.lighter-1794441306946-bnen8",
+            "instanceId": "tool.lighter-1794965134268-k7ws9",
             "defId": "tool.lighter",
             "id": "tool.lighter",
             "name": "Lighter",
@@ -92343,7 +92366,7 @@
             "spawnAmmoPercent": 1
           },
           {
-            "instanceId": "placeable.help-1794441306946-0y6xw",
+            "instanceId": "placeable.help-1794965134268-4tbq5",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -92628,7 +92651,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.stick-1794441306946-0x1dc",
+            "instanceId": "weapon.stick-1794965134268-pgpxm",
             "defId": "weapon.stick",
             "id": "weapon.stick",
             "name": "Stick",
@@ -92891,7 +92914,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306946-ys7l6",
+            "instanceId": "weapon.plank-1794965134268-93mo2",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -93292,7 +93315,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "environment.water_puddle-1794441306946-qpbp1",
+            "instanceId": "environment.water_puddle-1794965134268-ag0we",
             "defId": "environment.water_puddle",
             "id": "environment.water_puddle",
             "name": "Water puddle",
@@ -93320,7 +93343,7 @@
             "description": "Use empty bottle or jug to collect dirty water"
           },
           {
-            "instanceId": "food.waterbottle-1794441306946-sg3vv",
+            "instanceId": "food.waterbottle-1794965134268-u0flo",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -93345,7 +93368,7 @@
             }
           },
           {
-            "instanceId": "placeable.help-1794441306946-32ig7",
+            "instanceId": "placeable.help-1794965134268-nqpds",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -93580,7 +93603,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.woodenbat-1794441306946-sdo30",
+            "instanceId": "weapon.woodenbat-1794965134268-javuq",
             "defId": "weapon.woodenbat",
             "id": "weapon.woodenbat",
             "name": "Wooden Bat",
@@ -95131,7 +95154,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.cooking_pot-1794441306946-iwmmr",
+            "instanceId": "tool.cooking_pot-1794965134268-9plsi",
             "defId": "tool.cooking_pot",
             "id": "tool.cooking_pot",
             "name": "Cooking pot",
@@ -95379,7 +95402,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.battery_charger-1794441306946-23iun",
+            "instanceId": "tool.battery_charger-1794965134268-wmxmv",
             "defId": "tool.battery_charger",
             "id": "tool.battery_charger",
             "name": "Battery charger",
@@ -96034,7 +96057,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.blue_jeans-1794441306946-kcbto",
+            "instanceId": "clothing.blue_jeans-1794965134268-en7fl",
             "defId": "clothing.blue_jeans",
             "id": "clothing.blue_jeans",
             "name": "Blue Jeans",
@@ -97158,7 +97181,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.workshirt-1794441306946-5dugh",
+            "instanceId": "clothing.workshirt-1794965134268-xy0t5",
             "defId": "clothing.workshirt",
             "id": "clothing.workshirt",
             "name": "Work Shirt",
@@ -97325,7 +97348,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.lighter-1794441306946-vx2uw",
+            "instanceId": "tool.lighter-1794965134268-hn3z4",
             "defId": "tool.lighter",
             "id": "tool.lighter",
             "name": "Lighter",
@@ -97345,7 +97368,7 @@
             "spawnAmmoPercent": 1
           },
           {
-            "instanceId": "placeable.help-1794441306946-o2r68",
+            "instanceId": "placeable.help-1794965134268-e3cze",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -98895,7 +98918,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306946-4ylpj",
+            "instanceId": "weapon.plank-1794965134268-ci395",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -98922,7 +98945,7 @@
             }
           },
           {
-            "instanceId": "food.tomatoseeds-1794441306946-5j0t1",
+            "instanceId": "food.tomatoseeds-1794965134268-e0bd1",
             "defId": "food.tomatoseeds",
             "id": "food.tomatoseeds",
             "name": "Tomato seeds",
@@ -98940,7 +98963,7 @@
             "plantsAs": "provision.tomato_plant"
           },
           {
-            "instanceId": "food.tomatoseeds-1794441306946-8bxb9",
+            "instanceId": "food.tomatoseeds-1794965134268-0g041",
             "defId": "food.tomatoseeds",
             "id": "food.tomatoseeds",
             "name": "Tomato seeds",
@@ -102983,7 +103006,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306946-fh66i",
+            "instanceId": "weapon.plank-1794965134268-d0tbi",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -104098,7 +104121,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.mre-1794441306946-f5jsa",
+            "instanceId": "food.mre-1794965134268-m2cua",
             "defId": "food.mre",
             "id": "food.mre",
             "name": "MRE",
@@ -108458,7 +108481,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.stone-1794441306946-iceou",
+            "instanceId": "crafting.stone-1794965134268-9afw5",
             "defId": "crafting.stone",
             "id": "crafting.stone",
             "name": "Stone",
@@ -108480,7 +108503,7 @@
             "stackMax": 50
           },
           {
-            "instanceId": "placeable.help-1794441306946-vemmp",
+            "instanceId": "placeable.help-1794965134268-qjf4f",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -111641,7 +111664,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.stone-1794441306946-hyt1o",
+            "instanceId": "crafting.stone-1794965134268-cwgg1",
             "defId": "crafting.stone",
             "id": "crafting.stone",
             "name": "Stone",
@@ -112174,7 +112197,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.fuel_can-1794441306946-kg9x2",
+            "instanceId": "tool.fuel_can-1794965134268-i2y9u",
             "defId": "tool.fuel_can",
             "id": "tool.fuel_can",
             "name": "Fuel can",
@@ -112191,7 +112214,7 @@
             "capacity": 25
           },
           {
-            "instanceId": "furniture.fuel_cover-1794441306946-ij0nv",
+            "instanceId": "furniture.fuel_cover-1794965134268-oik8m",
             "defId": "furniture.fuel_cover",
             "id": "furniture.fuel_cover",
             "name": "Fuel cover",
@@ -112216,7 +112239,7 @@
             "ammoCount": 32
           },
           {
-            "instanceId": "tool.rubber_hose-1794441306946-fhj6u",
+            "instanceId": "tool.rubber_hose-1794965134268-pcob0",
             "defId": "tool.rubber_hose",
             "id": "tool.rubber_hose",
             "name": "Rubber hose",
@@ -112236,7 +112259,7 @@
             }
           },
           {
-            "instanceId": "placeable.help-1794441306946-qfhxa",
+            "instanceId": "placeable.help-1794965134268-np6r2",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -112730,7 +112753,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.stick-1794441306946-drrb0",
+            "instanceId": "weapon.stick-1794965134268-rrbba",
             "defId": "weapon.stick",
             "id": "weapon.stick",
             "name": "Stick",
@@ -114032,7 +114055,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.beans-1794441306946-f5fw0",
+            "instanceId": "food.beans-1794965134268-ic63k",
             "defId": "food.beans",
             "id": "food.beans",
             "name": "Canned Beans",
@@ -115091,7 +115114,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.knife-1794441306946-pgvqk",
+            "instanceId": "weapon.knife-1794965134268-6uh2d",
             "defId": "weapon.knife",
             "id": "weapon.knife",
             "name": "Knife",
@@ -115119,7 +115142,7 @@
             }
           },
           {
-            "instanceId": "clothing.sweatpants-1794441306946-we65v",
+            "instanceId": "clothing.sweatpants-1794965134268-5244p",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -115140,7 +115163,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1794441306946-aaudo",
+            "instanceId": "clothing.sweatpants-1794965134268-agg8q",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -115161,7 +115184,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "placeable.help-1794441306946-17wsb",
+            "instanceId": "placeable.help-1794965134268-khghk",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -115264,7 +115287,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.cargopants-1794441306946-wpg8g",
+            "instanceId": "clothing.cargopants-1794965134268-4kix3",
             "defId": "clothing.cargopants",
             "id": "clothing.cargopants",
             "name": "Cargo Pants",
@@ -115419,7 +115442,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.granolabar-1794441306946-5qcnl",
+            "instanceId": "food.granolabar-1794965134268-vcliz",
             "defId": "food.granolabar",
             "id": "food.granolabar",
             "name": "Granola Bar",
@@ -115574,7 +115597,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.stone-1794441306946-f9ggh",
+            "instanceId": "crafting.stone-1794965134268-z8sc8",
             "defId": "crafting.stone",
             "id": "crafting.stone",
             "name": "Stone",
@@ -115682,7 +115705,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306946-om2ul",
+            "instanceId": "weapon.plank-1794965134268-yhyrs",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -117031,7 +117054,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.bandage-1794441306946-ron88",
+            "instanceId": "medical.bandage-1794965134268-8no6t",
             "defId": "medical.bandage",
             "id": "medical.bandage",
             "name": "Bandage",
@@ -117265,7 +117288,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "vehicle.toy_wagon-1794441306946-uuwwe",
+            "instanceId": "vehicle.toy_wagon-1794965134268-67xqi",
             "defId": "vehicle.toy_wagon",
             "id": "vehicle.toy_wagon",
             "name": "Toy Wagon",
@@ -117346,7 +117369,7 @@
             }
           },
           {
-            "instanceId": "weapon.frying_pan-1794441306946-rb2j5",
+            "instanceId": "weapon.frying_pan-1794965134268-xo2aw",
             "defId": "weapon.frying_pan",
             "id": "weapon.frying_pan",
             "name": "Frying pan",
@@ -117374,7 +117397,7 @@
             }
           },
           {
-            "instanceId": "placeable.help-1794441306946-eeyi2",
+            "instanceId": "placeable.help-1794965134268-ksdp6",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -117933,7 +117956,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.fruitjuice-1794441306946-q3z97",
+            "instanceId": "food.fruitjuice-1794965134268-c1cph",
             "defId": "food.fruitjuice",
             "id": "food.fruitjuice",
             "name": "Fruit juice",
@@ -118802,7 +118825,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.chips-1794441306946-qn15x",
+            "instanceId": "food.chips-1794965134268-0m2he",
             "defId": "food.chips",
             "id": "food.chips",
             "name": "Potato Chips",
@@ -118823,7 +118846,7 @@
             }
           },
           {
-            "instanceId": "food.waterbottle-1794441306946-wjr4k",
+            "instanceId": "food.waterbottle-1794965134268-5b817",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -118874,7 +118897,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.granolabar-1794441306946-x2gdn",
+            "instanceId": "food.granolabar-1794965134268-hy09c",
             "defId": "food.granolabar",
             "id": "food.granolabar",
             "name": "Granola Bar",
@@ -119416,7 +119439,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.help-1794441306946-go1ms",
+            "instanceId": "placeable.help-1794965134268-pppvx",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -119433,7 +119456,7 @@
             "eventId": "rotate item"
           },
           {
-            "instanceId": "food.waterbottle-1794441306946-du2cm",
+            "instanceId": "food.waterbottle-1794965134268-asqc4",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -119690,7 +119713,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.smallflashlight-1794441306946-26e27",
+            "instanceId": "tool.smallflashlight-1794965134268-at1om",
             "defId": "tool.smallflashlight",
             "id": "tool.smallflashlight",
             "name": "Flashlight",
@@ -119721,7 +119744,7 @@
             ],
             "attachments": {
               "battery": {
-                "instanceId": "tool.battery-1794441306946-h7obe",
+                "instanceId": "tool.battery-1794965134268-uzcup",
                 "defId": "tool.battery",
                 "id": "tool.battery",
                 "name": "Battery",
@@ -119842,7 +119865,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "backpack.school-1794441306946-hv7ll",
+            "instanceId": "backpack.school-1794965134268-jrosb",
             "defId": "backpack.school",
             "id": "backpack.school",
             "name": "Book Bag",
@@ -119988,7 +120011,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.waterjug-1794441306946-tt2xx",
+            "instanceId": "food.waterjug-1794965134268-p4aal",
             "defId": "food.waterjug",
             "id": "food.waterjug",
             "name": "Water Jug",
@@ -120536,7 +120559,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306946-atwqp",
+            "instanceId": "weapon.plank-1794965134268-tz41c",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -120817,7 +120840,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.antiseptic-1794441306946-eywxq",
+            "instanceId": "medical.antiseptic-1794965134268-eoby3",
             "defId": "medical.antiseptic",
             "id": "medical.antiseptic",
             "name": "Antiseptic",
@@ -120938,7 +120961,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.hammer-1794441306946-atrdt",
+            "instanceId": "weapon.hammer-1794965134268-dpw9i",
             "defId": "weapon.hammer",
             "id": "weapon.hammer",
             "name": "Hammer",
@@ -121174,7 +121197,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "container.lunchbox-1794441306946-j9gjz",
+            "instanceId": "container.lunchbox-1794965134268-gpfct",
             "defId": "container.lunchbox",
             "id": "container.lunchbox",
             "name": "Lunchbox",
@@ -121197,7 +121220,7 @@
             "description": "Holds food and drinks"
           },
           {
-            "instanceId": "placeable.help-1794441306946-l0d69",
+            "instanceId": "placeable.help-1794965134268-obimw",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -121722,7 +121745,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "food.cannedcorn-1794441306946-d3jlp",
+            "instanceId": "food.cannedcorn-1794965134268-gg11x",
             "defId": "food.cannedcorn",
             "id": "food.cannedcorn",
             "name": "Canned corn",
@@ -121793,7 +121816,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.help-1794441306946-fvwzj",
+            "instanceId": "placeable.help-1794965134268-u21kn",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -121810,7 +121833,7 @@
             "eventId": "Water transfer"
           },
           {
-            "instanceId": "food.waterbottle-1794441306946-8h10o",
+            "instanceId": "food.waterbottle-1794965134268-wo4q1",
             "defId": "food.waterbottle",
             "id": "food.waterbottle",
             "name": "Water Bottle",
@@ -122559,7 +122582,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.plank-1794441306946-izepw",
+            "instanceId": "weapon.plank-1794965134268-wask9",
             "defId": "weapon.plank",
             "id": "weapon.plank",
             "name": "Plank",
@@ -123167,7 +123190,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.bed-1794441306946-zbqfk",
+            "instanceId": "placeable.bed-1794965134268-mjjt0",
             "defId": "placeable.bed",
             "id": "placeable.bed",
             "name": "Bed",
@@ -123218,7 +123241,7 @@
             "description": "Dissasemble: Hammer"
           },
           {
-            "instanceId": "placeable.help-1794441306946-kpifx",
+            "instanceId": "placeable.help-1794965134268-c43j9",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -123441,7 +123464,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "furniture.generator-1794441306946-00awq",
+            "instanceId": "furniture.generator-1794965134268-632ll",
             "defId": "furniture.generator",
             "id": "furniture.generator",
             "name": "Generator",
@@ -123653,7 +123676,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "medical.bandage-1794441306946-ac4l4",
+            "instanceId": "medical.bandage-1794965134268-ivv8d",
             "defId": "medical.bandage",
             "id": "medical.bandage",
             "name": "Bandage",
@@ -124722,7 +124745,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "tool.battery-1794441306946-vioqj",
+            "instanceId": "tool.battery-1794965134268-qmz46",
             "defId": "tool.battery",
             "id": "tool.battery",
             "name": "Battery",
@@ -124817,7 +124840,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "crafting.tape-1794441306946-abm16",
+            "instanceId": "crafting.tape-1794965134268-cik6o",
             "defId": "crafting.tape",
             "id": "crafting.tape",
             "name": "Tape",
@@ -126082,7 +126105,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "weapon.crowbar-1794441306946-c9lda",
+            "instanceId": "weapon.crowbar-1794965134268-934si",
             "defId": "weapon.crowbar",
             "id": "weapon.crowbar",
             "name": "Crowbar",
@@ -126111,7 +126134,7 @@
             "description": "Right click to use on doors and windows"
           },
           {
-            "instanceId": "placeable.help-1794441306946-00f68",
+            "instanceId": "placeable.help-1794965134268-hk2yt",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -128146,7 +128169,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "placeable.help-1794441306946-xunwa",
+            "instanceId": "placeable.help-1794965134268-h3zon",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -129167,7 +129190,7 @@
         "contents": [],
         "inventoryItems": [
           {
-            "instanceId": "clothing.pocket_t-1794441306946-1ujya",
+            "instanceId": "clothing.pocket_t-1794965134268-j5gv4",
             "defId": "clothing.pocket_t",
             "id": "clothing.pocket_t",
             "name": "Pocket T-Shirt",
@@ -129188,7 +129211,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "clothing.sweatpants-1794441306946-0yucx",
+            "instanceId": "clothing.sweatpants-1794965134268-234ut",
             "defId": "clothing.sweatpants",
             "id": "clothing.sweatpants",
             "name": "Sweatpants",
@@ -129209,7 +129232,7 @@
             "description": "When on the ground, right-click to open pockets"
           },
           {
-            "instanceId": "placeable.help-1794441306946-pxtcx",
+            "instanceId": "placeable.help-1794965134268-w4ym1",
             "defId": "placeable.help",
             "id": "placeable.help",
             "name": "?",
@@ -138404,50 +138427,6 @@
   "eventTriggers": [
     {
       "chainOnly": true,
-      "id": "Wagon and pan",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "Fire cook",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Craft a campfire to cook food and boil dirty water."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "Rags",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "Water puddle",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Use an empty water bottle on a water puddle to collect dirty water"
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
       "id": "equip clothes",
       "steps": [
         {
@@ -138459,121 +138438,11 @@
     },
     {
       "chainOnly": true,
-      "id": "fuel cover",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "lunchbox",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "load gun (NO mag)",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "safe",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Use a lockpick on a safe to unlock it. Lockpicks can be crafted"
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "mag",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Select ammo to load it into a magazine. Select a magazine to load it into a gun. If a gun already has a mag, it will be swapped."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
       "id": "Starting tile",
       "steps": [
         {
           "speaker": "",
           "text": "You should find some clothes to put on before going outside. Right-click on doors to open them. If you run out of ACTION POINTS, end your turn. When your energy becomes low find a safe place to SLEEP."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "disassemble",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Use a hammer on the bed to disassemble it. "
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "Farming",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hole to plant. If you run out of ACTIION POINTS, end your turn."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "Water transfer",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Water can be transferred between containers by selecting one container, then clicking on the other one."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "drone",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Right-click on a drone to deploy it. Deployed drones can be detected by your smartphone. Once you select a drone in your smartphone, you can right click on the phone action button above the map to launch and land the drone."
-        }
-      ],
-      "oneShot": false
-    },
-    {
-      "chainOnly": true,
-      "id": "rotate item",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "With an item selected, right-click to rotate."
         }
       ],
       "oneShot": false
@@ -138601,11 +138470,190 @@
         }
       ],
       "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Wagon and pan",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement.",
+          "video": "wagon.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Fire cook",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Craft a campfire to cook food and boil dirty water.",
+          "video": "cooking.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Rags",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires.",
+          "video": "rags.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Water puddle",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use an empty water bottle on a water puddle to collect dirty water",
+          "video": "waterpuddle.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "fuel cover",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers.",
+          "video": "fuelcan.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "lunchbox",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container.",
+          "video": "lunchbox.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "load gun (NO mag)",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag.",
+          "video": "loadgun.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "safe",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use a lockpick on a safe to unlock it. Lockpicks can be crafted",
+          "video": "safe.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "mag",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Select ammo to load it into a magazine. Select a magazine to load it into a gun. If a gun already has a mag, it will be swapped.",
+          "video": "magazine.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "disassemble",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Use a hammer on the bed to disassemble it. ",
+          "video": "dissasemble.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Farming",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hole to plant. If you run out of ACTIION POINTS, end your turn.",
+          "video": "farm.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "Water transfer",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Water can be transferred between containers by selecting one container, then clicking on the other one.",
+          "video": "watertransfer.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "drone",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Right-click on a drone to deploy it. Deployed drones can be detected by your smartphone. Once you select a drone in your smartphone, you can right click on the phone action button above the map to launch and land the drone.",
+          "video": "drone.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "rotate item",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "With an item selected, right-click to rotate.",
+          "video": "rotate.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "chainOnly": true,
+      "id": "exit",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Congratulations! You have completed the tutorial map! Start a new game to put your survival skills to work."
+        }
+      ],
+      "oneShot": false
     }
   ],
   "bubbleEvents": [
     {
-      "id": "generator",
+      "id": "throw",
       "oneShot": false,
       "trigger": {
         "type": "proximity",
@@ -138614,7 +138662,7 @@
       "lines": []
     },
     {
-      "id": "throw",
+      "id": "generator",
       "oneShot": false,
       "trigger": {
         "type": "proximity",
@@ -138643,70 +138691,6 @@
   ],
   "events": [
     {
-      "id": "Wagon and pan",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement."
-        }
-      ]
-    },
-    {
-      "id": "Fire cook",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Craft a campfire to cook food and boil dirty water."
-        }
-      ]
-    },
-    {
-      "id": "Rags",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires."
-        }
-      ]
-    },
-    {
-      "id": "Water puddle",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Use an empty water bottle on a water puddle to collect dirty water"
-        }
-      ]
-    },
-    {
       "id": "equip clothes",
       "placement": {
         "kind": "chainOnly"
@@ -138719,87 +138703,6 @@
           "type": "dialog",
           "speaker": "",
           "text": "Click on clothes, then click on your clothing slots to equip."
-        }
-      ]
-    },
-    {
-      "id": "fuel cover",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers."
-        }
-      ]
-    },
-    {
-      "id": "generator",
-      "placement": {
-        "kind": "proximity",
-        "radius": 2
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Use the fuel can on the generator to fuel it up. Right-click on the generator to turn it on and off. Items on the ground near the generator will receive power."
-        }
-      ]
-    },
-    {
-      "id": "lunchbox",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container."
-        }
-      ]
-    },
-    {
-      "id": "load gun (NO mag)",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag."
-        }
-      ]
-    },
-    {
-      "id": "safe",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Use a lockpick on a safe to unlock it. Lockpicks can be crafted"
         }
       ]
     },
@@ -138821,39 +138724,6 @@
       ]
     },
     {
-      "id": "mag",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Select ammo to load it into a magazine. Select a magazine to load it into a gun. If a gun already has a mag, it will be swapped."
-        }
-      ]
-    },
-    {
-      "id": "scooter",
-      "placement": {
-        "kind": "proximity",
-        "radius": 2
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "You can ride electric vehicles to use less ACTION POINTS when moving."
-        }
-      ]
-    },
-    {
       "id": "Starting tile",
       "placement": {
         "kind": "chainOnly"
@@ -138866,103 +138736,6 @@
           "type": "dialog",
           "speaker": "",
           "text": "You should find some clothes to put on before going outside. Right-click on doors to open them. If you run out of ACTION POINTS, end your turn. When your energy becomes low find a safe place to SLEEP."
-        }
-      ]
-    },
-    {
-      "id": "disassemble",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Use a hammer on the bed to disassemble it. "
-        }
-      ]
-    },
-    {
-      "id": "Farming",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hole to plant. If you run out of ACTIION POINTS, end your turn."
-        }
-      ]
-    },
-    {
-      "id": "Water transfer",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Water can be transferred between containers by selecting one container, then clicking on the other one."
-        }
-      ]
-    },
-    {
-      "id": "drone",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Right-click on a drone to deploy it. Deployed drones can be detected by your smartphone. Once you select a drone in your smartphone, you can right click on the phone action button above the map to launch and land the drone."
-        }
-      ]
-    },
-    {
-      "id": "Belt",
-      "placement": {
-        "kind": "proximity",
-        "radius": 2
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "A belt has it's own equipment slots. Equip the belt, then right-click on the belt to open and equip the pouch to the belt."
-        }
-      ]
-    },
-    {
-      "id": "rotate item",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "With an item selected, right-click to rotate."
         }
       ]
     },
@@ -138998,6 +138771,314 @@
           "speaker": "",
           "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies. You can right-click on a crowbar to use it on locked doors and windows.",
           "video": "weapon.webm"
+        }
+      ]
+    },
+    {
+      "id": "Wagon and pan",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Wagons provide extra inventory space for your journey. They are easier to pull on roads and sidewalks. Wagons can also be equipped with electric motors and batteries for easier movement.",
+          "video": "wagon.webm"
+        }
+      ]
+    },
+    {
+      "id": "Fire cook",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Craft a campfire to cook food and boil dirty water.",
+          "video": "cooking.webm"
+        }
+      ]
+    },
+    {
+      "id": "Rags",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use a knife on clothing to create rags. Rags can be used in crafting and as fuel for fires.",
+          "video": "rags.webm"
+        }
+      ]
+    },
+    {
+      "id": "Water puddle",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use an empty water bottle on a water puddle to collect dirty water",
+          "video": "waterpuddle.webm"
+        }
+      ]
+    },
+    {
+      "id": "fuel cover",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use the rubber hose on the fuel cover to put fuel into your fuel can. Fuel can be used in generators which can power battery chargers.",
+          "video": "fuelcan.webm"
+        }
+      ]
+    },
+    {
+      "id": "generator",
+      "placement": {
+        "kind": "proximity",
+        "radius": 2
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use the fuel can on the generator to fuel it up. Right-click on the generator to turn it on and off. Items on the ground near the generator will receive power.",
+          "video": "generator.webm"
+        }
+      ]
+    },
+    {
+      "id": "lunchbox",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Special containers such as lunchboxes help you organize specific item types, increasing inventory space. Right-click to open the container.",
+          "video": "lunchbox.webm"
+        }
+      ]
+    },
+    {
+      "id": "load gun (NO mag)",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "To load ammo into a gun or magazine, click the ammo, then click the gun/mag.",
+          "video": "loadgun.webm"
+        }
+      ]
+    },
+    {
+      "id": "safe",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use a lockpick on a safe to unlock it. Lockpicks can be crafted",
+          "video": "safe.webm"
+        }
+      ]
+    },
+    {
+      "id": "mag",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Select ammo to load it into a magazine. Select a magazine to load it into a gun. If a gun already has a mag, it will be swapped.",
+          "video": "magazine.webm"
+        }
+      ]
+    },
+    {
+      "id": "scooter",
+      "placement": {
+        "kind": "proximity",
+        "radius": 2
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "You can ride electric vehicles to use less ACTION POINTS when moving.",
+          "video": "scooter.webm"
+        }
+      ]
+    },
+    {
+      "id": "disassemble",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Use a hammer on the bed to disassemble it. ",
+          "video": "dissasemble.webm"
+        }
+      ]
+    },
+    {
+      "id": "Farming",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Right click the shovel to dig. Click on the ground (where items appear) to dig a hole. Select the seeds then click on the hole to plant. If you run out of ACTIION POINTS, end your turn.",
+          "video": "farm.webm"
+        }
+      ]
+    },
+    {
+      "id": "Water transfer",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Water can be transferred between containers by selecting one container, then clicking on the other one.",
+          "video": "watertransfer.webm"
+        }
+      ]
+    },
+    {
+      "id": "drone",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Right-click on a drone to deploy it. Deployed drones can be detected by your smartphone. Once you select a drone in your smartphone, you can right click on the phone action button above the map to launch and land the drone.",
+          "video": "drone.webm"
+        }
+      ]
+    },
+    {
+      "id": "Belt",
+      "placement": {
+        "kind": "proximity",
+        "radius": 2
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "A belt has it's own equipment slots. Equip the belt, then right-click on the belt to open and equip the pouch to the belt.",
+          "video": "belt.webm"
+        }
+      ]
+    },
+    {
+      "id": "rotate item",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "With an item selected, right-click to rotate.",
+          "video": "rotate.webm"
+        }
+      ]
+    },
+    {
+      "id": "exit",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Congratulations! You have completed the tutorial map! Start a new game to put your survival skills to work."
         }
       ]
     }
