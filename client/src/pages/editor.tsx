@@ -351,13 +351,13 @@ function scenarioToEditorState(scenario: any): { name: string; width: number; he
     }
   }
 
-  // Doors: clear wall flag, set door flag
+  // Doors: clear wall flag, set door flag (isOpening = doorless gap, e.g. army tent)
   if (scenario.metadata?.doors) {
     for (const d of scenario.metadata.doors) {
       const t = tiles[d.y]?.[d.x];
       if (!t || !d.edge) continue;
       t.edgeWalls[d.edge as Edge].wall = false;
-      t.edgeWalls[d.edge as Edge].door = true;
+      t.edgeWalls[d.edge as Edge].door = !d.isOpening;
       t.edgeWalls[d.edge as Edge].locked = d.isLocked ?? false;
       t.edgeWalls[d.edge as Edge].keylocked = d.isKeylocked ?? false;
     }

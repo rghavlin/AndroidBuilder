@@ -139253,10 +139253,8 @@
           },
           "e": {
             "wall": false,
-            "door": true,
-            "window": false,
-            "locked": false,
-            "keylocked": false
+            "door": false,
+            "window": false
           },
           "s": {
             "wall": false,
@@ -141572,10 +141570,8 @@
           },
           "e": {
             "wall": false,
-            "door": true,
-            "window": false,
-            "locked": false,
-            "keylocked": false
+            "door": false,
+            "window": false
           },
           "s": {
             "wall": false,
@@ -292030,16 +292026,6 @@
       "oneShot": false
     },
     {
-      "id": "equip weapon",
-      "steps": [
-        {
-          "speaker": "",
-          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies. You can right-click on a crowbar to use it on locked doors and windows."
-        }
-      ],
-      "oneShot": false
-    },
-    {
       "id": "disassemble",
       "steps": [
         {
@@ -292096,6 +292082,17 @@
           "speaker": "",
           "text": "Welcome to Icon Zombie. The start screen includes a playable game map where you can learn how to play the game. Click to move your player on the map.  Explore the map to find tips. Moving and performing actions uses Action Points. When you run out of Action Points, end your turn. Find the '?' and click them on the ground. Start a New Game whenever you feel ready to survive the long trek. Check your smartphone for additional information. ",
           "video": "gamestart.webm"
+        }
+      ],
+      "oneShot": false
+    },
+    {
+      "id": "equip weapon",
+      "steps": [
+        {
+          "speaker": "",
+          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies. You can right-click on a crowbar to use it on locked doors and windows.",
+          "video": "weapon.webm"
         }
       ],
       "oneShot": false
@@ -292330,22 +292327,6 @@
       ]
     },
     {
-      "id": "equip weapon",
-      "placement": {
-        "kind": "chainOnly"
-      },
-      "trigger": "onInteract",
-      "preconditions": [],
-      "repeat": "everyTime",
-      "steps": [
-        {
-          "type": "dialog",
-          "speaker": "",
-          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies. You can right-click on a crowbar to use it on locked doors and windows."
-        }
-      ]
-    },
-    {
       "id": "disassemble",
       "placement": {
         "kind": "chainOnly"
@@ -292457,6 +292438,23 @@
           "text": "Welcome to Icon Zombie. The start screen includes a playable game map where you can learn how to play the game. Click to move your player on the map.  Explore the map to find tips. Moving and performing actions uses Action Points. When you run out of Action Points, end your turn. Find the '?' and click them on the ground. Start a New Game whenever you feel ready to survive the long trek. Check your smartphone for additional information. ",
           "dontShowAgain": true,
           "video": "gamestart.webm"
+        }
+      ]
+    },
+    {
+      "id": "equip weapon",
+      "placement": {
+        "kind": "chainOnly"
+      },
+      "trigger": "onInteract",
+      "preconditions": [],
+      "repeat": "everyTime",
+      "steps": [
+        {
+          "type": "dialog",
+          "speaker": "",
+          "text": "Click on the crowbar, then click on your melee slot to equip it. Use the action button above the map to attack nearby enemies. You can right-click on a crowbar to use it on locked doors and windows.",
+          "video": "weapon.webm"
         }
       ]
     }
