@@ -857,6 +857,23 @@ class EventRunner {
         return;
       }
 
+      case 'despawnEntity': {
+        // Remove an NPC/zombie from the map outright — no death, no corpse, no
+        // drops (e.g. a scripted visitor who "leaves"). Never the player.
+        const ent = step.entityTag && step.entityTag !== 'player' ? this._resolveEntity(step.entityTag) : null;
+        if (!ent) {
+          log.warn(`[EventRunner] despawnEntity: no entity for tag "${step.entityTag}"`);
+        } else if (ent === engine.player) {
+          log.warn(`[EventRunner] despawnEntity: refusing to remove the player`);
+        } else {
+          engine.gameMap.removeEntity(ent.id);
+          engine.notifyUpdate();
+        }
+        this.activeRun.stepIndex++;
+        this._processCurrentStep();
+        return;
+      }
+
       case 'setLightMode': {
         if (engine.gameMap) {
           if (!engine.gameMap.metadata) engine.gameMap.metadata = {};

@@ -16,6 +16,7 @@ import { useLog } from './LogContext.jsx';
 import { useVisualEffects } from './VisualEffectsContext.jsx';
 import { useSpeechBubbles } from './SpeechBubbleContext.jsx';
 import eventRunner from '../game/quest/EventRunner.js';
+import { startIntroEncounter } from '../game/quest/IntroEncounter.js';
 import { applyMapRegistries } from '../game/quest/QuestState.js';
 import { resolveMapEvents } from '../game/quest/migrateEvents.js';
 import Logger from '../game/utils/Logger.js';
@@ -102,6 +103,9 @@ const GameContextInner = ({ children }) => {
   const startMapFingerprintRef = useRef(null);
   const freshStartMenuRef = useRef(false);
   const isStartMenuModeRef = useRef(false);
+  // Set by initializeGame for a real (non-tutorial, non-custom-scenario) new
+  // game; consumed once the map is ready to play the intro encounter.
+  const pendingIntroRef = useRef(false);
   const [isStartMenuMode, setIsStartMenuMode] = useState(false);
   const [showDifficultySelect, setShowDifficultySelect] = useState(false);
   const difficultyResolveRef = useRef(null);
@@ -1464,6 +1468,10 @@ const GameContextInner = ({ children }) => {
     // setup is usually what the auto events are waiting on.
     eventRunner.onMapLoaded();
     eventRunner.checkAutoEvents();
+    if (pendingIntroRef.current) {
+      pendingIntroRef.current = false;
+      startIntroEncounter();
+    }
   }, [isInitialized]);
 
   useEffect(() => {
@@ -1536,6 +1544,7 @@ const GameContextInner = ({ children }) => {
   // `startMenu` resumes the start-menu tutorial from its own save instead of
   // leaving the sandbox for real gameplay.
   const applyLoadedState = useCallback((loadedState, { dispatchGameLoaded = false, startMenu = false } = {}) => {
+    pendingIntroRef.current = false; // a loaded game is not a new one
     // The start-menu sandbox shows the event log; don't carry its lines into the save.
     if (isStartMenuModeRef.current || startMenu) clearLogs();
     isStartMenuModeRef.current = startMenu;
@@ -1646,6 +1655,7 @@ const GameContextInner = ({ children }) => {
 
   const loadGame = useCallback(async (slotName = 'quicksave') => {
     resetAll();
+    pendingIntroRef.current = false; // a loaded game is not a new one
     try {
       const loadedState = await GameSaveSystem.loadFromStorage(slotName);
       if (!loadedState) {
@@ -1812,6 +1822,8 @@ const GameContextInner = ({ children }) => {
 
     const finalConfig = { ...config, easyStart: chosenEasyStart, customStats: chosenStats };
     noAutosaveRef.current = !!finalConfig.scenarioData?.noAutosave;
+    // Authored scenarios script their own openings; only the stock new game gets the intro.
+    pendingIntroRef.current = !finalConfig.isStartMenu && !finalConfig.scenarioData;
 
     const success = await initManagerRef.current.startInitialization(null, finalConfig);
     if (!success) {
@@ -1899,6 +1911,8 @@ const GameContextInner = ({ children }) => {
     isStartMenuModeRef.current = false;
     setIsStartMenuMode(false);
     noAutosaveRef.current = false;
+    // Walking out of the tutorial is this player's start of a real game.
+    startIntroEncounter();
   }, []);
 
 

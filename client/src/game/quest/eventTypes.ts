@@ -49,7 +49,8 @@ export type StepType =
   | 'lockMovement' | 'unlockMovement' | 'lockActions' | 'unlockActions'
   | 'wait' | 'chain'
   | 'moveEntity' | 'attackEntity' | 'startQuest' | 'setQuestTask' | 'setNpcAI'
-  | 'controlEntity' | 'setFactionStance' | 'setLightMode' | 'setInfection';
+  | 'controlEntity' | 'setFactionStance' | 'setLightMode' | 'setInfection'
+  | 'despawnEntity';
 
 export interface EventStep {
   type: StepType;
