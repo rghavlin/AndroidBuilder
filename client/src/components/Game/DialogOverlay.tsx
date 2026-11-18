@@ -62,7 +62,7 @@ export default function DialogOverlay({ steps, onComplete }: DialogOverlayProps)
             <div className="w-full bg-black rounded-t-sm overflow-hidden">
               <video
                 key={step.video}
-                src={`/video/help/${step.video}`}
+                src={`./video/help/${step.video}`}
                 autoPlay
                 loop
                 muted
