@@ -1115,9 +1115,9 @@ export const InventoryProvider = ({ children }) => {
 
     const result = synthesizeZombieVirusCure(engine, headItem, synthesizerItem);
     if (result.success) {
-      playSound('Craft');
-      playSound('Pills');
+      // No craft/pills SFX here: VictoryDialog plays the victory fanfare as it opens.
       addLog("You feed Patient Zero's head into the pharmaceutical synthesizer. A dose of Zombie Virus Cure dispenses onto the ground!", 'item');
+      GameEvents.emit(GAME_EVENT.GAME_WON, { cause: 'virus_cure' });
     } else {
       playSound('Fail');
       if (result.reason) addLog(result.reason, 'error');

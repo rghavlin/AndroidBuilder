@@ -22,6 +22,7 @@ import { NPCDemandDialog } from './NPCDemandDialog';
 import SleepOverlay from './SleepOverlay';
 import SleepModal from './SleepModal';
 import DefeatDialog from './DefeatDialog';
+import VictoryDialog from './VictoryDialog';
 import DialogOverlay from './DialogOverlay';
 import SpeechBubbleInput from './SpeechBubbleInput';
 
@@ -248,6 +249,7 @@ export default function OverlayManager() {
           <SleepOverlay />
           <SleepModal />
           <DefeatDialog />
+          <VictoryDialog />
           {isExtensionOpen && (
             <InventoryExtensionWindow
               isOpen={true}

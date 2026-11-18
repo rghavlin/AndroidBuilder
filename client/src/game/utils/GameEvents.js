@@ -60,7 +60,10 @@ export const GAME_EVENT = {
 
   // Attribute Upgrades
   ATTRIBUTE_ROLL_READY: 'attribute_roll_ready',
-  ATTRIBUTE_UPGRADED: 'attribute_upgraded'
+  ATTRIBUTE_UPGRADED: 'attribute_upgraded',
+
+  // Win condition: the Zombie Virus Cure was synthesized from Patient Zero's head.
+  GAME_WON: 'game_won'
 };
 
 /**

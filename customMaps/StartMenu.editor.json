@@ -267581,6 +267581,10 @@
         "items": [
           {
             "defId": "furniture.generator"
+          },
+          {
+            "defId": "placeable.help",
+            "eventId": "generator"
           }
         ]
       },
