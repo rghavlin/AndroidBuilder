@@ -13,6 +13,8 @@
  * already carry progress under these keys, and the crafting gate already reads
  * them, so nothing has to be migrated. `number` is only the display order, so
  * it need not match the old volume number (volume 1, the sled, was removed).
+ * Chapters added since continue the series (book.nomad_survivor_10 is the
+ * wagon sleeper, _11 the vehicle charger); there is no paperback item behind them, only progress.
  *
  * `pages` is what reading the chapter costs (1 AP per page). The ingredient
  * list is NOT written into the prose — the reader builds it from the recipe
@@ -38,8 +40,7 @@ export const NOMAD_SURVIVOR_CHAPTERS = [
         'Frame four sides from planks and nail the corners square.',
         'Fill the box with good soil, not dirt scraped from a roadside.',
         'Set it where it will catch the sun for most of the day.'
-      ] },
-      { type: 'note', text: 'Seeds want water and patience. Check them every day; they will not forgive a week of neglect.' }
+      ] }
     ]
   },
   {
@@ -71,13 +72,33 @@ export const NOMAD_SURVIVOR_CHAPTERS = [
         'Build a stiff, flat bed. Flex in the frame shakes the wheels loose.',
         'Mount the wheels true — a wobbling wheel will wear through its fixing in a day.',
         'Fit a handle long enough that the wagon will not clip your heels.'
+      ] }
+    ]
+  },
+  {
+    id: 'book.nomad_survivor_10',
+    number: 4,
+    title: 'The Wagon Sleeper',
+    pages: 25,
+    body: [
+      { type: 'text', text: 'Every night you spend hunting for a safe room is a night you are not moving. Build the bed into the wagon and you stop looking for shelter, because you are already in it.' },
+      { type: 'heading', text: 'Building the sleeper' },
+      { type: 'steps', items: [
+        'Frame a bunk from planks sized to the wagon bed.',
+        'Plate the sides in metal. Thin boards will not stop anything that wants in.',
+        'Lay a bedroll inside and fix the whole frame onto the wagon.'
       ] },
-      { type: 'note', text: 'A wagon is a platform, not just a cart. Leave room to bolt things onto it.' }
+      { type: 'heading', text: 'Sleeping on the road' },
+      { type: 'bullets', items: [
+        'Look around before you lie down. Nobody sleeps soundly with the dead in sight.',
+        'Park off the main road where you can, and away from buildings you have not cleared.'
+      ] },
+      { type: 'note', text: 'It fits the small wagon and the cargo wagon alike.' }
     ]
   },
   {
     id: 'book.nomad_survivor_5',
-    number: 4,
+    number: 5,
     title: 'The Solar Charger',
     pages: 40,
     body: [
@@ -97,8 +118,30 @@ export const NOMAD_SURVIVOR_CHAPTERS = [
     ]
   },
   {
+    id: 'book.nomad_survivor_11',
+    number: 6,
+    title: 'The Vehicle Charger',
+    pages: 40,
+    body: [
+      { type: 'text', text: 'A charging station you have to stop and set up is a charging station you will leave behind. The vehicle charger rides with you and keeps the whole wagon topped up while you travel.' },
+      { type: 'heading', text: 'Building it' },
+      { type: 'steps', items: [
+        'Strip a battery charger down to its board and its cradle leads.',
+        'Wire a solar panel into it, so it feeds itself instead of a wall socket.',
+        'Box the electronics so a jolt on the road cannot shake a joint loose.'
+      ] },
+      { type: 'heading', text: 'Using it' },
+      { type: 'bullets', items: [
+        "Stow it in the wagon's cargo. Anywhere in the bed will do.",
+        "It tops up every battery on the wagon a little each turn: the wagon's own power cells, loose spares, and the cells inside anything else you carry there.",
+        'It holds no battery of its own. Out of the wagon, it charges nothing.'
+      ] },
+      { type: 'note', text: 'A motorised wagon with one of these aboard goes a great deal further between stops.' }
+    ]
+  },
+  {
     id: 'book.nomad_survivor_6',
-    number: 5,
+    number: 7,
     title: 'The Cargo Wagon',
     pages: 50,
     body: [
@@ -115,7 +158,7 @@ export const NOMAD_SURVIVOR_CHAPTERS = [
   },
   {
     id: 'book.nomad_survivor_7',
-    number: 6,
+    number: 8,
     title: 'The Stun Rod',
     pages: 25,
     body: [
@@ -135,7 +178,7 @@ export const NOMAD_SURVIVOR_CHAPTERS = [
   },
   {
     id: 'book.nomad_survivor_8',
-    number: 7,
+    number: 9,
     title: 'The Auto Turret',
     pages: 50,
     body: [
@@ -151,13 +194,12 @@ export const NOMAD_SURVIVOR_CHAPTERS = [
         'Mount the rifle on a rod pivot driven by the motor.',
         'Wire the sensor and laser so they trigger the traverse before the trigger.',
         'Shield the mechanism. A turret that takes one hit and stops is not a defence.'
-      ] },
-      { type: 'note', text: 'A turret does not know friend from foe unless you tell it. Never stand downrange of one you did not set.' }
+      ] }
     ]
   },
   {
     id: 'book.nomad_survivor_9',
-    number: 8,
+    number: 10,
     title: 'Remote Control',
     pages: 50,
     body: [
@@ -170,8 +212,7 @@ export const NOMAD_SURVIVOR_CHAPTERS = [
         'Build and test the receiver before you attempt the controller.',
         'Fit the processor to the receiver board.',
         'Mount the controller in the wagon and set a short first trip.'
-      ] },
-      { type: 'note', text: 'Every order you send costs the phone power. A dead phone strands whatever it was driving.' }
+      ] }
     ]
   }
 ];

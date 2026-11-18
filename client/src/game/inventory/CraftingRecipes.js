@@ -389,6 +389,7 @@ export const CraftingRecipes = [
         description: 'An upgrade for wagons that provides a comfortable space to sleep.',
         apCost: 15,
         tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_10',
         tools: [
             { either: ['weapon.hammer', 'weapon.makeshift_hammer'], count: 1, label: 'Hammer' }
         ],
@@ -440,6 +441,7 @@ export const CraftingRecipes = [
         description: "Place this on a wagon to charge the wagon's batteries as well as any other batteries on the wagon.",
         apCost: 20,
         tab: 'crafting',
+        requiredBook: 'book.nomad_survivor_11',
         tools: [
             { id: 'tool.pliers', label: 'Pliers' }
         ],
