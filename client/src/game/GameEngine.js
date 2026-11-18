@@ -13,6 +13,7 @@ import * as DroneVision from './remote/DroneVision.js';
 import { restoreOrders } from './remote/AutoWagonOrders.js';
 import { restoreControlModes } from './remote/DeviceControlMode.js';
 import { phoneCharges } from './phone/Phone.js';
+import { freshChapterStats } from './phone/NomadSurvivorChapters.js';
 
 
 import { gameRandom } from './utils/SeededRandom.js';
@@ -174,16 +175,19 @@ class GameEngine extends SafeEventEmitter {
     // Fresh-game defaults are derived from each READABLE book definition's
     // totalPages (single-sourced in ItemDefs). A loaded save overrides these
     // wholesale via GameSaveSystem (engine.bookStats = saveData.bookStats).
+    // The Nomad Survivor e-book chapters share this record, keyed by the old
+    // paperback defIds; their page counts come from the chapter data, and they
+    // start unread so each chapter's recipe has to be learned on the phone.
     this.bookStats = {};
     for (const [defId, def] of Object.entries(ItemDefs)) {
       if (def.traits?.includes(ItemTrait.READABLE)) {
-        const isNomad = defId.startsWith('book.nomad_survivor_');
         this.bookStats[defId] = {
-          pagesLeft: isNomad ? 0 : def.totalPages, // Track how many pages remain to be read
+          pagesLeft: def.totalPages, // Track how many pages remain to be read
           milestonesReached: 0 // Track how many 100-page milestones were processed
         };
       }
     }
+    Object.assign(this.bookStats, freshChapterStats());
 
     // Phase: Crafting Queue (multi-turn crafting)
     // Fresh-game default is null (no item in progress). A loaded save overrides

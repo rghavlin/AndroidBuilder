@@ -1,6 +1,6 @@
 import React, { useState, useSyncExternalStore } from 'react';
 import { cn } from "@/lib/utils";
-import { Power, MessageSquare, Truck, ChevronLeft, X } from 'lucide-react';
+import { Power, MessageSquare, Truck, BookOpen, ChevronLeft, X } from 'lucide-react';
 import AttachmentSlot from '@/components/Inventory/AttachmentSlot';
 import LeftPanelWindow from './LeftPanelWindow';
 import { useInventory } from "@/contexts/InventoryContext";
@@ -12,6 +12,9 @@ import * as RemoteDeviceRegistry from '@/game/remote/RemoteDeviceRegistry';
 import { hasAutonomy } from '@/game/remote/RemoteDeviceKinds';
 import { deviceCharge } from '@/game/remote/DeviceCharge';
 import { PHONE_MESSAGES, getPhoneMessage } from '@/game/phone/PhoneMessages';
+import { NOMAD_SURVIVOR_TITLE } from '@/game/phone/NomadSurvivorChapters';
+import PhoneBlocks from './PhoneBlocks';
+import { ChapterList, ChapterReader } from './PhoneEbook';
 import engine from '../../game/GameEngine.js';
 
 interface PhoneWindowProps {
@@ -20,7 +23,15 @@ interface PhoneWindowProps {
 }
 
 /** Which screen the handset is showing. 'home' is the app grid. */
-type PhoneScreen = 'home' | 'devices' | 'messages';
+type PhoneScreen = 'home' | 'devices' | 'messages' | 'ebook';
+
+/** Status-bar label for each app screen. */
+const SCREEN_LABELS: Record<PhoneScreen, string> = {
+  home: 'No service',
+  devices: 'Devices',
+  messages: 'Messages',
+  ebook: NOMAD_SURVIVOR_TITLE
+};
 
 /** Fallback if a phone predates the def's attachment slots. */
 const BATTERY_SLOT = { id: 'battery', name: 'Battery', allowedCategories: ['battery'] };
@@ -32,11 +43,13 @@ export default function PhoneWindow({ isOpen, onClose }: PhoneWindowProps) {
   const { playSound } = useAudio();
   const [screen, setScreen] = useState<PhoneScreen>('home');
   const [openMessageId, setOpenMessageId] = useState<string | null>(null);
+  const [openChapterId, setOpenChapterId] = useState<string | null>(null);
 
   // Leaving an app closes whatever it had open, so coming back starts at its
   // own top level rather than mid-message.
   const goToScreen = (next: PhoneScreen) => {
     setOpenMessageId(null);
+    setOpenChapterId(null);
     setScreen(next);
   };
 
@@ -173,6 +186,8 @@ export default function PhoneWindow({ isOpen, onClose }: PhoneWindowProps) {
                   onSelectDevice={handleSelectDevice}
                   openMessageId={openMessageId}
                   onOpenMessage={setOpenMessageId}
+                  openChapterId={openChapterId}
+                  onOpenChapter={setOpenChapterId}
                 />
               ) : null}
             </div>
@@ -189,7 +204,9 @@ function PhoneScreenContent({
   onNavigate,
   onSelectDevice,
   openMessageId,
-  onOpenMessage
+  onOpenMessage,
+  openChapterId,
+  onOpenChapter
 }: {
   screen: PhoneScreen;
   charges: number;
@@ -197,22 +214,26 @@ function PhoneScreenContent({
   onSelectDevice: (key: string | null) => void;
   openMessageId: string | null;
   onOpenMessage: (id: string | null) => void;
+  openChapterId: string | null;
+  onOpenChapter: (id: string | null) => void;
 }) {
   const openMessage = openMessageId ? getPhoneMessage(openMessageId) : null;
 
   // Back steps out one level at a time: out of a message to the inbox, out of
-  // an app to the home screen.
+  // a chapter to the contents, out of an app to the home screen.
   const goBack = () => {
     if (openMessage) onOpenMessage(null);
+    else if (openChapterId) onOpenChapter(null);
     else onNavigate('home');
   };
+  const backLabel = openMessage ? 'Inbox' : openChapterId ? 'Contents' : 'Home';
 
   return (
     <>
       {/* Status bar */}
       <div className="flex items-center justify-between px-3 py-1.5 text-[0.6rem] font-mono text-cyan-300/70 border-b border-cyan-400/10">
         <span className="uppercase tracking-widest">
-          {screen === 'home' ? 'No service' : screen}
+          {SCREEN_LABELS[screen]}
         </span>
         <span>{charges}</span>
       </div>
@@ -231,6 +252,12 @@ function PhoneScreenContent({
             onClick={() => onNavigate('devices')}
             testId="phone-app-devices"
           />
+          <PhoneAppIcon
+            label="Survivor"
+            icon={<BookOpen className="h-7 w-7" />}
+            onClick={() => onNavigate('ebook')}
+            testId="phone-app-ebook"
+          />
         </div>
       ) : (
         <div className="flex-1 flex flex-col min-h-0">
@@ -238,10 +265,14 @@ function PhoneScreenContent({
             onClick={goBack}
             className="flex items-center gap-1 px-2 py-1.5 text-[0.65rem] text-cyan-300/70 hover:text-cyan-200 transition-colors focus:outline-none shrink-0"
           >
-            <ChevronLeft className="h-3 w-3" /> {openMessage ? 'Inbox' : 'Home'}
+            <ChevronLeft className="h-3 w-3" /> {backLabel}
           </button>
           {screen === 'devices' ? (
             <DeviceList onSelect={onSelectDevice} />
+          ) : screen === 'ebook' ? (
+            openChapterId
+              ? <ChapterReader chapterId={openChapterId} />
+              : <ChapterList onOpen={onOpenChapter} />
           ) : openMessage ? (
             <MessageReader message={openMessage} />
           ) : (
@@ -296,49 +327,7 @@ function MessageReader({ message }: { message: any }) {
         {message.from} — {message.received}
       </p>
 
-      {message.body.map((block: any, i: number) => {
-        if (block.type === 'heading') {
-          return (
-            <h4
-              key={i}
-              className={cn(
-                "text-[0.65rem] font-bold mt-2.5 mb-1",
-                block.emphasis
-                  ? "uppercase tracking-widest text-cyan-200"
-                  : "text-cyan-200/90"
-              )}
-            >
-              {block.text}
-            </h4>
-          );
-        }
-        if (block.type === 'steps') {
-          return (
-            <ol key={i} className="list-decimal pl-4 space-y-1 text-[0.62rem] leading-relaxed">
-              {block.items.map((item: string, j: number) => <li key={j}>{item}</li>)}
-            </ol>
-          );
-        }
-        if (block.type === 'bullets') {
-          return (
-            <ul key={i} className="pl-3 space-y-1 text-[0.62rem] leading-relaxed">
-              {block.items.map((item: string, j: number) => (
-                <li key={j} className="before:content-['—_'] before:text-cyan-100/40">{item}</li>
-              ))}
-            </ul>
-          );
-        }
-        if (block.type === 'note') {
-          return (
-            <p key={i} className="mt-2 text-[0.58rem] italic text-cyan-100/50 leading-relaxed">
-              Note: {block.text}
-            </p>
-          );
-        }
-        return (
-          <p key={i} className="text-[0.62rem] leading-relaxed">{block.text}</p>
-        );
-      })}
+      <PhoneBlocks blocks={message.body} />
     </div>
   );
 }

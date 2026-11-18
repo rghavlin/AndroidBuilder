@@ -5,10 +5,11 @@ import { LootGenerator } from '../../client/src/game/map/LootGenerator.js';
 import { GameSaveSystem } from '../../client/src/game/GameSaveSystem.js';
 import { EntityFactory } from '../../client/src/game/EntityFactory.js';
 import { GameMap } from '../../client/src/game/map/GameMap.js';
+import { NOMAD_SURVIVOR_CHAPTERS } from '../../client/src/game/phone/NomadSurvivorChapters.js';
 
 describe('Nomad Survivor Books & Recipes', () => {
   it('has noLoot: true set on all nomad survivor volumes in ItemDefs', () => {
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 2; i <= 9; i++) {
       const defId = `book.nomad_survivor_${i}`;
       expect(ItemDefs[defId]).toBeDefined();
       expect(ItemDefs[defId].noLoot).toBe(true);
@@ -19,23 +20,21 @@ describe('Nomad Survivor Books & Recipes', () => {
     const lg = new LootGenerator();
     lg.initItemKeys();
     expect(lg.itemKeys).toBeDefined();
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 2; i <= 9; i++) {
       const defId = `book.nomad_survivor_${i}`;
       expect(lg.itemKeys).not.toContain(defId);
     }
   });
 
-  it('grants nomad survivor recipe access by default (pagesLeft: 0) on fresh GameEngine setup', () => {
+  it('starts a fresh game with every e-book chapter unread (recipes locked)', () => {
     engine.reset();
     expect(engine.bookStats).toBeDefined();
-    for (let i = 1; i <= 9; i++) {
-      const defId = `book.nomad_survivor_${i}`;
-      expect(engine.bookStats[defId]).toBeDefined();
-      expect(engine.bookStats[defId].pagesLeft).toBe(0);
+    for (const chapter of NOMAD_SURVIVOR_CHAPTERS) {
+      expect(engine.bookStats[chapter.id]).toBeDefined();
+      expect(engine.bookStats[chapter.id].pagesLeft).toBe(chapter.pages);
     }
   });
-
-  it('guarantees nomad survivor books have pagesLeft: 0 even after loading an older save file', async () => {
+  it('keeps chapter progress exactly as saved, and adds missing chapters as unread', async () => {
     engine.reset();
     globalThis.gameEngine = engine;
 
@@ -50,20 +49,23 @@ describe('Nomad Survivor Books & Recipes', () => {
       turn: 5,
       bookStats: {
         'book.life_in_motion': { pagesLeft: 400, milestonesReached: 1 },
-        'book.nomad_survivor_1': { pagesLeft: 15, milestonesReached: 0 }
+        // Saved while every recipe was free: stays learned.
+        'book.nomad_survivor_2': { pagesLeft: 0, milestonesReached: 0 },
+        // Part-read: stays part-read.
+        'book.nomad_survivor_3': { pagesLeft: 7, milestonesReached: 0 }
       }
     };
 
-    // Simulate GameSaveSystem loadGameState
     await GameSaveSystem.loadGameState(mockSaveData);
 
     expect(engine.bookStats['book.life_in_motion'].pagesLeft).toBe(400);
-    
-    // All nomad survivor volumes must be corrected to 0 pagesLeft
-    for (let i = 1; i <= 9; i++) {
-      const defId = `book.nomad_survivor_${i}`;
-      expect(engine.bookStats[defId]).toBeDefined();
-      expect(engine.bookStats[defId].pagesLeft).toBe(0);
+    expect(engine.bookStats['book.nomad_survivor_2'].pagesLeft).toBe(0);
+    expect(engine.bookStats['book.nomad_survivor_3'].pagesLeft).toBe(7);
+
+    // Chapters the save never mentioned come in unread.
+    for (const chapter of NOMAD_SURVIVOR_CHAPTERS.slice(2)) {
+      expect(engine.bookStats[chapter.id]).toBeDefined();
+      expect(engine.bookStats[chapter.id].pagesLeft).toBe(chapter.pages);
     }
 
     delete globalThis.gameEngine;

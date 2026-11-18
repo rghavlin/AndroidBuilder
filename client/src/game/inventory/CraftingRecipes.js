@@ -383,23 +383,6 @@ export const CraftingRecipes = [
         ]
     },
     {
-        id: 'crafting.small_sled',
-        name: 'Sled',
-        resultItem: 'vehicle.small_sled',
-        description: 'For moving items',
-        resultCount: 1,
-        apCost: 10,
-        tab: 'crafting',
-        requiredBook: 'book.nomad_survivor_1',
-        tools: [
-            { either: ['weapon.hammer', 'weapon.makeshift_hammer'], count: 1, label: 'Hammer' }
-        ],
-        ingredients: [
-            { id: 'weapon.plank', count: 4 },
-            { id: 'crafting.nail', count: 4 }
-        ]
-    },
-    {
         id: 'crafting.wagon_sleeper',
         name: 'Wagon Sleeper',
         resultItem: 'wagon_sleeper',

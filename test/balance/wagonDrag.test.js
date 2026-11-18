@@ -346,9 +346,12 @@ describe('Terrain and unwheeled furniture', () => {
     expect(penalty(item('placeable.bed'), 80)).toBe(0);
   });
 
-  it('makes a sled cheaper on grass than on pavement', () => {
-    const sled = makeVehicle('vehicle.small_sled', 0);
-    expect(drag(sled, 'grass')).toBeLessThan(drag(sled, 'road'));
+  it("lets an item's own terrainModifiers turn pavement into a surcharge", () => {
+    // No shipped item uses a positive modifier any more (the sled was
+    // removed), but the mechanism stays: runners that grind on asphalt.
+    const runners = makeVehicle('vehicle.wagon', 0);
+    runners.terrainModifiers = { road: 0.5, sidewalk: 0.5, grass: -0.5 };
+    expect(drag(runners, 'grass')).toBeLessThan(drag(runners, 'road'));
   });
 
   it('prices a mixed group at its worst member, independent of order', () => {

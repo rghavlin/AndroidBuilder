@@ -2641,31 +2641,6 @@ export const ItemDefs = {
     description: 'Dissasemble: Hammer'
   },
 
-  'vehicle.small_sled': {
-    id: 'vehicle.small_sled',
-    name: 'Sled',
-    rarity: Rarity.UNCOMMON,
-    imageId: 'sled',
-    width: 4,
-    height: 6,
-    traits: [ItemTrait.GROUND_ONLY, ItemTrait.CONTAINER, ItemTrait.DRAGGABLE, ItemTrait.VEHICLE, ItemTrait.FURNITURE, ItemTrait.WAGON],
-    categories: [ItemCategory.FURNITURE, ItemCategory.TOOL, ItemCategory.VEHICLE],
-    noLoot: true,
-    dragApPenalty: 3,
-    terrainModifiers: { road: 0.5, sidewalk: 0.5, grass: -0.5 }, // Runners grind on pavement, glide on grass
-    renderFullTile: true,
-    containerGrid: { width: 4, height: 5, isVehicle: true },
-    disassembleData: {
-      toolId: { either: ['weapon.hammer', 'weapon.makeshift_hammer'] },
-      apCost: 10,
-      components: [
-        { id: 'weapon.plank', count: 4 },
-        { id: 'crafting.nail', count: 4 }
-      ]
-    },
-    description: 'For moving items'
-  },
-
   'furniture.electric_mower': {
     id: 'furniture.electric_mower',
     name: 'Electric mower',
@@ -2855,19 +2830,6 @@ export const ItemDefs = {
     categories: [ItemCategory.BOOK, ItemCategory.FUEL],
     totalPages: 500,
     description: 'Read to gain Agility and Perception XP (5 XP per page).'
-  },
-  'book.nomad_survivor_1': {
-    id: 'book.nomad_survivor_1',
-    name: 'Nomad Survivor Vol 1',
-    rarity: Rarity.COMMON,
-    imageId: 'nomadsurvivor',
-    noLoot: true,
-    width: 1,
-    height: 1,
-    traits: [ItemTrait.READABLE],
-    categories: [ItemCategory.BOOK, ItemCategory.FUEL],
-    totalPages: 15,
-    description: 'Learn how to build a Sled'
   },
   'book.nomad_survivor_2': {
     id: 'book.nomad_survivor_2',

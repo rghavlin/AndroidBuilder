@@ -65,7 +65,7 @@ interface UniversalGridProps {
   onBeforeDrop?: (itemId: string, fromId: string, toId: string) => boolean;
   isTransparentGround?: boolean;
   tileImageUrl?: string;
-  /* Overlay grids (wagon/sled/planter) sit on top of the vehicle art:
+  /* Overlay grids (wagon/planter) sit on top of the vehicle art:
      opt out of theme panel chrome so the art stays visible underneath */
   transparentChrome?: boolean;
 }
@@ -1231,7 +1231,7 @@ export default function UniversalGrid({
                 </div>
               )}
 
-              {/* Phase: Specialized Ground Container Overlay (Wagon/Sled/Hotplate/Turret) */}
+              {/* Phase: Specialized Ground Container Overlay (Wagon/Hotplate/Turret) */}
               {(() => {
                 const isScooter = item.hasTrait?.(ItemTrait.SCOOTER);
                 const isHotplate = item.defId === 'tool.battery_powered_hotplate';

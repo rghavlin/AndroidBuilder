@@ -117,7 +117,7 @@ export function ItemContextMenu({
             </Tooltip>
 
             {item && (() => {
-                // Phase: Specialized Ground Containers (Wagon/Sled) bypass ContextMenu
+                // Phase: Specialized Ground Containers (Wagon) bypass ContextMenu
                 const isSpecialGroundContainer = item.hasTrait?.(ItemTrait.VEHICLE) && 
                                                engine.inventoryManager.groundContainer.items.has(item.instanceId);
                 const hasSleeperUpgrade = item.attachments?.['sleeper'] !== undefined && item.attachments?.['sleeper'] !== null;

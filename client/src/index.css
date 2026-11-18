@@ -1344,7 +1344,7 @@
     border-radius: 4px;
   }
 
-  /* Vehicle/planter overlay grids (wagon, sled, turret): slots must stay
+  /* Vehicle/planter overlay grids (wagon, turret): slots must stay
      translucent so the vehicle art shows through — out-specify the opaque
      empty/inset-slot rules above */
   .metallic .empty-slot.overlay-grid-slot,

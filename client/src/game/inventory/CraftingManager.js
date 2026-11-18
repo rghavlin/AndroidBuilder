@@ -772,7 +772,7 @@ export class CraftingManager {
             console.log(`[CraftingManager] Applied resultCount ${recipe.resultCount} to ${newItem.name}`);
         }
 
-        // Handle GROUND_ONLY/Furniture placement (e.g. Campfire, Sled, Bed)
+        // Handle GROUND_ONLY/Furniture placement (e.g. Campfire, Bed)
         if (newItem.hasTrait(ItemTrait.FURNITURE) || newItem.hasTrait(ItemTrait.GROUND_ONLY)) {
             const ground = this.inv.groundContainer;
             console.log(`[CraftingManager] Placing furniture/ground item ${newItem.name} on infinite ground...`);

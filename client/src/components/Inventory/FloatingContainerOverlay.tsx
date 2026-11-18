@@ -40,7 +40,7 @@ export default function FloatingContainerOverlay({
   const modOverlayId = `mod-overlay:${item.instanceId}`;
   const showMods = isContainerOpen(modOverlayId);
   
-  // Get the internal container of the wagon/sled
+  // Get the internal container of the wagon
   const containerGrid = item.getContainerGrid?.();
   
    const isDragging = engine?.dragging?.item?.instanceId === item.instanceId;

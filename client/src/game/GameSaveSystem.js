@@ -6,6 +6,7 @@ import { FactionRegistry } from './ai/FactionRegistry.js';
 import { serializeOrders } from './remote/AutoWagonOrders.js';
 import { serializeControlModes } from './remote/DeviceControlMode.js';
 import { ensurePhone } from './phone/Phone.js';
+import { ensureChapterStats } from './phone/NomadSurvivorChapters.js';
 
 // The start-menu tutorial's private autosave. It lives beside the regular save
 // slots but is never listed with them — see StartMapSave.js.
@@ -458,18 +459,10 @@ export class GameSaveSystem {
       if (saveData.bookStats) {
           engine.bookStats = saveData.bookStats;
       }
-      // Ensure all nomad survivor books are marked as read (pagesLeft: 0) on load.
-      if (!engine.bookStats) {
-          engine.bookStats = {};
-      }
-      for (let i = 1; i <= 9; i++) {
-          const bookId = `book.nomad_survivor_${i}`;
-          if (!engine.bookStats[bookId]) {
-              engine.bookStats[bookId] = { pagesLeft: 0, milestonesReached: 0 };
-          } else {
-              engine.bookStats[bookId].pagesLeft = 0;
-          }
-      }
+      // Nomad Survivor chapter progress is kept exactly as saved — games saved
+      // while every recipe was free stay that way. Only chapters the save has
+      // never heard of are added, as unread.
+      ensureChapterStats(engine);
 
       engine.craftingQueue = saveData.craftingQueue || null;
 
